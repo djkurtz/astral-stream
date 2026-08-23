@@ -69,10 +69,18 @@ export class AstralRenderer {
     ctx.fillStyle = '#166534';
     ctx.fillRect(0, 0, worldW, worldH);
 
+    // Natural Contoured Boundaries & 3D Topography
+    this.drawWesternSeaCliffs(ctx, worldH, t);
+    this.drawNorthernMountains(ctx, worldW, t);
+    this.drawEasternPalisades(ctx, worldW, worldH, t);
+    this.draw3DTerrainContours(ctx, worldW, worldH, t);
+    this.drawCobblestonePathNetwork(ctx, t);
+    this.drawMusicalFloraAndLandmarks(ctx, t);
+
     // Decorative grass patches
     ctx.fillStyle = '#15803d';
-    for (let x = 40; x < worldW - 40; x += 80) {
-      for (let y = 40; y < 2000; y += 80) {
+    for (let x = 160; x < worldW - 140; x += 80) {
+      for (let y = 140; y < 2000; y += 80) {
         if ((x + y) % 60 === 0) {
           ctx.fillRect(x, y, 8, 4);
           ctx.fillRect(x + 4, y - 4, 4, 8);
@@ -236,47 +244,81 @@ export class AstralRenderer {
       this.drawDetailedHound(ctx, houndX, houndY, t);
     }
 
-    // 19. High-Legibility Interaction HUD Prompt
+    // 19. Unified Proximity Identity & Interaction Card
     if (state.nearbyInteractable) {
       const target = state.nearbyInteractable;
       const tx = target.x;
-      const ty = 'name' in target ? target.y - 48 : target.y - 38;
+      const ty = 'name' in target ? target.y - 54 : target.y - 44;
 
       let promptText = '';
+      let subText = '';
+      let accentColor = '#06b6d4';
+
       if ('spirit' in target && 'defeated' in target) {
         promptText = `⚔️ [SPACE] Battle ${(target as any).name}`;
+        subText = `Wild Static Glitch • Lvl ${(target as any).spirit.level || 1}`;
+        accentColor = '#ef4444';
       } else if ('collected' in target) {
         promptText = `✨ [SPACE] Collect ${(target as any).name}`;
+        subText = (target as any).effect || 'Valuable Audio Artifact';
+        accentColor = '#fbbf24';
       } else if ('name' in target) {
         if (target.id === 'npc_gate') {
           promptText = state.activeCompanion === 'jax' ? '⚠️ [SPACE] Breach Glitch Gate' : '⚠️ [SPACE] Inspect Gate';
+          subText = 'Threshold to Dead Channel 000';
+          accentColor = '#a855f7';
         } else if (target.actionType === 'battle_jax') {
           promptText = state.activeCompanion === 'jax' ? '💬 [SPACE] Talk to Jax' : '⚔️ [SPACE] Duel Jax';
+          subText = 'Underground Bassist & Rebel Leader';
+          accentColor = '#c084fc';
         } else {
           promptText = `💬 [SPACE] Talk to ${target.name}`;
+          subText = (target as any).role || 'Cadence Plaza Resident';
+          accentColor = '#38bdf8';
         }
       } else {
         const cType = (target as any).challengeType;
-        if (cType === 'waveform_slider') promptText = '🎻 [SPACE] Baroque Violin';
-        else if (cType === 'call_response') promptText = '🪕 [SPACE] Indian Sitar';
-        else promptText = '🥁 [SPACE] Taiko Festival';
+        if (cType === 'waveform_slider') {
+          promptText = '🎻 [SPACE] Baroque Violin Ripple';
+          subText = 'Tune frequencies to stream Allegro-Owl';
+          accentColor = '#f59e0b';
+        } else if (cType === 'call_response') {
+          promptText = '🪕 [SPACE] Indian Sitar Jam';
+          subText = 'Repeat melody notes to stream Sitar-Swan';
+          accentColor = '#f59e0b';
+        } else {
+          promptText = '🥁 [SPACE] Matsuri Taiko Circle';
+          subText = 'Lock rhythm pulses to stream Taiko-Tanuki';
+          accentColor = '#f59e0b';
+        }
       }
 
       ctx.font = '700 13px Fredoka, sans-serif';
-      const textW = ctx.measureText(promptText).width;
-      const pillW = Math.max(160, textW + 36);
+      const mainW = ctx.measureText(promptText).width;
+      ctx.font = '500 11px Fredoka, sans-serif';
+      const subW = ctx.measureText(subText).width;
+      const pillW = Math.max(190, Math.max(mainW, subW) + 36);
+      const pillH = 38;
 
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.95)';
-      ctx.strokeStyle = '#06b6d4';
+      // Card Background & Neon Border
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.96)';
+      ctx.strokeStyle = accentColor;
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.roundRect(tx - pillW / 2, ty - 18, pillW, 28, 8);
+      ctx.roundRect(tx - pillW / 2, ty - pillH / 2, pillW, pillH, 8);
       ctx.fill();
       ctx.stroke();
 
+      // Top Line: Action Prompt
       ctx.fillStyle = '#ffffff';
+      ctx.font = '700 13px Fredoka, sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(promptText, tx, ty + 2);
+      ctx.fillText(promptText, tx, ty - 4);
+
+      // Bottom Line: Identity & Lore
+      ctx.fillStyle = accentColor;
+      ctx.font = '600 11px Fredoka, sans-serif';
+      ctx.fillText(subText, tx, ty + 12);
     }
 
     ctx.restore();
@@ -288,6 +330,270 @@ export class AstralRenderer {
   }
 
   /* ---------------- DETAILED SCENERY & 3D DIORAMA ---------------- */
+  private drawWesternSeaCliffs(ctx: CanvasRenderingContext2D, worldH: number, t: number): void {
+    // 1. Deep Oceanic Abyss on the far west
+    ctx.fillStyle = '#0369a1';
+    ctx.fillRect(0, 0, 100, worldH);
+
+    // 2. Multi-tier Craggy Rocky Cliff Faces
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(80, 0, 40, worldH);
+
+    ctx.fillStyle = '#334155';
+    ctx.beginPath();
+    ctx.moveTo(90, 0);
+    for (let y = 0; y <= worldH; y += 40) {
+      const jx = 100 + Math.sin(y * 0.02) * 14 + Math.cos(y * 0.05) * 8;
+      ctx.lineTo(jx, y);
+    }
+    ctx.lineTo(130, worldH);
+    ctx.lineTo(90, worldH);
+    ctx.closePath();
+    ctx.fill();
+
+    // 3. Cliff Top Edge / Contour Bevel
+    ctx.fillStyle = '#475569';
+    ctx.beginPath();
+    ctx.moveTo(110, 0);
+    for (let y = 0; y <= worldH; y += 30) {
+      const cx = 120 + Math.sin(y * 0.025 + 1) * 10;
+      ctx.lineTo(cx, y);
+    }
+    ctx.lineTo(135, worldH);
+    ctx.lineTo(110, worldH);
+    ctx.closePath();
+    ctx.fill();
+
+    // 4. Crashing Ocean Surf & Foam at Cliff Base
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+    for (let y = 30; y < worldH - 100; y += 50) {
+      const wave = Math.sin(t * 4 + y * 0.1) * 6;
+      ctx.beginPath();
+      ctx.ellipse(85 + wave, y, 12, 5, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  private drawNorthernMountains(ctx: CanvasRenderingContext2D, _worldW: number, _t: number): void {
+    // Majestic Jagged Mountain Peaks forming the natural Northern Barrier
+    const peaks = [
+      { x: 100, w: 220, h: 90 }, { x: 300, w: 260, h: 105 }, { x: 540, w: 240, h: 95 },
+      { x: 760, w: 280, h: 110 }, { x: 1020, w: 250, h: 100 }, { x: 1250, w: 270, h: 115 },
+      { x: 1500, w: 300, h: 120 }, { x: 1780, w: 260, h: 105 }, { x: 2020, w: 280, h: 110 },
+      { x: 2280, w: 250, h: 100 }, { x: 2510, w: 270, h: 115 }, { x: 2760, w: 260, h: 105 },
+      { x: 3000, w: 220, h: 95 }
+    ];
+
+    // Mountain Shadows (Back)
+    ctx.fillStyle = '#0f172a';
+    for (const p of peaks) {
+      ctx.beginPath();
+      ctx.moveTo(p.x - p.w / 2, 100);
+      ctx.lineTo(p.x, 100 - p.h);
+      ctx.lineTo(p.x + p.w / 2, 100);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    // Mountain Slopes (Lit side)
+    ctx.fillStyle = '#334155';
+    for (const p of peaks) {
+      ctx.beginPath();
+      ctx.moveTo(p.x - p.w / 2, 100);
+      ctx.lineTo(p.x, 100 - p.h);
+      ctx.lineTo(p.x, 100);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    // Snowcaps / Resonant Crystal Tips
+    ctx.fillStyle = '#cbd5e1';
+    for (const p of peaks) {
+      ctx.beginPath();
+      ctx.moveTo(p.x - 20, 100 - p.h * 0.75);
+      ctx.lineTo(p.x, 100 - p.h);
+      ctx.lineTo(p.x + 20, 100 - p.h * 0.75);
+      ctx.lineTo(p.x + 8, 100 - p.h * 0.7);
+      ctx.lineTo(p.x - 6, 100 - p.h * 0.72);
+      ctx.closePath();
+      ctx.fill();
+    }
+  }
+
+  private drawEasternPalisades(ctx: CanvasRenderingContext2D, _worldW: number, worldH: number, _t: number): void {
+    // Impassable Rocky Sea Bluffs & Bamboo Palisade (x: 3080 to 3200)
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(3080, 0, 120, worldH);
+
+    ctx.fillStyle = '#334155';
+    ctx.beginPath();
+    ctx.moveTo(3100, 0);
+    for (let y = 0; y <= worldH; y += 40) {
+      const px = 3090 + Math.sin(y * 0.03) * 12;
+      ctx.lineTo(px, y);
+    }
+    ctx.lineTo(3120, worldH);
+    ctx.lineTo(3100, worldH);
+    ctx.closePath();
+    ctx.fill();
+
+    // Natural Palisade Shading
+    ctx.fillStyle = '#065f46';
+    for (let y = 20; y < worldH - 40; y += 30) {
+      ctx.fillRect(3095, y, 16, 24);
+    }
+  }
+
+  private draw3DTerrainContours(ctx: CanvasRenderingContext2D, _worldW: number, _worldH: number, _t: number): void {
+    // 3D Stepped Plateau: Ancient Sound Ruins (x: 2240 to 2960, y: 240 to 880)
+    // Drop shadow
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.4)';
+    ctx.beginPath();
+    ctx.roundRect(2230, 250, 740, 650, 24);
+    ctx.fill();
+    // Shaded cliff wall
+    ctx.fillStyle = '#1e293b';
+    ctx.beginPath();
+    ctx.roundRect(2240, 246, 720, 640, 20);
+    ctx.fill();
+    // Elevated top tier
+    ctx.fillStyle = '#334155';
+    ctx.beginPath();
+    ctx.roundRect(2240, 236, 720, 640, 20);
+    ctx.fill();
+
+    // 3D Stepped Terrace: Desolation Ridge (x: 280 to 1040, y: 260 to 860)
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.45)';
+    ctx.beginPath();
+    ctx.roundRect(270, 270, 780, 610, 24);
+    ctx.fill();
+    ctx.fillStyle = '#18181b';
+    ctx.beginPath();
+    ctx.roundRect(280, 266, 760, 600, 20);
+    ctx.fill();
+    ctx.fillStyle = '#27272a';
+    ctx.beginPath();
+    ctx.roundRect(280, 256, 760, 600, 20);
+    ctx.fill();
+
+    // Rolling Grassland Elevation Ridges
+    ctx.strokeStyle = '#15803d';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(1600, 800, 450, Math.PI * 0.2, Math.PI * 0.8);
+    ctx.stroke();
+    ctx.strokeStyle = '#14532d';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(1600, 808, 450, Math.PI * 0.2, Math.PI * 0.8);
+    ctx.stroke();
+  }
+
+  private drawCobblestonePathNetwork(ctx: CanvasRenderingContext2D, t: number): void {
+    // Winding Cobblestone Road Segments connecting all biomes to Cadence Plaza
+    const paths = [
+      // South Beach to Plaza
+      { fromX: 550, fromY: 2020, toX: 1300, toY: 1760, cpX: 850, cpY: 1950 },
+      // Plaza East to Whispering Bamboo Grove
+      { fromX: 2080, fromY: 1440, toX: 2320, toY: 1440, cpX: 2200, cpY: 1440 },
+      // Plaza NE to Ancient Sound Ruins
+      { fromX: 1950, fromY: 1120, toX: 2400, toY: 880, cpX: 2250, cpY: 1020 },
+      // Plaza NW to Desolation Ridge
+      { fromX: 1300, fromY: 1120, toX: 850, toY: 860, cpX: 1050, cpY: 1000 }
+    ];
+
+    ctx.save();
+    for (const p of paths) {
+      // Path Shadow / Base Border
+      ctx.strokeStyle = '#0f172a';
+      ctx.lineWidth = 44;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(p.fromX, p.fromY);
+      ctx.quadraticCurveTo(p.cpX, p.cpY, p.toX, p.toY);
+      ctx.stroke();
+
+      // Paved Stone Surface
+      ctx.strokeStyle = '#64748b';
+      ctx.lineWidth = 38;
+      ctx.stroke();
+
+      // Musical Gold Center Inlay
+      ctx.strokeStyle = '#fbbf24';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([8, 12]);
+      ctx.lineDashOffset = -t * 15;
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    ctx.restore();
+  }
+
+  private drawMusicalFloraAndLandmarks(ctx: CanvasRenderingContext2D, t: number): void {
+    // Interactive Musical Flora scattered across open grass
+    const flora = [
+      // Singing Bass Mushrooms
+      { x: 1050, y: 1550, type: 'mushroom', color: '#ec4899', note: '♫' },
+      { x: 920, y: 1380, type: 'mushroom', color: '#a855f7', note: '♪' },
+      { x: 1850, y: 1850, type: 'mushroom', color: '#06b6d4', note: '♫' },
+      { x: 2150, y: 1680, type: 'mushroom', color: '#ec4899', note: '♪' },
+      // Resonant Quartz Geodes
+      { x: 2180, y: 780, type: 'crystal', color: '#38bdf8' },
+      { x: 2600, y: 200, type: 'crystal', color: '#fbbf24' },
+      { x: 1120, y: 880, type: 'crystal', color: '#a855f7' },
+      { x: 620, y: 1100, type: 'crystal', color: '#f43f5e' },
+      // Treble Reeds
+      { x: 1450, y: 1920, type: 'reed' },
+      { x: 1520, y: 1960, type: 'reed' },
+      { x: 1720, y: 1940, type: 'reed' }
+    ];
+
+    for (const f of flora) {
+      if (f.type === 'mushroom') {
+        const bob = Math.sin(t * 6 + f.x) * 3;
+        // Stalk
+        ctx.fillStyle = '#f1f5f9';
+        ctx.fillRect(f.x - 3, f.y - 8, 6, 8);
+        // Cap
+        ctx.fillStyle = f.color || '#ec4899';
+        ctx.beginPath();
+        ctx.arc(f.x, f.y - 8 + bob, 10, Math.PI, 0);
+        ctx.fill();
+        // Musical note particle
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '10px sans-serif';
+        ctx.fillText(f.note || '♪', f.x - 3, f.y - 14 + bob);
+      } else if (f.type === 'crystal') {
+        const glow = Math.sin(t * 4 + f.y) * 0.3 + 0.7;
+        ctx.save();
+        ctx.translate(f.x, f.y);
+        ctx.fillStyle = f.color || '#38bdf8';
+        ctx.shadowColor = f.color || '#38bdf8';
+        ctx.shadowBlur = 10 * glow;
+        ctx.beginPath();
+        ctx.moveTo(0, -16);
+        ctx.lineTo(8, -6);
+        ctx.lineTo(5, 4);
+        ctx.lineTo(-5, 4);
+        ctx.lineTo(-8, -6);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      } else if (f.type === 'reed') {
+        const sway = Math.sin(t * 3 + f.x) * 4;
+        ctx.strokeStyle = '#10b981';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(f.x, f.y);
+        ctx.quadraticCurveTo(f.x + sway, f.y - 12, f.x + sway * 1.5, f.y - 24);
+        ctx.stroke();
+        // Reed head
+        ctx.fillStyle = '#78350f';
+        ctx.fillRect(f.x + sway * 1.5 - 2, f.y - 24, 4, 8);
+      }
+    }
+  }
+
   private drawSandDunes(ctx: CanvasRenderingContext2D, worldW: number, _t: number): void {
     // Warm Golden Sand Base
     ctx.fillStyle = '#fef08a';
@@ -1325,26 +1631,26 @@ export class AstralRenderer {
     ctx.arc(x, y, pulse + 12, 0, Math.PI * 2);
     ctx.stroke();
 
-    // Ripple Icon & World Music Labels
+    // Ripple Icon in Center (Identity shown via Proximity Card)
     let icon = '🪕';
-    let label = 'Indian Sitar Jam';
-    if (challengeType === 'waveform_slider') { icon = '🎻'; label = 'Baroque Violin'; }
-    else if (challengeType === 'rhythm_pulse') { icon = '🥁'; label = 'Taiko Festival'; }
+    if (challengeType === 'waveform_slider') { icon = '🎻'; }
+    else if (challengeType === 'rhythm_pulse') { icon = '🥁'; }
 
     ctx.font = '24px sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText(icon, x, y + 8);
-
-    // Crisp Label Above
-    ctx.fillStyle = '#fbbf24';
-    ctx.font = '700 12px Fredoka, sans-serif';
-    ctx.fillText(label, x, y - 22);
+    ctx.textBaseline = 'middle';
+    ctx.fillText(icon, x, y);
   }
 
   /* ---------------- DETAILED PIXEL SPRITES ---------------- */
-  private drawDetailedPlayer(ctx: CanvasRenderingContext2D, x: number, y: number, _dir: string, isMoving: boolean, t: number): void {
+  private drawDetailedPlayer(ctx: CanvasRenderingContext2D, x: number, y: number, dir: string, isMoving: boolean, t: number): void {
     ctx.save();
     ctx.translate(x, y);
+
+    // Natural forward stride when moving left
+    if (dir === 'left') {
+      ctx.scale(-1, 1);
+    }
 
     const bob = isMoving ? Math.sin(t * 12) * 2 : 0;
     const legSwing = isMoving ? Math.sin(t * 12) * 4 : 0;
@@ -1373,13 +1679,26 @@ export class AstralRenderer {
     ctx.fillStyle = '#fde047';
     ctx.fillRect(-6, -34 + bob, 12, 13);
 
-    // Eyes
-    ctx.fillStyle = '#0f172a';
-    ctx.fillRect(-4, -30 + bob, 3, 4);
-    ctx.fillRect(1, -30 + bob, 3, 4);
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(-4, -30 + bob, 1, 2);
-    ctx.fillRect(1, -30 + bob, 1, 2);
+    // Direction-aware facial features
+    if (dir === 'up') {
+      // Facing up: back of head hair
+      ctx.fillStyle = '#ca8a04';
+      ctx.fillRect(-6, -34 + bob, 12, 6);
+    } else if (dir === 'left' || dir === 'right') {
+      // Profile eyes looking forward
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(2, -30 + bob, 3, 4);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(3, -30 + bob, 1, 2);
+    } else {
+      // Down: both eyes forward
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(-4, -30 + bob, 3, 4);
+      ctx.fillRect(1, -30 + bob, 3, 4);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(-4, -30 + bob, 1, 2);
+      ctx.fillRect(1, -30 + bob, 1, 2);
+    }
 
     // Cyan Headphones
     ctx.fillStyle = '#06b6d4';
@@ -1388,13 +1707,15 @@ export class AstralRenderer {
     ctx.fillRect(7, -32 + bob, 3, 8);
 
     // Glowing Vibe-Phone in hand
-    ctx.fillStyle = '#06b6d4';
-    ctx.shadowColor = '#06b6d4';
-    ctx.shadowBlur = 8;
-    ctx.fillRect(8, -16 + bob, 6, 10);
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(9, -15 + bob, 4, 7);
-    ctx.shadowBlur = 0;
+    if (dir !== 'up') {
+      ctx.fillStyle = '#06b6d4';
+      ctx.shadowColor = '#06b6d4';
+      ctx.shadowBlur = 8;
+      ctx.fillRect(8, -16 + bob, 6, 10);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(9, -15 + bob, 4, 7);
+      ctx.shadowBlur = 0;
+    }
 
     ctx.restore();
   }
@@ -1829,7 +2150,7 @@ export class AstralRenderer {
     ctx.restore();
   }
 
-  private drawPixelNPC(ctx: CanvasRenderingContext2D, x: number, y: number, sprite: string, t: number, name: string): void {
+  private drawPixelNPC(ctx: CanvasRenderingContext2D, x: number, y: number, sprite: string, t: number, _name: string): void {
     ctx.save();
     ctx.translate(x, y);
 
@@ -1907,16 +2228,10 @@ export class AstralRenderer {
       ctx.fillRect(2, -30 + bob, 2, 2);
     }
 
-    // High-Legibility Name Label
-    ctx.fillStyle = '#ffffff';
-    ctx.font = '700 13px Fredoka, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(name, 0, -42 + bob);
-
     ctx.restore();
   }
 
-  private drawCollectibleItem(ctx: CanvasRenderingContext2D, x: number, y: number, icon: string, name: string, t: number): void {
+  private drawCollectibleItem(ctx: CanvasRenderingContext2D, x: number, y: number, icon: string, _name: string, t: number): void {
     ctx.save();
     ctx.translate(x, y);
 
@@ -1952,7 +2267,7 @@ export class AstralRenderer {
       ctx.fillRect(ox - 3.5, oy - 0.5, 7, 1);
     }
 
-    // 4. Item Icon with 3D Pop
+    // 4. Item Icon with 3D Pop (Identity shown via Proximity Card)
     ctx.font = '26px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -1960,19 +2275,6 @@ export class AstralRenderer {
     ctx.shadowBlur = 12;
     ctx.fillText(icon, 0, -10 + bob);
     ctx.shadowBlur = 0;
-
-    // 5. High-Contrast Retro 8-bit Badge Label
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
-    ctx.strokeStyle = '#fbbf24';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.roundRect(-60, -38 + bob, 120, 18, 5);
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.fillStyle = '#fef08a';
-    ctx.font = '700 11px Fredoka, sans-serif';
-    ctx.fillText(name, 0, -26 + bob);
 
     ctx.restore();
   }

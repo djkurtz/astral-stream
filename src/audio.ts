@@ -264,6 +264,31 @@ export class AudioEngine {
     }
   }
 
+  private currentBiome: 'beach' | 'plaza' | 'grove' | 'ruins' | 'ridge' = 'plaza';
+
+  public setBiome(biome: 'beach' | 'plaza' | 'grove' | 'ruins' | 'ridge'): void {
+    this.currentBiome = biome;
+  }
+
+  public updatePlayerPosition(x: number, y: number): void {
+    let targetBiome: 'beach' | 'plaza' | 'grove' | 'ruins' | 'ridge' = 'plaza';
+    if (y > 1850 && x < 1400) {
+      targetBiome = 'beach';
+    } else if (x > 2100 && y > 950) {
+      targetBiome = 'grove';
+    } else if (x > 1800 && y <= 950) {
+      targetBiome = 'ruins';
+    } else if (x <= 1300 && y <= 1050) {
+      targetBiome = 'ridge';
+    } else {
+      targetBiome = 'plaza';
+    }
+
+    if (this.currentBiome !== targetBiome) {
+      this.currentBiome = targetBiome;
+    }
+  }
+
   /* ---------------- STRUCTURED BGM SYSTEM ---------------- */
   public switchTrack(track: 'town' | 'battle'): void {
     if (this.currentTrack === track && this.bgmInterval) return;
@@ -277,44 +302,60 @@ export class AudioEngine {
     this.init();
     this.stepCount = 0;
 
-    // 16-Step Sequences
-    // Town: Am - F - C - G (Cozy Lo-Fi Vibe)
-    const townChords = [
-      // Am (Steps 0-3)
-      { b: 110, m: [440, 523, 659, 523] },
-      // F (Steps 4-7)
-      { b: 87.3, m: [349, 440, 523, 440] },
-      // C (Steps 8-11)
-      { b: 130.8, m: [523, 659, 783, 659] },
-      // G (Steps 12-15)
-      { b: 98.0, m: [392, 493, 587, 493] }
-    ];
+    // Biome Specific Chords & Melodies
+    const biomeChords = {
+      plaza: [ // Cozy Lo-Fi Jazz (Am7 - Dm7 - G7 - Cmaj7)
+        { b: 110, m: [440, 523, 659, 523], voice: 'sine' },
+        { b: 73.4, m: [293, 349, 440, 349], voice: 'sine' },
+        { b: 98.0, m: [392, 493, 587, 493], voice: 'sine' },
+        { b: 130.8, m: [523, 659, 783, 659], voice: 'sine' }
+      ],
+      beach: [ // Tropical Port Resonata Steel-Pan / Marimba (Fmaj7 - C - Dm7 - Bb)
+        { b: 87.3, m: [349, 440, 523, 659], voice: 'triangle' },
+        { b: 130.8, m: [523, 659, 783, 659], voice: 'triangle' },
+        { b: 73.4, m: [293, 349, 440, 587], voice: 'triangle' },
+        { b: 116.5, m: [466, 587, 698, 880], voice: 'triangle' }
+      ],
+      grove: [ // Zen Bamboo Koto / Pentatonic (D - F - G - A - C)
+        { b: 146.8, m: [293, 349, 392, 440], voice: 'triangle' },
+        { b: 110.0, m: [440, 523, 587, 659], voice: 'triangle' },
+        { b: 146.8, m: [587, 659, 783, 880], voice: 'triangle' },
+        { b: 98.0, m: [392, 440, 523, 587], voice: 'triangle' }
+      ],
+      ruins: [ // Ancient Resonant Choral Swells (Em - C - G - D)
+        { b: 82.4, m: [329, 392, 493, 659], voice: 'sine' },
+        { b: 130.8, m: [523, 659, 783, 1046], voice: 'sine' },
+        { b: 98.0, m: [392, 493, 587, 783], voice: 'sine' },
+        { b: 73.4, m: [293, 369, 440, 587], voice: 'sine' }
+      ],
+      ridge: [ // Gritty Analog Overdrive & Static (Bm - G - Em - F#)
+        { b: 123.5, m: [493, 587, 740, 587], voice: 'sawtooth' },
+        { b: 98.0, m: [392, 493, 587, 493], voice: 'sawtooth' },
+        { b: 82.4, m: [329, 392, 493, 392], voice: 'sawtooth' },
+        { b: 92.5, m: [369, 440, 554, 440], voice: 'sawtooth' }
+      ]
+    };
 
     // Battle: Driving Synth-Punk (Dm - Bb - F - C)
     const battleChords = [
-      // Dm (0-3)
       { b: 146.8, m: [587, 698, 880, 698] },
-      // Bb (4-7)
       { b: 116.5, m: [466, 587, 698, 587] },
-      // F (8-11)
       { b: 174.6, m: [698, 880, 1046, 880] },
-      // C (12-15)
       { b: 130.8, m: [523, 659, 783, 1046] }
     ];
 
-    const tempoMs = this.currentTrack === 'battle' ? 125 : 175; // Faster for battle
+    const tempoMs = this.currentTrack === 'battle' ? 125 : 170;
 
     this.bgmInterval = window.setInterval(() => {
       if (!this.ctx || this.isMuted) return;
 
       const track = this.currentTrack || 'town';
-      const chords = track === 'battle' ? battleChords : townChords;
       const step16 = this.stepCount % 16;
       const chordIndex = Math.floor(step16 / 4);
       const subStep = step16 % 4;
-      const chord = chords[chordIndex];
 
       if (track === 'battle') {
+        const chord = battleChords[chordIndex];
         // Driving Dance Drums
         if (step16 % 4 === 0) this.playDrum('kick');
         if (step16 % 4 === 2) this.playDrum('snare');
@@ -330,20 +371,39 @@ export class AudioEngine {
         this.playTone(this.isWarped ? mel * 1.02 : mel, 'square', 0.08, 0.05);
 
       } else {
-        // Chill Town Drums
-        if (step16 === 0 || step16 === 8) this.playDrum('kick');
-        if (step16 === 4 || step16 === 12) this.playDrum('snare');
-        if (step16 % 2 === 0) this.playDrum('hihat');
+        const currentProg = biomeChords[this.currentBiome] || biomeChords.plaza;
+        const chord = currentProg[chordIndex];
+        const voice = (chord.voice as OscillatorType) || 'sine';
 
-        // Warm Bass
-        if (subStep === 0) {
-          this.playTone(chord.b, 'triangle', 0.25, 0.1);
+        // Biome Dynamic Percussion
+        if (this.currentBiome === 'beach') {
+          if (step16 === 0 || step16 === 10) this.playDrum('kick');
+          if (step16 === 4 || step16 === 12) this.playDrum('clap');
+          if (step16 % 2 === 1) this.playDrum('hihat');
+        } else if (this.currentBiome === 'grove') {
+          if (step16 === 0 || step16 === 8) this.playDrum('kick');
+          if (step16 === 6 || step16 === 14) this.playDrum('hihat');
+        } else if (this.currentBiome === 'ridge') {
+          if (step16 % 4 === 0) this.playDrum('kick');
+          if (step16 % 4 === 2) this.playDrum('snare');
+          if (Math.random() < 0.25) this.playStaticHiss(0.08, 0.08);
+        } else {
+          // Plaza / Ruins default
+          if (step16 === 0 || step16 === 8) this.playDrum('kick');
+          if (step16 === 4 || step16 === 12) this.playDrum('snare');
+          if (step16 % 2 === 0) this.playDrum('hihat');
         }
 
-        // Acoustic Arpeggio
+        // Bass
+        if (subStep === 0) {
+          const bassType = this.currentBiome === 'ridge' ? 'sawtooth' : 'triangle';
+          this.playTone(chord.b, bassType, 0.28, this.currentBiome === 'ridge' ? 0.14 : 0.1);
+        }
+
+        // Ambient Melody Arpeggios
         const mel = chord.m[subStep];
-        if (subStep % 2 === 0) {
-          this.playTone(mel, 'sine', 0.18, 0.06);
+        if (subStep % 2 === 0 || this.currentBiome === 'beach') {
+          this.playTone(mel, voice, 0.2, 0.07);
         }
       }
 

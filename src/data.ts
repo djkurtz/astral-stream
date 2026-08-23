@@ -850,9 +850,15 @@ export const TOWN_ITEMS: CollectibleItem[] = [
 
 // World Obstacles across the 3200x2400 Realm
 export const WORLD_OBSTACLES: WorldObstacle[] = [
-  // Water borders
+  // Natural Physical Boundaries (North Mountain Ridge & East Palisades)
+  { type: 'box', x: 0, y: 0, w: 3200, h: 100, name: 'Northern Mountain Ridge' },
+  { type: 'box', x: 3100, y: 0, w: 100, h: 2400, name: 'Eastern Bamboo Palisades' },
+
+  // Western Contoured Sea Cliffs
+  { type: 'box', x: 0, y: 0, w: 120, h: 1980, name: 'Western Sea Cliffs' },
+
+  // South Ocean Waters (Walkable pier jetty exclusion handled in collision engine)
   { type: 'water', direction: 'south', value: 2200, name: 'Ocean South' },
-  { type: 'water', direction: 'west', value: 120, name: 'Ocean West' },
 
   // Buildings
   { type: 'box', x: 1230, y: 1180, w: 260, h: 160, name: 'Neon Cafe' },
@@ -860,6 +866,13 @@ export const WORLD_OBSTACLES: WorldObstacle[] = [
 
   // Fountain
   { type: 'circle', x: 1600, y: 1450, radius: 52, name: 'Harmony Fountain' },
+
+  // Plaza Perimeter Trees (radius: 18)
+  { type: 'circle', x: 1140, y: 1200, radius: 18, name: 'Plaza Tree NW' },
+  { type: 'circle', x: 1140, y: 1400, radius: 18, name: 'Plaza Tree W' },
+  { type: 'circle', x: 1140, y: 1600, radius: 18, name: 'Plaza Tree SW' },
+  { type: 'circle', x: 2120, y: 1200, radius: 18, name: 'Plaza Tree NE' },
+  { type: 'circle', x: 2120, y: 1600, radius: 18, name: 'Plaza Tree SE' },
 
   // Lampposts in plaza (radius: 16)
   { type: 'circle', x: 1280, y: 1380, radius: 16, name: 'Plaza Lamppost NW' },
@@ -869,11 +882,11 @@ export const WORLD_OBSTACLES: WorldObstacle[] = [
   { type: 'circle', x: 1600, y: 1260, radius: 16, name: 'Plaza Lamppost North' },
   { type: 'circle', x: 1600, y: 1640, radius: 16, name: 'Plaza Lamppost South' },
 
-  // Stone lanterns in bamboo grove (radius: 16)
-  { type: 'circle', x: 2380, y: 1280, radius: 16, name: 'Bamboo Stone Lantern 1' },
-  { type: 'circle', x: 2680, y: 1280, radius: 16, name: 'Bamboo Stone Lantern 2' },
-  { type: 'circle', x: 2450, y: 1600, radius: 16, name: 'Bamboo Stone Lantern 3' },
-  { type: 'circle', x: 2750, y: 1600, radius: 16, name: 'Bamboo Stone Lantern 4' },
+  // Stone lanterns in bamboo grove (radius: 14)
+  { type: 'circle', x: 2380, y: 1280, radius: 14, name: 'Bamboo Stone Lantern 1' },
+  { type: 'circle', x: 2680, y: 1280, radius: 14, name: 'Bamboo Stone Lantern 2' },
+  { type: 'circle', x: 2450, y: 1600, radius: 14, name: 'Bamboo Stone Lantern 3' },
+  { type: 'circle', x: 2750, y: 1600, radius: 14, name: 'Bamboo Stone Lantern 4' },
 
   // Palm tree trunks on beach (radius: 20)
   { type: 'circle', x: 280, y: 2050, radius: 20, name: 'Beach Palm 1' },
@@ -882,15 +895,15 @@ export const WORLD_OBSTACLES: WorldObstacle[] = [
   { type: 'circle', x: 1020, y: 2070, radius: 20, name: 'Beach Palm 4' },
   { type: 'circle', x: 1300, y: 2060, radius: 20, name: 'Beach Palm 5' },
 
-  // Bamboo thickets (radius: 20)
-  { type: 'circle', x: 2320, y: 1140, radius: 20, name: 'Bamboo Thicket 1' },
-  { type: 'circle', x: 2520, y: 1180, radius: 20, name: 'Bamboo Thicket 2' },
-  { type: 'circle', x: 2720, y: 1140, radius: 20, name: 'Bamboo Thicket 3' },
-  { type: 'circle', x: 2400, y: 1480, radius: 20, name: 'Bamboo Thicket 4' },
-  { type: 'circle', x: 2660, y: 1520, radius: 20, name: 'Bamboo Thicket 5' },
-  { type: 'circle', x: 2840, y: 1460, radius: 20, name: 'Bamboo Thicket 6' },
-  { type: 'circle', x: 2500, y: 1720, radius: 20, name: 'Bamboo Thicket 7' },
-  { type: 'circle', x: 2700, y: 1700, radius: 20, name: 'Bamboo Thicket 8' },
+  // Bamboo thickets (radius: 18 - carefully placed with wide walkways)
+  { type: 'circle', x: 2320, y: 1140, radius: 18, name: 'Bamboo Thicket 1' },
+  { type: 'circle', x: 2520, y: 1180, radius: 18, name: 'Bamboo Thicket 2' },
+  { type: 'circle', x: 2720, y: 1140, radius: 18, name: 'Bamboo Thicket 3' },
+  { type: 'circle', x: 2520, y: 1420, radius: 18, name: 'Bamboo Thicket 4' }, // Shifted east for open western passage
+  { type: 'circle', x: 2680, y: 1520, radius: 18, name: 'Bamboo Thicket 5' },
+  { type: 'circle', x: 2840, y: 1460, radius: 18, name: 'Bamboo Thicket 6' },
+  { type: 'circle', x: 2500, y: 1720, radius: 18, name: 'Bamboo Thicket 7' },
+  { type: 'circle', x: 2700, y: 1700, radius: 18, name: 'Bamboo Thicket 8' },
 
   // Ancient stone ruin pillars in canyon & ruins (radius: 24)
   { type: 'circle', x: 2300, y: 400, radius: 24, name: 'Ruin Pillar 1' },

@@ -122,6 +122,7 @@ export class AstralGameEngine {
       this.updatePlayerMovement(dt);
       this.updateWildMonsters(dt);
       this.updateProximity();
+      soundEngine.updatePlayerPosition(this.state.player.x, this.state.player.y);
     }
 
     // In update(now), calculate smooth camera centering:
@@ -204,21 +205,35 @@ export class AstralGameEngine {
 
     this.state.player.isMoving = (dx !== 0 || dy !== 0);
 
-    // Bounding Box (Canvas area clamp to wide world: 140 to 3060, 120 to 2180)
-    const newX = Math.max(140, Math.min(3060, this.state.player.x + dx));
-    const newY = Math.max(120, Math.min(2180, this.state.player.y + dy));
+    // Natural physical world limits (replaces artificial clamps)
+    const nextX = Math.max(40, Math.min(3160, this.state.player.x + dx));
+    const nextY = Math.max(40, Math.min(2360, this.state.player.y + dy));
 
-    // Collision with Obstacles
-    if (!this.checkObstacleCollision(newX, newY)) {
-      this.state.player.x = newX;
-      this.state.player.y = newY;
+    // Axis-independent collision checking for smooth wall sliding
+    const canMoveX = !this.checkObstacleCollision(nextX, this.state.player.y);
+    const canMoveY = !this.checkObstacleCollision(this.state.player.x, nextY);
+
+    if (canMoveX) {
+      this.state.player.x = nextX;
+    }
+    if (canMoveY) {
+      this.state.player.y = nextY;
     }
   }
 
   public checkObstacleCollision(x: number, y: number): boolean {
+    // Walkable Pier Jetties Exclusion (West Pier and East Boardwalk surface)
+    const onWestPier = (x >= 140 && x <= 320 && y >= 2040 && y <= 2260);
+    const onEastPier = (x >= 800 && x <= 1400 && y >= 2120 && y <= 2220);
+
     for (const obs of WORLD_OBSTACLES) {
       if (obs.type === 'water') {
-        if (obs.direction === 'south' && y > obs.value) return true;
+        if (obs.direction === 'south') {
+          if ((onWestPier || onEastPier) && y <= 2260) {
+            continue; // Walkable wooden pier deck over the ocean
+          }
+          if (y > obs.value) return true;
+        }
         if (obs.direction === 'west' && x < obs.value) return true;
       } else if (obs.type === 'box') {
         if (x >= obs.x && x <= obs.x + obs.w && y >= obs.y && y <= obs.y + obs.h) {
