@@ -116,7 +116,12 @@ export const ALL_INSTRUMENTS_INFO: Record<InstrumentId, { name: string; section:
   snare_kit: { name: 'Snare & Hi-Hat Kit', section: 'percussion', avatar: '🥁', description: 'Crisp metronomic precision, tight rolls, and groove propulsion.' },
   marimba: { name: 'Rosewood Marimba', section: 'percussion', avatar: '🪵', description: 'Warm wooden resonance and dancing polyrhythmic ostinatos.' },
   timpani: { name: 'Orchestral Timpani', section: 'percussion', avatar: '🥁', description: 'Resonant kettle drums providing thunderous dramatic crescendos.' },
-  glockenspiel: { name: 'Silver Glockenspiel', section: 'percussion', avatar: '🔔', description: 'Bright crystalline metallic chimes that sparkle above the ensemble.' }
+  glockenspiel: { name: 'Silver Glockenspiel', section: 'percussion', avatar: '🔔', description: 'Bright crystalline metallic chimes that sparkle above the ensemble.' },
+  harpsichord: { name: 'Harpsichord', section: 'strings', avatar: '🎹', description: 'Bright, quill-plucked sharp attack with pristine Baroque brilliance.' },
+  electric_guitar: { name: 'Electric Guitar', section: 'strings', avatar: '🎸', description: 'Overdriven crunchy power chords, blistering sustain, and distortion harmonics.' },
+  saxophone: { name: 'Saxophone', section: 'woodwinds', avatar: '🎷', description: 'Rich reedy jazz timbre with warm expressive vibrato.' },
+  typewriter: { name: 'Typewriter', section: 'percussion', avatar: '⌨️', description: 'Rapid mechanical click-clack strikes with clear margin bell chimes.' },
+  cannon: { name: 'Tchaikovsky Cannon', section: 'percussion', avatar: '💣', description: 'Massive low-frequency sub-bass artillery boom and resonant thunder.' }
 };
 
 export function calculateEffectiveSkill(
@@ -302,6 +307,26 @@ export const INSTRUMENT_BATTLE_MOVES: Record<InstrumentId, { move1: BattleMove; 
   glockenspiel: {
     move1: { id: 'crystal_carillon', name: 'Crystal Carillon', section: 'percussion', power: 17, harmonyCost: 10, effect: 'resonance_boost', description: 'Sparkling metallic bells that pierce through any mix.' },
     move2: { id: 'harmonic_chime', name: 'Prismatic Chime', section: 'percussion', power: 26, harmonyCost: 22, effect: 'vibrato_charm', description: 'Pure bell overtones that shimmer with ethereal brilliance.' }
+  },
+  harpsichord: {
+    move1: { id: 'quill_staccato', name: 'Quill Pluck', section: 'strings', power: 20, harmonyCost: 12, effect: 'resonance_boost', description: 'Crisp, quill-plucked strings delivering sparkling harmonic clarity.' },
+    move2: { id: 'baroque_toccata', name: 'Baroque Toccata', section: 'strings', power: 29, harmonyCost: 26, effect: 'fortissimo_burst', description: 'A rapid, dazzling counterpoint flourish that commands total attention.' }
+  },
+  electric_guitar: {
+    move1: { id: 'power_chord_riff', name: 'Overdrive Riff', section: 'strings', power: 22, harmonyCost: 14, effect: 'resonance_boost', description: 'A crunchy distorted power chord that electrifies the hall.' },
+    move2: { id: 'feedback_screamer', name: 'Harmonic Feedback', section: 'strings', power: 31, harmonyCost: 28, effect: 'fortissimo_burst', description: 'Blistering distortion sustain that shatters dissonance.' }
+  },
+  saxophone: {
+    move1: { id: 'sax_blues_inflection', name: 'Soulful Portamento', section: 'woodwinds', power: 21, harmonyCost: 15, effect: 'resonance_boost', description: 'Smooth, expressive pitch bends with rich warm overtones.' },
+    move2: { id: 'sax_bebop_cadence', name: 'Bebop Velocity', section: 'woodwinds', power: 28, harmonyCost: 25, effect: 'fortissimo_burst', description: 'A lightning-fast flurry of jazz subdivisions.' }
+  },
+  typewriter: {
+    move1: { id: 'margin_bell_chime', name: 'Margin Bell Chime', section: 'percussion', power: 19, harmonyCost: 12, effect: 'tempo_lock', description: 'A crisp mechanical clack punctuated by a pure metallic bell chime.' },
+    move2: { id: 'rapid_keystroke_roll', name: 'Stenographer Roll', section: 'percussion', power: 28, harmonyCost: 25, effect: 'fortissimo_burst', description: 'A lightning-fast barrage of rhythmic key strikes.' }
+  },
+  cannon: {
+    move1: { id: 'artillery_salvo', name: 'Artillery Salvo', section: 'percussion', power: 23, harmonyCost: 16, effect: 'resonance_boost', description: 'A resounding low-end boom that rattles the acoustic foundation.' },
+    move2: { id: '1812_overture_blast', name: '1812 Overture Blast', section: 'percussion', power: 34, harmonyCost: 32, effect: 'fortissimo_burst', description: 'An earth-shattering sub-bass cannon detonation of legendary magnitude.' }
   }
 };
 
@@ -2523,6 +2548,54 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     },
     dialogue: ["A majestic Cantabile Swan glides across the stream, singing pure lyrical violin tones! Harmonize with it!"]
   },
+  {
+    id: 'npc_wild_chameleon_west',
+    name: 'Wild Clavichord Chameleon',
+    title: 'Wild Harmonipet (Harpsichord) [SPACE to Harmonize]',
+    x: 250,
+    y: 800,
+    zone: 'west_wilderness',
+    wander: true,
+    anchorX: 250,
+    anchorY: 800,
+    actionType: 'wild_harmonipet',
+    wildPetData: {
+      id: 'pet_chameleon_wild',
+      name: 'Camille',
+      species: 'Clavichord Chameleon',
+      sprite: '🦎',
+      section: 'strings',
+      instrumentName: 'Harpsichord',
+      instrumentId: 'harpsichord',
+      leitmotifSound: 'harpsichord_pluck',
+      color: '#06b6d4'
+    },
+    dialogue: ["A glittering Clavichord Chameleon perches on the trellis, plucking bright, quill-sharp harpsichord counterpoint! Match its Baroque cadence!"]
+  },
+  {
+    id: 'npc_wild_hedgehog_west',
+    name: 'Wild Rockabilly Hedgehog',
+    title: 'Wild Harmonipet (Electric Guitar) [SPACE to Harmonize]',
+    x: 450,
+    y: 1100,
+    zone: 'west_wilderness',
+    wander: true,
+    anchorX: 450,
+    anchorY: 1100,
+    actionType: 'wild_harmonipet',
+    wildPetData: {
+      id: 'pet_hedgehog_wild',
+      name: 'Spike',
+      species: 'Rockabilly Hedgehog',
+      sprite: '🦔',
+      section: 'strings',
+      instrumentName: 'Electric Guitar',
+      instrumentId: 'electric_guitar',
+      leitmotifSound: 'guitar_overdrive',
+      color: '#ef4444'
+    },
+    dialogue: ["A rebellious Rockabilly Hedgehog cranks up the amplifier distortion on its electric guitar! Match its crunchy rock riffs to bond!"]
+  },
 
   // ==================== WOODWIND WOODS (SETTLED CANOPY VILLAGE) ====================
   {
@@ -3063,6 +3136,30 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     sheetMusicReward: 'piece_debussy_reverie',
     dialogue: ["You unearthed the impressionist masterpiece 'Rêverie for Woodwind Trio'!"]
   },
+  {
+    id: 'npc_wild_sax_fox_east',
+    name: 'Wild Bebop Fox',
+    title: 'Wild Harmonipet (Saxophone) [SPACE to Harmonize]',
+    x: 450,
+    y: 700,
+    zone: 'east_wilderness',
+    wander: true,
+    anchorX: 450,
+    anchorY: 700,
+    actionType: 'wild_harmonipet',
+    wildPetData: {
+      id: 'pet_sax_fox_wild',
+      name: 'Dexter',
+      species: 'Bebop Fox',
+      sprite: '🦊',
+      section: 'woodwinds',
+      instrumentName: 'Saxophone',
+      instrumentId: 'saxophone',
+      leitmotifSound: 'sax_vibrato',
+      color: '#f97316'
+    },
+    dialogue: ["A cool Bebop Fox swings beneath the sylvan willow, improvising smoky jazz saxophone lines with rich, warm vibrato! Harmonize with its melody!"]
+  },
 
   // ==================== BRASS CITADEL (SETTLED GILDED METRO) ====================
   {
@@ -3557,6 +3654,30 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       color: '#f97316'
     },
     dialogue: ["A stout Fanfare Badger puffs its chest and echoes deep horn calls against the canyon walls! Match its call!"]
+  },
+  {
+    id: 'npc_wild_cannon_beetle_north',
+    name: 'Wild Bombardier Beetle',
+    title: 'Wild Harmonipet (Cannon) [SPACE to Harmonize]',
+    x: 650,
+    y: 350,
+    zone: 'north_wilderness',
+    wander: true,
+    anchorX: 650,
+    anchorY: 350,
+    actionType: 'wild_harmonipet',
+    wildPetData: {
+      id: 'pet_cannon_beetle_wild',
+      name: 'Boomer',
+      species: 'Bombardier Beetle',
+      sprite: '🪲',
+      section: 'percussion',
+      instrumentName: 'Tchaikovsky Cannon',
+      instrumentId: 'cannon',
+      leitmotifSound: 'cannon_boom',
+      color: '#84cc16'
+    },
+    dialogue: ["A heavily armored Bombardier Beetle primes its resonance chamber, detonating massive sub-bass artillery cannon booms across the canyon! Match its thunderous pulse!"]
   },
 
   // ==================== PERCUSSION PEAKS (SETTLED TAIKO GHATS) ====================
@@ -4053,6 +4174,30 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     },
     dialogue: ["A spirited Rhythm Armadillo rolls along the basalt rocks, rattling its armor in syncopated snare bursts! Match its rhythm!"]
   },
+  {
+    id: 'npc_wild_typewriter_bird_south',
+    name: 'Wild Typist Woodpecker',
+    title: 'Wild Harmonipet (Typewriter) [SPACE to Harmonize]',
+    x: 650,
+    y: 450,
+    zone: 'south_wilderness',
+    wander: true,
+    anchorX: 650,
+    anchorY: 450,
+    actionType: 'wild_harmonipet',
+    wildPetData: {
+      id: 'pet_typewriter_bird_wild',
+      name: 'Quill',
+      species: 'Typist Woodpecker',
+      sprite: '🐦',
+      section: 'percussion',
+      instrumentName: 'Typewriter',
+      instrumentId: 'typewriter',
+      leitmotifSound: 'typewriter_clack',
+      color: '#06b6d4'
+    },
+    dialogue: ["A focused Typist Woodpecker pecks rapid rhythmic mechanical clacks and silver margin bell chimes into a petrified trunk! Harmonize with its cadence!"]
+  },
 
   // ==================== CENTRAL CITY (THE GRAND SYMPHONY HUB) ====================
   // Central Landmark Buildings & Interactive Doors
@@ -4216,10 +4361,46 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     dialogue: ["The pinnacle of theoretical studies: learn to balance timbral weight, dynamic frequencies, and polyphonic counterpoint across full symphony orchestras!"]
   },
   {
+    id: 'npc_pianist_busker',
+    name: 'Maestro Franz "Keys" Liszt',
+    title: 'Grand Virtuoso Pianist [SPACE to Duel]',
+    x: 1200,
+    y: 1140,
+    zone: 'grand_hall',
+    actionType: 'pianist_busking_duel',
+    musicianData: {
+      id: 'musician_franz_liszt',
+      name: 'Maestro Franz "Keys" Liszt',
+      title: 'Grand Virtuoso Pianist',
+      avatar: '🎹',
+      paletteColor: '#fbbf24',
+      instrumentId: 'glockenspiel',
+      instrumentName: 'Concert Grand Piano',
+      section: 'percussion',
+      pet: {
+        id: 'pet_franz_liszt',
+        name: 'Cadenza',
+        species: 'Rhapsody Nightingale',
+        sprite: 'nightingale',
+        section: 'percussion',
+        instrumentName: 'Concert Grand Piano',
+        leitmotifSound: 'glockenspiel_bell',
+        color: '#fbbf24'
+      },
+      stats: { technique: 85, toneQuality: 85, tempoStability: 85, sightReading: 95 },
+      level: 12,
+      xp: 3000
+    },
+    dialogue: [
+      "Maestro Franz 'Keys' Liszt sits boldly before a gleaming concert grand piano at the Eternal Rotunda Dais.",
+      "My fingers dance across the eighty-eight keys with transcendental fury! Dare you challenge a true virtuoso in a high-tempo busking duel?"
+    ]
+  },
+  {
     id: 'npc_music_stand_grand_hall',
     name: 'Celestial Music Stand',
     title: 'Study Sheet Music [SPACE]',
-    x: 1200,
+    x: 1280,
     y: 1140,
     zone: 'grand_hall',
     isProp: true,
@@ -4523,10 +4704,11 @@ export const PERFORMANCE_VENUES: PerformanceVenue[] = [
 export const INITIAL_GAME_QUESTS: GameQuest[] = [
   {
     id: 'quest_ch1',
-    title: 'Chapter 1: The Western Strings Soloist',
+    title: 'Chapter: The Western Strings Mastery',
     chapter: 1,
     type: 'main',
-    description: 'Begin your musical odyssey in Cavatina Village, the cradle of Strings in the West. Hone your technique in the Practice Shed, consult Clara’s Mom or Timmy’s Dad in the village square, and recruit your first Duet partner to triumph at the Village Gazebo.',
+    section: 'strings',
+    description: 'Master the expressive bowings and lyrical cantabile of Strings in Cavatina Village. Hone your technique in the Practice Shed, recruit a local prodigy (Clara or Maya) to form your Duet, and triumph at the Village Gazebo against Busker Timmy.',
     objective: 'Recruit Clara or Maya in Cavatina Village and defeat Busker Timmy at the Village Gazebo.',
     rewardGold: 200,
     rewardSparks: 20,
@@ -4535,10 +4717,11 @@ export const INITIAL_GAME_QUESTS: GameQuest[] = [
   },
   {
     id: 'quest_ch2',
-    title: 'Chapter 2: The Sylvan Woodwind Trio',
+    title: 'Chapter: The Sylvan Woodwind Mastery',
     chapter: 2,
     type: 'main',
-    description: 'Traverse the eastern wilderness of Breeze Glade into the sylvan canopies of Woodwind Woods. Recruit a nimble woodwind prodigy, chat with local parents at the Whispering Willow Lounge, and master your 3-piece syncopation at the Canopy Stage.',
+    section: 'woodwinds',
+    description: 'Traverse the eastern wilderness of Breeze Glade into the sylvan canopies of Woodwind Woods. Master rapid woodwind staccato and breath control, recruit a woodwind prodigy (Oliver, Chloe, or Devon), and prove your syncopation against Leo’s Whispering Canopy Trio.',
     objective: 'Recruit Oliver or Chloe in the East and defeat Leo’s Whispering Canopy Trio in Woodwind Woods.',
     rewardGold: 450,
     rewardSparks: 35,
@@ -4547,11 +4730,12 @@ export const INITIAL_GAME_QUESTS: GameQuest[] = [
   },
   {
     id: 'quest_ch3',
-    title: 'Chapter 3: The Gilded Citadel Quartet',
+    title: 'Chapter: The Gilded Brass Mastery',
     chapter: 3,
     type: 'main',
-    description: 'March north through the red-rock steppes of Echo Canyon into the fortified ramparts of The Brass Citadel. Recruit a heroic brass lead, face the high expectations of Citadel parents, and prove your dynamic projection against Baroness Vesta.',
-    objective: 'Recruit Jax or Sam and defeat Baroness Vesta’s Gilded Citadel Fanfare in a 4-piece quartet showcase.',
+    section: 'brass',
+    description: 'March north through the red-rock steppes of Echo Canyon into the fortified ramparts of The Brass Citadel. Master embouchure and heroic fanfare projection, recruit a brass prodigy (Jax or Sam), and conquer Baroness Vesta’s Citadel Fanfare.',
+    objective: 'Recruit Jax or Sam and defeat Baroness Vesta’s Gilded Citadel Fanfare in The Brass Citadel.',
     rewardGold: 750,
     rewardSparks: 50,
     rewardStars: 3,
@@ -4559,10 +4743,11 @@ export const INITIAL_GAME_QUESTS: GameQuest[] = [
   },
   {
     id: 'quest_ch4',
-    title: 'Chapter 4: The Mountain Thunder Chamber',
+    title: 'Chapter: The Mountain Percussion Mastery',
     chapter: 4,
     type: 'main',
-    description: 'Descend south into the volcanic caldera of Rumble Gorge and the stepped ghats of Percussion Peaks. Form an unbreakable pocket with a rhythm prodigy, chat with Rita’s Mom outside the saloon, and conquer Chieftain Ronin’s polyrhythmic challenge.',
+    section: 'percussion',
+    description: 'Descend south into the volcanic caldera of Rumble Gorge and the stepped ghats of Percussion Peaks. Master polyrhythms and lock into an unbreakable pocket, recruit a rhythm prodigy (Rita or Ren), and conquer Chieftain Ronin’s Mountain Thunder Corps.',
     objective: 'Recruit Rita or Ren and defeat Chieftain Ronin’s Mountain Thunder Corps at the Mountbeat Caldera Stage.',
     rewardGold: 1200,
     rewardSparks: 75,
@@ -4571,10 +4756,10 @@ export const INITIAL_GAME_QUESTS: GameQuest[] = [
   },
   {
     id: 'quest_ch5',
-    title: 'Chapter 5: The Solstice Symphony Finale',
+    title: 'Grand Finale: The Solstice Symphony',
     chapter: 5,
     type: 'main',
-    description: 'Enter The Central City (The Grand Symphony Hub) where all four cardinal paths converge. Meet Conservatory Arranger Nico at The Maestro’s Forum, assemble an 8-piece orchestra uniting all 4 instrument families, and perform the Ode to Harmony for the Solstice Council.',
+    description: 'With all four cardinal section masteries conquered, enter The Central City (The Grand Symphony Hub). Meet Conservatory Arranger Nico at The Maestro’s Forum, assemble an 8-piece chamber orchestra uniting all 4 instrument families, and perform the Ode to Harmony for the Solstice Council.',
     objective: 'Recruit Nico in Central City and defeat Aurelius & The Harmonia Youth Symphony at The Grand Symphony Hall.',
     rewardGold: 2500,
     rewardSparks: 150,
@@ -4719,6 +4904,36 @@ export const INITIAL_HARMONIDEX: HarmoniDexEntry[] = [
     bonded: false,
     evolutionStage: 1
   },
+  {
+    id: 'dex_chameleon',
+    species: 'Clavichord Chameleon',
+    name: 'Camille',
+    section: 'strings',
+    instrumentId: 'harpsichord',
+    instrumentName: 'Harpsichord',
+    sprite: '🦎',
+    description: 'A vibrant reptile whose nimble claws pluck delicate, quill-sharp harpsichord counterpoint with Baroque precision.',
+    discovered: false,
+    bonded: false,
+    evolutionStage: 1,
+    evolvesTo: 'Cembalo Dragon',
+    evolutionLevel: 20
+  },
+  {
+    id: 'dex_rock_hedgehog',
+    species: 'Rockabilly Hedgehog',
+    name: 'Spike',
+    section: 'strings',
+    instrumentId: 'electric_guitar',
+    instrumentName: 'Electric Guitar',
+    sprite: '🦔',
+    description: 'Bristling with amplified quills, this rocker unleashes overdriven power chords and blistering distortion harmonics.',
+    discovered: false,
+    bonded: false,
+    evolutionStage: 1,
+    evolvesTo: 'Heavy Metal Porcupine',
+    evolutionLevel: 20
+  },
 
   // Woodwinds (4 Species)
   {
@@ -4774,6 +4989,21 @@ export const INITIAL_HARMONIDEX: HarmoniDexEntry[] = [
     discovered: false,
     bonded: false,
     evolutionStage: 1
+  },
+  {
+    id: 'dex_sax_fox',
+    species: 'Bebop Fox',
+    name: 'Dexter',
+    section: 'woodwinds',
+    instrumentId: 'saxophone',
+    instrumentName: 'Saxophone',
+    sprite: '🦊',
+    description: 'A smooth, nocturnal canid famous for smoky midnight jazz runs and rich, reedy vibrato improvisation.',
+    discovered: false,
+    bonded: false,
+    evolutionStage: 1,
+    evolvesTo: 'Virtuoso Bebop Fox',
+    evolutionLevel: 20
   },
 
   // Brass (4 Species)
@@ -4886,6 +5116,36 @@ export const INITIAL_HARMONIDEX: HarmoniDexEntry[] = [
     discovered: false,
     bonded: false,
     evolutionStage: 1
+  },
+  {
+    id: 'dex_typewriter_bird',
+    species: 'Typist Woodpecker',
+    name: 'Quill',
+    section: 'percussion',
+    instrumentId: 'typewriter',
+    instrumentName: 'Typewriter',
+    sprite: '🐦',
+    description: 'Pecking out rapid mechanical staccato rhythms with clockwork precision, accompanied by cheerful margin bell chimes.',
+    discovered: false,
+    bonded: false,
+    evolutionStage: 1,
+    evolvesTo: 'Symphonic Stenographer',
+    evolutionLevel: 20
+  },
+  {
+    id: 'dex_cannon_beetle',
+    species: 'Bombardier Beetle',
+    name: 'Boomer',
+    section: 'percussion',
+    instrumentId: 'cannon',
+    instrumentName: 'Tchaikovsky Cannon',
+    sprite: '🪲',
+    description: 'An armored titan that generates seismic acoustic shockwaves and deep sub-bass explosions fit for the 1812 Overture.',
+    discovered: false,
+    bonded: false,
+    evolutionStage: 1,
+    evolvesTo: 'Artillery Scarab',
+    evolutionLevel: 20
   }
 ];
 

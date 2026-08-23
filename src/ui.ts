@@ -507,6 +507,26 @@ export class HarmoniaUI {
     const state = this.engine.getState();
     rosterContainer.innerHTML = '';
 
+    if (state.hasPianoAccompaniment) {
+      const perkBanner = document.createElement('div');
+      perkBanner.style.background = 'linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(180, 83, 9, 0.15))';
+      perkBanner.style.border = '1.5px solid #fbbf24';
+      perkBanner.style.borderRadius = '8px';
+      perkBanner.style.padding = '10px 14px';
+      perkBanner.style.marginBottom = '12px';
+      perkBanner.style.display = 'flex';
+      perkBanner.style.alignItems = 'center';
+      perkBanner.style.gap = '12px';
+      perkBanner.innerHTML = `
+        <span style="font-size: 28px;">🎹</span>
+        <div>
+          <div style="font-weight: bold; font-size: 14px; color: #fbbf24;">🎹 Concerto Piano Accompaniment Active (+50% Score)</div>
+          <div style="font-size: 12px; color: #fde68a;">Maestro Franz accompanies your ensemble in concerts and festival tournaments with a +50% score boost and crowd resonance surge!</div>
+        </div>
+      `;
+      rosterContainer.appendChild(perkBanner);
+    }
+
     const player = state.ensemble.members[0];
     if (player) {
       const loadoutPanel = document.createElement('div');

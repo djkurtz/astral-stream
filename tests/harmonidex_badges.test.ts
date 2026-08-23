@@ -14,7 +14,7 @@ describe('Harmonia: Pokémon-Style Arc (HarmoniDex, Wild Bonding & League Badges
 
   it('should register starter species in the HarmoniDex upon boot', () => {
     const state = engine.getState();
-    expect(state.harmoniDex.length).toBe(16); // 4 per section
+    expect(state.harmoniDex.length).toBe(21); // 16 core + 5 non-traditional species
     expect(state.badges.length).toBe(8); // 8 Conservatory Badges
 
     const swan = state.harmoniDex.find(d => d.id === 'dex_swan')!;

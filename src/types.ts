@@ -3,10 +3,10 @@
 export type InstrumentSection = 'strings' | 'woodwinds' | 'brass' | 'percussion';
 
 export type InstrumentId = 
-  | 'violin' | 'acoustic_guitar' | 'cello' | 'harp'
-  | 'silver_flute' | 'soprano_sax' | 'clarinet' | 'oboe'
+  | 'violin' | 'acoustic_guitar' | 'cello' | 'harp' | 'harpsichord' | 'electric_guitar'
+  | 'silver_flute' | 'soprano_sax' | 'saxophone' | 'clarinet' | 'oboe'
   | 'pocket_trumpet' | 'french_horn' | 'trombone' | 'tuba'
-  | 'snare_kit' | 'marimba' | 'timpani' | 'glockenspiel';
+  | 'snare_kit' | 'marimba' | 'timpani' | 'glockenspiel' | 'typewriter' | 'cannon';
 
 export interface Harmonipet {
   id: string;
@@ -15,6 +15,7 @@ export interface Harmonipet {
   sprite: string;
   section: InstrumentSection;
   instrumentName: string;
+  instrumentId?: InstrumentId;
   leitmotifSound: string;
   color: string;
 }
@@ -178,6 +179,8 @@ export interface ConcertCompetition {
   lastFeedback?: 'PERFECT' | 'GREAT' | 'OK' | 'MISS';
   lastFeedbackText?: string;
   comboStreak: number;
+  isPianistDuel?: boolean;
+  duelTier?: number;
 }
 
 export type ZoneId = 
@@ -274,6 +277,7 @@ export interface GameQuest {
   title: string;
   chapter: number;
   type: QuestType;
+  section?: InstrumentSection;
   description: string;
   objective: string;
   rewardGold: number;
@@ -370,7 +374,7 @@ export interface WorldNPC {
   musicianData?: Musician;
   isProp?: boolean;
   propType?: 'lectern' | 'vanity' | 'music_stand' | 'signpost' | 'fountain' | 'anvil' | 'ancient_stone_stand' | 'golden_music_stand' | 'vista_monolith' | 'road_sign' | 'door_trigger' | 'treasure_chest';
-  actionType: 'talk' | 'audition_battle' | 'practice_bench' | 'competition_stage' | 'sheet_music_stand' | 'inspiration_vista' | 'luthier_shop' | 'wild_harmonipet' | 'conservatory_master' | 'theory_bench' | 'customization_mirror' | 'signpost' | 'treasure_chest' | 'celebrity_secret';
+  actionType: 'talk' | 'audition_battle' | 'practice_bench' | 'competition_stage' | 'sheet_music_stand' | 'inspiration_vista' | 'luthier_shop' | 'wild_harmonipet' | 'conservatory_master' | 'theory_bench' | 'customization_mirror' | 'signpost' | 'treasure_chest' | 'celebrity_secret' | 'pianist_busking_duel';
   dialogue: string[];
   sheetMusicReward?: string; // piece ID
   vistaId?: string;
@@ -496,6 +500,8 @@ export interface GameState {
   competition: ConcertCompetition | null;
   calendarEvents: FestivalEvent[];
   completedEvents: string[]; // event IDs
+  pianistBuskingWins: number;
+  hasPianoAccompaniment: boolean;
   dialogue: GameDialogue | null;
   time: number;
 }

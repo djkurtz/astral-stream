@@ -435,10 +435,36 @@ export class HarmoniaRenderer {
     ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, this.width, this.height);
 
+    if (state.hasPianoAccompaniment && !comp.isPianistDuel) {
+      const bannerW = 480;
+      const bannerH = 24;
+      const bannerX = this.width / 2 - bannerW / 2;
+      const bannerY = 8;
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+      ctx.beginPath();
+      ctx.roundRect(bannerX, bannerY, bannerW, bannerH, 6);
+      ctx.fill();
+      ctx.strokeStyle = '#fbbf24';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      ctx.fillStyle = '#fbbf24';
+      ctx.font = 'bold 12px "Inter", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('🎹 Concerto Piano Accompaniment Active (+50% Score)', this.width / 2, bannerY + 16);
+    }
+
+    const isPianist = comp.isPianistDuel;
     ctx.fillStyle = '#fef08a';
     ctx.font = 'bold 28px "Cinzel", serif';
     ctx.textAlign = 'center';
-    ctx.fillText(`🏆 CONCERT COMPETITION: VS ${comp.rival.name.toUpperCase()}`, this.width / 2, 50);
+    if (isPianist) {
+      const duelNames = ['Novice Busk (120 BPM)', 'Virtuoso Etude (140 BPM)', 'Transcendental Showdown (160 BPM)'];
+      const dName = duelNames[Math.min((comp.duelTier || 1) - 1, duelNames.length - 1)];
+      ctx.fillText(`🎹 PIANIST BUSKING DUEL: ${dName.toUpperCase()}`, this.width / 2, 50);
+    } else {
+      ctx.fillText(`🏆 CONCERT COMPETITION: VS ${comp.rival.name.toUpperCase()}`, this.width / 2, 50);
+    }
 
     ctx.fillStyle = '#fbbf24';
     ctx.font = '16px "Inter", sans-serif';
@@ -489,8 +515,20 @@ export class HarmoniaRenderer {
     ctx.fillText(`${comp.rival.name} (Score: ${comp.rivalScore})`, this.width - 100, 165);
 
     comp.rival.members.forEach((m, idx) => {
-      this.drawPixelMusician(ctx, this.width - 180 - idx * 75, 260, m, state.time, undefined, 'left');
-      this.drawPixelPet(ctx, this.width - 200 - idx * 75, 300, m.pet, state.time, undefined, 'left');
+      if (comp.isPianistDuel) {
+        const rx = this.width - 200 - idx * 75;
+        const ry = 260;
+        ctx.save();
+        ctx.font = '36px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('🎹', rx - 20, ry);
+        ctx.restore();
+        this.drawPixelMusician(ctx, rx + 15, ry, m, state.time, undefined, 'left');
+      } else {
+        this.drawPixelMusician(ctx, this.width - 180 - idx * 75, 260, m, state.time, undefined, 'left');
+        this.drawPixelPet(ctx, this.width - 200 - idx * 75, 300, m.pet, state.time, undefined, 'left');
+      }
     });
 
     // 🎵 DYNAMIC RHYTHMIC CADENCE METER
@@ -1106,6 +1144,47 @@ export class HarmoniaRenderer {
       return;
     }
 
+    if (npc.id === 'npc_pianist_busker' || npc.actionType === 'pianist_busking_duel') {
+      // Grand Piano Sprite & Maestro Franz Busker
+      ctx.save();
+      ctx.font = '32px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('🎹', nx - 14, ny + 4);
+      ctx.restore();
+
+      if (npc.musicianData) {
+        this.drawPixelMusician(ctx, nx + 14, ny, npc.musicianData, t, undefined, 'left');
+        if (npc.musicianData.pet) {
+          this.drawPixelPet(ctx, nx + 34, ny + 4, npc.musicianData.pet, t, undefined, 'left');
+        }
+      }
+
+      // Floating musical notes
+      const noteBounce = Math.sin(t * 3);
+      ctx.fillStyle = '#fbbf24';
+      ctx.font = 'bold 12px "Inter", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('♫', nx - 24, ny - 18 + noteBounce * 3);
+      ctx.fillText('♪', nx + 2, ny - 24 - noteBounce * 2);
+
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
+      ctx.beginPath();
+      const labelText = `🎹 ${npc.name}`;
+      const labelW = Math.max(140, ctx.measureText(labelText).width + 16);
+      ctx.roundRect(nx - labelW / 2, ny - 38, labelW, 20, 4);
+      ctx.fill();
+      ctx.strokeStyle = '#fbbf24';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      ctx.fillStyle = '#fbbf24';
+      ctx.font = 'bold 12px "Inter", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(labelText, nx, ny - 24);
+      return;
+    }
+
     if (npc.musicianData) {
       this.drawPixelMusician(ctx, nx, ny, npc.musicianData, t, undefined, npc.dir || 'down');
       if (npc.musicianData.pet) {
@@ -1274,6 +1353,26 @@ export class HarmoniaRenderer {
     ctx.font = 'bold 14px "Inter", sans-serif';
     ctx.textAlign = 'right';
     ctx.fillText(`★ Rep: ${rep}★  |  💰 ${state.wallet.gold} Notes  |  ✨ ${state.wallet.inspirationSparks} Sparks`, this.width - 24, 33);
+
+    // 🎹 Concerto Accompaniment Active HUD Banner
+    if (state.hasPianoAccompaniment) {
+      const bannerW = 460;
+      const bannerH = 26;
+      const bannerX = this.width / 2 - bannerW / 2;
+      const bannerY = 60;
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+      ctx.beginPath();
+      ctx.roundRect(bannerX, bannerY, bannerW, bannerH, 6);
+      ctx.fill();
+      ctx.strokeStyle = '#fbbf24';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      ctx.fillStyle = '#fbbf24';
+      ctx.font = 'bold 12px "Inter", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('🎹 Concerto Piano Accompaniment Active (+50% Score)', this.width / 2, bannerY + 18);
+    }
 
     // Transient Onboarding Motion Helper (Only shown during first 8 seconds of play)
     if (state.time < 8) {

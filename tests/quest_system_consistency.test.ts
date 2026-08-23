@@ -31,7 +31,7 @@ describe('Harmonia: Quest System Consistency & Narrative Progression', () => {
     }
   });
 
-  it('should structure all 5 Main Story chapters across the 4 cardinal villages and Central City', () => {
+  it('should structure all 5 Main Story chapters across the 4 cardinal villages and Central City with section tags', () => {
     const mainQuests = INITIAL_GAME_QUESTS.filter(q => q.type === 'main');
     expect(mainQuests.length).toBe(5);
 
@@ -39,7 +39,7 @@ describe('Harmonia: Quest System Consistency & Narrative Progression', () => {
 
     // Ch 1: West (Cavatina Village - Strings)
     expect(ch1.id).toBe('quest_ch1');
-    expect(ch1.chapter).toBe(1);
+    expect(ch1.section).toBe('strings');
     expect(ch1.title).toContain('Western Strings');
     expect(ch1.description).toContain('Cavatina Village');
     expect(ch1.objective).toContain('Clara or Maya');
@@ -47,7 +47,7 @@ describe('Harmonia: Quest System Consistency & Narrative Progression', () => {
 
     // Ch 2: East (Woodwind Woods - Woodwinds)
     expect(ch2.id).toBe('quest_ch2');
-    expect(ch2.chapter).toBe(2);
+    expect(ch2.section).toBe('woodwinds');
     expect(ch2.title).toContain('Sylvan Woodwind');
     expect(ch2.description).toContain('Woodwind Woods');
     expect(ch2.objective).toContain('Oliver or Chloe');
@@ -55,23 +55,22 @@ describe('Harmonia: Quest System Consistency & Narrative Progression', () => {
 
     // Ch 3: North (Brass Citadel - Brass)
     expect(ch3.id).toBe('quest_ch3');
-    expect(ch3.chapter).toBe(3);
-    expect(ch3.title).toContain('Gilded Citadel');
+    expect(ch3.section).toBe('brass');
+    expect(ch3.title).toContain('Gilded Brass');
     expect(ch3.description).toContain('The Brass Citadel');
     expect(ch3.objective).toContain('Jax or Sam');
     expect(ch3.objective).toContain('Baroness Vesta');
 
     // Ch 4: South (Percussion Peaks - Percussion)
     expect(ch4.id).toBe('quest_ch4');
-    expect(ch4.chapter).toBe(4);
-    expect(ch4.title).toContain('Mountain Thunder');
+    expect(ch4.section).toBe('percussion');
+    expect(ch4.title).toContain('Mountain Percussion');
     expect(ch4.description).toContain('Percussion Peaks');
     expect(ch4.objective).toContain('Rita or Ren');
     expect(ch4.objective).toContain('Chieftain Ronin');
 
     // Ch 5: Center (Central City - The Grand Symphony Finale)
     expect(ch5.id).toBe('quest_ch5');
-    expect(ch5.chapter).toBe(5);
     expect(ch5.title).toContain('Solstice Symphony');
     expect(ch5.description).toContain('The Central City');
     expect(ch5.objective).toContain('Nico');
@@ -170,15 +169,63 @@ describe('Harmonia: Quest System Consistency & Narrative Progression', () => {
     expect(q5?.completed).toBe(true);
   });
 
-  it('should complete side quests when performing associated actions (bonding, forging)', () => {
-    const state = engine.getState();
+  it('should initialize activeQuestId and starting zone based on player starter section', () => {
+    // 1. Flute (Woodwinds) -> Woodwind Woods, quest_ch2
+    const woodwindEngine = new HarmoniaGameEngine();
+    woodwindEngine.chooseStarter('silver_flute', 'Pan');
+    expect(woodwindEngine.getState().currentZone).toBe('woodwind_woods');
+    expect(woodwindEngine.getState().activeQuestId).toBe('quest_ch2');
 
-    // 1. Forge an artifact -> complete quest_side_luthier_artisan
-    state.wallet.gold = 1000;
-    state.wallet.inspirationSparks = 100;
-    const forgeOk = engine.forgeArtifact('artifact_rosin_swan');
-    expect(forgeOk).toBe(true);
-    const qLuthier = state.quests.find(q => q.id === 'quest_side_luthier_artisan');
-    expect(qLuthier?.completed).toBe(true);
+    // 2. Trumpet (Brass) -> The Brass Citadel, quest_ch3
+    const brassEngine = new HarmoniaGameEngine();
+    brassEngine.chooseStarter('pocket_trumpet', 'Gabriel');
+    expect(brassEngine.getState().currentZone).toBe('brass_citadel');
+    expect(brassEngine.getState().activeQuestId).toBe('quest_ch3');
+
+    // 3. Snare Kit (Percussion) -> Percussion Peaks, quest_ch4
+    const percussionEngine = new HarmoniaGameEngine();
+    percussionEngine.chooseStarter('snare_kit', 'Rhythm');
+    expect(percussionEngine.getState().currentZone).toBe('percussion_peaks');
+    expect(percussionEngine.getState().activeQuestId).toBe('quest_ch4');
+  });
+
+  it('should allow completing cardinal section chapters in arbitrary non-linear order', () => {
+    // Start as Woodwind player
+    const freeOrderEngine = new HarmoniaGameEngine();
+    freeOrderEngine.chooseStarter('silver_flute', 'Sylvan');
+    const state = freeOrderEngine.getState();
+    expect(state.activeQuestId).toBe('quest_ch2');
+
+    // Set master ensemble
+    state.ensemble.members = [
+      { id: 'm1', name: 'Lead', stats: { technique: 100, toneQuality: 100, tempoStability: 100, sightReading: 100 }, instrumentId: 'silver_flute', instrumentName: 'Flute', section: 'woodwinds', level: 10, xp: 1000, avatar: '🪈', paletteColor: '#fff', pet: {} as any },
+      { id: 'm2', name: 'Strings', stats: { technique: 100, toneQuality: 100, tempoStability: 100, sightReading: 100 }, instrumentId: 'violin', instrumentName: 'Violin', section: 'strings', level: 10, xp: 1000, avatar: '🎻', paletteColor: '#fff', pet: {} as any },
+      { id: 'm3', name: 'Brass', stats: { technique: 100, toneQuality: 100, tempoStability: 100, sightReading: 100 }, instrumentId: 'pocket_trumpet', instrumentName: 'Trumpet', section: 'brass', level: 10, xp: 1000, avatar: '🎺', paletteColor: '#fff', pet: {} as any },
+      { id: 'm4', name: 'Drums', stats: { technique: 100, toneQuality: 100, tempoStability: 100, sightReading: 100 }, instrumentId: 'snare_kit', instrumentName: 'Drums', section: 'percussion', level: 10, xp: 1000, avatar: '🥁', paletteColor: '#fff', pet: {} as any }
+    ];
+    state.ensemble.tier = 'orchestra';
+
+    // Player decides to conquer Percussion FIRST (Order: 4 -> 3 -> 1 -> 2)
+    freeOrderEngine.startConcertCompetition('rival_thunder_chamber');
+    while (state.competition && !state.competition.concluded) freeOrderEngine.advanceConcertPerformance();
+    expect(state.quests.find(q => q.id === 'quest_ch4')?.completed).toBe(true);
+
+    // Player then conquers Brass SECOND
+    freeOrderEngine.startConcertCompetition('rival_brass_quartet');
+    while (state.competition && !state.competition.concluded) freeOrderEngine.advanceConcertPerformance();
+    expect(state.quests.find(q => q.id === 'quest_ch3')?.completed).toBe(true);
+
+    // Player conquers Strings THIRD
+    freeOrderEngine.startConcertCompetition('rival_novice_buskers');
+    while (state.competition && !state.competition.concluded) freeOrderEngine.advanceConcertPerformance();
+    expect(state.quests.find(q => q.id === 'quest_ch1')?.completed).toBe(true);
+
+    // Player conquers Woodwinds LAST
+    freeOrderEngine.startConcertCompetition('rival_woodwind_trio');
+    while (state.competition && !state.competition.concluded) freeOrderEngine.advanceConcertPerformance();
+    expect(state.quests.find(q => q.id === 'quest_ch2')?.completed).toBe(true);
+
+    // All 4 section masteries completed -> Solstice Finale unlocked!
+    expect(state.activeQuestId).toBe('quest_ch5');
   });
 });

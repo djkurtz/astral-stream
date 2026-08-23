@@ -2,7 +2,8 @@
 
 import {
   GameState, Musician, WorldNPC, RivalEnsemble,
-  AuditionBattle, InstrumentId, EnsembleTier, ZoneId, TheoryChallengeType, PlayerCustomization
+  AuditionBattle, InstrumentId, EnsembleTier, ZoneId, TheoryChallengeType, PlayerCustomization,
+  RepertoirePiece
 } from './types';
 import {
   STARTER_OPTIONS, REPERTOIRE_DATABASE,
@@ -97,7 +98,12 @@ export class HarmoniaGameEngine {
           snare_kit: { level: 1, xp: 0 },
           marimba: { level: 1, xp: 0 },
           timpani: { level: 1, xp: 0 },
-          glockenspiel: { level: 1, xp: 0 }
+          glockenspiel: { level: 1, xp: 0 },
+          harpsichord: { level: 1, xp: 0 },
+          electric_guitar: { level: 1, xp: 0 },
+          saxophone: { level: 1, xp: 0 },
+          typewriter: { level: 1, xp: 0 },
+          cannon: { level: 1, xp: 0 }
         },
         unlockedInstruments: ['violin']
       },
@@ -111,6 +117,8 @@ export class HarmoniaGameEngine {
       competition: null,
       calendarEvents: JSON.parse(JSON.stringify(FESTIVAL_CALENDAR)),
       completedEvents: [],
+      pianistBuskingWins: 0,
+      hasPianoAccompaniment: false,
       dialogue: null,
       time: 0
     };
@@ -153,20 +161,26 @@ export class HarmoniaGameEngine {
     this.state.proficiency.sections[starterOpt.section] = 40;
     this.state.proficiency.instruments[starterOpt.id] = { level: 1, xp: 0 };
 
-    // Determine starting zone based on instrument section
+    // Determine starting zone and initial active quest based on instrument section
     let startZone: ZoneId = 'cavatina_village';
     let startName = 'Cavatina Village';
+    let startQuestId = 'quest_ch1';
+
     if (starterOpt.section === 'woodwinds') {
       startZone = 'woodwind_woods';
       startName = 'Woodwind Woods';
+      startQuestId = 'quest_ch2';
     } else if (starterOpt.section === 'brass') {
       startZone = 'brass_citadel';
       startName = 'The Brass Citadel';
+      startQuestId = 'quest_ch3';
     } else if (starterOpt.section === 'percussion') {
       startZone = 'percussion_peaks';
       startName = 'Percussion Peaks';
+      startQuestId = 'quest_ch4';
     }
 
+    this.state.activeQuestId = startQuestId;
     this.state.currentZone = startZone;
     this.state.discoveredZones[startZone] = true;
     this.state.player.x = 1000;
@@ -547,7 +561,7 @@ export class HarmoniaGameEngine {
 
     this.state.harmonizeEncounter = {
       pet,
-      instrumentId: (npc.wildPetData.section === 'strings' ? 'acoustic_guitar' : (npc.wildPetData.section === 'woodwinds' ? 'oboe' : (npc.wildPetData.section === 'brass' ? 'french_horn' : 'marimba'))) as InstrumentId,
+      instrumentId: (npc.wildPetData.instrumentId || (npc.wildPetData.section === 'strings' ? 'acoustic_guitar' : (npc.wildPetData.section === 'woodwinds' ? 'oboe' : (npc.wildPetData.section === 'brass' ? 'french_horn' : 'marimba')))) as InstrumentId,
       targetMelody,
       targetNoteIndices: noteIndices,
       currentStep: 0,
@@ -809,6 +823,99 @@ export class HarmoniaGameEngine {
     this.state.mode = 'competition';
   }
 
+  public startPianistBuskingDuel(forcedTier?: number): void {
+    const duelTier = forcedTier !== undefined ? forcedTier : Math.min(3, (this.state.pianistBuskingWins || 0) + 1);
+    const duelConfigs = [
+      { name: 'Novice Busk', bpm: 120, width: 0.16, tech: 25, tone: 25, stars: 2 },
+      { name: 'Virtuoso Etude', bpm: 140, width: 0.13, tech: 40, tone: 40, stars: 3 },
+      { name: 'Transcendental Showdown', bpm: 160, width: 0.10, tech: 55, tone: 55, stars: 4 }
+    ];
+    const config = duelConfigs[Math.min(duelTier - 1, duelConfigs.length - 1)];
+
+    const franzMusician: Musician = {
+      id: 'musician_franz_liszt',
+      name: 'Maestro Franz "Keys" Liszt',
+      title: 'Grand Virtuoso Pianist',
+      avatar: '🎹',
+      paletteColor: '#fbbf24',
+      instrumentId: 'glockenspiel',
+      instrumentName: 'Concert Grand Piano',
+      section: 'percussion',
+      pet: {
+        id: 'pet_franz_liszt',
+        name: 'Cadenza',
+        species: 'Rhapsody Nightingale',
+        sprite: 'nightingale',
+        section: 'percussion',
+        instrumentName: 'Concert Grand Piano',
+        leitmotifSound: 'glockenspiel_bell',
+        color: '#fbbf24'
+      },
+      stats: {
+        technique: config.tech,
+        toneQuality: config.tone,
+        tempoStability: config.tech,
+        sightReading: 95
+      },
+      level: duelTier * 3,
+      xp: duelTier * 500
+    };
+
+    const rivalEnsemble: RivalEnsemble = {
+      id: 'rival_franz_liszt',
+      name: `Maestro Franz (${config.name})`,
+      tier: duelTier === 1 ? 'solo' : (duelTier === 2 ? 'duet' : 'trio'),
+      conductorName: 'Maestro Franz',
+      members: [franzMusician],
+      piece: {
+        id: `piece_franz_duel_${duelTier}`,
+        title: `${config.name} (${config.bpm} BPM)`,
+        composer: 'Franz Liszt',
+        genre: 'Virtuoso Romantic',
+        difficulty: duelTier + 1,
+        minEnsembleTier: 'solo',
+        requiredSections: {},
+        bpm: config.bpm,
+        tempoBPM: config.bpm,
+        chords: [],
+        melody: [],
+        description: `High-tempo busking duel against Maestro Franz at ${config.bpm} BPM.`,
+        masteryXp: 100,
+        isMastered: false
+      },
+      reputationRequired: 0,
+      rewardStars: config.stars,
+      description: `Busking competition duel against Maestro Franz at ${config.bpm} BPM.`
+    };
+
+    const basePiece = this.state.ensemble.activePiece || REPERTOIRE_DATABASE[0];
+    const playerPiece: RepertoirePiece = {
+      ...basePiece,
+      bpm: config.bpm,
+      tempoBPM: config.bpm
+    };
+
+    this.state.competition = {
+      rival: rivalEnsemble,
+      playerPiece,
+      playerScore: 0,
+      rivalScore: 0,
+      audienceApplause: 50,
+      currentMeasure: 0,
+      totalMeasures: 8,
+      isPlaying: true,
+      concluded: false,
+      sweetSpotCenter: 0.35 + Math.random() * 0.3,
+      sweetSpotWidth: config.width,
+      comboStreak: 0,
+      isPianistDuel: true,
+      duelTier
+    };
+
+    soundEngine.stopBGM();
+    this.state.mode = 'competition';
+  }
+
   public advanceConcertPerformance(): void {
     const comp = this.state.competition;
     if (!comp || comp.concluded) return;
@@ -855,7 +962,11 @@ export class HarmoniaGameEngine {
     const ensemblePower = this.state.ensemble.members.reduce((acc, m) => acc + (m.stats.technique + m.stats.toneQuality), 0);
     const rivalPower = comp.rival.members.reduce((acc, m) => acc + (m.stats.technique + m.stats.toneQuality), 0);
     
-    const measureScore = Math.floor((ensemblePower / 2 + 10) * timingMultiplier);
+    let measureScore = Math.floor((ensemblePower / 2 + 10) * timingMultiplier);
+    if (this.state.hasPianoAccompaniment && !comp.isPianistDuel) {
+      measureScore = Math.floor(measureScore * 1.5);
+      comp.audienceApplause = Math.min(100, comp.audienceApplause + 5);
+    }
     const rivalMultiplier = 0.85 + Math.random() * 0.35;
     const rivalMeasureScore = Math.floor((rivalPower / 2 + 5) * rivalMultiplier);
     
@@ -869,11 +980,67 @@ export class HarmoniaGameEngine {
     for (const m of this.state.ensemble.members) {
       soundEngine.playInstrumentNote(m.instrumentId, 440 + Math.random() * 200, 0.4, 0.7);
     }
+    if (this.state.hasPianoAccompaniment && !comp.isPianistDuel) {
+      soundEngine.playGrandPianoNote(523.25 + Math.random() * 300, 0.4, 0.65);
+    }
+    if (comp.isPianistDuel) {
+      soundEngine.playGrandPianoNote(392 + Math.random() * 400, 0.45, 0.85);
+    }
 
     if (comp.currentMeasure >= comp.totalMeasures) {
       comp.concluded = true;
       comp.won = comp.playerScore >= comp.rivalScore;
       let badgeWonName = '';
+
+      if (comp.isPianistDuel) {
+        if (comp.won) {
+          this.state.pianistBuskingWins = (this.state.pianistBuskingWins || 0) + 1;
+          const wins = this.state.pianistBuskingWins;
+          const goldGain = comp.rival.rewardStars * 150;
+          const sparksGain = comp.rival.rewardStars * 15;
+          this.state.wallet.gold += goldGain;
+          this.state.wallet.inspirationSparks += sparksGain;
+
+          soundEngine.playGrandPianoCadence();
+
+          if (wins >= 3) {
+            this.state.hasPianoAccompaniment = true;
+            this.showDialogue('Maestro Franz "Keys" Liszt', '🎹', [
+              `🏆 TRANSCENDENTAL VICTORY! Final Score: ${comp.playerScore} vs Franz ${comp.rivalScore}!`,
+              `Maestro Franz stands in breathless awe, his fingers trembling with ecstasy: "Magnifique! Pure poetic genius! You have conquered all 3 Transcendental Busking Duels!"`,
+              `"I hereby swear my grand piano to your cause. I will be your dedicated Concerto Accompanist! (+50% Score Multiplier Active in all Concerts & Festivals!)"`,
+              `Earned +${goldGain} Notes (♪), +${sparksGain} Inspiration Sparks (✨), and unlocked [🎹 Permanent Concerto Piano Accompaniment]!`
+            ], () => {
+              this.state.mode = 'exploration';
+              this.state.competition = null;
+              const activeSections = Array.from(new Set(this.state.ensemble.members.map(m => m.section)));
+              soundEngine.startBGM(this.state.currentZone, activeSections);
+            });
+          } else {
+            this.showDialogue('Maestro Franz "Keys" Liszt', '🎹', [
+              `🎉 DUEL VICTORY! Final Score: ${comp.playerScore} vs Franz ${comp.rivalScore}!`,
+              `Maestro Franz bows with deep admiration: "Exquisite rhythm! You have mastered Duel ${wins} of 3! (+${goldGain} Notes, +${sparksGain} Sparks)"`,
+              `"Return to me when you are ready to test your metronome against the next tempo tier!"`
+            ], () => {
+              this.state.mode = 'exploration';
+              this.state.competition = null;
+              const activeSections = Array.from(new Set(this.state.ensemble.members.map(m => m.section)));
+              soundEngine.startBGM(this.state.currentZone, activeSections);
+            });
+          }
+        } else {
+          this.showDialogue('Maestro Franz "Keys" Liszt', '💔', [
+            `Defeat! Final Score: ${comp.playerScore} vs Franz ${comp.rivalScore}.`,
+            `Maestro Franz smiles gently: "The tempo proved too fierce this time! Practice your Metronome stability and return to duel the grand piano again!"`
+          ], () => {
+            this.state.mode = 'exploration';
+            this.state.competition = null;
+            const activeSections = Array.from(new Set(this.state.ensemble.members.map(m => m.section)));
+            soundEngine.startBGM(this.state.currentZone, activeSections);
+          });
+        }
+        return;
+      }
 
       if (comp.won && !comp.rewardsGiven) {
         comp.rewardsGiven = true;
@@ -895,26 +1062,48 @@ export class HarmoniaGameEngine {
           if (qFest) qFest.completed = true;
         }
 
-        // Check main story chapter quest completions
+        // Check main story chapter quest completions (can be completed in any order!)
         if (comp.rival.id === 'rival_novice_buskers') {
           const q1 = this.state.quests.find(q => q.id === 'quest_ch1');
           if (q1) q1.completed = true;
-          this.state.activeQuestId = 'quest_ch2';
         } else if (comp.rival.id === 'rival_woodwind_trio') {
           const q2 = this.state.quests.find(q => q.id === 'quest_ch2');
           if (q2) q2.completed = true;
-          this.state.activeQuestId = 'quest_ch3';
         } else if (comp.rival.id === 'rival_brass_quartet') {
           const q3 = this.state.quests.find(q => q.id === 'quest_ch3');
           if (q3) q3.completed = true;
-          this.state.activeQuestId = 'quest_ch4';
         } else if (comp.rival.id === 'rival_thunder_chamber') {
           const q4 = this.state.quests.find(q => q.id === 'quest_ch4');
           if (q4) q4.completed = true;
-          this.state.activeQuestId = 'quest_ch5';
         } else if (comp.rival.id === 'rival_grand_orchestra') {
           const q5 = this.state.quests.find(q => q.id === 'quest_ch5');
           if (q5) q5.completed = true;
+        }
+
+        // Dynamic non-linear progression across the 4 cardinal section masteries
+        const sectionQuestIds = ['quest_ch1', 'quest_ch2', 'quest_ch3', 'quest_ch4'];
+        const completedSectionCount = sectionQuestIds.filter(id => this.state.quests.find(q => q.id === id)?.completed).length;
+
+        // Upgrade ensemble capacity as section masteries are conquered
+        if (completedSectionCount === 1) this.state.ensemble.tier = 'duet';
+        else if (completedSectionCount === 2) this.state.ensemble.tier = 'trio';
+        else if (completedSectionCount === 3) this.state.ensemble.tier = 'quartet';
+        else if (completedSectionCount >= 4) this.state.ensemble.tier = 'chamber';
+
+        if (completedSectionCount >= 4) {
+          const q5 = this.state.quests.find(q => q.id === 'quest_ch5');
+          if (q5 && !q5.completed) {
+            this.state.activeQuestId = 'quest_ch5';
+          }
+        } else {
+          // If current active quest was completed, pick the next incomplete section quest
+          const currentActive = this.state.quests.find(q => q.id === this.state.activeQuestId);
+          if (!currentActive || currentActive.completed) {
+            const nextIncomplete = sectionQuestIds.find(id => !this.state.quests.find(q => q.id === id)?.completed);
+            if (nextIncomplete) {
+              this.state.activeQuestId = nextIncomplete;
+            }
+          }
         }
 
         // Award Conservatory Badge
@@ -1215,9 +1404,58 @@ export class HarmoniaGameEngine {
     this.state.nearbyInteractable = closest;
   }
 
+  public handlePianistBuskerInteraction(target: WorldNPC): void {
+    if (this.state.hasPianoAccompaniment) {
+      this.showDialogue(target.name, '🎹', [
+        "Maestro Franz 'Keys' Liszt smiles warmly from his grand piano:",
+        `"Ah, my brilliant virtuoso comrade! My concert grand piano is tuned and ready to accompany your ensemble. Remember: in every concert competition and festival showdown, you have a +50% score boost and crowd resonance surge!"`,
+        "Together, our acoustic power is unmatched across Harmonia!"
+      ]);
+      return;
+    }
+
+    const wins = this.state.pianistBuskingWins || 0;
+    if (wins === 0) {
+      this.showDialogue(target.name, '🎹', [
+        "Maestro Franz 'Keys' Liszt cracks his knuckles over the gleaming ivory keys at the Eternal Rotunda Dais.",
+        `"Welcome to the Central Plaza! They call me the Grand Virtuoso. If your ensemble seeks true greatness, you must prove you can match my blistering tempo."`,
+        `"Duel 1: Novice Busk at 120 BPM! Hit every cadence on beat. Let the audition showdown begin!"`
+      ], () => {
+        this.startPianistBuskingDuel(1);
+      });
+    } else if (wins === 1) {
+      this.showDialogue(target.name, '🎹', [
+        "Maestro Franz's eyes ignite with musical fury:",
+        `"You conquered the novice busk, but can you survive the velocity of a Virtuoso Etude at 140 BPM?"`,
+        `"Duel 2: Virtuoso Etude (140 BPM)! Prepare for blazing scales and tight cadences!"`
+      ], () => {
+        this.startPianistBuskingDuel(2);
+      });
+    } else if (wins === 2) {
+      this.showDialogue(target.name, '🎹', [
+        "Maestro Franz sweeps his velvet coat back with theatrical flair:",
+        `"Unbelievable! You have pushed me to the brink. Only the greatest virtuosos in history have witnessed what comes next."`,
+        `"Duel 3: Transcendental Showdown at 160 BPM! Defeat me here, and I will dedicate my grand piano to accompany your ensemble forever!"`
+      ], () => {
+        this.startPianistBuskingDuel(3);
+      });
+    } else {
+      this.state.hasPianoAccompaniment = true;
+      this.showDialogue(target.name, '🎹', [
+        "Maestro Franz 'Keys' Liszt bows deeply:",
+        `"You are a true master of the tempo! My grand piano is forever at your service. (+50% Score Active)"`
+      ]);
+    }
+  }
+
   public interactWithNearby(): void {
     const target = this.state.nearbyInteractable;
     if (!target) return;
+
+    if (target.actionType === 'pianist_busking_duel' || target.id === 'npc_pianist_busker') {
+      this.handlePianistBuskerInteraction(target);
+      return;
+    }
 
     if (target.actionType === 'celebrity_secret') {
       if (!this.state.discoveredSecrets) this.state.discoveredSecrets = [];
@@ -1628,6 +1866,8 @@ export class HarmoniaGameEngine {
         theoryLevel: this.state.theoryLevel,
         completedTheoryDrills: this.state.completedTheoryDrills,
         completedEvents: this.state.completedEvents,
+        pianistBuskingWins: this.state.pianistBuskingWins,
+        hasPianoAccompaniment: this.state.hasPianoAccompaniment,
         savedAt: new Date().toLocaleTimeString()
       };
       localStorage.setItem('harmonia_saved_game', JSON.stringify(saveData));
@@ -1667,6 +1907,8 @@ export class HarmoniaGameEngine {
       this.state.theoryLevel = data.theoryLevel || 1;
       this.state.completedTheoryDrills = data.completedTheoryDrills || [];
       this.state.completedEvents = data.completedEvents || [];
+      this.state.pianistBuskingWins = data.pianistBuskingWins || 0;
+      this.state.hasPianoAccompaniment = !!data.hasPianoAccompaniment;
       this.state.calendarEvents = data.calendarEvents || JSON.parse(JSON.stringify(FESTIVAL_CALENDAR));
       this.state.mode = 'exploration';
       this.state.followerTrail = [{ x: this.state.player.x, y: this.state.player.y }];
