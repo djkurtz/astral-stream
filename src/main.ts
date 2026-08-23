@@ -1,7 +1,6 @@
-import { GameEngine } from './game';
-import { SpaceRenderer } from './renderer';
-import { createInitialState, loadGame } from './state';
-import { UIManager } from './ui';
+import { AstralGameEngine } from './game';
+import { AstralRenderer } from './renderer';
+import { AstralUIManager } from './ui';
 
 window.addEventListener('DOMContentLoaded', () => {
   const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
@@ -10,50 +9,32 @@ window.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
-  // Load existing save or create new
-  const savedState = loadGame();
-  const state = savedState || createInitialState();
+  // Handle high-DPI scaling for Chromebooks
+  function resizeCanvas() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+    const parent = canvas.parentElement;
+    const w = parent?.clientWidth || 800;
+    const h = parent?.clientHeight || 600;
+    canvas.width = Math.floor(w * dpr);
+    canvas.height = Math.floor(h * dpr);
+  }
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
 
-  const renderer = new SpaceRenderer(canvas);
-  const engine = new GameEngine(state);
-  const ui = new UIManager(state, engine);
+  const engine = new AstralGameEngine();
+  const renderer = new AstralRenderer(canvas);
+  const ui = new AstralUIManager(engine);
 
-  // Click on Canvas to interact
-  canvas.addEventListener('click', (e) => {
-    if (state.viewMode === 'system') {
-      const clickedBody = renderer.getBodyAtScreenPos(e.clientX, e.clientY, state);
-      if (clickedBody) {
-        state.selectedBodyId = clickedBody.id;
-        ui.renderTabContent();
-      }
-    } else {
-      const clickedPlot = renderer.getSurfacePlotAtScreenPos(e.clientX, e.clientY, state);
-      if (clickedPlot) {
-        ui.switchTab('base');
-      }
-    }
-  });
+  // Initial UI draw
+  ui.updateUI();
 
-  // Double click in system view to zoom into surface
-  canvas.addEventListener('dblclick', (e) => {
-    if (state.viewMode === 'system') {
-      const clickedBody = renderer.getBodyAtScreenPos(e.clientX, e.clientY, state);
-      if (clickedBody && clickedBody.colonized) {
-        state.selectedBodyId = clickedBody.id;
-        ui.setViewMode('surface');
-        ui.renderTabContent();
-      }
-    }
-  });
-
-  // Main Game & Animation Loop
+  // Main Loop
   let lastUiUpdate = 0;
   function loop(now: number) {
     engine.update(now);
-    renderer.render(state);
+    renderer.render(engine.getState());
 
-    // Throttle DOM updates to ~10 times per second for smooth performance
-    if (now - lastUiUpdate > 100) {
+    if (now - lastUiUpdate > 80) {
       ui.updateUI();
       lastUiUpdate = now;
     }
@@ -61,7 +42,5 @@ window.addEventListener('DOMContentLoaded', () => {
     requestAnimationFrame(loop);
   }
 
-  // Initial draw & render
-  ui.renderTabContent();
   requestAnimationFrame(loop);
 });

@@ -1,221 +1,165 @@
-import { BuildingDef, BuildingType, CelestialBody, ShipDef, ShipType } from './types';
+import { BossEntity, RivalCharacter, StreamSpirit } from './types';
 
-export const BUILDING_DEFS: Record<BuildingType, BuildingDef> = {
-  solar_array: {
-    type: 'solar_array',
-    name: 'Solar Generator Matrix',
-    description: 'Harnesses stellar radiation to power colonies and orbital platforms.',
-    baseCost: { minerals: 30 },
-    costMultiplier: 1.35,
-    production: { energy: 4 },
-    energyConsumption: 0
-  },
-  mineral_mine: {
-    type: 'mineral_mine',
-    name: 'Sub-surface Mining Rig',
-    description: 'Drills deep into planetary crust to extract raw silicates and heavy metals.',
-    baseCost: { minerals: 50, energy: 10 },
-    costMultiplier: 1.4,
-    production: { minerals: 3 },
-    energyConsumption: 1.5
-  },
-  alloy_foundry: {
-    type: 'alloy_foundry',
-    name: 'Plasma Alloy Foundry',
-    description: 'Smelts raw minerals into high-durability spaceframe alloys.',
-    baseCost: { minerals: 80, energy: 25 },
-    costMultiplier: 1.5,
-    production: { alloys: 1.5, minerals: -2 },
-    energyConsumption: 2.5
-  },
-  research_lab: {
-    type: 'research_lab',
-    name: 'Astro-Physics Lab',
-    description: 'Conducts deep-space surveys and develops cutting-edge technology.',
-    baseCost: { minerals: 60, alloys: 20 },
-    costMultiplier: 1.45,
-    production: { science: 2 },
-    energyConsumption: 2
-  },
-  orbital_shipyard: {
-    type: 'orbital_shipyard',
-    name: 'Orbital Shipyard',
-    description: 'Gantry capable of assembling automated drones and military starships.',
-    baseCost: { minerals: 150, alloys: 60, energy: 50 },
-    costMultiplier: 1.8,
-    production: {},
-    energyConsumption: 4
-  },
-  defense_turret: {
-    type: 'defense_turret',
-    name: 'Point-Defense Battery',
-    description: 'Automated railguns and laser arrays to repel hostile pirate incursions.',
-    baseCost: { minerals: 75, alloys: 40 },
-    costMultiplier: 1.5,
-    production: {},
-    energyConsumption: 2
-  }
+export const STARTER_SPIRIT: StreamSpirit = {
+  id: 'spirit_chime_cat',
+  name: 'Chime-Cat',
+  title: '8-Bit Synth Kitten',
+  frequency: 98.0,
+  species: 'Chime Feline',
+  instrument: 'Chiptune Synthesizer',
+  avatar: '🐱',
+  color: '#38bdf8',
+  hp: 65,
+  maxHp: 65,
+  energy: 100,
+  attack: 16,
+  defense: 12,
+  speed: 18,
+  moves: [
+    {
+      id: 'm_scratch',
+      name: 'Glissando Scratch',
+      type: 'synth',
+      power: 18,
+      cost: 15,
+      description: 'Scratches with sparkling cyan claws to unleash a cascading synth chord.',
+      soundType: 'arpeggio'
+    },
+    {
+      id: 'm_tempo',
+      name: 'Tempo Surge',
+      type: 'synth',
+      power: 28,
+      cost: 30,
+      description: 'Accelerates the beat, dealing rapid musical strikes.',
+      soundType: 'arpeggio'
+    }
+  ]
 };
 
-export const SHIP_DEFS: Record<ShipType, ShipDef> = {
-  scout: {
-    type: 'scout',
-    name: 'Vanguard Scout Drone',
-    description: 'Lightweight, rapid reconnaissance vessel. Scans unknown sectors.',
-    cost: { minerals: 40, alloys: 15, energy: 10 },
-    buildTime: 5,
-    hull: 50,
-    attack: 5,
-    speed: 120
-  },
-  mining_drone: {
-    type: 'mining_drone',
-    name: 'Prospector Harvester',
-    description: 'Automated drone that deploys to asteroids and moons to haul minerals.',
-    cost: { minerals: 60, alloys: 25, energy: 15 },
-    buildTime: 8,
-    hull: 80,
-    attack: 0,
-    speed: 75
-  },
-  corvette: {
-    type: 'corvette',
-    name: 'Aegis Patrol Corvette',
-    description: 'Fast escort vessel designed for anti-pirate interception.',
-    cost: { minerals: 100, alloys: 60, energy: 30 },
-    buildTime: 12,
-    hull: 160,
-    attack: 25,
-    speed: 95
-  },
-  frigate: {
-    type: 'frigate',
-    name: 'Titan Heavy Frigate',
-    description: 'Formidable warship with reinforced shielding and dual plasma cannons.',
-    cost: { minerals: 200, alloys: 140, energy: 75 },
-    buildTime: 22,
-    hull: 350,
-    attack: 65,
-    speed: 60
-  }
+export const JAX_SPIRIT: StreamSpirit = {
+  id: 'spirit_bass_hound',
+  name: 'Bass-Hound',
+  title: 'Spiked Fuzz Basset',
+  frequency: 88.3,
+  species: 'Sub-Woofer Canine',
+  instrument: 'Overdrive Bass',
+  avatar: '🐶',
+  color: '#c084fc',
+  hp: 85,
+  maxHp: 85,
+  energy: 100,
+  attack: 22,
+  defense: 18,
+  speed: 10,
+  moves: [
+    {
+      id: 'm_sub_bark',
+      name: 'Sub-Woofer Bark',
+      type: 'bass',
+      power: 24,
+      cost: 20,
+      description: 'Emits a heavy 808 low-frequency shockwave.',
+      soundType: 'bass_drop'
+    },
+    {
+      id: 'm_fuzz',
+      name: 'Overdrive Slam',
+      type: 'bass',
+      power: 34,
+      cost: 35,
+      description: 'Slams paws down to distort the ground with raw bass fuzz.',
+      soundType: 'bass_drop'
+    }
+  ]
 };
 
-export const INITIAL_BODIES: CelestialBody[] = [
-  {
-    id: 'sol',
-    name: 'Helios Prime (Star)',
-    type: 'star',
-    radius: 34,
-    orbitRadius: 0,
-    orbitSpeed: 0,
-    orbitAngle: 0,
-    color: '#fbbf24',
-    colonized: false,
-    canColonize: false,
-    buildings: [],
-    maxBuildings: 0
-  },
-  {
-    id: 'terra',
-    name: 'Nova Terra (Capital)',
-    type: 'terrestrial',
-    radius: 18,
-    orbitRadius: 110,
-    orbitSpeed: 0.12,
-    orbitAngle: 0.5,
-    color: '#38bdf8',
-    detailsColor: '#22c55e',
-    colonized: true,
-    canColonize: true,
-    buildings: [
-      { id: 'b_t_1', type: 'solar_array', level: 1 },
-      { id: 'b_t_2', type: 'solar_array', level: 1 },
-      { id: 'b_t_3', type: 'mineral_mine', level: 1 },
-      { id: 'b_t_4', type: 'mineral_mine', level: 1 },
-      { id: 'b_t_5', type: 'alloy_foundry', level: 1 },
-      { id: 'b_t_6', type: 'research_lab', level: 1 },
-      { id: 'b_t_7', type: 'orbital_shipyard', level: 1 }
-    ],
-    maxBuildings: 12
-  },
-  {
-    id: 'station_alpha',
-    name: 'Apex Orbital Station',
-    type: 'station',
-    radius: 10,
-    orbitRadius: 40,
-    orbitSpeed: 0.6,
-    orbitAngle: 1.2,
-    color: '#cbd5e1',
-    parentId: 'terra',
-    colonized: true,
-    canColonize: true,
-    buildings: [
-      { id: 'b_s_1', type: 'solar_array', level: 1 },
-      { id: 'b_s_2', type: 'research_lab', level: 1 },
-      { id: 'b_s_3', type: 'defense_turret', level: 1 }
-    ],
-    maxBuildings: 6
-  },
-  {
-    id: 'ares',
-    name: 'Ares Outpost',
-    type: 'terrestrial',
-    radius: 14,
-    orbitRadius: 185,
-    orbitSpeed: 0.08,
-    orbitAngle: 2.4,
-    color: '#f87171',
-    detailsColor: '#991b1b',
-    colonized: false,
-    canColonize: true,
-    buildings: [],
-    maxBuildings: 8,
-    pirateThreat: 15
-  },
-  {
-    id: 'cerberus_belt',
-    name: 'Cerberus Asteroid Belt',
-    type: 'asteroid_field',
-    radius: 12,
-    orbitRadius: 260,
-    orbitSpeed: 0.05,
-    orbitAngle: 4.1,
-    color: '#94a3b8',
-    colonized: false,
-    canColonize: true,
-    buildings: [],
-    maxBuildings: 4,
-    pirateThreat: 40
-  },
-  {
-    id: 'zeus',
-    name: 'Zeus Gas Giant',
-    type: 'terrestrial',
-    radius: 26,
-    orbitRadius: 350,
-    orbitSpeed: 0.03,
-    orbitAngle: 0.9,
-    color: '#fb923c',
-    hasRings: true,
-    colonized: false,
-    canColonize: false,
-    buildings: [],
-    maxBuildings: 0
-  },
-  {
-    id: 'pirate_cove',
-    name: 'Skull Rock (Pirate Haven)',
-    type: 'pirate_outpost',
-    radius: 11,
-    orbitRadius: 420,
-    orbitSpeed: 0.02,
-    orbitAngle: 5.2,
-    color: '#dc2626',
-    colonized: false,
-    canColonize: false,
-    buildings: [],
-    maxBuildings: 0,
-    pirateThreat: 90
-  }
-];
+export const FUSED_CHIMERA: StreamSpirit = {
+  id: 'spirit_cyber_chimera',
+  name: 'Cyber-Fuzz Chimera',
+  title: 'Dual-Stream Celestial Beast',
+  frequency: 186.3,
+  species: 'Ascended Harmonimal',
+  instrument: 'Chiptune-Metal Mashup',
+  avatar: '🐯⚡',
+  color: '#f43f5e',
+  hp: 150,
+  maxHp: 150,
+  energy: 100,
+  attack: 38,
+  defense: 25,
+  speed: 25,
+  isFused: true,
+  moves: [
+    {
+      id: 'm_dual_drop',
+      name: 'DUAL-STREAM DROP',
+      type: 'cosmic',
+      power: 55,
+      cost: 40,
+      description: 'Unleashes an explosive fusion drop that tears through static interference!',
+      soundType: 'cosmic_burst'
+    },
+    {
+      id: 'm_super_arpeggio',
+      name: 'Hyper-Resonance Beam',
+      type: 'synth',
+      power: 42,
+      cost: 25,
+      description: 'Fires a blazing stream of harmonized laser notes.',
+      soundType: 'arpeggio'
+    }
+  ]
+};
+
+export const RIVAL_JAX: RivalCharacter = {
+  id: 'rival_jax',
+  name: 'Jax',
+  title: 'The Shadow Punk',
+  tagline: 'Basslines speak louder than words.',
+  avatar: '🎸',
+  color: '#c084fc',
+  dialogueGreet: [
+    "Hey! You're the one walking around with that vintage Astral Tuner?",
+    "This shoreline is my turf. The music here is completely jammed by some weird static glitch.",
+    "If you think you're ready to take on the anomaly, prove your rhythm to me first in a Resonance Duel!"
+  ],
+  dialogueDefeat: [
+    "Whoa... okay, your timing is clean. I respect that.",
+    "My Bass-Hound and I have been trying to breach that static storm for days.",
+    "Let's team up. If we stream our frequencies together, we can blast that Dead Channel into pieces!"
+  ],
+  spirit: JAX_SPIRIT
+};
+
+export const BOSS_SIGNAL_OVERLORD: BossEntity = {
+  id: 'boss_signal_overlord',
+  name: 'DEAD CHANNEL 000',
+  title: 'The Signal Overlord',
+  styleAnomaly: 'crt_static',
+  avatar: '📺👾',
+  hp: 160,
+  maxHp: 160,
+  attack: 24,
+  glitchIntensity: 1.0,
+  moves: [
+    {
+      id: 'b_static_burst',
+      name: 'Static Snow Burst',
+      type: 'static',
+      power: 20,
+      cost: 10,
+      description: 'Blasts blinding white noise and analog interference.',
+      soundType: 'glitch_hit'
+    },
+    {
+      id: 'b_desync',
+      name: 'Frequency Jammer',
+      type: 'static',
+      power: 30,
+      cost: 25,
+      description: 'Desynchronizes your tuner, warping the battle tempo.',
+      soundType: 'glitch_hit'
+    }
+  ]
+};

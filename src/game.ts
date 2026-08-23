@@ -1,14 +1,42 @@
-import { BUILDING_DEFS, SHIP_DEFS } from './data';
-import { addLog, calculateBuildingCost, calculateRates, calculateUpgradeCost, deductResources } from './state';
-import { BuildingType, BuildTask, GameState, Ship, ShipType } from './types';
+import { soundEngine } from './audio';
+import { BOSS_SIGNAL_OVERLORD, FUSED_CHIMERA, JAX_SPIRIT, RIVAL_JAX, STARTER_SPIRIT } from './data';
+import { GameState, Move } from './types';
 
-export class GameEngine {
+export class AstralGameEngine {
   private state: GameState;
   private lastTick: number = 0;
-  private resAccumulator: number = 0;
 
-  constructor(state: GameState) {
-    this.state = state;
+  constructor() {
+    this.state = this.createInitialState();
+  }
+
+  public getState(): GameState {
+    return this.state;
+  }
+
+  private createInitialState(): GameState {
+    return {
+      mode: 'intro',
+      zoneClean: false,
+      activeCompanion: null,
+      streamQueue: [],
+      activeSpiritIndex: 0,
+      tuning: null,
+      battle: null,
+      dialogue: {
+        speaker: 'Astral Tuner (AI)',
+        avatar: '📻',
+        text: [
+          "Bzzzt... Signal link established! Welcome to Frequency Beach on Cadence Island.",
+          "This island vibrates with cosmic musical energy streaming from the stars.",
+          "Let's tune your receiver to summon your first Harmonimal companion!"
+        ],
+        index: 0
+      },
+      time: 0,
+      glitchActive: false,
+      cleansingProgress: 0
+    };
   }
 
   public update(now: number): void {
@@ -19,275 +47,226 @@ export class GameEngine {
     const dt = (now - this.lastTick) / 1000;
     this.lastTick = now;
 
-    if (this.state.paused) return;
+    this.state.time += dt;
 
-    const gameDt = dt * this.state.speed;
-    this.state.time += gameDt;
-
-    // 1. Orbit calculation
-    for (const body of this.state.bodies) {
-      if (body.orbitSpeed > 0) {
-        body.orbitAngle = (body.orbitAngle + body.orbitSpeed * gameDt) % (Math.PI * 2);
-      }
-    }
-
-    // 2. Resource generation (calculated every frame smoothly)
-    this.state.resourceRates = calculateRates(this.state);
-    this.resAccumulator += gameDt;
-    if (this.resAccumulator >= 0.1) {
-      const step = this.resAccumulator;
-      this.resAccumulator = 0;
-
-      this.state.resources.energy = Math.max(0, this.state.resources.energy + this.state.resourceRates.energy * step);
-      this.state.resources.minerals = Math.max(0, this.state.resources.minerals + this.state.resourceRates.minerals * step);
-      this.state.resources.alloys = Math.max(0, this.state.resources.alloys + this.state.resourceRates.alloys * step);
-      this.state.resources.science = Math.max(0, this.state.resources.science + this.state.resourceRates.science * step);
-    }
-
-    // 3. Process Build Queue
-    for (let i = this.state.buildQueue.length - 1; i >= 0; i--) {
-      const task = this.state.buildQueue[i];
-      task.progress += gameDt;
-
-      if (task.progress >= task.totalTime) {
-        // Complete task
-        this.completeBuildTask(task);
-        this.state.buildQueue.splice(i, 1);
-      }
-    }
-
-    // 4. Ship Movement & Actions
-    for (const ship of this.state.ships) {
-      if (ship.state === 'traveling' && ship.destinationId) {
-        // Linear travel progress
-        ship.travelProgress += (ship.speed / 500) * gameDt;
-        if (ship.travelProgress >= 1) {
-          ship.locationId = ship.destinationId;
-          ship.destinationId = undefined;
-          ship.travelProgress = 0;
-
-          const arrivedBody = this.state.bodies.find(b => b.id === ship.locationId);
-          if (arrivedBody?.type === 'asteroid_field' && ship.type === 'mining_drone') {
-            ship.state = 'mining';
-            addLog(this.state, `${ship.name} arrived at ${arrivedBody.name} and initiated deep-core mining.`, 'success');
-          } else {
-            ship.state = 'idle';
-            addLog(this.state, `${ship.name} arrived at ${arrivedBody?.name || 'destination'}.`, 'info');
-          }
-        }
+    // Cleansing Cinematic Progress
+    if (this.state.mode === 'cleansing_cinematic') {
+      this.state.cleansingProgress += dt * 0.5;
+      if (this.state.cleansingProgress >= 1.0) {
+        this.state.mode = 'victory';
+        this.state.zoneClean = true;
+        this.state.glitchActive = false;
+        soundEngine.setWarped(false);
+        soundEngine.playCleansingBloom();
+        this.showDialogue('Jax & Chime-Cat', '🎉', [
+          "WE DID IT! Look at the sky... all the colors and melodies are back!",
+          "That Dual-Stream Fusion was incredible. We completely destroyed the Dead Channel!",
+          "Thank you for playing the Astral Stream Playable Demo Level!"
+        ]);
       }
     }
   }
 
-  private completeBuildTask(task: BuildTask): void {
-    const target = this.state.bodies.find(b => b.id === task.targetId);
-    if (!target) return;
+  /* ---------------- DIALOGUE SYSTEM ---------------- */
+  public advanceDialogue(): void {
+    if (!this.state.dialogue) return;
+    soundEngine.playTone(440, 'sine', 0.05, 0.05);
 
-    if (task.kind === 'construct') {
-      const bType = task.typeId as BuildingType;
-      const newBuilding = {
-        id: 'b_' + Math.random().toString(36).substring(2, 8),
-        type: bType,
-        level: 1
-      };
-      target.buildings.push(newBuilding);
-      addLog(this.state, `Construction complete: New ${task.name} deployed on ${target.name}.`, 'success');
-    } else if (task.kind === 'upgrade') {
-      const building = target.buildings.find(b => b.id === task.buildingId);
-      if (building) {
-        building.level += 1;
-        addLog(this.state, `Upgrade complete: ${task.name} upgraded to Level ${building.level} on ${target.name}.`, 'success');
-      }
-    } else if (task.kind === 'ship') {
-      const sType = task.typeId as ShipType;
-      const def = SHIP_DEFS[sType];
-      const newShip: Ship = {
-        id: 'ship_' + Math.random().toString(36).substring(2, 8),
-        name: `${def.name.split(' ')[0]} ${Math.floor(Math.random() * 899 + 100)}`,
-        type: sType,
-        hull: def.hull,
-        maxHull: def.hull,
-        attack: def.attack,
-        speed: def.speed,
-        locationId: target.id,
-        travelProgress: 0,
-        state: 'idle'
-      };
-      this.state.ships.push(newShip);
-      addLog(this.state, `Shipyard commissioned new vessel: ${newShip.name} ready for duty at ${target.name}.`, 'success');
-    }
-  }
-
-  public constructBuilding(bodyId: string, bType: BuildingType): boolean {
-    const body = this.state.bodies.find(b => b.id === bodyId);
-    if (!body || body.buildings.length >= body.maxBuildings) return false;
-
-    const cost = calculateBuildingCost(bType);
-    deductResources(this.state.resources, cost);
-    const def = BUILDING_DEFS[bType];
-    this.state.buildQueue.push({
-      id: Math.random().toString(36).substring(2, 9),
-      targetId: bodyId,
-      kind: 'construct',
-      typeId: bType,
-      progress: 0,
-      totalTime: 4,
-      name: def.name
-    });
-    addLog(this.state, `Started construction of new ${def.name} on ${body.name}.`, 'info');
-    return true;
-  }
-
-  public upgradeBuilding(bodyId: string, buildingId: string): boolean {
-    const body = this.state.bodies.find(b => b.id === bodyId);
-    if (!body) return false;
-    const building = body.buildings.find(b => b.id === buildingId);
-    if (!building) return false;
-
-    const cost = calculateUpgradeCost(building.type, building.level);
-    deductResources(this.state.resources, cost);
-    const def = BUILDING_DEFS[building.type];
-    this.state.buildQueue.push({
-      id: Math.random().toString(36).substring(2, 9),
-      targetId: bodyId,
-      kind: 'upgrade',
-      typeId: building.type,
-      buildingId: building.id,
-      progress: 0,
-      totalTime: 3 + building.level * 2,
-      name: `${def.name} (Lvl ${building.level + 1})`
-    });
-    addLog(this.state, `Started upgrade of ${def.name} to Level ${building.level + 1} on ${body.name}.`, 'info');
-    return true;
-  }
-
-  public queueShip(bodyId: string, sType: ShipType): boolean {
-    const def = SHIP_DEFS[sType];
-    deductResources(this.state.resources, def.cost);
-    this.state.buildQueue.push({
-      id: Math.random().toString(36).substring(2, 9),
-      targetId: bodyId,
-      kind: 'ship',
-      typeId: sType,
-      progress: 0,
-      totalTime: def.buildTime,
-      name: def.name
-    });
-    addLog(this.state, `Commissioned ${def.name} at ${(this.state.bodies.find(b => b.id === bodyId))?.name}.`, 'info');
-    return true;
-  }
-
-  public colonizeBody(bodyId: string): boolean {
-    const body = this.state.bodies.find(b => b.id === bodyId);
-    if (!body || body.colonized || !body.canColonize) return false;
-
-    const colonizeCost = { alloys: 50, energy: 30, minerals: 100 };
-    deductResources(this.state.resources, colonizeCost);
-
-    body.colonized = true;
-    body.buildings = [
-      { id: 'col_' + Math.random().toString(36).substring(2, 6), type: 'solar_array', level: 1 },
-      { id: 'col_' + Math.random().toString(36).substring(2, 6), type: 'mineral_mine', level: 1 }
-    ];
-
-    addLog(this.state, `Colony established on ${body.name}! Initial life support and mining online.`, 'success');
-    return true;
-  }
-
-  public sendShip(shipId: string, destinationId: string): void {
-    const ship = this.state.ships.find(s => s.id === shipId);
-    if (!ship || ship.state === 'traveling' || ship.locationId === destinationId) return;
-
-    ship.state = 'traveling';
-    ship.destinationId = destinationId;
-    ship.travelProgress = 0;
-    const dest = this.state.bodies.find(b => b.id === destinationId);
-    addLog(this.state, `${ship.name} engaged sub-light engines, heading to ${dest?.name || destinationId}.`, 'info');
-  }
-
-  /* ---------------- Stage 1 Diplomacy & Hegemony ---------------- */
-  public sendDiplomaticEnvoy(factionId: string): boolean {
-    const faction = this.state.factions?.find(f => f.id === factionId);
-    if (!faction || faction.relationship === 'unified') return false;
-
-    faction.opinion = Math.min(100, faction.opinion + 15);
-    if (faction.opinion >= 70 && faction.relationship === 'neutral') {
-      faction.relationship = 'friendly';
-    }
-    if (faction.opinion >= 40 && faction.relationship === 'hostile') {
-      faction.relationship = 'neutral';
-    }
-    addLog(this.state, `Diplomatic mission sent to ${faction.name}. Relations improved (+15 Opinion).`, 'success');
-    this.updateHegemony();
-    return true;
-  }
-
-  public toggleTradeRoute(factionId: string): boolean {
-    const faction = this.state.factions?.find(f => f.id === factionId);
-    if (!faction) return false;
-
-    if (!faction.tradeActive) {
-      if (faction.opinion < 30) {
-        addLog(this.state, `${faction.name} refuses trade. (Requires Opinion >= 30).`, 'warning');
-        return false;
-      }
-      faction.tradeActive = true;
-      addLog(this.state, `Established bilateral trade route with ${faction.name}!`, 'success');
+    if (this.state.dialogue.index < this.state.dialogue.text.length - 1) {
+      this.state.dialogue.index++;
     } else {
-      faction.tradeActive = false;
-      addLog(this.state, `Suspended trade route with ${faction.name}.`, 'info');
+      const onComplete = this.state.dialogue.onComplete;
+      this.state.dialogue = null;
+      if (onComplete) {
+        onComplete();
+      } else if (this.state.mode === 'intro') {
+        this.startTuningTutorial();
+      }
     }
-    this.updateHegemony();
-    return true;
   }
 
-  public formAlliance(factionId: string): boolean {
-    const faction = this.state.factions?.find(f => f.id === factionId);
-    if (!faction || faction.relationship === 'allied' || faction.relationship === 'unified') return false;
-
-    if (faction.opinion < 70) {
-      addLog(this.state, `${faction.name} is not ready for an alliance (Requires Opinion >= 70).`, 'warning');
-      return false;
-    }
-
-    faction.relationship = 'allied';
-    addLog(this.state, `Signed the Planetary Concordat! ${faction.name} is now your military and scientific Ally!`, 'success');
-    this.updateHegemony();
-    return true;
+  public showDialogue(speaker: string, avatar: string, text: string[], onComplete?: () => void): void {
+    this.state.dialogue = { speaker, avatar, text, index: 0, onComplete };
   }
 
-  public unifyFaction(factionId: string): boolean {
-    const faction = this.state.factions?.find(f => f.id === factionId);
-    if (!faction || faction.relationship === 'unified') return false;
-
-    if (faction.opinion < 90) {
-      addLog(this.state, `${faction.name} requires at least 90 Opinion to ratify total integration.`, 'warning');
-      return false;
-    }
-
-    faction.relationship = 'unified';
-    faction.tradeActive = true;
-    addLog(this.state, `HISTORIC MILESTONE: ${faction.name} has signed the Planetary Unification Accord!`, 'success');
-    this.updateHegemony();
-    return true;
+  /* ---------------- TUNING / STREAMING MINIGAME ---------------- */
+  public startTuningTutorial(): void {
+    this.state.mode = 'tuning_tutorial';
+    this.state.tuning = {
+      targetFrequency: 98.0,
+      currentFrequency: 85.0,
+      tolerance: 1.5,
+      isLocked: false,
+      spiritToUnlock: JSON.parse(JSON.stringify(STARTER_SPIRIT))
+    };
+    soundEngine.startBGM();
   }
 
-  public updateHegemony(): void {
-    if (!this.state.factions) return;
+  public adjustFrequency(delta: number): void {
+    if (!this.state.tuning || this.state.tuning.isLocked) return;
+    this.state.tuning.currentFrequency = Math.max(70, Math.min(115, this.state.tuning.currentFrequency + delta));
+    soundEngine.playTuningClick();
 
-    let points = 0;
-    for (const f of this.state.factions) {
-      if (f.relationship === 'unified') points += 25;
-      else if (f.relationship === 'allied') points += 12;
-      else if (f.relationship === 'friendly') points += 6;
-      if (f.tradeActive) points += 5;
+    const diff = Math.abs(this.state.tuning.currentFrequency - this.state.tuning.targetFrequency);
+    if (diff < this.state.tuning.tolerance) {
+      this.lockFrequency();
+    }
+  }
+
+  public lockFrequency(): void {
+    if (!this.state.tuning || this.state.tuning.isLocked) return;
+    this.state.tuning.isLocked = true;
+    soundEngine.playLockChime();
+
+    setTimeout(() => {
+      const unlocked = this.state.tuning!.spiritToUnlock;
+      this.state.streamQueue.push(unlocked);
+      this.state.tuning = null;
+      this.state.mode = 'exploration';
+
+      this.showDialogue('Chime-Cat', '🐱', [
+        "Mew-chime! ✨ (Chime-Cat streamed directly from the cosmos into your playlist!)",
+        "Suddenly, the sky turns dark and television static rips through the air..."
+      ], () => {
+        this.triggerStaticIncursion();
+      });
+    }, 1200);
+  }
+
+  /* ---------------- STATIC INCURSION & RIVAL BATTLE ---------------- */
+  public triggerStaticIncursion(): void {
+    this.state.glitchActive = true;
+    soundEngine.setWarped(true);
+    soundEngine.playStaticHiss(0.6, 0.25);
+
+    this.showDialogue(RIVAL_JAX.name, RIVAL_JAX.avatar, RIVAL_JAX.dialogueGreet, () => {
+      this.startBattle('rival');
+    });
+  }
+
+  public startBattle(type: 'rival' | 'boss'): void {
+    this.state.mode = 'battle';
+    const playerSpirit = JSON.parse(JSON.stringify(this.state.streamQueue[0] || STARTER_SPIRIT));
+
+    if (type === 'rival') {
+      this.state.battle = {
+        type: 'rival',
+        playerSpirit,
+        enemySpirit: JSON.parse(JSON.stringify(RIVAL_JAX.spirit)),
+        turn: 'player',
+        selectedMoveIndex: 0,
+        log: `${RIVAL_JAX.name} sent out ${RIVAL_JAX.spirit.name}! Resonance battle start!`,
+        canFuse: false,
+        fusionActive: false
+      };
+    } else {
+      this.state.battle = {
+        type: 'boss',
+        playerSpirit,
+        enemyBoss: JSON.parse(JSON.stringify(BOSS_SIGNAL_OVERLORD)),
+        turn: 'player',
+        selectedMoveIndex: 0,
+        log: `DEAD CHANNEL 000 appeared! The audio stream is violently warped!`,
+        canFuse: !!this.state.activeCompanion,
+        fusionActive: false
+      };
+    }
+  }
+
+  public executePlayerMove(moveIndex: number): void {
+    const b = this.state.battle;
+    if (!b || b.turn !== 'player') return;
+
+    const move = b.playerSpirit.moves[moveIndex];
+    if (!move) return;
+
+    soundEngine.playMoveSound(move.soundType);
+    b.turn = 'animating';
+
+    // Calculate Damage
+    const dmg = Math.max(8, Math.floor(move.power + (b.playerSpirit.attack * 0.4)));
+
+    if (b.type === 'rival' && b.enemySpirit) {
+      b.enemySpirit.hp = Math.max(0, b.enemySpirit.hp - dmg);
+      b.log = `${b.playerSpirit.name} used ${move.name}! Dealt ${dmg} Harmonic damage!`;
+
+      if (b.enemySpirit.hp <= 0) {
+        setTimeout(() => this.handleBattleVictory(), 1000);
+        return;
+      }
+    } else if (b.type === 'boss' && b.enemyBoss) {
+      b.enemyBoss.hp = Math.max(0, b.enemyBoss.hp - dmg);
+      b.log = `${b.playerSpirit.name} used ${move.name}! Struck the Static Core for ${dmg} damage!`;
+
+      if (b.enemyBoss.hp <= 0) {
+        setTimeout(() => this.handleBattleVictory(), 1000);
+        return;
+      }
     }
 
-    this.state.hegemonyProgress = Math.min(100, points);
+    // Enemy Turn
+    setTimeout(() => {
+      this.executeEnemyTurn();
+    }, 1200);
+  }
 
-    if (this.state.hegemonyProgress >= 100 && this.state.era === 'planetary') {
-      this.state.era = 'interplanetary';
-      addLog(this.state, `🌟 GLOBAL HEGEMONY ACHIEVED! Nova Terra is unified under one banner! The Orbital Space Program is now ACTIVE!`, 'success');
+  public triggerFusion(): void {
+    const b = this.state.battle;
+    if (!b || !b.canFuse || b.fusionActive) return;
+
+    soundEngine.playCleansingBloom();
+    b.fusionActive = true;
+    b.playerSpirit = JSON.parse(JSON.stringify(FUSED_CHIMERA));
+    b.log = `🌟 DUAL-STREAM FUSION ACTIVATED! Chime-Cat and Bass-Hound merged into Cyber-Fuzz Chimera!`;
+  }
+
+  private executeEnemyTurn(): void {
+    const b = this.state.battle;
+    if (!b) return;
+
+    let enemyName = '';
+    let move: Move;
+
+    if (b.type === 'rival' && b.enemySpirit) {
+      enemyName = b.enemySpirit.name;
+      move = b.enemySpirit.moves[Math.floor(Math.random() * b.enemySpirit.moves.length)];
+    } else if (b.type === 'boss' && b.enemyBoss) {
+      enemyName = b.enemyBoss.name;
+      move = b.enemyBoss.moves[Math.floor(Math.random() * b.enemyBoss.moves.length)];
+    } else {
+      return;
+    }
+
+    soundEngine.playMoveSound(move.soundType);
+    const dmg = Math.max(5, Math.floor(move.power * 0.7));
+    b.playerSpirit.hp = Math.max(1, b.playerSpirit.hp - dmg); // Keep player alive for demo fun!
+
+    b.log = `${enemyName} attacked with ${move.name}! Dealt ${dmg} damage.`;
+    b.turn = 'player';
+  }
+
+  private handleBattleVictory(): void {
+    const b = this.state.battle!;
+    if (b.type === 'rival') {
+      soundEngine.playLockChime();
+      this.state.activeCompanion = RIVAL_JAX;
+      this.state.streamQueue.push(JSON.parse(JSON.stringify(JAX_SPIRIT)));
+      this.state.mode = 'exploration';
+      this.state.battle = null;
+
+      this.showDialogue(RIVAL_JAX.name, RIVAL_JAX.avatar, RIVAL_JAX.dialogueDefeat, () => {
+        this.showDialogue('Narrator', '📺', [
+          "The static frequency intensifies! The epicenter of Dead Channel 000 is directly ahead.",
+          "Prepare your Dual-Stream Fusion and cleanse the signal!"
+        ], () => {
+          this.startBattle('boss');
+        });
+      });
+    } else if (b.type === 'boss') {
+      this.state.mode = 'cleansing_cinematic';
+      this.state.battle = null;
+      this.state.cleansingProgress = 0;
+      soundEngine.playCleansingBloom();
     }
   }
 }

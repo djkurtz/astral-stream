@@ -1,151 +1,102 @@
-export type ResourceType = 'energy' | 'minerals' | 'alloys' | 'science';
+export type GameMode = 
+  | 'intro'
+  | 'tuning_tutorial'
+  | 'exploration'
+  | 'dialogue'
+  | 'battle'
+  | 'cleansing_cinematic'
+  | 'victory';
 
-export interface Resources {
-  energy: number;
-  minerals: number;
-  alloys: number;
-  science: number;
-}
-
-export type CelestialType = 'star' | 'terrestrial' | 'moon' | 'station' | 'asteroid_field' | 'pirate_outpost';
-
-export type BuildingType = 
-  | 'solar_array' 
-  | 'mineral_mine' 
-  | 'alloy_foundry' 
-  | 'research_lab' 
-  | 'orbital_shipyard'
-  | 'defense_turret';
-
-export interface BuildingDef {
-  type: BuildingType;
+export interface Move {
+  id: string;
   name: string;
+  type: 'synth' | 'bass' | 'brass' | 'static' | 'cosmic';
+  power: number;
+  cost: number; // Harmonic Energy (HE)
   description: string;
-  baseCost: Partial<Resources>;
-  costMultiplier: number;
-  production: Partial<Resources>;
-  energyConsumption: number;
+  soundType: 'arpeggio' | 'bass_drop' | 'brass_riff' | 'glitch_hit' | 'cosmic_burst';
 }
 
-export interface BuildingInstance {
-  id: string;
-  type: BuildingType;
-  level: number;
-}
-
-export interface CelestialBody {
+export interface StreamSpirit {
   id: string;
   name: string;
-  type: CelestialType;
-  radius: number;
-  orbitRadius: number;
-  orbitSpeed: number; // radians per second
-  orbitAngle: number;
+  title: string;
+  frequency: number; // e.g. 98.0
+  species: string;
+  instrument: string;
+  avatar: string; // pixel sprite identifier
   color: string;
-  detailsColor?: string;
-  hasRings?: boolean;
-  parentId?: string; // id of parent body if orbiting a planet/moon
-  colonized: boolean;
-  canColonize: boolean;
-  buildings: BuildingInstance[];
-  maxBuildings: number;
-  pirateThreat?: number; // 0-100
-}
-
-export type ShipType = 'scout' | 'mining_drone' | 'corvette' | 'frigate';
-
-export interface ShipDef {
-  type: ShipType;
-  name: string;
-  cost: Partial<Resources>;
-  buildTime: number; // in seconds
-  hull: number;
+  hp: number;
+  maxHp: number;
+  energy: number; // 0 to 100 HE
   attack: number;
+  defense: number;
   speed: number;
-  description: string;
+  moves: Move[];
+  isFused?: boolean;
 }
 
-export interface Ship {
+export interface RivalCharacter {
   id: string;
   name: string;
-  type: ShipType;
-  hull: number;
-  maxHull: number;
-  attack: number;
-  speed: number;
-  locationId: string;
-  destinationId?: string;
-  travelProgress: number; // 0 to 1
-  state: 'idle' | 'traveling' | 'mining' | 'patrolling' | 'combat';
-}
-
-export interface BuildTask {
-  id: string;
-  targetId: string; // CelestialBody id
-  kind: 'construct' | 'upgrade' | 'ship';
-  typeId: string;
-  buildingId?: string;
-  progress: number;
-  totalTime: number;
-  name: string;
-}
-
-export interface LogMessage {
-  id: string;
-  text: string;
-  type: 'info' | 'success' | 'warning' | 'danger';
-  time: string;
-}
-
-export interface TutorialState {
-  stepIndex: number;
-  completed: boolean;
-  active: boolean;
-  rewardClaimed: boolean;
-}
-
-export type Era = 'planetary' | 'interplanetary' | 'interstellar';
-
-export type FactionRelationship = 'hostile' | 'neutral' | 'friendly' | 'allied' | 'unified';
-
-export interface TradeDeal {
-  giveResource: keyof Resources;
-  giveAmount: number; // per second
-  getResource: keyof Resources;
-  getAmount: number; // per second
-}
-
-export interface PlanetaryFaction {
-  id: string;
-  name: string;
-  race: string;
-  leader: string;
+  title: string;
+  tagline: string;
   avatar: string;
   color: string;
-  description: string;
-  opinion: number; // 0 to 100
-  relationship: FactionRelationship;
-  influence: number; // 0 to 100% towards unification
-  tradeActive: boolean;
-  tradeDeal: TradeDeal;
+  dialogueGreet: string[];
+  dialogueDefeat: string[];
+  spirit: StreamSpirit;
+}
+
+export interface BossEntity {
+  id: string;
+  name: string;
+  title: string;
+  styleAnomaly: 'crt_static' | 'monochrome_ink' | 'wireframe';
+  avatar: string;
+  hp: number;
+  maxHp: number;
+  attack: number;
+  moves: Move[];
+  glitchIntensity: number; // 0 to 1
+}
+
+export interface BattleState {
+  type: 'rival' | 'boss';
+  playerSpirit: StreamSpirit;
+  enemySpirit?: StreamSpirit;
+  enemyBoss?: BossEntity;
+  turn: 'player' | 'enemy' | 'animating';
+  selectedMoveIndex: number;
+  log: string;
+  canFuse: boolean;
+  fusionActive: boolean;
+}
+
+export interface TuningState {
+  targetFrequency: number;
+  currentFrequency: number;
+  tolerance: number;
+  isLocked: boolean;
+  spiritToUnlock: StreamSpirit;
 }
 
 export interface GameState {
+  mode: GameMode;
+  zoneClean: boolean;
+  activeCompanion: RivalCharacter | null;
+  streamQueue: StreamSpirit[]; // Collected spirits
+  activeSpiritIndex: number;
+  tuning: TuningState | null;
+  battle: BattleState | null;
+  dialogue: {
+    speaker: string;
+    avatar: string;
+    text: string[];
+    index: number;
+    onComplete?: () => void;
+  } | null;
   time: number;
-  speed: number;
-  paused: boolean;
-  era: Era;
-  hegemonyProgress: number; // 0 to 100
-  factions: PlanetaryFaction[];
-  resources: Resources;
-  resourceRates: Resources;
-  bodies: CelestialBody[];
-  ships: Ship[];
-  buildQueue: BuildTask[];
-  logs: LogMessage[];
-  selectedBodyId: string;
-  viewMode: 'system' | 'surface';
-  tutorial: TutorialState;
+  glitchActive: boolean;
+  cleansingProgress: number; // 0 to 1
 }
-
-
