@@ -374,7 +374,7 @@ export class AstralGameEngine {
 
     match.isComplete = true;
     soundEngine.playSuccessDing();
-    soundEngine.playLockChime();
+    soundEngine.playCreatureMotif(match.spiritToUnlock.id);
 
     setTimeout(() => {
       const unlocked = match.spiritToUnlock;
@@ -384,9 +384,10 @@ export class AstralGameEngine {
 
       this.state.audioMatch = null;
       this.state.mode = 'exploration';
-      this.showDialogue(unlocked.name, unlocked.avatar || '🎷', [
+      this.showDialogue(unlocked.name, unlocked.avatar, [
         `🎉 AUDIO MATCH VERIFIED! Streamed: ${unlocked.name} [${unlocked.vibeTag}]!`,
-        `Instrument: ${unlocked.instrument}. Added to your living playlist queue!`
+        `Biological Instrument: ${unlocked.instrument}!`,
+        `Origin Tradition: ${unlocked.originTradition}. Added to your living playlist queue!`
       ]);
     }, 1000);
   }

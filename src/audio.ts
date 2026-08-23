@@ -203,6 +203,56 @@ export class AudioEngine {
     }
   }
 
+  public playCreatureMotif(spiritId: string): void {
+    if (spiritId === 'spirit_chime_cat') {
+      // 8-Bit Ascending Arcade Chirp
+      [523.25, 659.25, 783.99, 1046.50].forEach((f, i) => {
+        setTimeout(() => this.playTone(f, 'square', 0.1, 0.15), i * 65);
+      });
+    } else if (spiritId === 'spirit_allegro_owl') {
+      // Baroque Violin Concertmaster Cadence
+      [440, 554.37, 659.25, 880, 1108.73].forEach((f, i) => {
+        setTimeout(() => {
+          this.playTone(f, 'triangle', 0.12, 0.22);
+          this.playTone(f * 2, 'sine', 0.08, 0.08);
+        }, i * 60);
+      });
+    } else if (spiritId === 'spirit_sitar_swan') {
+      // Indian Raga Meend Glide & Drone
+      this.playTone(146.83, 'sawtooth', 0.6, 0.1); // D3 Drone
+      if (this.ctx) {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(293.66, this.ctx.currentTime);
+        osc.frequency.linearRampToValueAtTime(349.23, this.ctx.currentTime + 0.25);
+        osc.frequency.linearRampToValueAtTime(293.66, this.ctx.currentTime + 0.5);
+        gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.6);
+        osc.connect(gain);
+        gain.connect(this.filterNode || this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.6);
+      }
+    } else if (spiritId === 'spirit_taiko_tanuki') {
+      // Japanese Matsuri Festival Cadence (Don! Don! Ka-Don!)
+      this.playMoveSound('taiko_boom');
+      setTimeout(() => this.playMoveSound('taiko_boom'), 180);
+      setTimeout(() => this.playTone(320, 'triangle', 0.06, 0.2), 340); // Ka (rimshot)
+      setTimeout(() => this.playMoveSound('taiko_boom'), 420); // Don
+    } else if (spiritId === 'spirit_brass_bunny') {
+      // Bebop Jazz Horn Lick
+      [349.23, 440, 523.25, 698.46, 659.25].forEach((f, i) => {
+        setTimeout(() => this.playTone(f, 'sawtooth', 0.12, 0.18), i * 70);
+      });
+    } else if (spiritId === 'spirit_bass_hound') {
+      // Heavy 808 Sub Slide
+      this.playMoveSound('bass_drop');
+    } else if (spiritId === 'spirit_cyber_chimera') {
+      this.playCleansingBloom();
+    }
+  }
+
   /* ---------------- STRUCTURED BGM SYSTEM ---------------- */
   public switchTrack(track: 'town' | 'battle'): void {
     if (this.currentTrack === track && this.bgmInterval) return;

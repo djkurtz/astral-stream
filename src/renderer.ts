@@ -527,6 +527,17 @@ export class AstralRenderer {
     ctx.fillRect(-4, -15, 2, 3);
     ctx.fillRect(2, -15, 2, 3);
 
+    // Glowing Neon LED Whiskers
+    ctx.fillStyle = '#38bdf8';
+    ctx.fillRect(-8, -13, 3, 1);
+    ctx.fillRect(5, -13, 3, 1);
+
+    // Piano Keys along spine
+    for (let k = -5; k <= 3; k += 2) {
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(k, -11, 2, 2);
+    }
+
     // Tail (Wagging audio cord)
     const tailWag = Math.sin(t * 8) * 4;
     ctx.strokeStyle = '#38bdf8';
@@ -757,7 +768,11 @@ export class AstralRenderer {
     ctx.shadowBlur = 0;
     ctx.fillStyle = '#ffffff';
     ctx.font = '800 15px Fredoka, sans-serif';
-    ctx.fillText(`${spirit.name} [${spirit.type.toUpperCase()}]`, 0, 34 * scale);
+    ctx.fillText(`${spirit.name} [${spirit.type.toUpperCase()}]`, 0, 32 * scale);
+
+    ctx.fillStyle = spirit.color || '#38bdf8';
+    ctx.font = '700 12px Fredoka, sans-serif';
+    ctx.fillText(spirit.title, 0, 48 * scale);
     ctx.restore();
   }
 
