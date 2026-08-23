@@ -104,11 +104,11 @@ export class HarmoniaRenderer {
     ctx.fillText('Choose your Starter Instrument and bond with your musical Harmonipet familiar:', this.width / 2, 120);
 
     // 4 Starter Cards
-    const cardW = 260;
-    const cardH = 460;
-    const gap = 30;
+    const gap = Math.min(30, Math.max(10, (this.width - 760) / 16));
+    const cardW = Math.min(260, (this.width - 60 - gap * 3) / 4);
+    const cardH = Math.min(460, this.height - 180);
     const startX = (this.width - (cardW * 4 + gap * 3)) / 2;
-    const cardY = 160;
+    const cardY = Math.min(160, this.height - cardH - 20);
 
     STARTER_OPTIONS.forEach((opt, idx) => {
       const x = startX + idx * (cardW + gap);
@@ -124,54 +124,54 @@ export class HarmoniaRenderer {
       // Instrument Section Pill
       ctx.fillStyle = opt.pet.color;
       ctx.beginPath();
-      ctx.roundRect(x + 20, cardY + 18, cardW - 40, 28, 8);
+      ctx.roundRect(x + 15, cardY + 16, cardW - 30, 26, 8);
       ctx.fill();
       ctx.fillStyle = '#0f172a';
-      ctx.font = 'bold 13px "Inter", sans-serif';
+      ctx.font = 'bold 12px "Inter", sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(opt.sectionName.toUpperCase(), x + cardW / 2, cardY + 32);
+      ctx.fillText(opt.sectionName.toUpperCase(), x + cardW / 2, cardY + 29);
 
       // Pet Avatar & Sprite
       ctx.textBaseline = 'alphabetic';
-      this.drawPixelPet(ctx, x + cardW / 2, cardY + 115, opt.pet, state.time);
+      this.drawPixelPet(ctx, x + cardW / 2, cardY + 105, opt.pet, state.time);
 
       // Pet Name & Species
       ctx.fillStyle = '#f8fafc';
-      ctx.font = 'bold 20px "Inter", sans-serif';
+      ctx.font = 'bold 18px "Inter", sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(opt.name, x + cardW / 2, cardY + 185);
+      ctx.fillText(opt.name, x + cardW / 2, cardY + 165);
 
       ctx.fillStyle = opt.pet.color;
-      ctx.font = 'italic 14px "Inter", sans-serif';
-      ctx.fillText(`Familiar: ${opt.pet.name} (${opt.pet.species})`, x + cardW / 2, cardY + 210);
+      ctx.font = 'italic 13px "Inter", sans-serif';
+      ctx.fillText(`Familiar: ${opt.pet.name}`, x + cardW / 2, cardY + 188);
 
       // Description - Centered within the card
       ctx.fillStyle = '#cbd5e1';
-      ctx.font = '13px "Inter", sans-serif';
+      ctx.font = '12px "Inter", sans-serif';
       ctx.textAlign = 'center';
-      this.wrapText(ctx, opt.description, x + cardW / 2, cardY + 238, cardW - 36, 18);
+      this.wrapText(ctx, opt.description, x + cardW / 2, cardY + 212, cardW - 24, 16);
 
       // Base Stats
-      const statY = cardY + 312;
+      const statY = cardY + cardH - 142;
       ctx.fillStyle = '#94a3b8';
-      ctx.font = '12px "Inter", sans-serif';
+      ctx.font = '11px "Inter", sans-serif';
       ctx.textAlign = 'left';
-      ctx.fillText(`Technique (TEC): ${opt.baseStats.technique}`, x + 25, statY);
-      ctx.fillText(`Tone Quality (TON): ${opt.baseStats.toneQuality}`, x + 25, statY + 20);
-      ctx.fillText(`Tempo Stability (TEM): ${opt.baseStats.tempoStability}`, x + 25, statY + 40);
-      ctx.fillText(`Sight-Reading (RDG): ${opt.baseStats.sightReading}`, x + 25, statY + 60);
+      ctx.fillText(`Technique: ${opt.baseStats.technique}`, x + 18, statY);
+      ctx.fillText(`Tone Quality: ${opt.baseStats.toneQuality}`, x + 18, statY + 18);
+      ctx.fillText(`Tempo: ${opt.baseStats.tempoStability}`, x + 18, statY + 36);
+      ctx.fillText(`Sight-Reading: ${opt.baseStats.sightReading}`, x + 18, statY + 54);
 
       // Choose Button Prompt
       ctx.textAlign = 'center';
       ctx.fillStyle = opt.pet.color;
       ctx.beginPath();
-      ctx.roundRect(x + 20, cardY + cardH - 48, cardW - 40, 34, 10);
+      ctx.roundRect(x + 15, cardY + cardH - 44, cardW - 30, 32, 10);
       ctx.fill();
       ctx.fillStyle = '#0f172a';
-      ctx.font = 'bold 14px "Inter", sans-serif';
+      ctx.font = 'bold 13px "Inter", sans-serif';
       ctx.textBaseline = 'middle';
-      ctx.fillText(`Press [${idx + 1}] or Click`, x + cardW / 2, cardY + cardH - 31);
+      ctx.fillText(`Press [${idx + 1}] or Click`, x + cardW / 2, cardY + cardH - 28);
       ctx.textBaseline = 'alphabetic';
     });
 
@@ -200,10 +200,10 @@ export class HarmoniaRenderer {
     ctx.fillText(`BPM: ${session.bpm} | Time Remaining: ${Math.max(0, Math.ceil(session.duration - session.elapsedTime))}s`, this.width / 2, 80);
 
     // Rhythm Highway Container
-    const hwX = 340;
-    const hwY = 120;
-    const hwW = 600;
-    const hwH = 480;
+    const hwW = Math.min(520, Math.max(320, this.width * 0.42));
+    const hwH = Math.min(460, this.height - 180);
+    const hwX = Math.max(150, (this.width - (hwW + 260 + 20)) / 2);
+    const hwY = 105;
 
     ctx.fillStyle = '#1e293b';
     ctx.strokeStyle = '#38bdf8';
@@ -225,13 +225,13 @@ export class HarmoniaRenderer {
 
       // Key prompts at bottom
       ctx.fillStyle = '#94a3b8';
-      ctx.font = 'bold 15px "Inter", sans-serif';
+      ctx.font = 'bold 14px "Inter", sans-serif';
       const keyName = i === 0 ? '1 / D' : (i === 1 ? '2 / F' : (i === 2 ? '3 / J' : '4 / K'));
-      ctx.fillText(keyName, hwX + i * laneW + laneW / 2, hwY + hwH - 20);
+      ctx.fillText(keyName, hwX + i * laneW + laneW / 2, hwY + hwH - 18);
     }
 
-    // Target Hit Line (at Y: hwY + hwH - 70)
-    const targetY = hwY + hwH - 70;
+    // Target Hit Line (at Y: hwY + hwH - 65)
+    const targetY = hwY + hwH - 65;
     ctx.fillStyle = 'rgba(56, 189, 248, 0.2)';
     ctx.fillRect(hwX, targetY - 15, hwW, 30);
     ctx.strokeStyle = '#38bdf8';
@@ -252,7 +252,7 @@ export class HarmoniaRenderer {
         const noteX = hwX + note.lane * laneW + laneW / 2;
         ctx.fillStyle = note.missed ? '#ef4444' : '#38bdf8';
         ctx.beginPath();
-        ctx.arc(noteX, noteY, 18, 0, Math.PI * 2);
+        ctx.arc(noteX, noteY, 16, 0, Math.PI * 2);
         ctx.fill();
         ctx.strokeStyle = '#ffffff';
         ctx.lineWidth = 2;
@@ -262,19 +262,19 @@ export class HarmoniaRenderer {
 
     // Left Panel: Stats & Combo
     ctx.fillStyle = '#f8fafc';
-    ctx.font = 'bold 24px "Inter", sans-serif';
+    ctx.font = 'bold 20px "Inter", sans-serif';
     ctx.textAlign = 'left';
-    ctx.fillText(`Score: ${Math.floor(session.score)}`, 80, 200);
+    ctx.fillText(`Score: ${Math.floor(session.score)}`, 24, 180);
     ctx.fillStyle = '#fbbf24';
-    ctx.fillText(`Combo: ${session.combo}x`, 80, 240);
+    ctx.fillText(`Combo: ${session.combo}x`, 24, 215);
     ctx.fillStyle = '#94a3b8';
-    ctx.font = '16px "Inter", sans-serif';
-    ctx.fillText(`Max Combo: ${session.maxCombo}x`, 80, 280);
+    ctx.font = '14px "Inter", sans-serif';
+    ctx.fillText(`Max: ${session.maxCombo}x`, 24, 248);
 
     // Feedback popup
     if (session.feedbackTimer > 0) {
       ctx.fillStyle = session.feedbackText.includes('PERFECT') ? '#eab308' : (session.feedbackText.includes('MISS') ? '#ef4444' : '#38bdf8');
-      ctx.font = 'bold 36px "Inter", sans-serif';
+      ctx.font = 'bold 32px "Inter", sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText(session.feedbackText, hwX + hwW / 2, hwY + hwH / 2);
     }
@@ -285,7 +285,7 @@ export class HarmoniaRenderer {
     for (let i = 0; i < 4; i++) {
       if (state.showStaffVisualizer) {
         ctx.fillStyle = laneColors[i];
-        ctx.font = 'bold 13px "Inter", sans-serif';
+        ctx.font = 'bold 12px "Inter", sans-serif';
         ctx.textAlign = 'center';
         ctx.fillText(laneSolfege[i], hwX + i * laneW + laneW / 2, targetY + 22);
       }
@@ -293,15 +293,15 @@ export class HarmoniaRenderer {
 
     // Toggle Prompt beneath Highway
     ctx.fillStyle = state.showStaffVisualizer ? '#38bdf8' : '#94a3b8';
-    ctx.font = '14px "Inter", sans-serif';
+    ctx.font = '13px "Inter", sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText(`[V] Toggle Grand Staff & Solfège Visualizer: ${state.showStaffVisualizer ? 'ON (Active)' : 'OFF'}`, hwX + hwW / 2, hwY + hwH + 30);
+    ctx.fillText(`[V] Toggle Staff & Solfège: ${state.showStaffVisualizer ? 'ON' : 'OFF'}`, hwX + hwW / 2, hwY + hwH + 26);
 
     // ==================== RIGHT PANEL: GRAND STAFF & SOLFÈGE VISUALIZER ====================
-    const staffX = 960;
-    const staffY = 120;
-    const staffW = 280;
-    const staffH = 480;
+    const staffW = Math.min(260, Math.max(200, this.width - (hwX + hwW + 24)));
+    const staffX = hwX + hwW + 16;
+    const staffY = hwY;
+    const staffH = hwH;
 
     ctx.fillStyle = '#1e293b';
     ctx.strokeStyle = state.showStaffVisualizer ? '#38bdf8' : 'rgba(255, 255, 255, 0.15)';
@@ -500,15 +500,16 @@ export class HarmoniaRenderer {
     this.drawPixelPet(ctx, 280, 280, player.pet, state.time, state.customization?.petTint, 'right');
 
     // Player Harmony Meter (Health/Composure to 100% win)
-    this.drawBar(ctx, 100, 140, 300, 24, battle.playerHarmonyMeter, 100, '#38bdf8', '🎵 Harmony Composure: ' + battle.playerHarmonyMeter + '%');
+    const barW = Math.min(300, (this.width - 200) / 2);
+    this.drawBar(ctx, 60, 140, barW, 24, battle.playerHarmonyMeter, 100, '#38bdf8', '🎵 Harmony Composure: ' + battle.playerHarmonyMeter + '%');
     // Harmony Action Points (AP)
-    this.drawBar(ctx, 100, 175, 300, 16, battle.harmonyPoints, battle.maxHarmonyPoints, '#fbbf24', '⚡ Energy (AP): ' + battle.harmonyPoints + ' / ' + battle.maxHarmonyPoints);
+    this.drawBar(ctx, 60, 175, barW, 16, battle.harmonyPoints, battle.maxHarmonyPoints, '#fbbf24', '⚡ Energy (AP): ' + battle.harmonyPoints + ' / ' + battle.maxHarmonyPoints);
 
     // Stance Badges
     if (battle.playerStance !== 'normal') {
       ctx.fillStyle = battle.playerStance === 'pianissimo_shield' ? '#10b981' : '#f59e0b';
       ctx.font = 'bold 13px "Inter", sans-serif';
-      ctx.fillText(`🛡️ [STANCE: ${battle.playerStance.toUpperCase().replace('_', ' ')}]`, 100, 205);
+      ctx.fillText(`🛡️ [STANCE: ${battle.playerStance.toUpperCase().replace('_', ' ')}]`, 60, 205);
     }
 
     // Right: Opponent & Familiar
@@ -516,31 +517,32 @@ export class HarmoniaRenderer {
     ctx.fillStyle = opp.paletteColor;
     ctx.font = 'bold 22px "Inter", sans-serif';
     ctx.textAlign = 'right';
-    ctx.fillText(`${opp.name} (${opp.instrumentName})`, this.width - 100, 120);
-    this.drawPixelMusician(ctx, this.width - 240, 260, opp, state.time, undefined, 'left');
-    this.drawPixelPet(ctx, this.width - 340, 280, opp.pet, state.time, undefined, 'left');
+    ctx.fillText(`${opp.name} (${opp.instrumentName})`, this.width - 60, 120);
+    this.drawPixelMusician(ctx, this.width - 200, 260, opp, state.time, undefined, 'left');
+    this.drawPixelPet(ctx, this.width - 300, 280, opp.pet, state.time, undefined, 'left');
 
     // Opponent Resonance Meter (Their Composure to 100% loss)
-    this.drawBar(ctx, this.width - 400, 140, 300, 24, battle.opponentHarmonyMeter, 100, opp.paletteColor, '🎻 Rival Resonance: ' + battle.opponentHarmonyMeter + '%');
+    this.drawBar(ctx, this.width - 60 - barW, 140, barW, 24, battle.opponentHarmonyMeter, 100, opp.paletteColor, '🎻 Rival Resonance: ' + battle.opponentHarmonyMeter + '%');
 
     if (battle.opponentStance !== 'normal') {
       ctx.fillStyle = '#ef4444';
       ctx.font = 'bold 13px "Inter", sans-serif';
-      ctx.fillText(`⚠️ [STANCE: ${battle.opponentStance.toUpperCase().replace('_', ' ')}]`, this.width - 400, 205);
+      ctx.fillText(`⚠️ [STANCE: ${battle.opponentStance.toUpperCase().replace('_', ' ')}]`, this.width - 60 - barW, 205);
     }
 
     // Middle: Battle Move Action Bar (4 Tactical Actions matching player's actual instrument)
     const moves = getBattleMovesForMusician(player);
-    const moveW = 250;
-    const moveH = 68;
-    const moveStartX = (this.width - (moveW * 4 + 45)) / 2;
-    const moveY = 475;
+    const moveGap = Math.min(15, Math.max(8, (this.width - 600) / 16));
+    const moveW = Math.min(250, (this.width - 60 - moveGap * 3) / 4);
+    const moveH = Math.min(68, Math.max(54, this.height * 0.1));
+    const moveStartX = (this.width - (moveW * 4 + moveGap * 3)) / 2;
+    const moveY = Math.min(460, this.height - 230);
 
     let hoveredMove: any = null;
     let hoveredIdx = -1;
 
     moves.forEach((m, idx) => {
-      const mx = moveStartX + idx * (moveW + 15);
+      const mx = moveStartX + idx * (moveW + moveGap);
       const isHovered = this.mousePos.x >= mx && this.mousePos.x <= mx + moveW &&
                         this.mousePos.y >= moveY && this.mousePos.y <= moveY + moveH;
       if (isHovered) {
@@ -558,25 +560,25 @@ export class HarmoniaRenderer {
       ctx.stroke();
 
       ctx.fillStyle = isAffordable ? '#f8fafc' : '#64748b';
-      ctx.font = 'bold 15px "Inter", sans-serif';
+      ctx.font = 'bold 14px "Inter", sans-serif';
       ctx.textAlign = 'left';
-      ctx.fillText(`[${idx + 1}] ${m.name}`, mx + 14, moveY + 28);
+      ctx.fillText(`[${idx + 1}] ${m.name}`, mx + 12, moveY + 26);
 
       // Clean, uncrowded stat badge
       ctx.fillStyle = '#fbbf24';
-      ctx.font = 'bold 12px "Inter", sans-serif';
+      ctx.font = 'bold 11px "Inter", sans-serif';
       let tag = `Cost: ${m.harmonyCost} HP | Power: +${m.power}%`;
       if (m.effect === 'pianissimo_shield') tag = `Cost: ${m.harmonyCost} HP | +25 HP / 50% Guard`;
       if (m.effect === 'fortissimo_surge') tag = `Cost: ${m.harmonyCost} HP | 2x Power Surge`;
-      ctx.fillText(tag, mx + 14, moveY + 50);
+      ctx.fillText(tag, mx + 12, moveY + 48);
     });
 
     // Floating Tactical Hover Tooltip Box (Right above action buttons)
     if (hoveredMove) {
-      const tipW = 760;
-      const tipH = 50;
+      const tipW = Math.min(760, this.width - 60);
+      const tipH = 46;
       const tipX = (this.width - tipW) / 2;
-      const tipY = 372;
+      const tipY = moveY - tipH - 8;
 
       ctx.fillStyle = 'rgba(15, 23, 42, 0.97)';
       ctx.strokeStyle = hoveredIdx >= 2 ? (hoveredIdx === 2 ? '#10b981' : '#f59e0b') : '#38bdf8';
@@ -589,26 +591,26 @@ export class HarmoniaRenderer {
       ctx.fillStyle = '#38bdf8';
       ctx.font = 'bold 12px "Inter", sans-serif';
       ctx.textAlign = 'left';
-      ctx.fillText(`💡 TECHNIQUE DETAILS: ${hoveredMove.name.toUpperCase()}`, tipX + 16, tipY + 18);
+      ctx.fillText(`💡 TECHNIQUE DETAILS: ${hoveredMove.name.toUpperCase()}`, tipX + 14, tipY + 16);
 
       ctx.fillStyle = '#f8fafc';
       ctx.font = '12px "Inter", sans-serif';
-      ctx.fillText(hoveredMove.description, tipX + 16, tipY + 38);
+      ctx.fillText(hoveredMove.description, tipX + 14, tipY + 34);
     } else if (!battle.synergyMoves || battle.synergyMoves.length === 0) {
       // Gentle hint when not hovering and no synergy
       ctx.fillStyle = '#64748b';
-      ctx.font = 'italic 13px "Inter", sans-serif';
+      ctx.font = 'italic 12px "Inter", sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText('💡 Hover over any technique card to inspect tactical properties and mechanics.', this.width / 2, 425);
+      ctx.fillText('💡 Hover over any technique card to inspect tactical properties and mechanics.', this.width / 2, moveY - 14);
     }
 
     // Pet Synergy Unison Attack Button
     if (battle.synergyMoves && battle.synergyMoves.length > 0) {
       const syn = battle.synergyMoves[0];
-      const synW = 540;
-      const synH = 38;
+      const synW = Math.min(540, this.width - 80);
+      const synH = 34;
       const synX = (this.width - synW) / 2;
-      const synY = 428;
+      const synY = moveY - synH - 8;
       const isSynHovered = this.mousePos.x >= synX && this.mousePos.x <= synX + synW &&
                            this.mousePos.y >= synY && this.mousePos.y <= synY + synH;
       const isSynAffordable = battle.harmonyPoints >= syn.cost;
@@ -622,25 +624,28 @@ export class HarmoniaRenderer {
       ctx.stroke();
 
       ctx.fillStyle = isSynAffordable ? '#fef08a' : '#c084fc';
-      ctx.font = 'bold 13px "Inter", sans-serif';
+      ctx.font = 'bold 12px "Inter", sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(`🐾 [5 / U] UNISON ATTACK: ${syn.name} (${syn.cost} HP) — ${syn.description}`, this.width / 2, synY + 24);
+      ctx.fillText(`🐾 [5 / U] UNISON ATTACK: ${syn.name} (${syn.cost} HP) — ${syn.description}`, this.width / 2, synY + 22);
     }
 
     // Battle Log
+    const logY = moveY + moveH + 12;
+    const logH = Math.max(80, this.height - logY - 16);
     ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
     ctx.strokeStyle = '#334155';
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.roundRect(100, 560, this.width - 200, 135, 10);
+    ctx.roundRect(60, logY, this.width - 120, logH, 10);
     ctx.fill();
     ctx.stroke();
 
     ctx.fillStyle = '#cbd5e1';
-    ctx.font = '14px "Inter", sans-serif';
+    ctx.font = '13px "Inter", sans-serif';
     ctx.textAlign = 'left';
-    battle.log.slice(-4).forEach((logText, lIdx) => {
-      ctx.fillText(`• ${logText}`, 120, 590 + lIdx * 26);
+    const linesToShow = logH > 100 ? 4 : (logH > 80 ? 3 : 2);
+    battle.log.slice(-linesToShow).forEach((logText, lIdx) => {
+      ctx.fillText(`• ${logText}`, 80, logY + 24 + lIdx * 22);
     });
   }
 
@@ -671,11 +676,12 @@ export class HarmoniaRenderer {
     ctx.textAlign = 'center';
     ctx.fillText(info.title, this.width / 2, 40);
 
-    // Left Panel: Opponent & Recommendations (Width: 460)
-    const leftX = 50;
-    const leftY = 85;
-    const leftW = 460;
-    const leftH = 550;
+    // Left Panel: Opponent & Recommendations
+    const leftX = 24;
+    const leftY = 80;
+    const leftW = Math.min(420, (this.width - 72) * 0.38);
+    const panelH = Math.min(550, this.height - 140);
+    const leftH = panelH;
 
     ctx.fillStyle = 'rgba(30, 41, 59, 0.7)';
     ctx.beginPath();
@@ -688,75 +694,75 @@ export class HarmoniaRenderer {
     // Opponent Card
     ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
     ctx.beginPath();
-    ctx.roundRect(leftX + 16, leftY + 16, leftW - 32, 130, 8);
+    ctx.roundRect(leftX + 14, leftY + 14, leftW - 28, 120, 8);
     ctx.fill();
     ctx.strokeStyle = '#fbbf24';
     ctx.lineWidth = 1;
     ctx.stroke();
 
-    ctx.font = '40px "Apple Color Emoji", "Segoe UI Emoji", sans-serif';
+    ctx.font = '36px "Apple Color Emoji", "Segoe UI Emoji", sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText(info.opponentAvatar, leftX + 60, leftY + 75);
+    ctx.fillText(info.opponentAvatar, leftX + 50, leftY + 70);
 
     ctx.fillStyle = '#f8fafc';
-    ctx.font = 'bold 18px "Cinzel", serif';
+    ctx.font = 'bold 16px "Cinzel", serif';
     ctx.textAlign = 'left';
-    ctx.fillText(info.opponentName, leftX + 110, leftY + 50);
+    ctx.fillText(info.opponentName, leftX + 95, leftY + 45);
 
     if (info.opponentSection) {
       const secColor = info.opponentSection === 'strings' ? '#ec4899' : (info.opponentSection === 'woodwinds' ? '#06b6d4' : (info.opponentSection === 'brass' ? '#f59e0b' : '#a855f7'));
       ctx.fillStyle = secColor;
       ctx.font = 'bold 12px "Inter", sans-serif';
-      ctx.fillText(`Section: ${info.opponentSection.toUpperCase()}`, leftX + 110, leftY + 74);
+      ctx.fillText(`Section: ${info.opponentSection.toUpperCase()}`, leftX + 95, leftY + 68);
     }
 
     ctx.fillStyle = '#94a3b8';
-    ctx.font = '12px "Inter", sans-serif';
-    ctx.fillText(info.opponentDescription, leftX + 110, leftY + 98);
+    ctx.font = '11px "Inter", sans-serif';
+    ctx.fillText(info.opponentDescription, leftX + 95, leftY + 90);
 
     // Recommendations Box
     ctx.fillStyle = '#38bdf8';
-    ctx.font = 'bold 15px "Inter", sans-serif';
+    ctx.font = 'bold 14px "Inter", sans-serif';
     ctx.textAlign = 'left';
-    ctx.fillText('💡 Strategic Recommendations:', leftX + 20, leftY + 180);
+    ctx.fillText('💡 Strategic Recommendations:', leftX + 16, leftY + 165);
 
-    const recBoxY = leftY + 195;
-    const recBoxH = leftH - 220;
+    const recBoxY = leftY + 180;
+    const recBoxH = leftH - 195;
     ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
     ctx.beginPath();
-    ctx.roundRect(leftX + 16, recBoxY, leftW - 32, recBoxH, 8);
+    ctx.roundRect(leftX + 14, recBoxY, leftW - 28, recBoxH, 8);
     ctx.fill();
     ctx.strokeStyle = '#0284c7';
     ctx.lineWidth = 1;
     ctx.stroke();
 
-    let recCurY = recBoxY + 30;
+    let recCurY = recBoxY + 25;
     info.recommendations.forEach((recText) => {
       ctx.fillStyle = recText.includes('⚠️') || recText.includes('❌') ? '#fca5a5' : (recText.includes('✅') ? '#86efac' : '#e2e8f0');
-      ctx.font = '13px "Inter", sans-serif';
+      ctx.font = '12px "Inter", sans-serif';
       ctx.textAlign = 'left';
       
       const words = recText.split(' ');
       let line = '';
       for (const w of words) {
         const testLine = line + w + ' ';
-        if (ctx.measureText(testLine).width > leftW - 60) {
-          ctx.fillText(line, leftX + 32, recCurY);
+        if (ctx.measureText(testLine).width > leftW - 50) {
+          ctx.fillText(line, leftX + 26, recCurY);
           line = '   ' + w + ' ';
-          recCurY += 20;
+          recCurY += 18;
         } else {
           line = testLine;
         }
       }
-      ctx.fillText(line, leftX + 32, recCurY);
-      recCurY += 28;
+      ctx.fillText(line, leftX + 26, recCurY);
+      recCurY += 24;
     });
 
-    // Right Panel: Ensemble Lineup & Reserves (Width: 690)
-    const rightX = 540;
-    const rightY = 85;
-    const rightW = 690;
-    const rightH = 550;
+    // Right Panel: Ensemble Lineup & Reserves
+    const rightX = leftX + leftW + 16;
+    const rightY = 80;
+    const rightW = this.width - rightX - 24;
+    const rightH = panelH;
 
     ctx.fillStyle = 'rgba(30, 41, 59, 0.7)';
     ctx.beginPath();
@@ -769,33 +775,33 @@ export class HarmoniaRenderer {
     // Active Lineup Header
     const maxLineup = info.maxLineupSize || 4;
     ctx.fillStyle = '#fbbf24';
-    ctx.font = 'bold 16px "Inter", sans-serif';
+    ctx.font = 'bold 15px "Inter", sans-serif';
     ctx.textAlign = 'left';
-    ctx.fillText(`👥 Active Ensemble Lineup (${state.ensemble.members.length} / ${maxLineup} Members • ${state.ensemble.tier.toUpperCase()} Tier):`, rightX + 20, rightY + 30);
-    ctx.font = '12px "Inter", sans-serif';
+    ctx.fillText(`👥 Active Ensemble Lineup (${state.ensemble.members.length} / ${maxLineup} Members • ${state.ensemble.tier.toUpperCase()} Tier):`, rightX + 16, rightY + 26);
+    ctx.font = '11px "Inter", sans-serif';
     ctx.fillStyle = '#94a3b8';
-    ctx.fillText('Click an active member to remove/bench (Player cannot be removed)', rightX + 20, rightY + 50);
+    ctx.fillText('Click an active member to remove/bench (Player cannot be removed)', rightX + 16, rightY + 44);
 
     // Active Members Grid
     const activeMembers = state.ensemble.members;
-    const slotW = 150;
-    const slotH = 150;
-    const slotGap = 16;
-    const activeStartX = rightX + 20;
-    const activeStartY = rightY + 65;
+    const slotGap = Math.min(14, Math.max(8, (rightW - 400) / 4));
+    const slotW = Math.min(150, (rightW - 32 - slotGap * 3) / 4);
+    const slotH = maxLineup > 4 ? 96 : 125;
+    const activeStartX = rightX + 16;
+    const activeStartY = rightY + 56;
 
     for (let i = 0; i < maxLineup; i++) {
       const col = i % 4;
       const row = Math.floor(i / 4);
       const sx = activeStartX + col * (slotW + slotGap);
       const sy = activeStartY + row * (slotH + slotGap);
+
       const m = activeMembers[i];
+      const isHovered = this.mousePos ? (this.mousePos.x >= sx && this.mousePos.x <= sx + slotW && this.mousePos.y >= sy && this.mousePos.y <= sy + slotH) : false;
 
       ctx.save();
       if (m) {
         const isPlayer = i === 0;
-        const isHovered = this.mousePos ? (this.mousePos.x >= sx && this.mousePos.x <= sx + slotW && this.mousePos.y >= sy && this.mousePos.y <= sy + slotH) : false;
-        
         ctx.fillStyle = isHovered && !isPlayer ? 'rgba(239, 68, 68, 0.2)' : 'rgba(15, 23, 42, 0.9)';
         ctx.beginPath();
         ctx.roundRect(sx, sy, slotW, slotH, 8);
@@ -804,29 +810,23 @@ export class HarmoniaRenderer {
         ctx.lineWidth = 1.5;
         ctx.stroke();
 
-        this.drawPixelMusician(ctx, sx + slotW / 2, sy + 50, m, state.time, isPlayer ? state.customization : undefined, 'down');
+        ctx.font = slotH < 100 ? '24px "Apple Color Emoji", sans-serif' : '32px "Apple Color Emoji", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(m.avatar, sx + slotW / 2, sy + (slotH < 100 ? 32 : 45));
 
         ctx.fillStyle = '#f8fafc';
-        ctx.font = 'bold 13px "Inter", sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(m.name, sx + slotW / 2, sy + 95);
-
-        ctx.fillStyle = '#fbbf24';
-        ctx.font = '11px "Inter", sans-serif';
-        ctx.fillText(m.instrumentName || m.section, sx + slotW / 2, sy + 115);
+        ctx.font = 'bold 12px "Inter", sans-serif';
+        ctx.fillText(m.name.length > 14 ? m.name.slice(0, 12) + '..' : m.name, sx + slotW / 2, sy + (slotH < 100 ? 54 : 75));
 
         const secColor = m.section === 'strings' ? '#ec4899' : (m.section === 'woodwinds' ? '#06b6d4' : (m.section === 'brass' ? '#f59e0b' : '#a855f7'));
         ctx.fillStyle = secColor;
         ctx.font = 'bold 10px "Inter", sans-serif';
-        ctx.fillText(m.section.toUpperCase(), sx + slotW / 2, sy + 135);
+        ctx.fillText(m.section.toUpperCase(), sx + slotW / 2, sy + (slotH < 100 ? 70 : 95));
 
-        if (isHovered && !isPlayer) {
-          ctx.fillStyle = '#ef4444';
-          ctx.font = 'bold 11px "Inter", sans-serif';
-          ctx.fillText('❌ Click to Bench', sx + slotW / 2, sy + 20);
-        }
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '10px "Inter", sans-serif';
+        ctx.fillText(`Lv.${m.level} ${m.instrumentName.slice(0, 10)}`, sx + slotW / 2, sy + (slotH < 100 ? 86 : 112));
       } else {
-        // Empty Slot
         ctx.fillStyle = 'rgba(15, 23, 42, 0.4)';
         ctx.beginPath();
         ctx.roundRect(sx, sy, slotW, slotH, 8);
@@ -838,7 +838,7 @@ export class HarmoniaRenderer {
         ctx.setLineDash([]);
 
         ctx.fillStyle = '#64748b';
-        ctx.font = '13px "Inter", sans-serif';
+        ctx.font = '12px "Inter", sans-serif';
         ctx.textAlign = 'center';
         ctx.fillText('+ Empty Slot', sx + slotW / 2, sy + slotH / 2);
       }
@@ -846,25 +846,25 @@ export class HarmoniaRenderer {
     }
 
     // Available Reserve Musicians Roster
-    const reserveY = activeStartY + (maxLineup > 4 ? (slotH + slotGap) * 2 : (slotH + slotGap)) + 15;
+    const reserveY = activeStartY + (maxLineup > 4 ? (slotH + slotGap) * 2 : (slotH + slotGap)) + 12;
     ctx.fillStyle = '#38bdf8';
-    ctx.font = 'bold 15px "Inter", sans-serif';
+    ctx.font = 'bold 14px "Inter", sans-serif';
     ctx.textAlign = 'left';
-    ctx.fillText('📦 Available Reserve Musicians (Click to deploy):', rightX + 20, reserveY);
+    ctx.fillText('📦 Available Reserve Musicians (Click to deploy):', rightX + 16, reserveY);
 
     const allOwned = [...state.recruitedMusicians, ...state.ensembleBox];
     const reserveMusicians = allOwned.filter(m => !activeMembers.some(am => am.id === m.id));
 
-    const resStartX = rightX + 20;
-    const resStartY = reserveY + 15;
-    const rCardW = 150;
-    const rCardH = 70;
-    const rGap = 16;
+    const resStartX = rightX + 16;
+    const resStartY = reserveY + 12;
+    const rCardW = slotW;
+    const rCardH = maxLineup > 4 ? 54 : 64;
+    const rGap = slotGap;
 
     if (reserveMusicians.length === 0) {
       ctx.fillStyle = '#64748b';
-      ctx.font = 'italic 13px "Inter", sans-serif';
-      ctx.fillText('No reserve musicians available in box. Recruit more musicians in the world!', resStartX, resStartY + 30);
+      ctx.font = 'italic 12px "Inter", sans-serif';
+      ctx.fillText('No reserve musicians available in box. Recruit more musicians in the world!', resStartX, resStartY + 25);
     } else {
       reserveMusicians.slice(0, 8).forEach((m, idx) => {
         const col = idx % 4;
@@ -879,39 +879,38 @@ export class HarmoniaRenderer {
         ctx.beginPath();
         ctx.roundRect(rx, ry, rCardW, rCardH, 6);
         ctx.fill();
-        ctx.strokeStyle = isHovered ? '#22c55e' : (m.paletteColor || '#64748b');
-        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = isHovered ? '#22c55e' : '#475569';
+        ctx.lineWidth = 1;
         ctx.stroke();
 
-        ctx.font = '24px "Apple Color Emoji", "Segoe UI Emoji", sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(m.avatar || '🎵', rx + 24, ry + 42);
+        ctx.font = '22px "Apple Color Emoji", sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(m.avatar, rx + 8, ry + 32);
 
         ctx.fillStyle = '#f8fafc';
-        ctx.font = 'bold 12px "Inter", sans-serif';
-        ctx.textAlign = 'left';
-        ctx.fillText(m.name, rx + 48, ry + 26);
+        ctx.font = 'bold 11px "Inter", sans-serif';
+        ctx.fillText(m.name.length > 12 ? m.name.slice(0, 10) + '..' : m.name, rx + 38, ry + 18);
 
         const secColor = m.section === 'strings' ? '#ec4899' : (m.section === 'woodwinds' ? '#06b6d4' : (m.section === 'brass' ? '#f59e0b' : '#a855f7'));
         ctx.fillStyle = secColor;
         ctx.font = 'bold 10px "Inter", sans-serif';
-        ctx.fillText(m.section.toUpperCase(), rx + 48, ry + 42);
+        ctx.fillText(m.section.toUpperCase(), rx + 38, ry + 32);
 
         ctx.fillStyle = '#94a3b8';
         ctx.font = '10px "Inter", sans-serif';
-        ctx.fillText(`Lv.${m.level} • ${m.instrumentName}`, rx + 48, ry + 58);
+        ctx.fillText(`Lv.${m.level} • ${m.instrumentName.slice(0, 10)}`, rx + 38, ry + 46);
 
         ctx.restore();
       });
     }
 
     // Bottom Action Buttons
-    const btnW = 340;
-    const btnH = 45;
-    const btnY = 650;
+    const btnW = Math.min(320, (this.width - 80) / 2);
+    const btnH = 42;
+    const btnY = Math.min(650, this.height - 48);
 
     // Start Battle Button
-    const startX = this.width / 2 - btnW - 20;
+    const startX = this.width / 2 - btnW - 14;
     const startHovered = this.mousePos ? (this.mousePos.x >= startX && this.mousePos.x <= startX + btnW && this.mousePos.y >= btnY && this.mousePos.y <= btnY + btnH) : false;
 
     ctx.fillStyle = startHovered ? 'rgba(245, 158, 11, 0.95)' : 'rgba(217, 119, 6, 0.9)';
@@ -923,12 +922,12 @@ export class HarmoniaRenderer {
     ctx.stroke();
 
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 16px "Cinzel", serif';
+    ctx.font = 'bold 15px "Cinzel", serif';
     ctx.textAlign = 'center';
-    ctx.fillText('⚔️ COMMENCE BATTLE [ENTER]', startX + btnW / 2, btnY + 28);
+    ctx.fillText('⚔️ COMMENCE BATTLE [ENTER]', startX + btnW / 2, btnY + 26);
 
     // Cancel Button
-    const cancelX = this.width / 2 + 20;
+    const cancelX = this.width / 2 + 14;
     const cancelHovered = this.mousePos ? (this.mousePos.x >= cancelX && this.mousePos.x <= cancelX + btnW && this.mousePos.y >= btnY && this.mousePos.y <= btnY + btnH) : false;
 
     ctx.fillStyle = cancelHovered ? 'rgba(71, 85, 105, 0.9)' : 'rgba(30, 41, 59, 0.9)';
@@ -940,9 +939,9 @@ export class HarmoniaRenderer {
     ctx.stroke();
 
     ctx.fillStyle = '#cbd5e1';
-    ctx.font = 'bold 15px "Inter", sans-serif';
+    ctx.font = 'bold 15px "Cinzel", serif';
     ctx.textAlign = 'center';
-    ctx.fillText('↩️ RETREAT / CANCEL [ESC]', cancelX + btnW / 2, btnY + 28);
+    ctx.fillText('↩️ RETURN / CANCEL [ESC]', cancelX + btnW / 2, btnY + 26);
   }
 
   /* ---------------- CONCERT COMPETITION ARENA ---------------- */
@@ -1075,14 +1074,14 @@ export class HarmoniaRenderer {
 
     // ✨ MAESTRO FLOW GAUGE & PARTICLES ✨
     const flowVal = comp.maestroFlow !== undefined ? comp.maestroFlow : 50;
-    const flowW = 540;
-    const flowH = 20;
+    const flowW = Math.min(540, this.width - 80);
+    const flowH = 18;
     const flowX = this.width / 2 - flowW / 2;
-    const flowY = 328;
+    const flowY = 296;
 
     ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
     ctx.beginPath();
-    ctx.roundRect(flowX, flowY, flowW, flowH, 10);
+    ctx.roundRect(flowX, flowY, flowW, flowH, 9);
     ctx.fill();
     ctx.strokeStyle = '#eab308';
     ctx.lineWidth = 1.5;
@@ -1095,14 +1094,14 @@ export class HarmoniaRenderer {
     flowGrad.addColorStop(1, '#fbbf24');
     ctx.fillStyle = flowGrad;
     ctx.beginPath();
-    ctx.roundRect(flowX, flowY, Math.max(8, flowFill), flowH, 10);
+    ctx.roundRect(flowX, flowY, Math.max(8, flowFill), flowH, 9);
     ctx.fill();
 
     ctx.fillStyle = '#0f172a';
     ctx.font = 'bold 11px "Inter", sans-serif';
     ctx.textAlign = 'center';
     const flowMult = (1.0 + (flowVal / 100) * 0.8).toFixed(2);
-    ctx.fillText(`✨ MAESTRO FLOW: ${Math.round(flowVal)}%  •  Flow Resonance: ${flowMult}x ✨`, this.width / 2, flowY + 14);
+    ctx.fillText(`✨ MAESTRO FLOW: ${Math.round(flowVal)}%  •  Flow Resonance: ${flowMult}x ✨`, this.width / 2, flowY + 13);
 
     // Floating Golden Particles
     if (flowVal > 20) {
@@ -1122,11 +1121,11 @@ export class HarmoniaRenderer {
     }
 
     // 🎻 SECTION CUE LANES (Conducting Control Grid)
-    const laneW = 260;
-    const laneH = 92;
-    const gap = 15;
+    const gap = Math.min(15, Math.max(8, (this.width - 600) / 16));
+    const laneW = Math.min(260, (this.width - 60 - gap * 3) / 4);
+    const laneH = 78;
     const startX = (this.width - (laneW * 4 + gap * 3)) / 2;
-    const startY = 360;
+    const startY = 324;
 
     const sectionConfigs: { sec: InstrumentSection; icon: string; name: string; key: string; color: string; bg: string }[] = [
       { sec: 'strings', icon: '🎻', name: 'STRINGS', key: '[1 / D]', color: '#ec4899', bg: 'rgba(236, 72, 153, 0.15)' },
@@ -1167,65 +1166,40 @@ export class HarmoniaRenderer {
 
       // Section Header (Emoji + Name + Key)
       ctx.fillStyle = cfg.color;
-      ctx.font = 'bold 14px "Inter", sans-serif';
+      ctx.font = 'bold 13px "Inter", sans-serif';
       ctx.textAlign = 'left';
-      ctx.fillText(`${cfg.icon} ${cfg.name}`, lx + 12, startY + 26);
+      ctx.fillText(`${cfg.icon} ${cfg.name}`, lx + 10, startY + 22);
 
       ctx.fillStyle = isCueActive ? '#fde047' : '#94a3b8';
-      ctx.font = 'bold 12px "Inter", sans-serif';
+      ctx.font = 'bold 11px "Inter", sans-serif';
       ctx.textAlign = 'right';
-      ctx.fillText(cfg.key, lx + laneW - 12, startY + 26);
+      ctx.fillText(cfg.key, lx + laneW - 10, startY + 22);
 
       // Cue Prompt Label or Balance Status
       ctx.textAlign = 'left';
       if (isCueActive && comp.activeSectionCue) {
         ctx.fillStyle = '#fef08a';
         ctx.font = 'bold 11px "Inter", sans-serif';
-        ctx.fillText(`⚡ CUE: ${comp.activeSectionCue.label}!`, lx + 12, startY + 46);
+        ctx.fillText(`⚡ ${comp.activeSectionCue.label}`, lx + 10, startY + 40);
       } else {
-        ctx.fillStyle = '#cbd5e1';
-        ctx.font = '11px "Inter", sans-serif';
-        const balLabel = bal >= 60 && bal <= 90 ? '✓ Balanced' : (bal < 35 ? '⚠️ Fading' : (bal > 90 ? '⚡ Fortissimo' : 'Moderate'));
-        ctx.fillText(`Section Balance: ${Math.round(bal)}% (${balLabel})`, lx + 12, startY + 46);
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '10px "Inter", sans-serif';
+        ctx.fillText(`Intonation: ${bal}%`, lx + 10, startY + 40);
       }
 
-      // Balance Gauge Bar
-      const gaugeW = laneW - 24;
-      const gaugeH = 12;
-      const gaugeX = lx + 12;
-      const gaugeY = startY + 58;
-
+      // Section Balance Mini-Gauge
       ctx.fillStyle = '#1e293b';
-      ctx.beginPath();
-      ctx.roundRect(gaugeX, gaugeY, gaugeW, gaugeH, 6);
-      ctx.fill();
-
-      const gaugeFill = (Math.max(0, Math.min(100, bal)) / 100) * gaugeW;
-      let barColor = '#ef4444';
-      if (bal >= 60 && bal <= 90) barColor = '#10b981';
-      else if (bal >= 40) barColor = '#f59e0b';
-      else if (bal > 90) barColor = '#38bdf8';
-
-      ctx.fillStyle = barColor;
-      ctx.beginPath();
-      ctx.roundRect(gaugeX, gaugeY, Math.max(4, gaugeFill), gaugeH, 6);
-      ctx.fill();
-
-      // Optimal Zone Markers (60% to 90%)
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
-      ctx.lineWidth = 1;
-      const optLeft = gaugeX + 0.6 * gaugeW;
-      const optRight = gaugeX + 0.9 * gaugeW;
-      ctx.strokeRect(optLeft, gaugeY - 1, optRight - optLeft, gaugeH + 2);
-
+      ctx.fillRect(lx + 10, startY + 54, laneW - 20, 8);
+      ctx.fillStyle = cfg.color;
+      ctx.fillRect(lx + 10, startY + 54, (laneW - 20) * (bal / 100), 8);
       ctx.restore();
     });
 
     // ⚔️ SECTION ACTIONS (Matching Action Selection for Active Section)
     const activeSec = comp.activeAttackingSection || 'strings';
     const sectionActions = SECTION_ACTIONS[activeSec] || SECTION_ACTIONS.strings;
-    const actionCardY = 460;
-    const actionCardH = 56;
+    const actionCardY = 408;
+    const actionCardH = 46;
 
     sectionActions.forEach((act, actIdx) => {
       const ax = startX + actIdx * (laneW + gap);
@@ -1242,37 +1216,46 @@ export class HarmoniaRenderer {
 
       // Action Title & Icon
       ctx.fillStyle = '#f8fafc';
-      ctx.font = 'bold 12px "Inter", sans-serif';
+      ctx.font = 'bold 11px "Inter", sans-serif';
       ctx.textAlign = 'left';
-      ctx.fillText(`[${actIdx + 1}] ${act.icon} ${act.name}`, ax + 10, actionCardY + 22);
+      ctx.fillText(`[${actIdx + 1}] ${act.icon} ${act.name}`, ax + 8, actionCardY + 17);
 
       // Power / Effect Tag
       ctx.fillStyle = '#fbbf24';
       ctx.font = 'bold 10px "Inter", sans-serif';
       ctx.textAlign = 'right';
-      ctx.fillText(`⚡ Pwr:${act.power}`, ax + laneW - 10, actionCardY + 22);
+      ctx.fillText(`⚡ Pwr:${act.power}`, ax + laneW - 8, actionCardY + 17);
 
       // Description
       ctx.fillStyle = '#94a3b8';
       ctx.font = '10px "Inter", sans-serif';
       ctx.textAlign = 'left';
-      const desc = act.description.length > 38 ? act.description.slice(0, 36) + '...' : act.description;
-      ctx.fillText(desc, ax + 10, actionCardY + 42);
+      const desc = act.description.length > 36 ? act.description.slice(0, 34) + '...' : act.description;
+      ctx.fillText(desc, ax + 8, actionCardY + 34);
 
       ctx.restore();
     });
 
     // 🎵 THE CONDUCTING PODIUM & BATON SWEEP
-    const meterW = 600;
-    const meterH = 28;
+    const meterW = Math.min(560, this.width - 80);
+    const meterH = 22;
     const meterX = this.width / 2 - meterW / 2;
-    const meterY = 535;
+    const meterY = 480;
+
+    // Track Housing
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+    ctx.beginPath();
+    ctx.roundRect(meterX - 10, meterY - 18, meterW + 20, meterH + 36, 12);
+    ctx.fill();
+    ctx.strokeStyle = '#475569';
+    ctx.lineWidth = 2;
+    ctx.stroke();
 
     // Conductor's Podium Platform
-    const podiumW = 340;
-    const podiumH = 40;
+    const podiumW = Math.min(320, this.width - 100);
+    const podiumH = 32;
     const podiumX = this.width / 2 - podiumW / 2;
-    const podiumY = 640;
+    const podiumY = Math.min(642, this.height - 46);
     ctx.fillStyle = '#261208';
     ctx.beginPath();
     ctx.roundRect(podiumX, podiumY, podiumW, podiumH, 8);
@@ -1283,26 +1266,17 @@ export class HarmoniaRenderer {
 
     // Podium Music Stand Graphic
     ctx.fillStyle = '#78350f';
-    ctx.fillRect(this.width / 2 - 4, podiumY - 25, 8, 25);
+    ctx.fillRect(this.width / 2 - 4, podiumY - 18, 8, 18);
     ctx.fillStyle = '#f8fafc';
     ctx.beginPath();
-    ctx.moveTo(this.width / 2 - 25, podiumY - 45);
-    ctx.lineTo(this.width / 2 + 25, podiumY - 45);
-    ctx.lineTo(this.width / 2 + 20, podiumY - 25);
-    ctx.lineTo(this.width / 2 - 20, podiumY - 25);
+    ctx.moveTo(this.width / 2 - 18, podiumY - 32);
+    ctx.lineTo(this.width / 2 + 18, podiumY - 32);
+    ctx.lineTo(this.width / 2 + 14, podiumY - 18);
+    ctx.lineTo(this.width / 2 - 14, podiumY - 18);
     ctx.closePath();
     ctx.fill();
     ctx.strokeStyle = '#d97706';
     ctx.lineWidth = 1.5;
-    ctx.stroke();
-
-    // Track Housing
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
-    ctx.beginPath();
-    ctx.roundRect(meterX - 10, meterY - 32, meterW + 20, meterH + 46, 14);
-    ctx.fill();
-    ctx.strokeStyle = '#475569';
-    ctx.lineWidth = 2;
     ctx.stroke();
 
     // Meter Background Groove
@@ -1314,44 +1288,48 @@ export class HarmoniaRenderer {
     ctx.lineWidth = 1;
     ctx.stroke();
 
-    // Golden Harmonic Sweet Spot Zone
-    const sweetCenter = comp.sweetSpotCenter || 0.5;
-    const sweetW = (comp.sweetSpotWidth || 0.16) * meterW;
-    const sweetX = meterX + sweetCenter * meterW - sweetW / 2;
+    // Audience Applause / Dynamic Flow Fill
+    const podiumMeterFill = Math.min(meterW, Math.max(0, (comp.audienceApplause / 100) * meterW));
+    if (podiumMeterFill > 0) {
+      const flowGrad = ctx.createLinearGradient(meterX, 0, meterX + meterW, 0);
+      flowGrad.addColorStop(0, '#10b981');
+      flowGrad.addColorStop(0.5, '#3b82f6');
+      flowGrad.addColorStop(1, '#a855f7');
+      ctx.fillStyle = flowGrad;
+      ctx.beginPath();
+      ctx.roundRect(meterX, meterY, podiumMeterFill, meterH, 6);
+      ctx.fill();
+    }
 
-    const sweetGrad = ctx.createLinearGradient(sweetX, meterY, sweetX + sweetW, meterY);
-    sweetGrad.addColorStop(0, 'rgba(234, 179, 8, 0.3)');
-    sweetGrad.addColorStop(0.5, 'rgba(250, 204, 21, 0.85)');
-    sweetGrad.addColorStop(1, 'rgba(234, 179, 8, 0.3)');
-    ctx.fillStyle = sweetGrad;
-    ctx.fillRect(sweetX, meterY, sweetW, meterH);
+    // Dynamic Sweet Spot Zone
+    const sweetCenter = comp.sweetSpotCenter;
+    const sweetWidth = meterW * (comp.sweetSpotWidth || 0.15);
+    const sweetLeft = Math.max(meterX, meterX + sweetCenter * meterW - sweetWidth / 2);
+    const sweetRight = Math.min(meterX + meterW, sweetLeft + sweetWidth);
+
+    ctx.fillStyle = 'rgba(250, 204, 21, 0.4)';
+    ctx.fillRect(sweetLeft, meterY, sweetRight - sweetLeft, meterH);
     ctx.strokeStyle = '#fef08a';
     ctx.lineWidth = 2;
-    ctx.strokeRect(sweetX, meterY, sweetW, meterH);
+    ctx.strokeRect(sweetLeft, meterY - 1, sweetRight - sweetLeft, meterH + 2);
 
-    // Sweet Spot Label
-    ctx.fillStyle = '#fef08a';
-    ctx.font = 'bold 10px "Inter", sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('DOWNBEAT CADENCE SWEET SPOT', sweetX + sweetW / 2, meterY + 18);
-
-    // Sweeping Metronome Needle & Expressive Baton
+    // Dynamic Cadence Downbeat Needle
     const tempoBPM = comp.playerPiece.bpm || 120;
-    const sweep = Math.abs(((state.time * (tempoBPM / 60) * 0.8) % 2) - 1);
-    const needleX = meterX + sweep * meterW;
+    const needleNormalized = state.time > 0
+      ? Math.abs(((state.time * (tempoBPM / 60) * 0.8) % 2) - 1)
+      : comp.sweetSpotCenter;
+    const needleX = meterX + needleNormalized * meterW;
 
-    // Laser needle
-    ctx.strokeStyle = '#38bdf8';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(needleX, meterY - 6);
-    ctx.lineTo(needleX, meterY + meterH + 6);
-    ctx.stroke();
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = '#fbbf24';
+    ctx.shadowBlur = 12;
+    ctx.fillRect(needleX - 2, meterY - 4, 4, meterH + 8);
+    ctx.shadowBlur = 0;
 
-    // Needle Cursor Diamond
-    ctx.fillStyle = '#38bdf8';
+    // Downbeat Indicator Triangle
+    ctx.fillStyle = '#f59e0b';
     ctx.beginPath();
-    ctx.moveTo(needleX, meterY - 10);
+    ctx.moveTo(needleX, meterY);
     ctx.lineTo(needleX + 6, meterY - 5);
     ctx.lineTo(needleX - 6, meterY - 5);
     ctx.closePath();
@@ -1363,7 +1341,7 @@ export class HarmoniaRenderer {
     ctx.lineWidth = 3;
     ctx.lineCap = 'round';
     ctx.beginPath();
-    ctx.moveTo(this.width / 2, podiumY - 30);
+    ctx.moveTo(this.width / 2, podiumY - 22);
     ctx.lineTo(needleX, meterY + meterH / 2);
     ctx.stroke();
 
@@ -1371,9 +1349,9 @@ export class HarmoniaRenderer {
     ctx.strokeStyle = '#78350f';
     ctx.lineWidth = 6;
     ctx.beginPath();
-    ctx.moveTo(this.width / 2, podiumY - 30);
+    ctx.moveTo(this.width / 2, podiumY - 22);
     const handleEndX = this.width / 2 + (needleX - this.width / 2) * 0.2;
-    const handleEndY = (podiumY - 30) + ((meterY + meterH / 2) - (podiumY - 30)) * 0.2;
+    const handleEndY = (podiumY - 22) + ((meterY + meterH / 2) - (podiumY - 22)) * 0.2;
     ctx.lineTo(handleEndX, handleEndY);
     ctx.stroke();
 
@@ -1390,33 +1368,33 @@ export class HarmoniaRenderer {
     if (comp.lastFeedbackText) {
       const isGood = comp.lastFeedback === 'PERFECT' || comp.lastFeedback === 'GREAT';
       ctx.fillStyle = isGood ? '#fef08a' : (comp.lastFeedback === 'OK' ? '#fde047' : '#fca5a5');
-      ctx.font = 'bold 15px "Inter", sans-serif';
+      ctx.font = 'bold 13px "Inter", sans-serif';
       ctx.textAlign = 'center';
       const streakStr = comp.comboStreak > 1 ? ` (Streak: ${comp.comboStreak}🔥)` : '';
-      ctx.fillText(`${comp.lastFeedbackText}${streakStr}`, this.width / 2, meterY - 14);
+      ctx.fillText(`${comp.lastFeedbackText}${streakStr}`, this.width / 2, meterY - 6);
     } else {
       ctx.fillStyle = '#cbd5e1';
-      ctx.font = 'bold 14px "Inter", sans-serif';
+      ctx.font = 'bold 12px "Inter", sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText('🎵 Conduct the Ensemble: Cue Sections & Time the Master Downbeat!', this.width / 2, meterY - 14);
+      ctx.fillText('🎵 Conduct the Ensemble: Cue Sections & Time the Master Downbeat!', this.width / 2, meterY - 6);
     }
 
-    // Recent Combat Log
+    // Recent Combat Log (Rendered safely in the buffer zone between meter and podium)
     if (comp.combatLog && comp.combatLog.length > 0) {
       const recentLogs = comp.combatLog.slice(-2);
       ctx.fillStyle = '#fde68a';
-      ctx.font = 'bold 12px "Inter", sans-serif';
+      ctx.font = 'bold 11px "Inter", sans-serif';
       ctx.textAlign = 'center';
       recentLogs.forEach((logText, lIdx) => {
-        ctx.fillText(logText, this.width / 2, 608 + lIdx * 18);
+        ctx.fillText(logText, this.width / 2, 530 + lIdx * 14);
       });
     }
 
     // Interactive Action Controls Prompt
     ctx.fillStyle = '#f8fafc';
-    ctx.font = 'bold 13px "Inter", sans-serif';
+    ctx.font = 'bold 12px "Inter", sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText(`🎼 [${activeSec.toUpperCase()} TURN] Section Attack: [1-4] or Click Card  |  ⏱️ Cadence Downbeat: [SPACE / ENTER]`, this.width / 2, this.height - 15);
+    ctx.fillText(`🎼 [${activeSec.toUpperCase()} TURN] Section Attack: [1-4] or Click Card  |  ⏱️ Cadence Downbeat: [SPACE / ENTER]`, this.width / 2, this.height - 12);
   }
 
   /* ---------------- WORLD OVERWORLD MAP ---------------- */
@@ -2195,70 +2173,81 @@ export class HarmoniaRenderer {
 
     // Zone Title
     ctx.fillStyle = '#f8fafc';
-    ctx.font = 'bold 16px "Inter", sans-serif';
+    ctx.font = 'bold 15px "Inter", sans-serif';
     ctx.textAlign = 'left';
-    ctx.fillText(`📍 ${zone ? zone.name : 'Harmonia'}`, 24, 34);
+    ctx.fillText(`📍 ${zone ? zone.name : 'Harmonia'}`, 18, 34);
 
-    // Player Skill & Level Pill
-    const player = state.ensemble.members[0];
-    const avgSkill = player ? Math.round((player.stats.technique + player.stats.toneQuality + player.stats.tempoStability + player.stats.sightReading) / 4) : 10;
-    const skillPillX = 210;
-    ctx.fillStyle = 'rgba(30, 41, 59, 0.85)';
-    ctx.strokeStyle = '#38bdf8';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.roundRect(skillPillX, 10, 205, 34, 8);
-    ctx.fill();
-    ctx.stroke();
+    let nextPillX = 180;
+    if (this.width >= 1000) {
+      // Player Skill & Level Pill
+      const player = state.ensemble.members[0];
+      const avgSkill = player ? Math.round((player.stats.technique + player.stats.toneQuality + player.stats.tempoStability + player.stats.sightReading) / 4) : 10;
+      ctx.fillStyle = 'rgba(30, 41, 59, 0.85)';
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.roundRect(nextPillX, 10, 180, 34, 8);
+      ctx.fill();
+      ctx.stroke();
 
-    ctx.fillStyle = '#38bdf8';
-    ctx.font = 'bold 13px "Inter", sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(`👤 Lv.${player?.level || 1} Maestro • Skill: ${avgSkill}`, skillPillX + 102, 32);
+      ctx.fillStyle = '#38bdf8';
+      ctx.font = 'bold 12px "Inter", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(`👤 Lv.${player?.level || 1} • Skill: ${avgSkill}`, nextPillX + 90, 32);
+      nextPillX += 195;
+    }
 
-    // Ensemble Tier Badge
-    const tierName = state.ensemble.tier.toUpperCase();
-    const count = state.ensemble.members.length;
-    const tierPillX = 430;
-    ctx.fillStyle = 'rgba(30, 41, 59, 0.85)';
-    ctx.strokeStyle = '#a855f7';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.roundRect(tierPillX, 10, 185, 34, 8);
-    ctx.fill();
-    ctx.stroke();
+    if (this.width >= 1150) {
+      // Ensemble Tier Badge
+      const tierName = state.ensemble.tier.toUpperCase();
+      const count = state.ensemble.members.length;
+      ctx.fillStyle = 'rgba(30, 41, 59, 0.85)';
+      ctx.strokeStyle = '#a855f7';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.roundRect(nextPillX, 10, 165, 34, 8);
+      ctx.fill();
+      ctx.stroke();
 
-    ctx.fillStyle = '#c084fc';
-    ctx.font = 'bold 13px "Inter", sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(`🎼 [${tierName} • ${count} Musician${count > 1 ? 's' : ''}]`, tierPillX + 92, 32);
+      ctx.fillStyle = '#c084fc';
+      ctx.font = 'bold 12px "Inter", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(`🎼 [${tierName} • ${count}]`, nextPillX + 82, 32);
+      nextPillX += 180;
+    }
 
     // HarmoniPhone Shortcut Pill
     const unreadCount = state.phoneMessages ? state.phoneMessages.filter(m => !m.read).length : 0;
-    const phonePillX = 625;
-    ctx.fillStyle = unreadCount > 0 ? 'rgba(56, 189, 248, 0.25)' : 'rgba(30, 41, 59, 0.85)';
-    ctx.strokeStyle = unreadCount > 0 ? '#38bdf8' : '#64748b';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.roundRect(phonePillX, 10, 140, 34, 8);
-    ctx.fill();
-    ctx.stroke();
+    const phonePillW = unreadCount > 0 ? 140 : 110;
+    const phonePillX = Math.max(nextPillX, this.width - 450);
+    if (this.width >= 700) {
+      ctx.fillStyle = unreadCount > 0 ? 'rgba(56, 189, 248, 0.25)' : 'rgba(30, 41, 59, 0.85)';
+      ctx.strokeStyle = unreadCount > 0 ? '#38bdf8' : '#64748b';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.roundRect(phonePillX, 10, phonePillW, 34, 8);
+      ctx.fill();
+      ctx.stroke();
 
-    ctx.fillStyle = unreadCount > 0 ? '#38bdf8' : '#94a3b8';
-    ctx.font = 'bold 12px "Inter", sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(`📱 [P] Phone ${unreadCount > 0 ? `(${unreadCount} 🔴)` : ''}`, phonePillX + 70, 32);
+      ctx.fillStyle = unreadCount > 0 ? '#38bdf8' : '#94a3b8';
+      ctx.font = 'bold 12px "Inter", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(`📱 [P] Phone ${unreadCount > 0 ? `(${unreadCount} 🔴)` : ''}`, phonePillX + phonePillW / 2, 32);
+    }
 
     // Currency Wallet & Reputation (Right aligned)
     const rep = state.ensemble.reputationStars || state.wallet.reputationStars || 0;
     ctx.fillStyle = '#fbbf24';
-    ctx.font = 'bold 14px "Inter", sans-serif';
+    ctx.font = 'bold 13px "Inter", sans-serif';
     ctx.textAlign = 'right';
-    ctx.fillText(`★ Rep: ${rep}★  |  💰 ${state.wallet.gold} Notes  |  ✨ ${state.wallet.inspirationSparks} Sparks`, this.width - 24, 33);
+    const walletText = this.width >= 950
+      ? `★ Rep: ${rep}★  |  💰 ${state.wallet.gold} Notes  |  ✨ ${state.wallet.inspirationSparks} Sparks`
+      : `💰 ${state.wallet.gold} ♪  |  ✨ ${state.wallet.inspirationSparks}`;
+    ctx.fillText(walletText, this.width - 18, 33);
 
     // 🎹 Concerto Accompaniment Active HUD Banner
     if (state.hasPianoAccompaniment) {
-      const bannerW = 460;
+      const bannerW = Math.min(460, this.width - 60);
       const bannerH = 26;
       const bannerX = this.width / 2 - bannerW / 2;
       const bannerY = 60;
@@ -2282,18 +2271,19 @@ export class HarmoniaRenderer {
     // Transient Onboarding Motion Helper (Only shown during first 8 seconds of play)
     if (state.time < 8) {
       const alpha = Math.min(1, (8 - state.time) / 2);
+      const helperY = state.nearbyInteractable ? this.height - 125 : this.height - 48;
       ctx.fillStyle = `rgba(15, 23, 42, ${0.85 * alpha})`;
       ctx.strokeStyle = `rgba(56, 189, 248, ${0.6 * alpha})`;
       ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.roundRect(16, this.height - 48, 280, 32, 8);
+      ctx.roundRect(16, helperY, 260, 32, 8);
       ctx.fill();
       ctx.stroke();
 
       ctx.fillStyle = `rgba(248, 250, 252, ${alpha})`;
       ctx.font = 'bold 12px "Inter", sans-serif';
       ctx.textAlign = 'left';
-      ctx.fillText('🎮 Move: [W A S D] or [↑ ← ↓ →]', 28, this.height - 27);
+      ctx.fillText('🎮 Move: [W A S D] or [↑ ← ↓ →]', 26, helperY + 21);
     }
   }
 
@@ -2304,10 +2294,10 @@ export class HarmoniaRenderer {
     const dia = state.dialogue;
     if (!dia) return;
 
-    const boxW = 860;
-    const boxH = 150;
+    const boxW = Math.min(860, this.width - 40);
+    const boxH = Math.min(150, this.height - 50);
     const boxX = (this.width - boxW) / 2;
-    const boxY = this.height - boxH - 30;
+    const boxY = this.height - boxH - 25;
 
     ctx.fillStyle = 'rgba(15, 23, 42, 0.95)';
     ctx.strokeStyle = '#38bdf8';
@@ -3702,16 +3692,16 @@ export class HarmoniaRenderer {
     ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, this.width, this.height);
 
-    // 1. Top Header: Title & Phase Badge (y: 20..75)
+    // 1. Top Header: Title & Phase Badge (y: 16..65)
     ctx.fillStyle = isTuning ? '#6ee7b7' : '#fbbf24';
     ctx.font = 'bold 22px "Cinzel", serif';
     ctx.textAlign = 'center';
-    ctx.fillText(isTuning ? '🐾 Harmonipet Tuning & Ear Training' : '⚡ Harmonipet Rhythm Performance', this.width / 2, 38);
+    ctx.fillText(isTuning ? '🐾 Harmonipet Tuning & Ear Training' : '⚡ Harmonipet Rhythm Performance', this.width / 2, 28);
 
-    const tagW = 240;
+    const tagW = 280;
     const tagH = 22;
     const tagX = (this.width - tagW) / 2;
-    const tagY = 48;
+    const tagY = 38;
     ctx.fillStyle = isTuning ? 'rgba(56, 189, 248, 0.2)' : 'rgba(245, 158, 11, 0.25)';
     ctx.strokeStyle = isTuning ? '#38bdf8' : '#fbbf24';
     ctx.lineWidth = 1.5;
@@ -3724,71 +3714,72 @@ export class HarmoniaRenderer {
     ctx.font = 'bold 11px "Inter", sans-serif';
     ctx.fillText(isTuning ? '🔧 TUNING MODE (No Score / Ear Training)' : '⚡ PERFORMANCE MODE (Timed Rhythm)', this.width / 2, tagY + 15);
 
-    // 2. Left Battler: Player & Familiar (x: 60..300, y: 80..230)
+    // 2. Left Battler: Player & Familiar (x: 30..250, y: 82..230)
     const player = state.ensemble.members[0];
     ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
     ctx.strokeStyle = '#38bdf8';
     ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.roundRect(60, 80, 240, 54, 10);
+    ctx.roundRect(30, 82, 220, 54, 10);
     ctx.fill();
     ctx.stroke();
 
     ctx.fillStyle = '#f8fafc';
     ctx.font = 'bold 15px "Inter", sans-serif';
     ctx.textAlign = 'left';
-    ctx.fillText(player ? player.name : 'Maestro', 75, 103);
+    ctx.fillText(player ? player.name : 'Maestro', 45, 105);
     ctx.fillStyle = '#38bdf8';
     ctx.font = '12px "Inter", sans-serif';
-    ctx.fillText(player ? player.instrumentName : 'Violin', 75, 122);
+    ctx.fillText(player ? player.instrumentName : 'Violin', 45, 124);
 
-    // Player Platform
+    // Player Platform & Avatars (x: 140, y: 190)
     ctx.fillStyle = 'rgba(6, 78, 59, 0.5)';
     ctx.beginPath();
-    ctx.ellipse(180, 200, 80, 24, 0, 0, Math.PI * 2);
+    ctx.ellipse(140, 190, 75, 22, 0, 0, Math.PI * 2);
     ctx.fill();
     if (player) {
-      ctx.font = '48px "Inter", sans-serif';
+      ctx.font = '44px "Inter", sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(player.avatar, 155, 195);
-      ctx.font = '36px "Inter", sans-serif';
-      ctx.fillText(player.pet.sprite, 205, 198 + Math.cos(state.time * 4) * 4);
+      ctx.fillText(player.avatar, 115, 185);
+      ctx.font = '34px "Inter", sans-serif';
+      ctx.fillText(player.pet.sprite, 165, 188 + Math.cos(state.time * 4) * 4);
     }
 
-    // 3. Right Battler: Wild Harmonipet (x: width-300..width-60, y: 80..230)
-    const rightBoxX = this.width - 300;
+    // 3. Right Battler: Wild Harmonipet (x: width-250..width-30, y: 82..230)
+    const rightBoxX = this.width - 250;
     ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
     ctx.strokeStyle = enc.pet.color;
     ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.roundRect(rightBoxX, 80, 240, 54, 10);
+    ctx.roundRect(rightBoxX, 82, 220, 54, 10);
     ctx.fill();
     ctx.stroke();
 
     ctx.fillStyle = '#f8fafc';
     ctx.font = 'bold 15px "Inter", sans-serif';
     ctx.textAlign = 'left';
-    ctx.fillText(`Wild ${enc.pet.name}`, rightBoxX + 15, 103);
+    ctx.fillText(`Wild ${enc.pet.name}`, rightBoxX + 15, 105);
     ctx.fillStyle = enc.pet.color;
     ctx.font = '12px "Inter", sans-serif';
     const rarityLabel = enc.pet.rarity ? ` • ${enc.pet.rarity.toUpperCase()}` : '';
-    ctx.fillText(`${enc.pet.species}${rarityLabel}`, rightBoxX + 15, 122);
+    ctx.fillText(`${enc.pet.species}${rarityLabel}`, rightBoxX + 15, 124);
 
-    // Wild Creature Platform
+    // Wild Creature Platform & Sprite (x: width - 140, y: 190)
     ctx.fillStyle = 'rgba(6, 78, 59, 0.5)';
     ctx.beginPath();
-    ctx.ellipse(this.width - 180, 200, 80, 24, 0, 0, Math.PI * 2);
+    ctx.ellipse(this.width - 140, 190, 75, 22, 0, 0, Math.PI * 2);
     ctx.fill();
-    ctx.font = '54px "Inter", sans-serif';
+    ctx.font = '50px "Inter", sans-serif';
     ctx.textAlign = 'center';
     const bounce = Math.sin(state.time * 4) * 6;
-    ctx.fillText(enc.pet.sprite, this.width - 180, 192 + bounce);
+    ctx.fillText(enc.pet.sprite, this.width - 140, 183 + bounce);
 
-    // 4. Center Midsection: Dynamic Colorized Resonance Meter & Hints (x: 340..width-340, y: 95..220)
-    const barW = Math.min(520, this.width - 680);
+    // 4. Center Midsection: Resonance Progress Bar (x: 270..width-270)
+    const centerAvailableW = Math.max(260, this.width - 540);
+    const barW = Math.min(500, centerAvailableW);
     const barH = 26;
     const barX = (this.width - barW) / 2;
-    const barY = 95;
+    const barY = 82;
 
     // Background track
     ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
@@ -3799,50 +3790,64 @@ export class HarmoniaRenderer {
     ctx.lineWidth = 1.5;
     ctx.stroke();
 
-    // Colorized gradient based on progress
-    const progressWidth = Math.min(barW, Math.max(0, (enc.resonanceMeter / 100) * barW));
-    if (progressWidth > 0) {
-      const barGrad = ctx.createLinearGradient(barX, 0, barX + barW, 0);
-      if (enc.resonanceMeter < 40) {
-        barGrad.addColorStop(0, '#ef4444');
-        barGrad.addColorStop(1, '#f97316');
-      } else if (enc.resonanceMeter < 75) {
-        barGrad.addColorStop(0, '#f59e0b');
-        barGrad.addColorStop(1, '#eab308');
-      } else {
-        barGrad.addColorStop(0, '#10b981');
-        barGrad.addColorStop(1, '#06b6d4');
+    if (isTuning) {
+      const revealedCount = enc.revealedSteps ? enc.revealedSteps.filter(Boolean).length : 0;
+      const totalCount = enc.targetNoteIndices.length;
+      const tuningFill = Math.min(barW, Math.max(0, (revealedCount / totalCount) * barW));
+      if (tuningFill > 0) {
+        const barGrad = ctx.createLinearGradient(barX, 0, barX + barW, 0);
+        barGrad.addColorStop(0, '#0d9488');
+        barGrad.addColorStop(1, '#14b8a6');
+        ctx.fillStyle = barGrad;
+        ctx.beginPath();
+        ctx.roundRect(barX, barY, tuningFill, barH, 8);
+        ctx.fill();
       }
-      ctx.fillStyle = barGrad;
-      ctx.beginPath();
-      ctx.roundRect(barX, barY, progressWidth, barH, 8);
-      ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 12px "Inter", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(`🐾 Tones Discovered: ${revealedCount} / ${totalCount} (Ear Training — 0% Victory Score)`, this.width / 2, barY + 18);
+    } else {
+      const progressWidth = Math.min(barW, Math.max(0, (enc.resonanceMeter / 100) * barW));
+      if (progressWidth > 0) {
+        const barGrad = ctx.createLinearGradient(barX, 0, barX + barW, 0);
+        if (enc.resonanceMeter < 40) {
+          barGrad.addColorStop(0, '#ef4444');
+          barGrad.addColorStop(1, '#f97316');
+        } else if (enc.resonanceMeter < 75) {
+          barGrad.addColorStop(0, '#f59e0b');
+          barGrad.addColorStop(1, '#eab308');
+        } else {
+          barGrad.addColorStop(0, '#10b981');
+          barGrad.addColorStop(1, '#06b6d4');
+        }
+        ctx.fillStyle = barGrad;
+        ctx.beginPath();
+        ctx.roundRect(barX, barY, progressWidth, barH, 8);
+        ctx.fill();
+      }
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 12px "Inter", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(`Harmonic Resonance: ${enc.resonanceMeter}%`, this.width / 2, barY + 18);
     }
-
-    // Bar Label
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 12px "Inter", sans-serif';
-    ctx.textAlign = 'center';
-    const barLabel = isTuning 
-      ? `🐾 Tuning Discovery Mode (Ear Training Only — 0% Score)` 
-      : `Harmonic Resonance: ${enc.resonanceMeter}% (Bond Threshold: ${enc.catchThreshold}%)`;
-    ctx.fillText(barLabel, this.width / 2, barY + 18);
 
     // Subtitle instruction
     ctx.fillStyle = '#94a3b8';
     ctx.font = '12px "Inter", sans-serif';
+    ctx.textAlign = 'center';
     ctx.fillText(isTuning 
-      ? `Listen to the tune, then test buttons [1]-[4] to discover all notes without penalty!`
+      ? `Test buttons [1]-[4] freely to discover each tone in the sequence with zero risk!`
       : `Play the full ${enc.targetNoteIndices.length}-note phrase in tempo with the rhythm sweet spot!`,
-      this.width / 2, 145);
+      this.width / 2, 118);
 
-    // Control Buttons Row (Replay & Phase Switch) at y: 180, h: 36
-    const btnW = 230;
-    const btnH = 36;
-    const gapBtn = 20;
+    // Control Buttons Row (Replay & Phase Switch) at y: 138, h: 34
+    const btnW = Math.min(210, (centerAvailableW - 20) / 2);
+    const btnH = 34;
+    const gapBtn = 16;
     const totalBtnW = btnW * 2 + gapBtn;
     const repX = (this.width - totalBtnW) / 2;
-    const repY = 180;
+    const repY = 138;
     const phaseX = repX + btnW + gapBtn;
 
     // [R] Replay Button
@@ -3855,9 +3860,9 @@ export class HarmoniaRenderer {
     ctx.stroke();
 
     ctx.fillStyle = enc.isPlayingMelody ? '#fbbf24' : '#38bdf8';
-    ctx.font = 'bold 13px "Inter", sans-serif';
+    ctx.font = 'bold 12px "Inter", sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText(enc.isPlayingMelody ? '🎶 Playing Call...' : '👂 [R] Replay Tune', repX + btnW / 2, repY + 23);
+    ctx.fillText(enc.isPlayingMelody ? '🎶 Playing Call...' : '👂 [R] Replay Tune', repX + btnW / 2, repY + 22);
 
     // Phase Switch Button
     ctx.fillStyle = isTuning ? 'rgba(16, 185, 129, 0.3)' : 'rgba(56, 189, 248, 0.25)';
@@ -3869,10 +3874,10 @@ export class HarmoniaRenderer {
     ctx.stroke();
 
     ctx.fillStyle = isTuning ? '#6ee7b7' : '#38bdf8';
-    ctx.font = 'bold 13px "Inter", sans-serif';
-    ctx.fillText(isTuning ? '✨ [SPACE] Begin Performance' : '🔧 [T] Back to Tuning', phaseX + btnW / 2, repY + 23);
+    ctx.font = 'bold 12px "Inter", sans-serif';
+    ctx.fillText(isTuning ? '✨ [SPACE] Begin Performance' : '🔧 [T] Back to Tuning', phaseX + btnW / 2, repY + 22);
 
-    // 5. Melody Sequence Call & Response Display at y: 240, h: 42
+    // 5. Melody Sequence Call & Response Display at y: 186, h: 38
     let noteNames = ['C4', 'E4', 'G4', 'C5'];
     if (isPercussion) {
       const pInst = enc.pet.instrumentId;
@@ -3898,10 +3903,10 @@ export class HarmoniaRenderer {
       return { text, isRevealed, isCurrent };
     });
 
-    const seqW = Math.max(560, enc.targetNoteIndices.length * 85 + 120);
-    const seqH = 42;
+    const seqW = Math.min(520, Math.max(340, enc.targetNoteIndices.length * 80 + 100));
+    const seqH = 38;
     const seqX = (this.width - seqW) / 2;
-    const seqY = 240;
+    const seqY = 186;
 
     ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
     ctx.strokeStyle = isTuning ? '#34d399' : '#f59e0b';
@@ -3912,13 +3917,13 @@ export class HarmoniaRenderer {
     ctx.stroke();
 
     ctx.fillStyle = isTuning ? '#6ee7b7' : '#fbbf24';
-    ctx.font = 'bold 13px "Inter", sans-serif';
+    ctx.font = 'bold 12px "Inter", sans-serif';
     ctx.textAlign = 'left';
-    ctx.fillText(isPercussion ? '🥁 Phrase:' : '🎵 Melody:', seqX + 14, seqY + 26);
+    ctx.fillText(isPercussion ? '🥁 Phrase:' : '🎵 Melody:', seqX + 12, seqY + 24);
 
-    const pillStartX = seqX + 90;
+    const pillStartX = seqX + 85;
     const pillGap = 6;
-    const pillW = (seqW - 105 - (targetPills.length - 1) * pillGap) / targetPills.length;
+    const pillW = (seqW - 98 - (targetPills.length - 1) * pillGap) / targetPills.length;
 
     targetPills.forEach((p, idx) => {
       const px = pillStartX + idx * (pillW + pillGap);
@@ -3926,22 +3931,22 @@ export class HarmoniaRenderer {
       ctx.strokeStyle = p.isRevealed ? '#34d399' : (p.isCurrent ? '#fbbf24' : '#475569');
       ctx.lineWidth = p.isCurrent || p.isRevealed ? 2 : 1;
       ctx.beginPath();
-      ctx.roundRect(px, seqY + 6, pillW, 30, 6);
+      ctx.roundRect(px, seqY + 5, pillW, 28, 6);
       ctx.fill();
       ctx.stroke();
 
       ctx.fillStyle = p.isRevealed ? '#a7f3d0' : (p.isCurrent ? '#fef08a' : '#94a3b8');
       ctx.font = p.isCurrent || p.isRevealed ? 'bold 11px "Inter", sans-serif' : '11px "Inter", sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(p.text, px + pillW / 2, seqY + 25);
+      ctx.fillText(p.text, px + pillW / 2, seqY + 23);
     });
 
-    // 6. Timing Bar (Performance Phase only) at y: 300, h: 14
+    // 6. Timing Bar (Performance Phase only) at y: 236, h: 14
     if (!isTuning) {
-      const rhythmW = 400;
+      const rhythmW = Math.min(380, centerAvailableW - 40);
       const rhythmH = 14;
       const rhythmX = (this.width - rhythmW) / 2;
-      const rhythmY = 300;
+      const rhythmY = 236;
 
       ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
       ctx.strokeStyle = '#475569';
@@ -3966,16 +3971,16 @@ export class HarmoniaRenderer {
       ctx.fillRect(sweepX - 2, rhythmY - 3, 4, rhythmH + 6);
     }
 
-    // 7. Status Banner at y: 340
-    const statusY = isTuning ? 315 : 345;
+    // 7. Status Banner at y: 268 / 245
+    const statusY = isTuning ? 245 : 268;
     if (enc.lastFeedbackText) {
       ctx.fillStyle = enc.lastFeedback === 'PERFECT' ? '#34d399' : (enc.lastFeedback === 'DISSONANCE' ? '#f87171' : '#38bdf8');
-      ctx.font = 'bold 14px "Inter", sans-serif';
+      ctx.font = 'bold 13px "Inter", sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText(enc.lastFeedbackText, this.width / 2, statusY);
     } else {
       ctx.fillStyle = '#94a3b8';
-      ctx.font = '13px "Inter", sans-serif';
+      ctx.font = '12px "Inter", sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText(isTuning 
         ? 'Tuning Mode: Press [1]-[4] to discover notes freely.' 
@@ -3983,7 +3988,7 @@ export class HarmoniaRenderer {
         this.width / 2, statusY);
     }
 
-    // 8. Note Action Buttons at y: 400, h: 75
+    // 8. Note Action Buttons at y: 285 / 295, h: 72
     let notes: { label: string; sub: string }[] = [];
     if (isPercussion) {
       const pInst = enc.pet.instrumentId;
@@ -4032,14 +4037,14 @@ export class HarmoniaRenderer {
       ];
     }
 
-    const cardW = 190;
-    const cardH = 75;
-    const gap = 16;
-    const startX = (this.width - (cardW * 4 + gap * 3)) / 2;
-    const cardY = 380;
+    const cardGap = 14;
+    const cardW = Math.min(195, (this.width - 80 - cardGap * 3) / 4);
+    const cardH = 70;
+    const startX = (this.width - (cardW * 4 + cardGap * 3)) / 2;
+    const cardY = isTuning ? 275 : 295;
 
     notes.forEach((n, idx) => {
-      const cx = startX + idx * (cardW + gap);
+      const cx = startX + idx * (cardW + cardGap);
       ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
       ctx.strokeStyle = isTuning ? '#38bdf8' : '#34d399';
       ctx.lineWidth = 1.5;
@@ -4049,20 +4054,20 @@ export class HarmoniaRenderer {
       ctx.stroke();
 
       ctx.fillStyle = isTuning ? '#7dd3fc' : '#6ee7b7';
-      ctx.font = 'bold 16px "Inter", sans-serif';
+      ctx.font = 'bold 15px "Inter", sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(n.label, cx + cardW / 2, cardY + 32);
+      ctx.fillText(n.label, cx + cardW / 2, cardY + 30);
 
       ctx.fillStyle = '#94a3b8';
-      ctx.font = '12px "Inter", sans-serif';
-      ctx.fillText(n.sub, cx + cardW / 2, cardY + 54);
+      ctx.font = '11px "Inter", sans-serif';
+      ctx.fillText(n.sub, cx + cardW / 2, cardY + 50);
     });
 
-    // 9. Parent Mentor Guidance Card (y: 475..535)
-    const tipW = 680;
-    const tipH = 50;
+    // 9. Parent Mentor Guidance Card (y: cardY + cardH + 16, h: 50)
+    const tipW = Math.min(740, this.width - 60);
+    const tipH = 48;
     const tipX = (this.width - tipW) / 2;
-    const tipY = 475;
+    const tipY = cardY + cardH + 15;
     ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
     ctx.strokeStyle = '#f59e0b';
     ctx.lineWidth = 1.5;
@@ -4077,7 +4082,7 @@ export class HarmoniaRenderer {
     const mentorTip = isTuning 
       ? '👩‍👧 Mama Aria: "Take your time sweetie! Tuning mode won\'t count towards victory, but you can find every note safely!"'
       : '👩‍👧 Mama Aria: "Now perform with feeling! Hit the notes right when the yellow line crosses the green zone!"';
-    ctx.fillText(mentorTip, this.width / 2, tipY + 30);
+    ctx.fillText(mentorTip, this.width / 2, tipY + 28);
   }
 
   /* ---------------- MUSIC THEORY CHALLENGE RENDERER ---------------- */
@@ -4099,7 +4104,7 @@ export class HarmoniaRenderer {
     ctx.strokeStyle = '#38bdf8';
     ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.roundRect(140, 30, this.width - 280, 195, 16);
+    ctx.roundRect(40, 25, this.width - 80, 195, 16);
     ctx.fill();
     ctx.stroke();
 
@@ -4110,41 +4115,42 @@ export class HarmoniaRenderer {
     ctx.fillStyle = '#fbbf24';
     ctx.font = 'bold 15px "Cinzel", serif';
     ctx.textAlign = 'center';
-    ctx.fillText(`🎼 ${modeTag}${ch.title ? ch.title.toUpperCase() : 'MUSIC THEORY DRILL'}`, this.width / 2, 54);
+    ctx.fillText(`🎼 ${modeTag}${ch.title ? ch.title.toUpperCase() : 'MUSIC THEORY DRILL'}`, this.width / 2, 52);
 
     ctx.fillStyle = '#38bdf8';
-    ctx.font = 'bold 24px "Inter", sans-serif';
-    ctx.fillText(q.prompt, this.width / 2, 90);
+    ctx.font = 'bold 22px "Inter", sans-serif';
+    ctx.fillText(q.prompt, this.width / 2, 88);
 
     ctx.fillStyle = '#f8fafc';
-    ctx.font = '16px "Inter", sans-serif';
-    ctx.fillText(q.subtext, this.width / 2, 130);
+    ctx.font = '15px "Inter", sans-serif';
+    ctx.fillText(q.subtext, this.width / 2, 126);
 
     ctx.fillStyle = '#34d399';
-    ctx.font = 'bold 14px "Inter", sans-serif';
-    ctx.fillText(`Lifelines: ${hearts.trim()} (${ch.lifelinesRemaining}/${ch.maxLifelines}) | Question ${ch.currentQuestionIndex + 1} of ${ch.questions.length} | Score: ${ch.score} pts | ${rewardTag}`, this.width / 2, 185);
+    ctx.font = 'bold 13px "Inter", sans-serif';
+    ctx.fillText(`Lifelines: ${hearts.trim()} (${ch.lifelinesRemaining}/${ch.maxLifelines}) | Q${ch.currentQuestionIndex + 1}/${ch.questions.length} | Score: ${ch.score} | ${rewardTag}`, this.width / 2, 180);
 
     // If audio drill, show Replay Button
     if (q.notesToPlay && q.notesToPlay.length > 0) {
       ctx.fillStyle = '#0284c7';
       ctx.beginPath();
-      ctx.roundRect(this.width / 2 - 120, 240, 240, 44, 10);
+      ctx.roundRect(this.width / 2 - 120, 235, 240, 40, 10);
       ctx.fill();
       ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 15px "Inter", sans-serif';
-      ctx.fillText('🔊 Replay Pitch [R]', this.width / 2, 267);
+      ctx.font = 'bold 14px "Inter", sans-serif';
+      ctx.fillText('🔊 Replay Pitch [R]', this.width / 2, 260);
     }
 
     // 4 Option Cards
-    const optW = 460;
-    const optH = 75;
-    const startY = q.notesToPlay ? 310 : 250;
-    const gapY = 20;
+    const optGap = 16;
+    const optW = Math.min(460, (this.width - 80 - optGap) / 2);
+    const startY = q.notesToPlay ? 295 : 240;
+    const optH = Math.min(75, Math.max(54, (this.height - startY - 35) / 2));
+    const gapY = 14;
 
     q.options.forEach((optText, idx) => {
       const col = idx % 2;
       const row = Math.floor(idx / 2);
-      const ox = col === 0 ? this.width / 2 - optW - 15 : this.width / 2 + 15;
+      const ox = col === 0 ? this.width / 2 - optW - optGap / 2 : this.width / 2 + optGap / 2;
       const oy = startY + row * (optH + gapY);
 
       ctx.fillStyle = '#1e293b';
@@ -4156,13 +4162,13 @@ export class HarmoniaRenderer {
       ctx.stroke();
 
       ctx.fillStyle = '#38bdf8';
-      ctx.font = 'bold 18px "Inter", sans-serif';
+      ctx.font = 'bold 16px "Inter", sans-serif';
       ctx.textAlign = 'left';
-      ctx.fillText(`[${idx + 1}]`, ox + 20, oy + 44);
+      ctx.fillText(`[${idx + 1}]`, ox + 16, oy + optH / 2 + 6);
 
       ctx.fillStyle = '#f8fafc';
-      ctx.font = '16px "Inter", sans-serif';
-      ctx.fillText(optText, ox + 60, oy + 44);
+      ctx.font = '14px "Inter", sans-serif';
+      ctx.fillText(optText, ox + 52, oy + optH / 2 + 6);
     });
   }
 
@@ -4179,7 +4185,7 @@ export class HarmoniaRenderer {
 
     const cx = this.width / 2;
     const cy = this.height / 2;
-    const R = 180;
+    const R = Math.min(180, this.height * 0.26);
     const currentInst = state.ensemble.members[0]?.instrumentId;
 
     // Outer guide circle
@@ -4260,10 +4266,10 @@ export class HarmoniaRenderer {
 
     // Hover tooltip banner at bottom
     if (hoveredInst) {
-      const tipW = 600;
-      const tipH = 65;
+      const tipW = Math.min(600, this.width - 40);
+      const tipH = 58;
       const tipX = (this.width - tipW) / 2;
-      const tipY = this.height - 95;
+      const tipY = this.height - tipH - 16;
 
       ctx.fillStyle = 'rgba(15, 23, 42, 0.95)';
       ctx.strokeStyle = '#38bdf8';
@@ -4276,11 +4282,11 @@ export class HarmoniaRenderer {
       ctx.fillStyle = '#38bdf8';
       ctx.font = 'bold 15px "Inter", sans-serif';
       ctx.textAlign = 'left';
-      ctx.fillText(`${hoveredInst.avatar} ${hoveredInst.name} (${hoveredInst.section.toUpperCase()})`, tipX + 16, tipY + 24);
+      ctx.fillText(`${hoveredInst.avatar} ${hoveredInst.name} (${hoveredInst.section.toUpperCase()})`, tipX + 16, tipY + 22);
 
       ctx.fillStyle = '#cbd5e1';
-      ctx.font = '13px "Inter", sans-serif';
-      ctx.fillText(hoveredInst.description, tipX + 16, tipY + 48);
+      ctx.font = '12px "Inter", sans-serif';
+      ctx.fillText(hoveredInst.description, tipX + 16, tipY + 42);
     }
   }
 
@@ -4291,10 +4297,10 @@ export class HarmoniaRenderer {
     if (!notif || notif.timer <= 0) return;
 
     const ctx = this.ctx;
-    const toastW = 560;
+    const toastW = Math.min(560, this.width - 40);
     const toastH = 64;
     const toastX = (this.width - toastW) / 2;
-    const toastY = 64;
+    const toastY = state.hasPianoAccompaniment ? 96 : 64;
 
     ctx.fillStyle = 'rgba(15, 23, 42, 0.96)';
     ctx.beginPath();
@@ -4336,8 +4342,8 @@ export class HarmoniaRenderer {
 
   private renderPhoneMenu(state: GameState): void {
     const ctx = this.ctx;
-    const phoneW = 520;
-    const phoneH = 620;
+    const phoneW = Math.min(520, this.width - 24);
+    const phoneH = Math.min(620, this.height - 20);
     const phoneX = (this.width - phoneW) / 2;
     const phoneY = (this.height - phoneH) / 2;
 
@@ -4348,7 +4354,7 @@ export class HarmoniaRenderer {
     // Outer Phone Chassis (Metallic Titanium)
     ctx.fillStyle = '#0f172a';
     ctx.beginPath();
-    ctx.roundRect(phoneX, phoneY, phoneW, phoneH, 32);
+    ctx.roundRect(phoneX, phoneY, phoneW, phoneH, 28);
     ctx.fill();
     ctx.strokeStyle = '#38bdf8';
     ctx.lineWidth = 3;
@@ -4357,39 +4363,40 @@ export class HarmoniaRenderer {
     // Inner Glass Display Bezel
     ctx.fillStyle = '#1e293b';
     ctx.beginPath();
-    ctx.roundRect(phoneX + 12, phoneY + 12, phoneW - 24, phoneH - 24, 24);
+    ctx.roundRect(phoneX + 10, phoneY + 10, phoneW - 20, phoneH - 20, 20);
     ctx.fill();
 
     // Dynamic Island / Camera Notch
     ctx.fillStyle = '#020617';
     ctx.beginPath();
-    ctx.roundRect(phoneX + phoneW / 2 - 55, phoneY + 16, 110, 20, 10);
+    ctx.roundRect(phoneX + phoneW / 2 - 50, phoneY + 14, 100, 18, 9);
     ctx.fill();
 
     // Status Bar
     ctx.fillStyle = '#94a3b8';
     ctx.font = 'bold 11px "Inter", sans-serif';
     ctx.textAlign = 'left';
-    ctx.fillText('📶 5G', phoneX + 28, phoneY + 30);
+    ctx.fillText('📶 5G', phoneX + 24, phoneY + 28);
     ctx.textAlign = 'right';
-    ctx.fillText('9:41 AM  •  🔋 98%', phoneX + phoneW - 28, phoneY + 30);
+    ctx.fillText('9:41 AM  •  🔋 98%', phoneX + phoneW - 24, phoneY + 28);
 
-    // App Navigation Bar (5 Tabs)
+    // App Navigation Bar (6 Tabs)
     const activeTab = state.phoneTab || 'messages';
     const tabs = [
-      { id: 'messages', name: 'Messages', icon: '💬' },
-      { id: 'calendar', name: 'Calendar', icon: '📅' },
-      { id: 'quests', name: 'Quests', icon: '📜' },
+      { id: 'messages', name: 'Msgs', icon: '💬' },
+      { id: 'ensemble', name: 'Band', icon: '👥' },
       { id: 'repertoire', name: 'Scores', icon: '🎼' },
+      { id: 'quests', name: 'Quests', icon: '📜' },
+      { id: 'calendar', name: 'Gigs', icon: '📅' },
       { id: 'dex', name: 'Pets', icon: '🐾' }
     ] as const;
 
-    const tabW = (phoneW - 48) / tabs.length;
-    const tabY = phoneY + 48;
-    const tabH = 34;
+    const tabW = (phoneW - 40) / tabs.length;
+    const tabY = phoneY + 44;
+    const tabH = 32;
 
     tabs.forEach((t, idx) => {
-      const tx = phoneX + 24 + idx * tabW;
+      const tx = phoneX + 20 + idx * tabW;
       const isActive = activeTab === t.id;
       const unreadBadge = t.id === 'messages' && state.phoneMessages && state.phoneMessages.some(m => !m.read);
 
@@ -4402,23 +4409,23 @@ export class HarmoniaRenderer {
       ctx.stroke();
 
       ctx.fillStyle = isActive ? '#38bdf8' : '#94a3b8';
-      ctx.font = isActive ? 'bold 11px "Inter", sans-serif' : '11px "Inter", sans-serif';
+      ctx.font = isActive ? 'bold 10px "Inter", sans-serif' : '10px "Inter", sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(`${t.icon} ${t.name}`, tx + (tabW - 4) / 2, tabY + 21);
+      ctx.fillText(`${t.icon} ${t.name}`, tx + (tabW - 4) / 2, tabY + 20);
 
       if (unreadBadge) {
         ctx.fillStyle = '#ef4444';
         ctx.beginPath();
-        ctx.arc(tx + tabW - 10, tabY + 8, 4, 0, Math.PI * 2);
+        ctx.arc(tx + tabW - 8, tabY + 6, 4, 0, Math.PI * 2);
         ctx.fill();
       }
     });
 
     // Content Display Area
-    const contentX = phoneX + 24;
-    const contentY = phoneY + 92;
-    const contentW = phoneW - 48;
-    const contentH = phoneH - 150;
+    const contentX = phoneX + 20;
+    const contentY = phoneY + 84;
+    const contentW = phoneW - 40;
+    const contentH = phoneH - 135;
 
     ctx.fillStyle = '#0f172a';
     ctx.beginPath();
@@ -4441,11 +4448,11 @@ export class HarmoniaRenderer {
         ctx.font = 'italic 13px "Inter", sans-serif';
         ctx.fillText('No messages in your inbox.', contentX + 16, contentY + 60);
       } else {
-        const itemH = 92;
+        const itemH = 88;
         msgs.slice(0, 4).forEach((m, idx) => {
           const my = contentY + 36 + idx * (itemH + 8);
-          ctx.fillStyle = m.read ? 'rgba(30, 41, 59, 0.6)' : 'rgba(30, 58, 138, 0.35)';
-          ctx.strokeStyle = m.read ? '#334155' : '#38bdf8';
+          ctx.fillStyle = m.read ? 'rgba(30, 41, 59, 0.5)' : 'rgba(30, 58, 138, 0.4)';
+          ctx.strokeStyle = m.read ? '#334155' : (m.category === 'mom' ? '#f59e0b' : '#38bdf8');
           ctx.lineWidth = m.read ? 1 : 1.5;
           ctx.beginPath();
           ctx.roundRect(contentX + 10, my, contentW - 20, itemH, 8);
@@ -4485,6 +4492,42 @@ export class HarmoniaRenderer {
           }
         });
       }
+    } else if (activeTab === 'ensemble') {
+      ctx.fillStyle = '#f8fafc';
+      ctx.font = 'bold 14px "Inter", sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText(`👥 Ensemble Roster (${state.ensemble.members.length} Active • ${state.ensemble.tier.toUpperCase()})`, contentX + 16, contentY + 24);
+
+      const members = state.ensemble.members || [];
+      const itemH = 62;
+      members.slice(0, 6).forEach((m, idx) => {
+        const my = contentY + 34 + idx * (itemH + 6);
+        ctx.fillStyle = 'rgba(30, 41, 59, 0.6)';
+        ctx.strokeStyle = m.paletteColor || '#38bdf8';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.roundRect(contentX + 10, my, contentW - 20, itemH, 8);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.font = '24px "Apple Color Emoji", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(m.avatar, contentX + 32, my + 36);
+
+        ctx.textAlign = 'left';
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = 'bold 12px "Inter", sans-serif';
+        ctx.fillText(`${m.name} ${idx === 0 ? '👑 (You)' : ''}`, contentX + 56, my + 22);
+
+        const secColor = m.section === 'strings' ? '#ec4899' : (m.section === 'woodwinds' ? '#06b6d4' : (m.section === 'brass' ? '#f59e0b' : '#a855f7'));
+        ctx.fillStyle = secColor;
+        ctx.font = 'bold 10px "Inter", sans-serif';
+        ctx.fillText(`${m.section.toUpperCase()} • ${m.instrumentName} • Lv.${m.level}`, contentX + 56, my + 38);
+
+        ctx.fillStyle = '#fbbf24';
+        ctx.font = '10px "Inter", sans-serif';
+        ctx.fillText(`Pet: ${m.pet.name} (${m.pet.species})`, contentX + 56, my + 52);
+      });
     } else if (activeTab === 'calendar') {
       ctx.fillStyle = '#f8fafc';
       ctx.font = 'bold 14px "Inter", sans-serif';

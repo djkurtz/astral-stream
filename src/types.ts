@@ -582,8 +582,11 @@ export interface ParentMentorState {
   hasIntroducedBusking: boolean;
   hasIntroducedMusicianDuel: boolean;
   hasIntroducedPetBonding: boolean;
+  hasIntroducedCompetition: boolean;
   practiceReminderTimer: number;
   lastBragMessageTime: number;
+  activeAdviceText?: string;
+  activeAdviceTitle?: string;
 }
 
 export type GameMode = 

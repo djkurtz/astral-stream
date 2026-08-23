@@ -807,6 +807,23 @@ export class HarmoniaSoundEngine {
     });
   }
 
+  public playPhoneRingtone(): void {
+    if (this.isMuted || !this.ensureContext()) return;
+    const ringNotes = [783.99, 1046.50, 1318.51, 1567.98]; // G5, C6, E6, G6
+    ringNotes.forEach((freq, idx) => {
+      setTimeout(() => {
+        this.playInstrumentNote('glockenspiel', freq, 0.18, 0.7);
+      }, idx * 90);
+    });
+    setTimeout(() => {
+      ringNotes.forEach((freq, idx) => {
+        setTimeout(() => {
+          this.playInstrumentNote('glockenspiel', freq, 0.18, 0.7);
+        }, idx * 90);
+      });
+    }, 420);
+  }
+
   public playGrandPianoNote(freq: number, duration: number = 0.8, velocity: number = 0.8): void {
     if (this.isMuted || !this.ensureContext() || !this.ctx || !this.masterGain) return;
     const t = this.ctx.currentTime;
@@ -1301,19 +1318,19 @@ export class HarmoniaSoundEngine {
       const bufferSize = Math.floor(this.ctx.sampleRate * 1.2);
       const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
       const data = buffer.getChannelData(0);
-      for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * 0.12;
+      for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * 0.14;
       const noise = this.ctx.createBufferSource();
       noise.buffer = buffer;
       const filter = this.ctx.createBiquadFilter();
       filter.type = 'bandpass';
-      filter.frequency.setValueAtTime(320, t);
-      filter.frequency.exponentialRampToValueAtTime(750, t + 0.6);
-      filter.frequency.exponentialRampToValueAtTime(280, t + 1.2);
-      filter.Q.setValueAtTime(4.0, t);
+      filter.frequency.setValueAtTime(280, t);
+      filter.frequency.exponentialRampToValueAtTime(850, t + 0.6);
+      filter.frequency.exponentialRampToValueAtTime(220, t + 1.2);
+      filter.Q.setValueAtTime(5.0, t);
 
       const gain = this.ctx.createGain();
       gain.gain.setValueAtTime(0.01, t);
-      gain.gain.linearRampToValueAtTime(0.18, t + 0.5);
+      gain.gain.linearRampToValueAtTime(0.2, t + 0.5);
       gain.gain.exponentialRampToValueAtTime(0.001, t + 1.2);
 
       noise.connect(filter);
@@ -1322,66 +1339,64 @@ export class HarmoniaSoundEngine {
       noise.start(t);
       noise.stop(t + 1.2);
     } else if (zone === 'south_wilderness') {
-      // 🌋 South Wilderness (Caldera Wilds): Sub-bass volcanic rumble & seismic crackle
+      // 🌋 South Wilderness (Caldera Wilds): Sub-bass volcanic rumble & scary seismic crackle
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
       osc.type = 'triangle';
-      osc.frequency.setValueAtTime(55, t);
-      osc.frequency.exponentialRampToValueAtTime(28, t + 1.0);
+      osc.frequency.setValueAtTime(45, t);
+      osc.frequency.exponentialRampToValueAtTime(22, t + 1.2);
       gain.gain.setValueAtTime(0.01, t);
-      gain.gain.linearRampToValueAtTime(0.22, t + 0.3);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + 1.0);
+      gain.gain.linearRampToValueAtTime(0.26, t + 0.3);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 1.2);
       osc.connect(gain);
       gain.connect(this.masterGain);
       osc.start(t);
-      osc.stop(t + 1.0);
+      osc.stop(t + 1.2);
     } else if (zone === 'east_wilderness') {
-      // 🍃 East Wilderness (Breeze Glade): Misty swamp reeds & breathy wind gust
-      const bufferSize = Math.floor(this.ctx.sampleRate * 0.9);
-      const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-      const data = buffer.getChannelData(0);
-      for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * 0.08;
-      const noise = this.ctx.createBufferSource();
-      noise.buffer = buffer;
-      const filter = this.ctx.createBiquadFilter();
-      filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(600, t);
-      filter.frequency.exponentialRampToValueAtTime(1400, t + 0.4);
-      filter.frequency.exponentialRampToValueAtTime(450, t + 0.9);
-
+      // 🍃 East Wilderness (Breeze Glade): Mysterious swamp reeds & natural nocturnal cricket flutter
+      const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(2200, t);
+      osc.frequency.setValueAtTime(2600, t + 0.05);
+      osc.frequency.setValueAtTime(2200, t + 0.1);
       gain.gain.setValueAtTime(0.01, t);
-      gain.gain.linearRampToValueAtTime(0.14, t + 0.3);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.9);
-
-      noise.connect(filter);
-      filter.connect(gain);
+      gain.gain.linearRampToValueAtTime(0.06, t + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+      osc.connect(gain);
       gain.connect(this.masterGain);
-      noise.start(t);
-      noise.stop(t + 0.9);
-    } else if (zone.includes('wilderness') || zone.includes('woods')) {
-      // 🌲 West Wilderness & Natural areas: Soft rustling leaves & gentle acoustic breeze
-      const bufferSize = Math.floor(this.ctx.sampleRate * 0.8);
-      const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-      const data = buffer.getChannelData(0);
-      for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * 0.06;
-      const noise = this.ctx.createBufferSource();
-      noise.buffer = buffer;
-      const filter = this.ctx.createBiquadFilter();
-      filter.type = 'bandpass';
-      filter.frequency.setValueAtTime(800, t);
-      filter.Q.setValueAtTime(2.5, t);
-
+      osc.start(t);
+      osc.stop(t + 0.3);
+    } else if (zone === 'west_wilderness') {
+      // 🌲 West Wilderness (Lyre Valley): Mysterious, eerie wind whistle and owl call
+      const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(620, t);
+      osc.frequency.exponentialRampToValueAtTime(440, t + 0.35);
       gain.gain.setValueAtTime(0.01, t);
-      gain.gain.linearRampToValueAtTime(0.12, t + 0.3);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.8);
-
-      noise.connect(filter);
-      filter.connect(gain);
+      gain.gain.linearRampToValueAtTime(0.08, t + 0.1);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+      osc.connect(gain);
       gain.connect(this.masterGain);
-      noise.start(t);
-      noise.stop(t + 0.8);
+      osc.start(t);
+      osc.stop(t + 0.4);
+    } else {
+      // 🏘️ Settled Villages & Metropolis: Peaceful morning birdsong and gentle harmonic chimes
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      const birdPitch = 1200 + Math.random() * 600;
+      osc.frequency.setValueAtTime(birdPitch, t);
+      osc.frequency.exponentialRampToValueAtTime(birdPitch * 1.3, t + 0.08);
+      osc.frequency.exponentialRampToValueAtTime(birdPitch * 0.9, t + 0.18);
+      gain.gain.setValueAtTime(0.01, t);
+      gain.gain.linearRampToValueAtTime(0.04, t + 0.06);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+      osc.start(t);
+      osc.stop(t + 0.22);
     }
   }
 

@@ -228,29 +228,29 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // Phone Modal Clicks
     if (state.phoneOpen || state.mode === 'phone_menu') {
-      const phoneW = 520;
-      const phoneH = 620;
-      const phoneX = (1280 - phoneW) / 2;
-      const phoneY = (720 - phoneH) / 2;
+      const phoneW = Math.min(520, canvas.width - 24);
+      const phoneH = Math.min(620, canvas.height - 20);
+      const phoneX = (canvas.width - phoneW) / 2;
+      const phoneY = (canvas.height - phoneH) / 2;
 
       // Close button
-      const closeBtnW = 200;
-      const closeBtnH = 34;
-      const closeBtnX = (1280 - closeBtnW) / 2;
-      const closeBtnY = phoneY + phoneH - 46;
+      const closeBtnW = 180;
+      const closeBtnH = 32;
+      const closeBtnX = (canvas.width - closeBtnW) / 2;
+      const closeBtnY = phoneY + phoneH - 42;
       if (clickX >= closeBtnX && clickX <= closeBtnX + closeBtnW && clickY >= closeBtnY && clickY <= closeBtnY + closeBtnH) {
         engine.togglePhone(false);
         return;
       }
 
-      // App Tabs
-      const tabs = ['messages', 'calendar', 'quests', 'repertoire', 'dex'] as const;
-      const tabW = (phoneW - 48) / tabs.length;
-      const tabY = phoneY + 48;
-      const tabH = 34;
+      // App Tabs (6 Tabs)
+      const tabs = ['messages', 'ensemble', 'repertoire', 'quests', 'calendar', 'dex'] as const;
+      const tabW = (phoneW - 40) / tabs.length;
+      const tabY = phoneY + 44;
+      const tabH = 32;
 
-      if (clickY >= tabY && clickY <= tabY + tabH && clickX >= phoneX + 24 && clickX <= phoneX + phoneW - 24) {
-        const tabIdx = Math.floor((clickX - (phoneX + 24)) / tabW);
+      if (clickY >= tabY && clickY <= tabY + tabH && clickX >= phoneX + 20 && clickX <= phoneX + phoneW - 20) {
+        const tabIdx = Math.floor((clickX - (phoneX + 20)) / tabW);
         if (tabIdx >= 0 && tabIdx < tabs.length) {
           engine.switchPhoneTab(tabs[tabIdx]);
           return;
@@ -260,11 +260,11 @@ window.addEventListener('DOMContentLoaded', () => {
       // Message item read click
       const activeTab = state.phoneTab || 'messages';
       if (activeTab === 'messages' && state.phoneMessages) {
-        const contentY = phoneY + 92;
-        const itemH = 92;
+        const contentY = phoneY + 84;
+        const itemH = 88;
         state.phoneMessages.slice(0, 4).forEach((m, idx) => {
           const my = contentY + 36 + idx * (itemH + 8);
-          if (clickX >= phoneX + 34 && clickX <= phoneX + phoneW - 34 && clickY >= my && clickY <= my + itemH) {
+          if (clickX >= phoneX + 30 && clickX <= phoneX + phoneW - 30 && clickY >= my && clickY <= my + itemH) {
             engine.markPhoneMessageRead(m.id);
           }
         });
@@ -279,14 +279,20 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // Exploration HUD Clicks: Phone pill & Notification Toast
     if (state.mode === 'exploration') {
-      // Phone HUD shortcut pill (x: 625..765, y: 10..44)
-      if (clickX >= 625 && clickX <= 765 && clickY >= 10 && clickY <= 44) {
+      // HarmoniPhone Shortcut Pill
+      const unreadCount = state.phoneMessages ? state.phoneMessages.filter(m => !m.read).length : 0;
+      const phonePillW = unreadCount > 0 ? 140 : 110;
+      const phonePillX = Math.max(180, canvas.width - 450);
+      if (canvas.width >= 700 && clickX >= phonePillX && clickX <= phonePillX + phonePillW && clickY >= 10 && clickY <= 44) {
         engine.togglePhone();
         return;
       }
 
-      // Push Notification Toast (x: 360..920, y: 64..128)
-      if (state.activeNotification && clickX >= 360 && clickX <= 920 && clickY >= 64 && clickY <= 128) {
+      // Push Notification Toast
+      const toastW = Math.min(560, canvas.width - 40);
+      const toastX = (canvas.width - toastW) / 2;
+      const toastY = state.hasPianoAccompaniment ? 96 : 64;
+      if (state.activeNotification && clickX >= toastX && clickX <= toastX + toastW && clickY >= toastY && clickY <= toastY + 64) {
         engine.togglePhone(true);
         engine.switchPhoneTab('messages');
         return;
@@ -295,12 +301,13 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // Harmonize encounter clicks
     if (state.mode === 'harmonize_wild') {
-      const btnW = 230;
-      const btnH = 36;
-      const gapBtn = 20;
+      const centerAvailableW = Math.max(260, canvas.width - 540);
+      const btnW = Math.min(210, (centerAvailableW - 20) / 2);
+      const btnH = 34;
+      const gapBtn = 16;
       const totalBtnW = btnW * 2 + gapBtn;
-      const repX = (1280 - totalBtnW) / 2;
-      const repY = 180;
+      const repX = (canvas.width - totalBtnW) / 2;
+      const repY = 138;
       const phaseX = repX + btnW + gapBtn;
 
       if (clickX >= repX && clickX <= repX + btnW && clickY >= repY && clickY <= repY + btnH) {
@@ -317,14 +324,14 @@ window.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      const cardW = 190;
-      const cardH = 75;
-      const gap = 16;
-      const startX = (1280 - (cardW * 4 + gap * 3)) / 2;
-      const cardY = 380;
+      const cardGap = 14;
+      const cardW = Math.min(195, (canvas.width - 80 - cardGap * 3) / 4);
+      const cardH = 70;
+      const startX = (canvas.width - (cardW * 4 + cardGap * 3)) / 2;
+      const cardY = state.harmonizeEncounter?.phase === 'tuning' ? 275 : 295;
 
       for (let i = 0; i < 4; i++) {
-        const cx = startX + i * (cardW + gap);
+        const cx = startX + i * (cardW + cardGap);
         if (clickX >= cx && clickX <= cx + cardW && clickY >= cardY && clickY <= cardY + cardH) {
           engine.playHarmonizeNote(i);
           break;
@@ -335,14 +342,16 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // Pre-Battle Lineup Selection clicks
     if (state.mode === 'battle_lineup' && state.preBattle) {
-      const rightX = 540;
-      const rightY = 85;
-      const slotW = 150;
-      const slotH = 150;
-      const slotGap = 16;
-      const activeStartX = rightX + 20;
-      const activeStartY = rightY + 65;
+      const leftX = 24;
+      const leftW = Math.min(420, (canvas.width - 72) * 0.38);
+      const rightX = leftX + leftW + 16;
+      const rightW = canvas.width - rightX - 24;
       const maxLineup = state.preBattle.maxLineupSize || 4;
+      const slotGap = Math.min(14, Math.max(8, (rightW - 400) / 4));
+      const slotW = Math.min(150, (rightW - 32 - slotGap * 3) / 4);
+      const slotH = maxLineup > 4 ? 96 : 125;
+      const activeStartX = rightX + 16;
+      const activeStartY = 80 + 56;
 
       // Check clicks on active lineup slots
       for (let i = 0; i < state.ensemble.members.length; i++) {
@@ -359,12 +368,12 @@ window.addEventListener('DOMContentLoaded', () => {
       }
 
       // Check clicks on reserve musicians
-      const reserveY = activeStartY + (maxLineup > 4 ? (slotH + slotGap) * 2 : (slotH + slotGap)) + 15;
-      const resStartX = rightX + 20;
-      const resStartY = reserveY + 15;
-      const rCardW = 150;
-      const rCardH = 70;
-      const rGap = 16;
+      const reserveY = activeStartY + (maxLineup > 4 ? (slotH + slotGap) * 2 : (slotH + slotGap)) + 12;
+      const resStartX = rightX + 16;
+      const resStartY = reserveY + 12;
+      const rCardW = slotW;
+      const rCardH = maxLineup > 4 ? 54 : 64;
+      const rGap = slotGap;
       const allOwned = [...state.recruitedMusicians, ...state.ensembleBox];
       const reserveMusicians = allOwned.filter(m => !state.ensemble.members.some(am => am.id === m.id));
 
@@ -380,11 +389,11 @@ window.addEventListener('DOMContentLoaded', () => {
       }
 
       // Bottom action buttons
-      const btnW = 340;
-      const btnH = 45;
-      const btnY = 650;
-      const startX = 1280 / 2 - btnW - 20;
-      const cancelX = 1280 / 2 + 20;
+      const btnW = Math.min(320, (canvas.width - 80) / 2);
+      const btnH = 42;
+      const btnY = Math.min(650, canvas.height - 48);
+      const startX = canvas.width / 2 - btnW - 14;
+      const cancelX = canvas.width / 2 + 14;
 
       if (clickX >= startX && clickX <= startX + btnW && clickY >= btnY && clickY <= btnY + btnH) {
         engine.confirmPreBattle();
@@ -399,11 +408,11 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // Conducting Minigame & Section Attack Clicks
     if (state.mode === 'competition' && state.competition) {
-      const laneW = 260;
-      const laneH = 95;
-      const gap = 15;
-      const startX = (1280 - (laneW * 4 + gap * 3)) / 2;
-      const startY = 360;
+      const gap = Math.min(15, Math.max(8, (canvas.width - 600) / 16));
+      const laneW = Math.min(260, (canvas.width - 60 - gap * 3) / 4);
+      const laneH = 78;
+      const startX = (canvas.width - (laneW * 4 + gap * 3)) / 2;
+      const startY = 324;
 
       const sections = ['strings', 'woodwinds', 'brass', 'percussion'] as const;
       for (let i = 0; i < 4; i++) {
@@ -414,9 +423,9 @@ window.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      // Section Action Card Clicks (y: 460..516)
-      const actionCardY = 460;
-      const actionCardH = 56;
+      // Section Action Card Clicks (y: 408..454)
+      const actionCardY = 408;
+      const actionCardH = 46;
       for (let i = 0; i < 4; i++) {
         const ax = startX + i * (laneW + gap);
         if (clickX >= ax && clickX <= ax + laneW && clickY >= actionCardY && clickY <= actionCardY + actionCardH) {
@@ -426,10 +435,10 @@ window.addEventListener('DOMContentLoaded', () => {
       }
 
       // Master Downbeat click on podium / cadence track
-      const meterW = 640;
-      const meterX = 1280 / 2 - meterW / 2;
-      const meterY = 535;
-      if (clickX >= meterX - 40 && clickX <= meterX + meterW + 40 && clickY >= meterY - 30 && clickY <= meterY + 110) {
+      const meterW = Math.min(560, canvas.width - 80);
+      const meterX = canvas.width / 2 - meterW / 2;
+      const meterY = 480;
+      if (clickX >= meterX - 20 && clickX <= meterX + meterW + 20 && clickY >= meterY - 20 && clickY <= meterY + 80) {
         engine.advanceConcertPerformance();
         return;
       }

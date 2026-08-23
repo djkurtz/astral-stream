@@ -209,6 +209,7 @@ export class HarmoniaGameEngine {
         hasIntroducedBusking: false,
         hasIntroducedMusicianDuel: false,
         hasIntroducedPetBonding: false,
+        hasIntroducedCompetition: false,
         practiceReminderTimer: 120,
         lastBragMessageTime: 0
       },
@@ -1332,6 +1333,13 @@ export class HarmoniaGameEngine {
       ]
     };
 
+    const comp = this.state.competition;
+    if (this.state.parentMentor && comp && comp.combatLog && !this.state.parentMentor.hasIntroducedCompetition) {
+      this.state.parentMentor.hasIntroducedCompetition = true;
+      comp.combatLog.push(`👩‍👧 Mama Aria: "A concert festival competition! Conduct your sections proudly, sweetie! Attack with your sections [1-4] and nail the downbeat cadence on [SPACE] to capture the audience's hearts!"`);
+      this.receivePhoneNotification('Mama Aria 💖', "Concert Competition! Conduct your sections and nail the downbeat on [SPACE]! 🏆", '👩‍👧');
+    }
+
     soundEngine.stopBGM();
     this.state.mode = 'competition';
   }
@@ -1458,6 +1466,13 @@ export class HarmoniaGameEngine {
         `🎶 Round 1: [${playerSections[0].toUpperCase()}] Section ready to attack!`
       ]
     };
+
+    const duelComp = this.state.competition;
+    if (this.state.parentMentor && duelComp && duelComp.combatLog && !this.state.parentMentor.hasIntroducedBusking) {
+      this.state.parentMentor.hasIntroducedBusking = true;
+      duelComp.combatLog.push(`👩‍👧 Mama Aria: "A piano busking duel! Watch the tempo needle closely, sweetie! When it hits the yellow/green sweet spot on [SPACE], trigger your section's attacks to win over the crowd! Show that pianist what real practice looks like!"`);
+      this.receivePhoneNotification('Mama Aria 💖', "Busking Duel! Time your section attacks with the sweet spot to gain Maestro Flow! 🎹", '👩‍👧');
+    }
 
     soundEngine.stopBGM();
     this.state.mode = 'competition';
@@ -3548,10 +3563,9 @@ export class HarmoniaGameEngine {
       title,
       message,
       icon,
-      timer: 5.0
+      timer: 5.5
     };
-    soundEngine.playInstrumentNote('glockenspiel', 1046.50, 0.25, 0.7);
-    setTimeout(() => soundEngine.playInstrumentNote('glockenspiel', 1318.51, 0.35, 0.7), 80);
+    soundEngine.playPhoneRingtone();
   }
 
   public addPhoneMessage(msg: { sender: string; senderAvatar: string; category: 'mom' | 'rival' | 'ensemble' | 'gossip'; subject: string; body: string }): void {
