@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { GameEngine } from '../src/game';
-import { ALLEGRO_OWL_SPIRIT, BRASS_BUNNY_SPIRIT, SITAR_SWAN_SPIRIT, STARTER_SPIRIT, FUSED_CHIMERA } from '../src/data';
+import { ALLEGRO_OWL_SPIRIT, BRASS_BUNNY_SPIRIT, SITAR_SWAN_SPIRIT, STARTER_SPIRIT, FUSED_CHIMERA, STEEL_PANDA_SPIRIT, KORA_GAZELLE_SPIRIT, GLITCH_GOLEM_SPIRIT } from '../src/data';
 
 describe('Combat Mechanics & Genre Affinity Wheel', () => {
   let engine: GameEngine;
@@ -83,6 +83,47 @@ describe('Combat Mechanics & Genre Affinity Wheel', () => {
     const b = engine.getState().battle!;
     b.playerSpirit = JSON.parse(JSON.stringify(FUSED_CHIMERA)); // Cosmic
     engine.initiatePlayerMove(0);
+    b.rhythmCursor = (b.targetWindowStart + b.targetWindowEnd) / 2;
+    engine.resolveRhythmHit();
+
+    expect(b.rhythmResult).toBe('PERFECT');
+  });
+
+  it('should correctly start wild battles with new roaming monsters', () => {
+    const pierGlitch = engine.getState().wildGlitches.find(g => g.id === 'glitch_pier');
+    expect(pierGlitch).toBeDefined();
+    engine.startWildBattle(pierGlitch!);
+
+    let b = engine.getState().battle;
+    expect(b).toBeDefined();
+    expect(b?.type).toBe('wild');
+    expect(b?.enemySpirit?.name).toBe('Steel-Panda');
+    expect(b?.enemySpirit?.type).toBe('global');
+
+    const groveGlitch = engine.getState().wildGlitches.find(g => g.id === 'glitch_grove');
+    expect(groveGlitch).toBeDefined();
+    engine.startWildBattle(groveGlitch!);
+
+    b = engine.getState().battle;
+    expect(b?.enemySpirit?.name).toBe('Kora-Gazelle');
+    expect(b?.enemySpirit?.type).toBe('global');
+
+    const ruinsGlitch = engine.getState().wildGlitches.find(g => g.id === 'glitch_ruins');
+    expect(ruinsGlitch).toBeDefined();
+    engine.startWildBattle(ruinsGlitch!);
+
+    b = engine.getState().battle;
+    expect(b?.enemySpirit?.name).toBe('Glitch-Golem');
+    expect(b?.enemySpirit?.type).toBe('static');
+  });
+
+  it('should verify Synth overpowers Global Steel-Panda (1.5x damage)', () => {
+    const pierGlitch = engine.getState().wildGlitches.find(g => g.id === 'glitch_pier')!;
+    engine.startWildBattle(pierGlitch);
+    const b = engine.getState().battle!;
+    b.playerSpirit = JSON.parse(JSON.stringify(STARTER_SPIRIT)); // Synth type
+
+    engine.initiatePlayerMove(0); // Synth move vs Global enemy
     b.rhythmCursor = (b.targetWindowStart + b.targetWindowEnd) / 2;
     engine.resolveRhythmHit();
 

@@ -1,4 +1,4 @@
-import { NPCEntity, SoundRipple, StreamSpirit, WildGlitchEntity } from './types';
+import { CollectibleItem, NPCEntity, SoundRipple, StreamSpirit, WildGlitchEntity } from './types';
 
 export const STARTER_SPIRIT: StreamSpirit = {
   id: 'spirit_chime_cat',
@@ -331,6 +331,136 @@ export const NOISE_MOTE_SPIRIT: StreamSpirit = {
   ]
 };
 
+export const STEEL_PANDA_SPIRIT: StreamSpirit = {
+  id: 'spirit_steel_panda',
+  name: 'Steel-Panda',
+  title: 'Calypso Steelpan Ursid',
+  vibeTag: '#CalypsoSteel',
+  species: 'Percussive Steelpan Ursid',
+  instrument: 'Tuned Steelpan Drum & Mallets',
+  originTradition: 'Caribbean (Trinidad & Tobago)',
+  avatar: '🐼',
+  type: 'global',
+  color: '#10b981',
+  level: 2,
+  xp: 0,
+  maxXp: 120,
+  hp: 80,
+  maxHp: 80,
+  energy: 100,
+  attack: 24,
+  defense: 16,
+  speed: 14,
+  moves: [
+    {
+      id: 'm_calypso_roll',
+      name: 'Calypso Mallet Roll',
+      type: 'global',
+      power: 24,
+      cost: 15,
+      description: 'Rolls rubber mallets across tuned steelpan bowls, ringing bright tropical harmonics. [Strong vs JAZZ]',
+      effectiveness: 'Strong vs JAZZ',
+      soundType: 'taiko_boom'
+    },
+    {
+      id: 'm_island_echo',
+      name: 'Carnival Bass Resonance',
+      type: 'global',
+      power: 35,
+      cost: 30,
+      description: 'Vibrates the steel pan skirt with booming festive resonance.',
+      effectiveness: 'Strong vs JAZZ',
+      soundType: 'taiko_boom'
+    }
+  ]
+};
+
+export const KORA_GAZELLE_SPIRIT: StreamSpirit = {
+  id: 'spirit_kora_gazelle',
+  name: 'Kora-Gazelle',
+  title: 'Harp-Horned Griot Antelope',
+  vibeTag: '#GriotStrings',
+  species: '21-String Harpa Gazella',
+  instrument: 'Calabash Gourd & 21-String Kora Horns',
+  originTradition: 'West African (Mali & Senegal)',
+  avatar: '🦌',
+  type: 'global',
+  color: '#f97316',
+  level: 2,
+  xp: 0,
+  maxXp: 120,
+  hp: 75,
+  maxHp: 75,
+  energy: 100,
+  attack: 26,
+  defense: 12,
+  speed: 24,
+  moves: [
+    {
+      id: 'm_kora_pluck',
+      name: '21-String Kora Pluck',
+      type: 'global',
+      power: 25,
+      cost: 15,
+      description: 'Leaps gracefully while plucking its 21 strings in polyrhythmic cascading runs. [Strong vs JAZZ]',
+      effectiveness: 'Strong vs JAZZ',
+      soundType: 'sitar_twang'
+    },
+    {
+      id: 'm_savanna_arpeggio',
+      name: 'Savanna Horizon Cascade',
+      type: 'global',
+      power: 36,
+      cost: 30,
+      description: 'Strikes a soaring resonant chord that summons warm savanna breezes.',
+      effectiveness: 'Strong vs JAZZ',
+      soundType: 'sitar_twang'
+    }
+  ]
+};
+
+export const GLITCH_GOLEM_SPIRIT: StreamSpirit = {
+  id: 'spirit_glitch_golem',
+  name: 'Glitch-Golem',
+  title: 'Corrupted Monolith Anomaly',
+  vibeTag: '#MonolithStatic',
+  species: 'Heavy Static Colossus',
+  instrument: 'Low-Frequency Static Core',
+  originTradition: 'Dead Channel Rift Leak',
+  avatar: '🗿',
+  type: 'static',
+  color: '#ef4444',
+  level: 3,
+  xp: 0,
+  maxXp: 180,
+  hp: 110,
+  maxHp: 110,
+  energy: 100,
+  attack: 28,
+  defense: 22,
+  speed: 8,
+  moves: [
+    {
+      id: 'm_golem_stomp',
+      name: 'Corrupted Monolith Stomp',
+      type: 'static',
+      power: 26,
+      cost: 15,
+      description: 'Stomps heavy static stone feet, radiating digital shockwaves.',
+      soundType: 'glitch_hit'
+    },
+    {
+      id: 'm_desync_quake',
+      name: 'Sub-Static Quake',
+      type: 'static',
+      power: 38,
+      cost: 30,
+      description: 'Discharges a high-voltage pulse of raw analog snow and desync noise.',
+      soundType: 'glitch_hit'
+    }
+  ]
+};
+
 export const FUSED_CHIMERA: StreamSpirit = {
   id: 'spirit_cyber_chimera',
   name: 'Omni-Harmony Chimera',
@@ -475,6 +605,51 @@ export const TOWN_NPCS: NPCEntity[] = [
       "⚠️ The Glitch Gate is humming with volatile static!",
       "Duel Jax first to synchronize frequencies before attempting to breach."
     ]
+  },
+  {
+    id: 'npc_maestro',
+    name: 'Maestro Owl',
+    title: 'Conservatory Grand Master',
+    x: 320,
+    y: 190,
+    sprite: 'maestro_owl',
+    color: '#a855f7',
+    actionType: 'talk',
+    dialogue: [
+      "Hoo-hoo! The acoustic balance of Cadence Plaza is severely disturbed by the Dead Channel.",
+      "Listen closely to the harmonics of the world. Each tradition carries ancient wisdom to counter digital dissonance.",
+      "Seek out the scattered Tuning Forks and Frequency Crystals—they will harmonize your lead Harmonimal's combat prowess!"
+    ]
+  },
+  {
+    id: 'npc_pelican',
+    name: 'Barnaby',
+    title: 'Harbor Master Pelican',
+    x: 820,
+    y: 480,
+    sprite: 'pelican',
+    color: '#38bdf8',
+    actionType: 'talk',
+    dialogue: [
+      "Squawk! Welcome to the East Pier and Tidal Dunes!",
+      "I keep watch over the shoreline currents. Lately, wild Steel-Pandas and Kora-Gazelles have been wandering past the plaza.",
+      "Keep an eye out along the boardwalk for lost cargo—you might find rare Golden Vinyl and high-capacity Energy Batteries!"
+    ]
+  },
+  {
+    id: 'npc_spark',
+    name: 'Spark',
+    title: 'Master Audio Engineer & Cable Runner',
+    x: 960,
+    y: 320,
+    sprite: 'spark',
+    color: '#f59e0b',
+    actionType: 'talk',
+    dialogue: [
+      "Check 1-2, check 1-2! Signals are peaking in the red across the eastern grove!",
+      "I'm patching audio cables to contain the static leakage before it corrupts the entire sound grid.",
+      "If you collect harmonic items scattered around the realm, your active lead spirit will receive permanent frequency amplification!"
+    ]
   }
 ];
 
@@ -518,7 +693,7 @@ export const TOWN_SOUND_RIPPLES: SoundRipple[] = [
   }
 ];
 
-// Roaming Wild Static Glitch Encounters on the Shoreline
+// Roaming Wild Static Glitch & Monster Encounters Across the World
 export const TOWN_WILD_GLITCHES: WildGlitchEntity[] = [
   {
     id: 'glitch_beach_1',
@@ -535,5 +710,77 @@ export const TOWN_WILD_GLITCHES: WildGlitchEntity[] = [
     y: 500,
     spirit: NOISE_MOTE_SPIRIT,
     defeated: false
+  },
+  {
+    id: 'glitch_pier',
+    name: 'Wild Steel-Panda',
+    x: 880,
+    y: 560,
+    spirit: STEEL_PANDA_SPIRIT,
+    defeated: false
+  },
+  {
+    id: 'glitch_grove',
+    name: 'Wild Kora-Gazelle',
+    x: 1060,
+    y: 260,
+    spirit: KORA_GAZELLE_SPIRIT,
+    defeated: false
+  },
+  {
+    id: 'glitch_ruins',
+    name: 'Wild Glitch-Golem',
+    x: 1120,
+    y: 480,
+    spirit: GLITCH_GOLEM_SPIRIT,
+    defeated: false
+  }
+];
+
+// Scattered Collectible Items Across the Realm
+export const TOWN_ITEMS: CollectibleItem[] = [
+  {
+    id: 'item_tuning_fork',
+    name: 'Harmonic Tuning Fork',
+    icon: '🍴',
+    x: 120,
+    y: 420,
+    type: 'tuning_fork',
+    description: 'A pristine silver tuning fork resonating at concert pitch 440 Hz.',
+    effect: '+5 ATK Permanent Buff',
+    collected: false
+  },
+  {
+    id: 'item_golden_vinyl',
+    name: 'Golden Vinyl Record',
+    icon: '📀',
+    x: 720,
+    y: 220,
+    type: 'golden_vinyl',
+    description: 'A legendary master recording preserving pristine analog groove fidelity.',
+    effect: '+20 Max HP Permanent Buff',
+    collected: false
+  },
+  {
+    id: 'item_frequency_crystal',
+    name: 'Frequency Crystal',
+    icon: '💎',
+    x: 980,
+    y: 160,
+    type: 'frequency_crystal',
+    description: 'A shimmering crystalline prism that refracts sonic frequencies into pure energy.',
+    effect: '+10 Max HP & +3 ATK Buff',
+    collected: false
+  },
+  {
+    id: 'item_energy_battery',
+    name: 'Overdrive Energy Battery',
+    icon: '🔋',
+    x: 1180,
+    y: 600,
+    type: 'energy_battery',
+    description: 'A supercharged lithium-core battery packed with pure musical overdrive.',
+    effect: '+15 Max HP & +10 DEF Buff',
+    collected: false
   }
 ];

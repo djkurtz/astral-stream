@@ -131,6 +131,16 @@ export class AudioEngine {
     });
   }
 
+  public playDiscoveryFanfare(): void {
+    const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51];
+    notes.forEach((note, i) => {
+      setTimeout(() => {
+        this.playTone(note, 'triangle', 0.25, 0.18);
+        this.playTone(note * 1.5, 'sine', 0.15, 0.08);
+      }, i * 65);
+    });
+  }
+
   public playCleansingBloom(): void {
     const notes = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98];
     notes.forEach((note, i) => {

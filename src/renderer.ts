@@ -13,10 +13,10 @@ export class AstralRenderer {
 
   private initParticlePool(): void {
     this.particles = [];
-    for (let i = 0; i < 80; i++) {
+    for (let i = 0; i < 100; i++) {
       this.particles.push({
-        x: Math.random() * 800,
-        y: Math.random() * 600,
+        x: Math.random() * 1280,
+        y: Math.random() * 720,
         vx: (Math.random() - 0.5) * 1.5,
         vy: -Math.random() * 2 - 0.5,
         color: ['#f43f5e', '#ec4899', '#a855f7', '#06b6d4', '#10b981', '#fbbf24'][Math.floor(Math.random() * 6)],
@@ -57,14 +57,22 @@ export class AstralRenderer {
     const ctx = this.ctx;
     const t = state.time;
 
+    const worldW = 1280;
+    const worldH = 720;
+    const camX = Math.max(0, Math.min(worldW - w, state.player.x - w / 2));
+    const camY = Math.max(0, Math.min(worldH - h, state.player.y - h / 2));
+
+    ctx.save();
+    ctx.translate(-camX, -camY);
+
     // 1. Lush Green Grass Foundation
     ctx.fillStyle = '#166534';
-    ctx.fillRect(0, 0, w, h);
+    ctx.fillRect(0, 0, worldW, worldH);
 
     // Decorative grass patches
     ctx.fillStyle = '#15803d';
-    for (let x = 20; x < w; x += 60) {
-      for (let y = 20; y < h - 80; y += 60) {
+    for (let x = 20; x < worldW; x += 60) {
+      for (let y = 20; y < worldH - 100; y += 60) {
         if ((x + y) % 40 === 0) {
           ctx.fillRect(x, y, 8, 4);
           ctx.fillRect(x + 4, y - 4, 4, 8);
@@ -72,32 +80,26 @@ export class AstralRenderer {
       }
     }
 
-    // 2. Sandy Beach & Ocean Shoreline (Bottom)
-    // Sand
-    ctx.fillStyle = '#fde68a';
-    ctx.fillRect(0, 520, w, 25);
-    // Ocean
-    const oceanGrad = ctx.createLinearGradient(0, 545, 0, h);
-    oceanGrad.addColorStop(0, '#0284c7');
-    oceanGrad.addColorStop(1, '#0369a1');
-    ctx.fillStyle = oceanGrad;
-    ctx.fillRect(0, 545, w, h - 545);
+    // 2. South Beach Dunes & Multi-Tier Undulating Ocean Surf
+    this.drawSandDunes(ctx, worldW, t);
+    this.drawOceanSurf(ctx, worldW, worldH, t);
 
-    // Animated Ocean Foam Waves
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    for (let x = 0; x <= w; x += 10) {
-      const wy = 545 + Math.sin(x * 0.05 + t * 4) * 4;
-      if (x === 0) ctx.moveTo(x, wy);
-      else ctx.lineTo(x, wy);
-    }
-    ctx.stroke();
+    // 3. 3D Palm Trees on South Dunes
+    this.drawPalmTree(ctx, 120, 520, t, 0);
+    this.drawPalmTree(ctx, 360, 515, t, 1);
+    this.drawPalmTree(ctx, 680, 518, t, 2);
+    this.drawPalmTree(ctx, 1020, 520, t, 3);
 
-    // 3. Central Cobblestone Plaza
+    // 4. West Pier & Boardwalk with 3D Dock Posts & Sea Reflections
+    this.drawWestPier(ctx, t);
+
+    // 5. East Pier Boardwalk & Extensions
+    this.drawEastPier(ctx, t);
+
+    // 6. Central Cobblestone Plaza (Cadence Plaza)
     const plazaX = 80;
     const plazaY = 70;
-    const plazaW = w - 160;
+    const plazaW = 640;
     const plazaH = 440;
 
     // Cobblestone Base
@@ -120,55 +122,81 @@ export class AstralRenderer {
       ctx.stroke();
     }
 
-    // Decorative Plaza Border Curbs
+    // Decorative Plaza Border Curbs with 3D Bevel
     ctx.strokeStyle = '#64748b';
     ctx.lineWidth = 6;
     ctx.strokeRect(plazaX, plazaY, plazaW, plazaH);
+    ctx.strokeStyle = '#94a3b8';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(plazaX + 3, plazaY + 3, plazaW - 6, plazaH - 6);
 
-    // 4. Scenery: Lush Pixel Trees & Streetlamps
+    // Connecting Stone Walkway to East Grove
+    ctx.fillStyle = '#cbd5e1';
+    ctx.fillRect(720, 240, 120, 60);
+    ctx.strokeStyle = '#94a3b8';
+    ctx.strokeRect(720, 240, 120, 60);
+
+    // 7. East Taiko Bamboo Grove with 3D Stone Lanterns
+    this.drawBambooGrove(ctx, t);
+
+    // 8. North Ancient Sound Ruins with Floating 3D Monolith Blocks
+    this.drawAncientRuins(ctx, t);
+
+    // 9. Plaza Perimeter Scenery: Trees & Streetlamps
     this.drawTree(ctx, 40, 140);
     this.drawTree(ctx, 40, 280);
     this.drawTree(ctx, 40, 420);
-    this.drawTree(ctx, w - 40, 140);
-    this.drawTree(ctx, w - 40, 280);
-    this.drawTree(ctx, w - 40, 420);
+    this.drawTree(ctx, 740, 140);
+    this.drawTree(ctx, 740, 280);
+    this.drawTree(ctx, 740, 420);
 
     this.drawStreetLamp(ctx, 100, 240, t);
-    this.drawStreetLamp(ctx, w - 100, 240, t);
+    this.drawStreetLamp(ctx, 700, 240, t);
     this.drawStreetLamp(ctx, 100, 460, t);
-    this.drawStreetLamp(ctx, w - 100, 460, t);
+    this.drawStreetLamp(ctx, 700, 460, t);
+    this.drawStreetLamp(ctx, 850, 460, t);
+    this.drawStreetLamp(ctx, 1050, 460, t);
 
-    // 5. Buildings with Crystal-Clear Signs
+    // 10. Center Plaza Buildings
     // Neon Cafe (Top Left)
     this.drawNeonCafe(ctx, 90, 80, 170, 110, t);
-    // Vinyl Record Den (Top Right)
-    this.drawVinylDen(ctx, w - 260, 80, 170, 110, t);
-    // Glitch Gate (Top Center)
-    this.drawGlitchGate(ctx, w / 2 - 70, 30, 140, 50, state.glitchActive, t);
+    // Vinyl Record Den (Top Right of Plaza)
+    this.drawVinylDen(ctx, 540, 80, 170, 110, t);
+    // Glitch Gate (Top Center of Plaza)
+    this.drawGlitchGate(ctx, 330, 30, 140, 50, state.glitchActive, t);
 
-    // 6. Musical Centerpiece Fountain
-    this.drawMusicalFountain(ctx, w / 2, 290, t);
+    // 11. Musical Centerpiece Fountain (Harmony Fountain)
+    this.drawMusicalFountain(ctx, 400, 290, t);
 
-    // 7. Sound Ripples (The 3 Discovery Stations)
+    // 12. Sound Ripples (The 3 Discovery Stations)
     for (const rip of state.soundRipples) {
       if (!rip.discovered) {
         this.drawSoundRipple(ctx, rip.x, rip.y, rip.challengeType, t);
       }
     }
 
-    // 7.5 Wild Static Glitches (Roaming on beach)
+    // 13. Floating Collectible Items
+    if (state.items) {
+      for (const item of state.items) {
+        if (!item.collected) {
+          this.drawCollectibleItem(ctx, item.x, item.y, item.icon, item.name, t);
+        }
+      }
+    }
+
+    // 14. Wild Static Glitches & Roaming Monsters
     for (const g of state.wildGlitches) {
       if (!g.defeated) {
         this.drawWildGlitch(ctx, g.x, g.y, g.spirit, t);
       }
     }
 
-    // 8. NPCs
+    // 15. NPCs
     for (const npc of state.npcs) {
       this.drawPixelNPC(ctx, npc.x, npc.y, npc.sprite, t, npc.name);
     }
 
-    // 9. Player Character
+    // 16. Player Character
     this.drawDetailedPlayer(ctx, state.player.x, state.player.y, state.player.dir, state.player.isMoving, t);
 
     // Follower Companions (Chime-Cat + Bass-Hound)
@@ -183,10 +211,10 @@ export class AstralRenderer {
       this.drawDetailedHound(ctx, houndX, houndY, t);
     }
 
-    // 10. High-Legibility Interaction HUD Prompt
+    // 17. High-Legibility Interaction HUD Prompt
     if (state.nearbyInteractable) {
       const target = state.nearbyInteractable;
-      const tx = 'name' in target ? target.x : target.x;
+      const tx = target.x;
       const ty = 'name' in target ? target.y - 48 : target.y - 38;
 
       ctx.fillStyle = 'rgba(15, 23, 42, 0.95)';
@@ -204,6 +232,8 @@ export class AstralRenderer {
       let promptText = '';
       if ('spirit' in target && 'defeated' in target) {
         promptText = `⚔️ [SPACE] Battle ${(target as any).name}`;
+      } else if ('collected' in target) {
+        promptText = `✨ [SPACE] Collect ${(target as any).name}`;
       } else if ('name' in target) {
         if (target.id === 'npc_gate') {
           promptText = state.activeCompanion === 'jax' ? '⚠️ [SPACE] Breach Glitch Gate' : '⚠️ [SPACE] Inspect Gate';
@@ -221,10 +251,746 @@ export class AstralRenderer {
       ctx.fillText(promptText, tx, ty + 2);
     }
 
+    ctx.restore();
+
     // Celebration particles if clean
     if (state.zoneClean && state.mode === 'victory') {
       this.renderCelebrationParticles(ctx, w, h);
     }
+  }
+
+  /* ---------------- DETAILED SCENERY & 3D DIORAMA ---------------- */
+  private drawSandDunes(ctx: CanvasRenderingContext2D, worldW: number, _t: number): void {
+    // Warm Golden Sand Base
+    ctx.fillStyle = '#fef08a';
+    ctx.fillRect(0, 510, worldW, 45);
+
+    // 3D Tiered Dune Shading
+    ctx.fillStyle = '#fde68a';
+    ctx.beginPath();
+    ctx.moveTo(0, 525);
+    for (let x = 0; x <= worldW; x += 40) {
+      const dy = 525 + Math.sin(x * 0.012) * 8 + Math.cos(x * 0.03) * 4;
+      ctx.lineTo(x, dy);
+    }
+    ctx.lineTo(worldW, 555);
+    ctx.lineTo(0, 555);
+    ctx.closePath();
+    ctx.fill();
+
+    // Darker Wet Shore Sand Edge
+    ctx.fillStyle = '#f59e0b';
+    ctx.fillRect(0, 550, worldW, 5);
+
+    // Decorative Beach Details (Shells, Starfish, Tufts)
+    const beachItems = [
+      { x: 70, y: 528, type: 'shell' },
+      { x: 190, y: 535, type: 'star' },
+      { x: 310, y: 522, type: 'grass' },
+      { x: 480, y: 538, type: 'shell' },
+      { x: 620, y: 526, type: 'grass' },
+      { x: 750, y: 532, type: 'star' },
+      { x: 920, y: 524, type: 'shell' },
+      { x: 1080, y: 536, type: 'grass' }
+    ];
+
+    for (const item of beachItems) {
+      if (item.type === 'shell') {
+        ctx.fillStyle = '#fed7aa';
+        ctx.beginPath();
+        ctx.arc(item.x, item.y, 4, 0, Math.PI, true);
+        ctx.fill();
+        ctx.strokeStyle = '#f97316';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      } else if (item.type === 'star') {
+        ctx.fillStyle = '#f43f5e';
+        ctx.fillRect(item.x - 2, item.y - 2, 5, 5);
+        ctx.fillRect(item.x - 4, item.y, 9, 1);
+        ctx.fillRect(item.x, item.y - 4, 1, 9);
+      } else {
+        ctx.fillStyle = '#15803d';
+        ctx.fillRect(item.x, item.y - 5, 2, 6);
+        ctx.fillRect(item.x - 3, item.y - 3, 2, 4);
+        ctx.fillRect(item.x + 3, item.y - 4, 2, 5);
+      }
+    }
+  }
+
+  private drawOceanSurf(ctx: CanvasRenderingContext2D, worldW: number, worldH: number, t: number): void {
+    // 1. Deep Ocean Gradient Base
+    const oceanGrad = ctx.createLinearGradient(0, 550, 0, worldH);
+    oceanGrad.addColorStop(0, '#0ea5e9'); // Turquoise shallows
+    oceanGrad.addColorStop(0.25, '#0284c7'); // Azure mid
+    oceanGrad.addColorStop(0.65, '#0369a1'); // Deep sea blue
+    oceanGrad.addColorStop(1, '#0c4a6e'); // Abyssal navy
+    ctx.fillStyle = oceanGrad;
+    ctx.fillRect(0, 550, worldW, worldH - 550);
+
+    // 2. Multi-tier Undulating Wave Layers
+    const waveLayers = [
+      { y: 555, amp: 4, freq: 0.04, speed: 3.5, color: '#ffffff', width: 3.5 }, // Shoreline foam
+      { y: 575, amp: 5, freq: 0.03, speed: 2.5, color: 'rgba(165, 243, 252, 0.7)', width: 2.5 }, // Near surf
+      { y: 605, amp: 6, freq: 0.025, speed: 2.0, color: 'rgba(56, 189, 248, 0.5)', width: 2.0 }, // Mid swells
+      { y: 640, amp: 7, freq: 0.02, speed: 1.5, color: 'rgba(14, 165, 233, 0.45)', width: 2.0 }, // Deep swells
+      { y: 680, amp: 8, freq: 0.015, speed: 1.2, color: 'rgba(2, 132, 199, 0.4)', width: 2.0 } // Rolling tide
+    ];
+
+    for (const wave of waveLayers) {
+      ctx.strokeStyle = wave.color;
+      ctx.lineWidth = wave.width;
+      ctx.beginPath();
+      for (let x = 0; x <= worldW; x += 8) {
+        const wy = wave.y + Math.sin(x * wave.freq + t * wave.speed) * wave.amp + Math.cos(x * wave.freq * 0.5 + t * (wave.speed * 0.8)) * (wave.amp * 0.4);
+        if (x === 0) ctx.moveTo(x, wy);
+        else ctx.lineTo(x, wy);
+      }
+      ctx.stroke();
+    }
+
+    // 3. Sparkling Sun Glints / Specular Pixel Stars
+    ctx.fillStyle = '#ffffff';
+    for (let i = 0; i < 24; i++) {
+      const sx = ((i * 53 + t * 25) % worldW);
+      const sy = 570 + ((i * 37) % (worldH - 580));
+      const sparkle = (Math.sin(t * 6 + i * 2) + 1) / 2;
+      if (sparkle > 0.4) {
+        ctx.globalAlpha = sparkle * 0.85;
+        ctx.fillRect(sx, sy, 3, 2);
+        ctx.fillRect(sx - 1, sy + 1, 5, 1);
+      }
+    }
+    ctx.globalAlpha = 1.0;
+  }
+
+  private drawPalmTree(ctx: CanvasRenderingContext2D, x: number, y: number, t: number, seed: number): void {
+    ctx.save();
+    ctx.translate(x, y);
+
+    // 1. Drop Shadow on Sand
+    ctx.fillStyle = 'rgba(120, 53, 15, 0.35)';
+    ctx.beginPath();
+    ctx.ellipse(0, 5, 22, 9, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 2. Segmented Curved Trunk with 3D Shading
+    const sway = Math.sin(t * 1.5 + seed) * 3;
+    const trunkSegments = 7;
+    const segH = 8;
+    let curX = 0;
+    let curY = 0;
+
+    for (let i = 0; i < trunkSegments; i++) {
+      const nextX = curX + (i * 1.2) + (i > 3 ? sway * (i / trunkSegments) : 0);
+      const nextY = curY - segH;
+
+      // Outer trunk shadow
+      ctx.fillStyle = '#78350f';
+      ctx.fillRect(curX - 6 + (i * 0.3), nextY, 12 - (i * 0.6), segH + 1);
+
+      // Core midtone
+      ctx.fillStyle = '#92400e';
+      ctx.fillRect(curX - 4 + (i * 0.3), nextY + 1, 8 - (i * 0.6), segH - 1);
+
+      // Highlight stripe
+      ctx.fillStyle = '#b45309';
+      ctx.fillRect(curX - 1 + (i * 0.3), nextY + 1, 3, segH - 1);
+
+      // Segment ring divider
+      ctx.fillStyle = '#451a03';
+      ctx.fillRect(curX - 6 + (i * 0.3), curY - 1, 12 - (i * 0.6), 2);
+
+      curX = nextX;
+      curY = nextY;
+    }
+
+    // 3. Coconuts at Crown
+    ctx.fillStyle = '#451a03';
+    ctx.beginPath();
+    ctx.arc(curX - 4, curY + 2, 4, 0, Math.PI * 2);
+    ctx.arc(curX + 3, curY + 3, 4, 0, Math.PI * 2);
+    ctx.arc(curX, curY + 5, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 4. Lush Multi-Tier Palm Fronds
+    const frondAngles = [-140, -100, -60, -20, 20, 60, 100, 140];
+    const frondSway = Math.sin(t * 2 + seed) * 0.08;
+
+    for (let i = 0; i < frondAngles.length; i++) {
+      const rad = (frondAngles[i] * Math.PI) / 180 + frondSway;
+      const len = 32 + (i % 2) * 6;
+
+      ctx.save();
+      ctx.translate(curX, curY);
+      ctx.rotate(rad);
+
+      // Main frond spine
+      ctx.strokeStyle = '#14532d';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.quadraticCurveTo(len * 0.5, 6, len, 14);
+      ctx.stroke();
+
+      // Frond leaves (fan out)
+      ctx.fillStyle = i % 2 === 0 ? '#16a34a' : '#22c55e';
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.quadraticCurveTo(len * 0.5, -4, len, 14);
+      ctx.quadraticCurveTo(len * 0.6, 12, 0, 0);
+      ctx.fill();
+
+      // Bright edge highlight
+      ctx.strokeStyle = '#86efac';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(len * 0.2, 0);
+      ctx.lineTo(len * 0.8, 10);
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    ctx.restore();
+  }
+
+  private drawWestPier(ctx: CanvasRenderingContext2D, t: number): void {
+    // West Pier Boardwalk extending into the sea (x: 40 to 200, y: 500 to 670)
+    const pierX = 40;
+    const pierY = 500;
+    const pierW = 160;
+    const pierH = 170;
+
+    // 1. 3D Dock Posts with Sea Reflections Beneath
+    const posts = [
+      { x: pierX + 15, y: pierY + 60, h: 45 },
+      { x: pierX + pierW - 15, y: pierY + 60, h: 45 },
+      { x: pierX + 15, y: pierY + 115, h: 50 },
+      { x: pierX + pierW - 15, y: pierY + 115, h: 50 },
+      { x: pierX + 15, y: pierY + 165, h: 55 },
+      { x: pierX + pierW / 2, y: pierY + 165, h: 55 },
+      { x: pierX + pierW - 15, y: pierY + 165, h: 55 }
+    ];
+
+    for (const p of posts) {
+      this.drawDockPostWithReflection(ctx, p.x, p.y, 14, p.h, t);
+    }
+
+    // 2. 3D Wooden Pier Deck
+    // Deck Drop Shadow & Thickness
+    ctx.fillStyle = '#451a03';
+    ctx.fillRect(pierX - 4, pierY + pierH, pierW + 8, 8); // 3D Bottom edge drop
+    ctx.fillStyle = '#78350f';
+    ctx.fillRect(pierX + pierW, pierY, 6, pierH); // 3D Side edge drop
+
+    // Main Deck Base
+    ctx.fillStyle = '#b45309';
+    ctx.fillRect(pierX, pierY, pierW, pierH);
+
+    // Individual Wood Planks with alternating tones & nail studs
+    const plankH = 14;
+    for (let y = pierY; y < pierY + pierH; y += plankH) {
+      ctx.fillStyle = ((y / plankH) % 2 === 0) ? '#d97706' : '#b45309';
+      ctx.fillRect(pierX + 2, y + 1, pierW - 4, plankH - 2);
+
+      // Plank divider line
+      ctx.fillStyle = '#78350f';
+      ctx.fillRect(pierX, y + plankH - 1, pierW, 1);
+
+      // Rusty iron nails
+      ctx.fillStyle = '#334155';
+      ctx.fillRect(pierX + 8, y + 5, 2, 2);
+      ctx.fillRect(pierX + pierW - 10, y + 5, 2, 2);
+    }
+
+    // 3. Wooden Safety Railings
+    ctx.fillStyle = '#78350f';
+    ctx.fillRect(pierX - 2, pierY, 6, pierH); // Left rail post run
+    ctx.fillRect(pierX + pierW - 4, pierY, 6, pierH); // Right rail post run
+    ctx.fillStyle = '#92400e';
+    ctx.fillRect(pierX - 2, pierY + 12, 6, pierH - 12);
+    ctx.fillRect(pierX + pierW - 4, pierY + 12, 6, pierH - 12);
+
+    // Railing posts
+    for (let py = pierY; py <= pierY + pierH; py += 40) {
+      ctx.fillStyle = '#451a03';
+      ctx.fillRect(pierX - 4, py - 12, 8, 16);
+      ctx.fillRect(pierX + pierW - 4, py - 12, 8, 16);
+      ctx.fillStyle = '#b45309';
+      ctx.fillRect(pierX - 3, py - 11, 6, 14);
+      ctx.fillRect(pierX + pierW - 3, py - 11, 6, 14);
+    }
+
+    // Lifebuoy ring at the pier end
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(pierX + 30, pierY + pierH - 15, 9, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ef4444';
+    ctx.beginPath();
+    ctx.arc(pierX + 30, pierY + pierH - 15, 9, 0, Math.PI * 0.5);
+    ctx.arc(pierX + 30, pierY + pierH - 15, 9, Math.PI, Math.PI * 1.5);
+    ctx.fill();
+    ctx.fillStyle = '#0284c7';
+    ctx.beginPath();
+    ctx.arc(pierX + 30, pierY + pierH - 15, 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Pier Lamp with warm beacon glow
+    this.drawStreetLamp(ctx, pierX + pierW - 20, pierY + pierH - 20, t);
+  }
+
+  private drawEastPier(ctx: CanvasRenderingContext2D, t: number): void {
+    // East Shoreline Pier Boardwalk (x: 780 to 1240, y: 505 to 555) + Extensions into water
+    const pierX = 780;
+    const pierY = 505;
+    const pierW = 460;
+    const pierH = 50;
+
+    // Water extensions posts
+    const extPosts = [
+      { x: 840, y: 555, w: 40, h: 95 },
+      { x: 1040, y: 555, w: 40, h: 95 },
+      { x: 1140, y: 555, w: 100, h: 105 }
+    ];
+
+    for (const ext of extPosts) {
+      this.drawDockPostWithReflection(ctx, ext.x + 8, ext.y + ext.h - 10, 12, 35, t);
+      this.drawDockPostWithReflection(ctx, ext.x + ext.w - 12, ext.y + ext.h - 10, 12, 35, t);
+    }
+
+    // Main East boardwalk base
+    ctx.fillStyle = '#451a03';
+    ctx.fillRect(pierX, pierY + pierH, pierW, 6);
+    ctx.fillStyle = '#b45309';
+    ctx.fillRect(pierX, pierY, pierW, pierH);
+
+    // Planks
+    for (let x = pierX; x < pierX + pierW; x += 16) {
+      ctx.fillStyle = ((x / 16) % 2 === 0) ? '#d97706' : '#b45309';
+      ctx.fillRect(x + 1, pierY + 2, 14, pierH - 4);
+      ctx.fillStyle = '#78350f';
+      ctx.fillRect(x + 15, pierY, 1, pierH);
+    }
+
+    // Pier extensions into ocean
+    for (const ext of extPosts) {
+      ctx.fillStyle = '#451a03';
+      ctx.fillRect(ext.x, ext.y + ext.h, ext.w, 6);
+      ctx.fillStyle = '#b45309';
+      ctx.fillRect(ext.x, ext.y, ext.w, ext.h);
+
+      for (let y = ext.y; y < ext.y + ext.h; y += 14) {
+        ctx.fillStyle = ((y / 14) % 2 === 0) ? '#d97706' : '#b45309';
+        ctx.fillRect(ext.x + 2, y + 1, ext.w - 4, 12);
+        ctx.fillStyle = '#78350f';
+        ctx.fillRect(ext.x, y + 13, ext.w, 1);
+      }
+    }
+  }
+
+  private drawDockPostWithReflection(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, t: number): void {
+    // 1. Undulating Sea Reflection below water line
+    const refY = y + h;
+    const refH = 28;
+    for (let r = 0; r < refH; r += 3) {
+      const waveShift = Math.sin(r * 0.2 + t * 4) * 3;
+      const refAlpha = 0.4 * (1 - r / refH);
+      ctx.fillStyle = `rgba(69, 26, 3, ${refAlpha})`;
+      ctx.fillRect(x - w / 2 + waveShift, refY + r, w, 2.5);
+    }
+
+    // 2. 3D Cylindrical Wooden Piling
+    // Core shadow
+    ctx.fillStyle = '#451a03';
+    ctx.fillRect(x - w / 2, y, w, h);
+
+    // Midtone
+    ctx.fillStyle = '#78350f';
+    ctx.fillRect(x - w / 2 + 2, y, w - 4, h);
+
+    // Highlight
+    ctx.fillStyle = '#b45309';
+    ctx.fillRect(x - w / 2 + 3, y, 3, h);
+
+    // Green moss / algae ring near water line
+    ctx.fillStyle = '#065f46';
+    ctx.fillRect(x - w / 2, y + h - 10, w, 8);
+    ctx.fillStyle = '#10b981';
+    ctx.fillRect(x - w / 2 + 2, y + h - 8, w - 4, 4);
+
+    // Top Piling Bevel Cap
+    ctx.fillStyle = '#92400e';
+    ctx.beginPath();
+    ctx.ellipse(x, y, w / 2, 3, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#d97706';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  private drawBambooGrove(ctx: CanvasRenderingContext2D, t: number): void {
+    // East Taiko Bamboo Grove area: x: 830 to 1260, y: 60 to 460
+    // Ground Moss Carpet
+    ctx.fillStyle = '#14532d';
+    ctx.beginPath();
+    ctx.roundRect(830, 60, 430, 410, 20);
+    ctx.fill();
+
+    // Bamboo stalks grid
+    const stalks = [
+      { x: 860, y: 160, h: 90 }, { x: 890, y: 120, h: 80 }, { x: 920, y: 180, h: 95 },
+      { x: 950, y: 100, h: 85 }, { x: 1000, y: 150, h: 100 }, { x: 1030, y: 90, h: 75 },
+      { x: 1070, y: 170, h: 90 }, { x: 1110, y: 120, h: 85 }, { x: 1150, y: 180, h: 105 },
+      { x: 1190, y: 110, h: 80 }, { x: 1220, y: 160, h: 95 }, { x: 1250, y: 130, h: 85 },
+      { x: 870, y: 270, h: 90 }, { x: 910, y: 230, h: 85 }, { x: 950, y: 290, h: 95 },
+      { x: 1010, y: 250, h: 90 }, { x: 1080, y: 310, h: 100 }, { x: 1140, y: 260, h: 85 },
+      { x: 1190, y: 300, h: 95 }, { x: 1230, y: 240, h: 90 }, { x: 1260, y: 280, h: 85 },
+      { x: 890, y: 390, h: 95 }, { x: 940, y: 360, h: 85 }, { x: 990, y: 410, h: 100 },
+      { x: 1050, y: 370, h: 90 }, { x: 1110, y: 420, h: 95 }, { x: 1170, y: 380, h: 85 }
+    ];
+
+    for (const s of stalks) {
+      this.drawBambooStalk(ctx, s.x, s.y, s.h, t);
+    }
+
+    // 3D Stone Lanterns (Tōrō) with warm light
+    this.drawStoneLantern(ctx, 900, 200, t);
+    this.drawStoneLantern(ctx, 1100, 160, t);
+    this.drawStoneLantern(ctx, 970, 360, t);
+    this.drawStoneLantern(ctx, 1180, 350, t);
+
+    // Decorative Taiko Matsuri Drums
+    this.drawTaikoDrum(ctx, 940, 220, t);
+    this.drawTaikoDrum(ctx, 1120, 290, t);
+  }
+
+  private drawBambooStalk(ctx: CanvasRenderingContext2D, x: number, y: number, h: number, t: number): void {
+    ctx.save();
+    ctx.translate(x, y);
+
+    const sway = Math.sin(t * 2 + x * 0.02) * 2.5;
+
+    // Stalk Shadow
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+    ctx.beginPath();
+    ctx.ellipse(0, 4, 8, 3, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Segmented Green Bamboo Cane
+    const segCount = Math.floor(h / 16);
+    let curY = 0;
+    for (let i = 0; i < segCount; i++) {
+      const segW = 6;
+      const segH = 15;
+      const offX = (i / segCount) * sway;
+
+      // Dark edge
+      ctx.fillStyle = '#14532d';
+      ctx.fillRect(offX - segW / 2, curY - segH, segW, segH);
+
+      // Bright bamboo green
+      ctx.fillStyle = '#22c55e';
+      ctx.fillRect(offX - segW / 2 + 1, curY - segH, segW - 2, segH);
+
+      // Bamboo node ring
+      ctx.fillStyle = '#166534';
+      ctx.fillRect(offX - segW / 2 - 1, curY - 2, segW + 2, 3);
+      ctx.fillStyle = '#86efac';
+      ctx.fillRect(offX - segW / 2, curY - 1, segW, 1);
+
+      // Leaves sprouting at node
+      if (i % 2 === 1) {
+        const leafDir = (i % 4 === 1) ? 1 : -1;
+        ctx.fillStyle = '#4ade80';
+        ctx.beginPath();
+        ctx.moveTo(offX, curY - 2);
+        ctx.quadraticCurveTo(offX + leafDir * 12, curY - 8, offX + leafDir * 18, curY - 2);
+        ctx.quadraticCurveTo(offX + leafDir * 10, curY + 2, offX, curY - 2);
+        ctx.fill();
+      }
+
+      curY -= segH;
+    }
+
+    ctx.restore();
+  }
+
+  private drawStoneLantern(ctx: CanvasRenderingContext2D, x: number, y: number, t: number): void {
+    ctx.save();
+    ctx.translate(x, y);
+
+    // Warm Firefly Light Glow on Ground
+    const glow = ctx.createRadialGradient(0, 5, 0, 0, 5, 45);
+    const pulse = Math.sin(t * 3 + x) * 0.08 + 0.92;
+    glow.addColorStop(0, `rgba(251, 191, 36, ${0.35 * pulse})`);
+    glow.addColorStop(0.5, `rgba(245, 158, 11, ${0.15 * pulse})`);
+    glow.addColorStop(1, 'rgba(251, 191, 36, 0)');
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(0, 5, 45, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 1. Base Pedestal (3D Stepped Stone)
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(-14, 2, 28, 6);
+    ctx.fillStyle = '#475569';
+    ctx.fillRect(-12, -4, 24, 6);
+    ctx.fillStyle = '#64748b';
+    ctx.fillRect(-12, -4, 24, 2);
+
+    // 2. Pillar Column
+    ctx.fillStyle = '#334155';
+    ctx.fillRect(-5, -20, 10, 16);
+    ctx.fillStyle = '#64748b';
+    ctx.fillRect(-3, -20, 6, 16);
+
+    // 3. Middle Shelf (Chudai)
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(-13, -24, 26, 4);
+    ctx.fillStyle = '#475569';
+    ctx.fillRect(-11, -26, 22, 2);
+
+    // 4. Glowing Light Chamber (Hibukuro)
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(-9, -40, 18, 14);
+    // Warm Glowing Apertures
+    ctx.fillStyle = '#fbbf24';
+    ctx.fillRect(-6, -37, 12, 8);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(-4, -35, 8, 4);
+
+    // 5. Pagoda Roof (Kasa) with 3D Flared Corners
+    ctx.fillStyle = '#1e293b';
+    ctx.beginPath();
+    ctx.moveTo(-16, -40);
+    ctx.lineTo(16, -40);
+    ctx.lineTo(12, -48);
+    ctx.lineTo(-12, -48);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = '#64748b';
+    ctx.beginPath();
+    ctx.moveTo(-15, -42);
+    ctx.lineTo(15, -42);
+    ctx.lineTo(11, -48);
+    ctx.lineTo(-11, -48);
+    ctx.closePath();
+    ctx.fill();
+
+    // 6. Top Jewel Finial (Hoju)
+    ctx.fillStyle = '#cbd5e1';
+    ctx.beginPath();
+    ctx.arc(0, -51, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  private drawTaikoDrum(ctx: CanvasRenderingContext2D, x: number, y: number, _t: number): void {
+    ctx.save();
+    ctx.translate(x, y);
+
+    // Wooden X-Stand
+    ctx.strokeStyle = '#451a03';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(-10, 8);
+    ctx.lineTo(10, -10);
+    ctx.moveTo(10, 8);
+    ctx.lineTo(-10, -10);
+    ctx.stroke();
+
+    // 3D Taiko Drum Body (Red Wine / Wood Barrel)
+    ctx.fillStyle = '#881337';
+    ctx.beginPath();
+    ctx.ellipse(0, -12, 16, 12, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#4c0519';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Drum Skin Face (Warm Cream)
+    ctx.fillStyle = '#fef08a';
+    ctx.beginPath();
+    ctx.ellipse(0, -14, 14, 9, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#ca8a04';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Mitsu-domoe Emblem in Center
+    ctx.fillStyle = '#991b1b';
+    ctx.beginPath();
+    ctx.arc(0, -14, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Black Iron Studs around Rim
+    ctx.fillStyle = '#0f172a';
+    for (let a = 0; a < Math.PI * 2; a += Math.PI / 4) {
+      const sx = Math.cos(a) * 15;
+      const sy = -12 + Math.sin(a) * 10;
+      ctx.fillRect(sx - 1, sy - 1, 2, 2);
+    }
+
+    ctx.restore();
+  }
+
+  private drawAncientRuins(ctx: CanvasRenderingContext2D, t: number): void {
+    // North Ancient Sound Ruins (x: 1060 to 1240, y: 380 to 500)
+    ctx.fillStyle = '#334155';
+    ctx.fillRect(1060, 380, 200, 120);
+    ctx.strokeStyle = '#475569';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(1060, 380, 200, 120);
+
+    // Cracked Floor Tile Grid
+    ctx.strokeStyle = '#1e293b';
+    ctx.lineWidth = 1;
+    for (let x = 1060; x <= 1260; x += 30) {
+      ctx.beginPath();
+      ctx.moveTo(x, 380);
+      ctx.lineTo(x, 500);
+      ctx.stroke();
+    }
+
+    // Ancient Sound Ruins Pillars (3D Fluted Columns)
+    const columns = [
+      { x: 1090, y: 440, h: 55 },
+      { x: 1150, y: 410, h: 70 },
+      { x: 1210, y: 450, h: 50 },
+      { x: 1010, y: 60, h: 60 },
+      { x: 1220, y: 50, h: 65 }
+    ];
+
+    for (const col of columns) {
+      this.drawRuinColumn(ctx, col.x, col.y, col.h);
+    }
+
+    // Floating 3D Monolith Blocks with Glowing Glyphs
+    const monoliths = [
+      { x: 920, y: 70, w: 26, h: 42, glyph: 'sine', seed: 0 },
+      { x: 1120, y: 60, w: 28, h: 46, glyph: 'freq', seed: 1.5 },
+      { x: 1240, y: 80, w: 24, h: 38, glyph: 'rune', seed: 3.0 },
+      { x: 1130, y: 430, w: 30, h: 50, glyph: 'sine', seed: 4.2 }
+    ];
+
+    for (const m of monoliths) {
+      this.drawFloatingMonolith(ctx, m.x, m.y, m.w, m.h, m.glyph, t, m.seed);
+    }
+  }
+
+  private drawRuinColumn(ctx: CanvasRenderingContext2D, x: number, y: number, h: number): void {
+    // 3D Shadow
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+    ctx.beginPath();
+    ctx.ellipse(x + 10, y + 8, 16, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Base
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(x - 4, y - 4, 28, 8);
+    ctx.fillStyle = '#475569';
+    ctx.fillRect(x - 2, y - 8, 24, 4);
+
+    // Column Shaft with Fluting
+    ctx.fillStyle = '#334155';
+    ctx.fillRect(x, y - h, 20, h - 8);
+    ctx.fillStyle = '#64748b';
+    ctx.fillRect(x + 3, y - h, 4, h - 8);
+    ctx.fillRect(x + 11, y - h, 4, h - 8);
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillRect(x + 5, y - h, 2, h - 8);
+
+    // Weathered Capital Head
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(x - 5, y - h - 6, 30, 8);
+    ctx.fillStyle = '#cbd5e1';
+    ctx.fillRect(x - 3, y - h - 8, 26, 3);
+
+    // Ancient Moss Creepers
+    ctx.fillStyle = '#10b981';
+    ctx.fillRect(x + 1, y - h * 0.4, 4, 3);
+    ctx.fillRect(x + 3, y - h * 0.35, 3, 5);
+  }
+
+  private drawFloatingMonolith(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, glyph: string, t: number, seed: number): void {
+    const floatY = y + Math.sin(t * 2.5 + seed) * 8;
+    const shadowScale = 1 - Math.sin(t * 2.5 + seed) * 0.15;
+
+    // 1. Dynamic Ground Shadow
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.45)';
+    ctx.beginPath();
+    ctx.ellipse(x + w / 2, y + 35, (w * 0.8) * shadowScale, (h * 0.22) * shadowScale, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.save();
+    ctx.translate(x, floatY);
+
+    // 2. 3D Isometric Extrusion
+    const depth = 10;
+
+    // Right Dark Side Face
+    ctx.fillStyle = '#0f172a';
+    ctx.beginPath();
+    ctx.moveTo(w, 0);
+    ctx.lineTo(w + depth, -depth * 0.6);
+    ctx.lineTo(w + depth, h - depth * 0.6);
+    ctx.lineTo(w, h);
+    ctx.closePath();
+    ctx.fill();
+
+    // Top Highlight Face
+    ctx.fillStyle = '#94a3b8';
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(depth, -depth * 0.6);
+    ctx.lineTo(w + depth, -depth * 0.6);
+    ctx.lineTo(w, 0);
+    ctx.closePath();
+    ctx.fill();
+
+    // Front Face (Megalith Stone)
+    ctx.fillStyle = '#334155';
+    ctx.fillRect(0, 0, w, h);
+    ctx.strokeStyle = '#475569';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(0, 0, w, h);
+
+    // 3. Glowing Carved Neon Audio Glyphs
+    ctx.shadowBlur = 10;
+    if (glyph === 'sine') {
+      ctx.strokeStyle = '#06b6d4';
+      ctx.shadowColor = '#06b6d4';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      for (let gy = 8; gy <= h - 8; gy += 2) {
+        const gx = w / 2 + Math.sin(gy * 0.3 + t * 4) * (w * 0.3);
+        if (gy === 8) ctx.moveTo(gx, gy);
+        else ctx.lineTo(gx, gy);
+      }
+      ctx.stroke();
+    } else if (glyph === 'freq') {
+      ctx.fillStyle = '#ec4899';
+      ctx.shadowColor = '#ec4899';
+      const bars = 4;
+      const barW = (w - 10) / bars;
+      for (let b = 0; b < bars; b++) {
+        const barH = 10 + Math.sin(t * 5 + b * 1.5) * 8 + 8;
+        ctx.fillRect(5 + b * barW, h - 8 - barH, barW - 2, barH);
+      }
+    } else {
+      ctx.strokeStyle = '#fbbf24';
+      ctx.shadowColor = '#fbbf24';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(5, 8, w - 10, h - 16);
+      ctx.fillStyle = '#fbbf24';
+      ctx.fillRect(w / 2 - 3, h / 2 - 3, 6, 6);
+    }
+    ctx.shadowBlur = 0;
+
+    ctx.restore();
   }
 
   /* ---------------- DETAILED SCENERY ---------------- */
@@ -683,30 +1449,128 @@ export class AstralRenderer {
     ctx.translate(x, y);
 
     // Drop Shadow
-    ctx.fillStyle = 'rgba(239, 68, 68, 0.25)';
+    const shadowColor = spirit.type === 'static' ? 'rgba(239, 68, 68, 0.35)' : 'rgba(16, 185, 129, 0.35)';
+    ctx.fillStyle = shadowColor;
     ctx.beginPath();
-    ctx.ellipse(0, 6, 14, 6, 0, 0, Math.PI * 2);
+    ctx.ellipse(0, 8, 16, 6, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // Glitch Shiver & Floating
-    const jitterX = (Math.random() - 0.5) * 2;
-    const jitterY = Math.sin(t * 8) * 3;
+    // Jitter & Levitation
+    const jitterX = spirit.type === 'static' ? (Math.random() - 0.5) * 3 : 0;
+    const jitterY = Math.sin(t * 6 + x) * 4;
 
-    ctx.font = '24px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(spirit.avatar, jitterX, jitterY);
+    ctx.save();
+    ctx.translate(jitterX, jitterY);
 
-    // Scanline Sparks
-    ctx.fillStyle = '#ef4444';
-    ctx.fillRect(jitterX - 10, jitterY - 12, 4, 1);
-    ctx.fillStyle = '#38bdf8';
-    ctx.fillRect(jitterX + 6, jitterY + 8, 4, 1);
+    if (spirit.id === 'spirit_bit_bug') {
+      // 3D Pixel Bit-Bug
+      ctx.fillStyle = '#ef4444';
+      ctx.fillRect(-8, -12, 16, 12);
+      ctx.fillStyle = '#b91c1c';
+      ctx.fillRect(-6, -10, 12, 8);
+      // Glowing Cyan Eyes
+      ctx.fillStyle = '#38bdf8';
+      ctx.fillRect(-6, -8, 3, 3);
+      ctx.fillRect(3, -8, 3, 3);
+      // Twitching Antennae
+      const antTwitch = Math.sin(t * 15) * 3;
+      ctx.strokeStyle = '#ef4444';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(-4, -12); ctx.lineTo(-8 + antTwitch, -18);
+      ctx.moveTo(4, -12); ctx.lineTo(8 - antTwitch, -18);
+      ctx.stroke();
+    } else if (spirit.id === 'spirit_noise_mote') {
+      // Floating CRT TV Orb with Static
+      ctx.fillStyle = '#334155';
+      ctx.fillRect(-12, -16, 24, 18);
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(-10, -14, 20, 14);
+      // Analog Snow
+      ctx.fillStyle = '#ffffff';
+      for (let sy = -12; sy < -2; sy += 3) {
+        ctx.fillRect(-8 + Math.random() * 12, sy, 4, 1.5);
+      }
+      // Glowing Antenna
+      ctx.strokeStyle = '#fb7185';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(-4, -16); ctx.lineTo(-8, -22);
+      ctx.moveTo(4, -16); ctx.lineTo(8, -22);
+      ctx.stroke();
+    } else if (spirit.id === 'spirit_steel_panda') {
+      // Steel-Panda with Steelpan Drum
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(-8, -14, 16, 14);
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(-10, -18, 5, 5); // Ears
+      ctx.fillRect(5, -18, 5, 5);
+      ctx.fillRect(-6, -12, 4, 4); // Eye patches
+      ctx.fillRect(2, -12, 4, 4);
+      // Tuned Steelpan Bowl
+      ctx.fillStyle = '#10b981';
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 14, 6, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#047857';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    } else if (spirit.id === 'spirit_kora_gazelle') {
+      // Kora-Gazelle with 21 Harp Horns
+      ctx.fillStyle = '#f97316';
+      ctx.fillRect(-6, -14, 12, 14);
+      ctx.fillStyle = '#fde047';
+      ctx.fillRect(-4, -20, 8, 8);
+      // Harpa Gazella Horns with Strings
+      ctx.strokeStyle = '#fbbf24';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(-4, -20); ctx.quadraticCurveTo(-12, -30, -8, -36);
+      ctx.moveTo(4, -20); ctx.quadraticCurveTo(12, -30, 8, -36);
+      ctx.stroke();
+      // Strings
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+      ctx.lineWidth = 1;
+      for (let st = -2; st <= 2; st += 2) {
+        ctx.beginPath();
+        ctx.moveTo(st, -18); ctx.lineTo(st * 2.5, -34);
+        ctx.stroke();
+      }
+    } else if (spirit.id === 'spirit_glitch_golem') {
+      // Glitch-Golem (Megalith Colossus)
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(-14, -26, 28, 26);
+      ctx.fillStyle = '#475569';
+      ctx.fillRect(-11, -23, 22, 20);
+      // Glowing Core Runes
+      ctx.fillStyle = '#ef4444';
+      ctx.shadowColor = '#ef4444';
+      ctx.shadowBlur = 8;
+      ctx.fillRect(-6, -14, 12, 4);
+      ctx.fillRect(-2, -18, 4, 12);
+      ctx.shadowBlur = 0;
+    } else {
+      ctx.font = '24px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(spirit.avatar, 0, -8);
+    }
 
-    // Label above
-    ctx.fillStyle = '#f87171';
+    ctx.restore();
+
+    // High-Legibility Badge
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+    ctx.strokeStyle = spirit.type === 'static' ? '#ef4444' : '#10b981';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(-55, -38, 110, 18, 5);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = spirit.type === 'static' ? '#fca5a5' : '#86efac';
     ctx.font = '700 11px Fredoka, sans-serif';
-    ctx.fillText(`Lv.${spirit.level} ${spirit.name}`, 0, -18);
+    ctx.textAlign = 'center';
+    ctx.fillText(`Lv.${spirit.level} ${spirit.name}`, 0, -25);
 
     ctx.restore();
   }
@@ -754,6 +1618,39 @@ export class AstralRenderer {
       ctx.fillRect(8, -22 + bob, 6, 18);
       ctx.fillStyle = '#94a3b8';
       ctx.fillRect(10, -32 + bob, 2, 10);
+    } else if (sprite === 'maestro_owl') {
+      ctx.fillStyle = '#6b21a8';
+      ctx.fillRect(-9, -22 + bob, 18, 17);
+      ctx.fillStyle = '#e9d5ff';
+      ctx.fillRect(-7, -34 + bob, 14, 13);
+      ctx.fillStyle = '#a855f7';
+      ctx.fillRect(-10, -36 + bob, 20, 5);
+      ctx.fillStyle = '#fbbf24';
+      ctx.fillRect(-2, -28 + bob, 4, 3);
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(-5, -31 + bob, 3, 3);
+      ctx.fillRect(2, -31 + bob, 3, 3);
+    } else if (sprite === 'pelican') {
+      ctx.fillStyle = '#f8fafc';
+      ctx.fillRect(-8, -20 + bob, 16, 16);
+      ctx.fillStyle = '#e2e8f0';
+      ctx.fillRect(-6, -32 + bob, 12, 13);
+      ctx.fillStyle = '#f59e0b';
+      ctx.fillRect(-4, -26 + bob, 14, 6);
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(-3, -29 + bob, 2, 2);
+    } else if (sprite === 'spark') {
+      ctx.fillStyle = '#334155';
+      ctx.fillRect(-8, -22 + bob, 16, 18);
+      ctx.fillStyle = '#f59e0b';
+      ctx.fillRect(-6, -34 + bob, 12, 13);
+      ctx.fillStyle = '#38bdf8';
+      ctx.fillRect(-9, -33 + bob, 3, 7);
+      ctx.fillRect(6, -33 + bob, 3, 7);
+      ctx.fillRect(-7, -37 + bob, 14, 3);
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(-4, -30 + bob, 2, 2);
+      ctx.fillRect(2, -30 + bob, 2, 2);
     }
 
     // High-Legibility Name Label
@@ -761,6 +1658,67 @@ export class AstralRenderer {
     ctx.font = '700 13px Fredoka, sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText(name, 0, -42 + bob);
+
+    ctx.restore();
+  }
+
+  private drawCollectibleItem(ctx: CanvasRenderingContext2D, x: number, y: number, icon: string, name: string, t: number): void {
+    ctx.save();
+    ctx.translate(x, y);
+
+    const bob = Math.sin(t * 4) * 6;
+    const glow = Math.sin(t * 6) * 0.3 + 0.7;
+
+    // 1. Dynamic Drop Shadow on Ground
+    const shadowScale = 1 - Math.sin(t * 4) * 0.2;
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+    ctx.beginPath();
+    ctx.ellipse(0, 10, 14 * shadowScale, 6 * shadowScale, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 2. Glowing Multi-Stop Radial Aura
+    const aura = ctx.createRadialGradient(0, -10 + bob, 2, 0, -10 + bob, 28);
+    aura.addColorStop(0, `rgba(251, 191, 36, ${0.7 * glow})`);
+    aura.addColorStop(0.5, `rgba(236, 72, 153, ${0.35 * glow})`);
+    aura.addColorStop(1, 'rgba(6, 182, 212, 0)');
+    ctx.fillStyle = aura;
+    ctx.beginPath();
+    ctx.arc(0, -10 + bob, 28, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 3. Orbiting Sparkle Stars in 3D Perspective
+    for (let s = 0; s < 3; s++) {
+      const angle = t * 3 + (s * Math.PI * 2) / 3;
+      const ox = Math.cos(angle) * 18;
+      const oy = -10 + bob + Math.sin(angle) * 8;
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(ox - 1.5, oy - 1.5, 3, 3);
+      ctx.fillStyle = '#fbbf24';
+      ctx.fillRect(ox - 0.5, oy - 3.5, 1, 7);
+      ctx.fillRect(ox - 3.5, oy - 0.5, 7, 1);
+    }
+
+    // 4. Item Icon with 3D Pop
+    ctx.font = '26px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.shadowColor = '#fbbf24';
+    ctx.shadowBlur = 12;
+    ctx.fillText(icon, 0, -10 + bob);
+    ctx.shadowBlur = 0;
+
+    // 5. High-Contrast Retro 8-bit Badge Label
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+    ctx.strokeStyle = '#fbbf24';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(-60, -38 + bob, 120, 18, 5);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#fef08a';
+    ctx.font = '700 11px Fredoka, sans-serif';
+    ctx.fillText(name, 0, -26 + bob);
 
     ctx.restore();
   }

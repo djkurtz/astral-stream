@@ -59,7 +59,7 @@ export interface NPCEntity {
   title: string;
   x: number;
   y: number;
-  sprite: 'aria' | 'dj_otter' | 'jax' | 'maestro_owl' | 'glitch_gate';
+  sprite: 'aria' | 'dj_otter' | 'jax' | 'maestro_owl' | 'glitch_gate' | 'pelican' | 'spark';
   color: string;
   dialogue: string[];
   actionType?: 'talk' | 'battle_jax' | 'audio_match';
@@ -81,6 +81,18 @@ export interface WildGlitchEntity {
   y: number;
   spirit: StreamSpirit;
   defeated: boolean;
+}
+
+export interface CollectibleItem {
+  id: string;
+  name: string;
+  icon: string;
+  x: number;
+  y: number;
+  type: 'tuning_fork' | 'golden_vinyl' | 'energy_battery' | 'frequency_crystal';
+  description: string;
+  effect: string;
+  collected: boolean;
 }
 
 export interface BattleState {
@@ -148,10 +160,12 @@ export interface GameState {
   npcs: NPCEntity[];
   soundRipples: SoundRipple[];
   wildGlitches: WildGlitchEntity[];
+  items: CollectibleItem[];
+  inventory: string[];
   activeCompanion: string | null;
   streamQueue: StreamSpirit[];
   activeSpiritIndex: number;
-  nearbyInteractable: NPCEntity | SoundRipple | WildGlitchEntity | null;
+  nearbyInteractable: NPCEntity | SoundRipple | WildGlitchEntity | CollectibleItem | null;
   audioMatch: AudioMatchState | null;
   battle: BattleState | null;
   dialogue: {

@@ -1,6 +1,6 @@
 import { soundEngine } from './audio';
-import { BOSS_SIGNAL_OVERLORD, FUSED_CHIMERA, JAX_SPIRIT, RIVAL_JAX, STARTER_SPIRIT, TOWN_NPCS, TOWN_SOUND_RIPPLES, TOWN_WILD_GLITCHES } from './data';
-import { GameState, Move, NPCEntity, SoundRipple, WildGlitchEntity } from './types';
+import { BOSS_SIGNAL_OVERLORD, FUSED_CHIMERA, JAX_SPIRIT, RIVAL_JAX, STARTER_SPIRIT, TOWN_ITEMS, TOWN_NPCS, TOWN_SOUND_RIPPLES, TOWN_WILD_GLITCHES } from './data';
+import { CollectibleItem, GameState, Move, NPCEntity, SoundRipple, WildGlitchEntity } from './types';
 
 export class AstralGameEngine {
   private state: GameState;
@@ -29,6 +29,8 @@ export class AstralGameEngine {
       npcs: JSON.parse(JSON.stringify(TOWN_NPCS)),
       soundRipples: JSON.parse(JSON.stringify(TOWN_SOUND_RIPPLES)),
       wildGlitches: JSON.parse(JSON.stringify(TOWN_WILD_GLITCHES)),
+      items: JSON.parse(JSON.stringify(TOWN_ITEMS)),
+      inventory: [],
       activeCompanion: null,
       streamQueue: [JSON.parse(JSON.stringify(STARTER_SPIRIT))],
       activeSpiritIndex: 0,
@@ -177,9 +179,9 @@ export class AstralGameEngine {
 
     this.state.player.isMoving = (dx !== 0 || dy !== 0);
 
-    // Bounding Box (Canvas area clamp)
-    const newX = Math.max(90, Math.min(710, this.state.player.x + dx));
-    const newY = Math.max(90, Math.min(520, this.state.player.y + dy));
+    // Bounding Box (Canvas area clamp to wide world)
+    const newX = Math.max(40, Math.min(1240, this.state.player.x + dx));
+    const newY = Math.max(70, Math.min(680, this.state.player.y + dy));
 
     // Collision with Buildings & Fountain
     if (!this.checkBuildingCollision(newX, newY)) {
@@ -200,10 +202,10 @@ export class AstralGameEngine {
     return false;
   }
 
-  private updateProximity(): void {
+  public updateProximity(): void {
     const px = this.state.player.x;
     const py = this.state.player.y;
-    let closest: NPCEntity | SoundRipple | WildGlitchEntity | null = null;
+    let closest: NPCEntity | SoundRipple | WildGlitchEntity | CollectibleItem | null = null;
     let minDist = 65;
 
     // Check NPCs
@@ -237,12 +239,29 @@ export class AstralGameEngine {
       }
     }
 
+    // Check Collectible Items
+    for (const item of this.state.items) {
+      if (!item.collected) {
+        const d = Math.hypot(px - item.x, py - item.y);
+        if (d < minDist) {
+          minDist = d;
+          closest = item;
+        }
+      }
+    }
+
     this.state.nearbyInteractable = closest;
   }
 
   public interactWithNearby(): void {
     const target = this.state.nearbyInteractable;
     if (!target) return;
+
+    if ('collected' in target) {
+      // Collectible Item Encounter
+      this.collectItem(target as CollectibleItem);
+      return;
+    }
 
     if ('spirit' in target && 'defeated' in target) {
       // Wild Glitch Encounter
@@ -286,12 +305,68 @@ export class AstralGameEngine {
         return;
       }
 
-      this.showDialogue(npc.name, npc.sprite === 'aria' ? '☕' : '💽', npc.dialogue);
+      let avatar = '💬';
+      if (npc.sprite === 'aria') avatar = '☕';
+      else if (npc.sprite === 'dj_otter') avatar = '💽';
+      else if (npc.sprite === 'maestro_owl') avatar = '🦉';
+      else if (npc.sprite === 'pelican') avatar = '🦢';
+      else if (npc.sprite === 'spark') avatar = '⚡';
+      else if (npc.sprite === 'jax') avatar = '🎸';
+      this.showDialogue(npc.name, avatar, npc.dialogue);
     } else {
       // Sound Ripple
       const rip = target as SoundRipple;
       this.startAudioMatchScan(rip);
     }
+  }
+
+  public collectItem(item: CollectibleItem): void {
+    if (item.collected) return;
+    item.collected = true;
+    this.state.inventory.push(item.name);
+    soundEngine.playDiscoveryFanfare();
+
+    const targetSpirit = this.state.streamQueue[0];
+    let buffSummary = '';
+
+    if (targetSpirit) {
+      switch (item.type) {
+        case 'tuning_fork':
+          targetSpirit.attack += 5;
+          buffSummary = `${targetSpirit.name}'s Attack increased by +5! (Now ${targetSpirit.attack})`;
+          break;
+        case 'golden_vinyl':
+          targetSpirit.maxHp += 20;
+          targetSpirit.hp = Math.min(targetSpirit.maxHp, targetSpirit.hp + 20);
+          buffSummary = `${targetSpirit.name}'s Max HP increased by +20! (Now ${targetSpirit.maxHp} HP)`;
+          break;
+        case 'frequency_crystal':
+          targetSpirit.maxHp += 10;
+          targetSpirit.hp = Math.min(targetSpirit.maxHp, targetSpirit.hp + 10);
+          targetSpirit.attack += 3;
+          buffSummary = `${targetSpirit.name}'s Max HP increased by +10 and Attack by +3!`;
+          break;
+        case 'energy_battery':
+          targetSpirit.maxHp += 15;
+          targetSpirit.hp = Math.min(targetSpirit.maxHp, targetSpirit.hp + 15);
+          targetSpirit.defense += 10;
+          buffSummary = `${targetSpirit.name}'s Defense increased by +10 and Max HP by +15!`;
+          break;
+      }
+    }
+
+    this.showDialogue(
+      '✨ ITEM DISCOVERED! ✨',
+      item.icon,
+      [
+        `You found the ${item.name}!`,
+        item.description,
+        `Effect: ${item.effect}`,
+        buffSummary ? `⚡ ${buffSummary}` : ''
+      ].filter(Boolean)
+    );
+
+    this.updateProximity();
   }
 
   /* ---------------- DIALOGUE SYSTEM ---------------- */

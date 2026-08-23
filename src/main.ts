@@ -10,8 +10,8 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   // Fixed virtual resolution for crisp pixel art and stable coordinates
-  canvas.width = 800;
-  canvas.height = 600;
+  canvas.width = 1280;
+  canvas.height = 720;
 
   const engine = new AstralGameEngine();
   const renderer = new AstralRenderer(canvas);
