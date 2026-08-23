@@ -143,6 +143,45 @@ export class AudioEngine {
   public playMoveSound(type: string): void {
     if (type === 'arpeggio') {
       [659, 783, 987, 1318].forEach((f, i) => setTimeout(() => this.playTone(f, 'square', 0.12, 0.12), i * 50));
+    } else if (type === 'violin_staccato') {
+      // Classical Baroque Violin Staccato (Rapid crisp bowing)
+      [440, 554.37, 659.25, 880].forEach((f, i) => {
+        setTimeout(() => {
+          this.playTone(f, 'triangle', 0.1, 0.2);
+          this.playTone(f * 2, 'sine', 0.08, 0.08);
+        }, i * 60);
+      });
+    } else if (type === 'sitar_twang') {
+      // Indian Classical Sitar with Microtonal Meend (Pitch Bend)
+      if (!this.ctx) return;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(293.66, this.ctx.currentTime); // D4
+      osc.frequency.linearRampToValueAtTime(329.63, this.ctx.currentTime + 0.15); // Bend to E4
+      osc.frequency.linearRampToValueAtTime(293.66, this.ctx.currentTime + 0.35);
+      gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.4);
+      osc.connect(gain);
+      gain.connect(this.filterNode || this.ctx.destination);
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.4);
+    } else if (type === 'taiko_boom') {
+      // Japanese Matsuri Taiko Drum (Heavy resonant thud)
+      if (!this.ctx) return;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.frequency.setValueAtTime(95, this.ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(28, this.ctx.currentTime + 0.3);
+      gain.gain.setValueAtTime(0.45, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.35);
+      osc.connect(gain);
+      gain.connect(this.filterNode || this.ctx.destination);
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.35);
+    } else if (type === 'brass_riff') {
+      // Jazz Brass Saxophone blast
+      [349.23, 440, 523.25, 698.46].forEach((f, i) => setTimeout(() => this.playTone(f, 'sawtooth', 0.14, 0.15), i * 50));
     } else if (type === 'bass_drop') {
       const osc = this.ctx?.createOscillator();
       const gain = this.ctx?.createGain();

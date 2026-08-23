@@ -7,6 +7,7 @@ export const STARTER_SPIRIT: StreamSpirit = {
   vibeTag: '#ChiptunePop',
   species: 'Chime Feline',
   instrument: 'Chiptune Synthesizer',
+  originTradition: 'Digital Chiptune & Arcade',
   avatar: '🐱',
   type: 'synth',
   color: '#38bdf8',
@@ -23,8 +24,8 @@ export const STARTER_SPIRIT: StreamSpirit = {
       type: 'synth',
       power: 20,
       cost: 15,
-      description: 'Scratches with sparkling cyan claws. [Strong vs BASS]',
-      effectiveness: 'Strong vs BASS',
+      description: 'Scratches with sparkling cyan synth tones. [Strong vs GLOBAL]',
+      effectiveness: 'Strong vs GLOBAL',
       soundType: 'arpeggio'
     },
     {
@@ -33,49 +34,132 @@ export const STARTER_SPIRIT: StreamSpirit = {
       type: 'synth',
       power: 30,
       cost: 30,
-      description: 'Accelerates the beat, dealing rapid musical strikes. [Strong vs BASS]',
-      effectiveness: 'Strong vs BASS',
+      description: 'Accelerates the clock speed, dealing rapid digital strikes.',
+      effectiveness: 'Strong vs GLOBAL',
       soundType: 'arpeggio'
     }
   ]
 };
 
-export const CLOUD_SLOTH_SPIRIT: StreamSpirit = {
-  id: 'spirit_cloud_sloth',
-  name: 'Cloud-Sloth',
-  title: 'Sleepy Lo-Fi Sloth',
-  vibeTag: '#LoFiAcoustic',
-  species: 'Rainstick Sloth',
-  instrument: 'Acoustic Rainstick',
-  avatar: '🦥',
-  type: 'synth',
-  color: '#a7f3d0',
-  hp: 80,
-  maxHp: 80,
+export const ALLEGRO_OWL_SPIRIT: StreamSpirit = {
+  id: 'spirit_allegro_owl',
+  name: 'Allegro-Owl',
+  title: 'Baroque Concertmaster',
+  vibeTag: '#BaroqueViolin',
+  species: 'Strigiform Virtuoso',
+  instrument: 'Baroque Violin & Bow',
+  originTradition: 'European Classical (Vivaldi & Bach)',
+  avatar: '🦉🎻',
+  type: 'symphonic',
+  color: '#a855f7',
+  hp: 75,
+  maxHp: 75,
   energy: 100,
-  attack: 16,
-  defense: 20,
-  speed: 8,
+  attack: 26,
+  defense: 14,
+  speed: 20,
   moves: [
     {
-      id: 'm_rain_strum',
-      name: 'Cozy Rain Strum',
-      type: 'synth',
-      power: 22,
+      id: 'm_vivaldi_staccato',
+      name: 'Vivaldi Staccato',
+      type: 'symphonic',
+      power: 24,
       cost: 15,
-      description: 'Plays gentle rain acoustic chords that soothe the spirit. [Strong vs BASS]',
-      effectiveness: 'Strong vs BASS',
-      soundType: 'arpeggio'
+      description: 'Strikes with rapid, fiery classical violin bowing. [Strong vs SYNTH]',
+      effectiveness: 'Strong vs SYNTH',
+      soundType: 'violin_staccato'
     },
     {
-      id: 'm_lofi_nap',
-      name: 'Lo-Fi Chill',
-      type: 'synth',
-      power: 32,
+      id: 'm_concerto_crescendo',
+      name: 'Four Seasons Crescendo',
+      type: 'symphonic',
+      power: 36,
       cost: 30,
-      description: 'Emits relaxing ambient frequencies that bypass defenses.',
-      effectiveness: 'Strong vs BASS',
-      soundType: 'arpeggio'
+      description: 'Unleashes a sweeping baroque orchestral harmonic storm.',
+      effectiveness: 'Strong vs SYNTH',
+      soundType: 'violin_staccato'
+    }
+  ]
+};
+
+export const SITAR_SWAN_SPIRIT: StreamSpirit = {
+  id: 'spirit_sitar_swan',
+  name: 'Sitar-Swan',
+  title: 'Raga Meditation Swan',
+  vibeTag: '#RagaAura',
+  species: 'Avian Mystic',
+  instrument: 'Classical Indian Sitar',
+  originTradition: 'Indian Classical (Hindustani Raga)',
+  avatar: '🦢🪕',
+  type: 'global',
+  color: '#f59e0b',
+  hp: 70,
+  maxHp: 70,
+  energy: 100,
+  attack: 22,
+  defense: 18,
+  speed: 15,
+  moves: [
+    {
+      id: 'm_raga_meend',
+      name: 'Raga Yaman Bend',
+      type: 'global',
+      power: 24,
+      cost: 15,
+      description: 'Pulls the sitar strings with microtonal grace. [Strong vs JAZZ]',
+      effectiveness: 'Strong vs JAZZ',
+      soundType: 'sitar_twang'
+    },
+    {
+      id: 'm_jhala_drone',
+      name: 'Jhala Resonance Wave',
+      type: 'global',
+      power: 34,
+      cost: 30,
+      description: 'Hypnotic sympathetic string resonance that bypasses armor.',
+      effectiveness: 'Strong vs JAZZ',
+      soundType: 'sitar_twang'
+    }
+  ]
+};
+
+export const TAIKO_TANUKI_SPIRIT: StreamSpirit = {
+  id: 'spirit_taiko_tanuki',
+  name: 'Taiko-Tanuki',
+  title: 'Matsuri Festival Drummer',
+  vibeTag: '#MatsuriThunder',
+  species: 'Percussive Canid',
+  instrument: 'Nagado Taiko Drum',
+  originTradition: 'Japanese Folk Matsuri',
+  avatar: '🦝🥁',
+  type: 'global',
+  color: '#ef4444',
+  hp: 85,
+  maxHp: 85,
+  energy: 100,
+  attack: 25,
+  defense: 16,
+  speed: 12,
+  moves: [
+    {
+      id: 'm_taiko_strike',
+      name: 'Thunder Taiko Strike',
+      type: 'global',
+      power: 25,
+      cost: 15,
+      description: 'Delivers a booming festival drum beat that shakes the ground. [Strong vs JAZZ]',
+      effectiveness: 'Strong vs JAZZ',
+      soundType: 'taiko_boom'
+    },
+    {
+      id: 'm_matsuri_frenzy',
+      name: 'Festival Drum Tremolo',
+      type: 'global',
+      power: 35,
+      cost: 35,
+      description: 'A rapid barrage of bachi stick strikes in accelerating tempo.',
+      effectiveness: 'Strong vs JAZZ',
+      soundType: 'taiko_boom'
     }
   ]
 };
@@ -83,79 +167,40 @@ export const CLOUD_SLOTH_SPIRIT: StreamSpirit = {
 export const BRASS_BUNNY_SPIRIT: StreamSpirit = {
   id: 'spirit_brass_bunny',
   name: 'Brass-Bunny',
-  title: 'Golden Saxophone Rabbit',
-  vibeTag: '#ElectroBrass',
+  title: 'Golden Bebop Saxophonist',
+  vibeTag: '#BebopSwing',
   species: 'Horn Leporid',
-  instrument: 'Golden Saxophone',
+  instrument: 'Golden Alto Saxophone',
+  originTradition: 'American Jazz & Blues',
   avatar: '🐰🎷',
-  type: 'brass',
+  type: 'jazz',
   color: '#fbbf24',
   hp: 65,
   maxHp: 65,
   energy: 100,
-  attack: 24,
+  attack: 25,
   defense: 10,
   speed: 22,
   moves: [
     {
       id: 'm_sax_riff',
-      name: 'Sonic Brass Blast',
-      type: 'brass',
-      power: 22,
+      name: 'Bebop Swing Blast',
+      type: 'jazz',
+      power: 24,
       cost: 15,
-      description: 'Blasts a warm jazz-pop riff. [Strong vs SYNTH]',
-      effectiveness: 'Strong vs SYNTH',
+      description: 'Blasts an energetic syncopated jazz riff. [Strong vs SYMPHONIC]',
+      effectiveness: 'Strong vs SYMPHONIC',
       soundType: 'brass_riff'
     },
     {
       id: 'm_tempo_hop',
-      name: 'Tempo Hop Crescendo',
-      type: 'brass',
-      power: 34,
+      name: 'Syncopated Crescendo',
+      type: 'jazz',
+      power: 35,
       cost: 30,
-      description: 'High-energy brass crescendo that pierces digital synths.',
-      effectiveness: 'Strong vs SYNTH',
+      description: 'Improvisational horn solo that shatters classical rigidity.',
+      effectiveness: 'Strong vs SYMPHONIC',
       soundType: 'brass_riff'
-    }
-  ]
-};
-
-export const BEAT_PUP_SPIRIT: StreamSpirit = {
-  id: 'spirit_beat_pup',
-  name: 'Beat-Pup',
-  title: 'Snappy Snare Terrier',
-  vibeTag: '#ElectroBeats',
-  species: 'Drummer Canine',
-  instrument: 'Snare Drum & Claps',
-  avatar: '🐶🥁',
-  type: 'bass',
-  color: '#f43f5e',
-  hp: 75,
-  maxHp: 75,
-  energy: 100,
-  attack: 20,
-  defense: 16,
-  speed: 16,
-  moves: [
-    {
-      id: 'm_snare_kick',
-      name: 'Snare Clap Attack',
-      type: 'bass',
-      power: 24,
-      cost: 15,
-      description: 'Hits a snappy pop-punk snare drum rimshot. [Strong vs BRASS]',
-      effectiveness: 'Strong vs BRASS',
-      soundType: 'bass_drop'
-    },
-    {
-      id: 'm_beat_slam',
-      name: '4-on-the-Floor Drop',
-      type: 'bass',
-      power: 32,
-      cost: 30,
-      description: 'Drives the bass rhythm with heavy dance kicks.',
-      effectiveness: 'Strong vs BRASS',
-      soundType: 'bass_drop'
     }
   ]
 };
@@ -166,35 +211,36 @@ export const JAX_SPIRIT: StreamSpirit = {
   title: 'Spiked Fuzz Basset',
   vibeTag: '#SpikedBass',
   species: 'Sub-Woofer Canine',
-  instrument: 'Overdrive Bass',
+  instrument: 'Overdrive Bass Guitar',
+  originTradition: 'Underground Heavy Rock',
   avatar: '🐶',
   type: 'bass',
   color: '#c084fc',
-  hp: 85,
-  maxHp: 85,
+  hp: 90,
+  maxHp: 90,
   energy: 100,
-  attack: 22,
-  defense: 18,
+  attack: 24,
+  defense: 20,
   speed: 10,
   moves: [
     {
       id: 'm_sub_bark',
       name: 'Sub-Woofer Bark',
       type: 'bass',
-      power: 24,
+      power: 25,
       cost: 20,
-      description: 'Emits a heavy 808 low-frequency shockwave. [Strong vs BRASS]',
-      effectiveness: 'Strong vs BRASS',
+      description: 'Emits a heavy low-frequency overdrive shockwave.',
+      effectiveness: 'Heavy Sub Damage',
       soundType: 'bass_drop'
     },
     {
       id: 'm_fuzz',
       name: 'Overdrive Slam',
       type: 'bass',
-      power: 34,
+      power: 36,
       cost: 35,
-      description: 'Slams paws down to distort the ground with raw bass fuzz. [Strong vs BRASS]',
-      effectiveness: 'Strong vs BRASS',
+      description: 'Slams paws down to distort the ground with raw bass fuzz.',
+      effectiveness: 'Crushing Distortion',
       soundType: 'bass_drop'
     }
   ]
@@ -202,41 +248,42 @@ export const JAX_SPIRIT: StreamSpirit = {
 
 export const FUSED_CHIMERA: StreamSpirit = {
   id: 'spirit_cyber_chimera',
-  name: 'Cyber-Fuzz Chimera',
-  title: 'Blended Stream Legend',
-  vibeTag: '#CosmicMashup',
-  species: 'Ascended Harmonimal',
-  instrument: 'Chiptune-Metal Mashup',
-  avatar: '🐯⚡',
+  name: 'Omni-Harmony Chimera',
+  title: 'World Symphony Legend',
+  vibeTag: '#WorldSymphonyMashup',
+  species: 'Ascended Cross-Genre Harmonimal',
+  instrument: 'Baroque Violin + Indian Sitar + 808 Bass',
+  originTradition: 'Global Musical Convergence',
+  avatar: '🐯✨',
   type: 'cosmic',
   color: '#f43f5e',
-  hp: 150,
-  maxHp: 150,
+  hp: 160,
+  maxHp: 160,
   energy: 100,
-  attack: 40,
-  defense: 25,
+  attack: 42,
+  defense: 26,
   speed: 25,
   isFused: true,
   moves: [
     {
       id: 'm_dual_drop',
-      name: 'PLAYLIST BLEND DROP',
+      name: 'GLOBAL PLAYLIST BLEND DROP',
       type: 'cosmic',
-      power: 60,
+      power: 65,
       cost: 40,
-      description: 'Unleashes an explosive fusion drop that tears through static interference! [SHATTERS GLITCHES]',
+      description: 'Fuses classical baroque strings, Indian sitar, and chiptune into a radiant cleansing drop! [SHATTERS GLITCHES]',
       effectiveness: 'Critical vs GLITCH',
       soundType: 'cosmic_burst'
     },
     {
       id: 'm_super_arpeggio',
-      name: 'Hyper-Resonance Beam',
-      type: 'synth',
-      power: 45,
+      name: 'Omni-Resonance Concerto',
+      type: 'symphonic',
+      power: 48,
       cost: 25,
-      description: 'Fires a blazing stream of harmonized laser notes.',
-      effectiveness: 'Strong vs BASS',
-      soundType: 'arpeggio'
+      description: 'Fires a blazing stream of harmonized world melodies.',
+      effectiveness: 'Universal Resonance',
+      soundType: 'violin_staccato'
     }
   ]
 };
@@ -247,8 +294,8 @@ export const BOSS_SIGNAL_OVERLORD = {
   title: 'The Signal Overlord',
   type: 'static' as const,
   avatar: '📺👾',
-  hp: 160,
-  maxHp: 160,
+  hp: 180,
+  maxHp: 180,
   attack: 22,
   glitchIntensity: 1.0,
   moves: [
@@ -284,63 +331,67 @@ export const TOWN_NPCS: NPCEntity[] = [
     color: '#38bdf8',
     actionType: 'talk',
     dialogue: [
-      "Welcome to the Neon Cafe! ☕ Grab a chair and listen to the ocean waves.",
-      "Are you new to battling with Harmonimals? Here's the secret to genre matchups:",
-      "🎹 SYNTH overclocks 🎸 BASS, but 🎷 BRASS pierces right through SYNTH!",
-      "Check out the 3 musical ripples around the plaza to discover new sounds!"
+      "Welcome to Cadence Plaza! ☕ Our island brings together music from every culture on Earth.",
+      "Here is how the Global Genre wheel turns:",
+      "🎻 SYMPHONIC (Classical) overpowers 🎹 SYNTH (Electronic)!",
+      "🎹 SYNTH overpowers 🪕 GLOBAL (Sitar & Taiko)!",
+      "🪕 GLOBAL overpowers 🎷 JAZZ (Brass), and 🎷 JAZZ pierces 🎻 SYMPHONIC!",
+      "Explore the plaza to discover European Classical, Indian Raga, and Japanese Matsuri spirits!"
     ]
   },
   {
     id: 'npc_dj_otter',
     name: 'DJ Otter',
-    title: 'Vinyl Records Master',
+    title: 'World Vinyl Collector',
     x: 620,
     y: 200,
     sprite: 'dj_otter',
     color: '#fbbf24',
     actionType: 'talk',
     dialogue: [
-      "Yo! Welcome to the Vinyl Den. 💽 Music flows through everything on Cadence Island.",
-      "There are 3 unique sound ripples scattered across town:",
-      "🎛️ Equalizer Slider near the cafe, 🎹 Melody Repeat at the fountain, and 🎯 Rhythm Beats by my shop!",
-      "Collect them all to build an unstoppable festival playlist!"
+      "Yo! I collect vinyl pressings from every continent. 💽",
+      "Check out the 3 cultural sound stations in town:",
+      "🎻 Allegro-Owl's Baroque Violin near the cafe terrace,",
+      "🪕 Sitar-Swan's Indian Raga chords at the center fountain,",
+      "🥁 Taiko-Tanuki's Japanese Festival drums by my vinyl shop!",
+      "Collect them all to build an unstoppable world music festival squad!"
     ]
   },
   {
     id: 'npc_jax',
     name: 'Jax',
-    title: 'The Shadow Punk',
+    title: 'The Underground Punk',
     x: 400,
     y: 110,
     sprite: 'jax',
     color: '#c084fc',
     actionType: 'battle_jax',
     dialogue: [
-      "Hey. You're the new streamer in town with the Vibe-Phone?",
-      "Beyond this gate, a rogue Dead Channel has hijacked the entire shoreline with static snow.",
-      "If you think your squad has what it takes, battle my Bass-Hound to prove your rhythm!"
+      "Hey. You're the streamer exploring our global soundwaves?",
+      "Beyond this gate, a rogue Dead Channel has hijacked the feed with screeching static.",
+      "Duel my Bass-Hound so we can sync our frequencies, and then we'll team up for the boss!"
     ]
   }
 ];
 
 export const RIVAL_JAX = {
   name: 'Jax',
-  title: 'The Shadow Punk',
+  title: 'The Underground Punk',
   dialogueDefeat: [
-    "Whoa... okay, your timing is clean and your rhythm is sharp. I respect that.",
-    "My Bass-Hound and I have been trying to breach that static storm for days.",
-    "Let's link our feeds into a Collaborative Playlist Blend! Together, we can blast that Dead Channel into pieces!"
+    "Whoa... okay, your timing is clean and your rhythm is sharp. I respect that!",
+    "My Bass-Hound and I are joining your squad right now!",
+    "Let's breach the Glitch Gate and blend our global playlist to blast Dead Channel 000 into pieces!"
   ]
 };
 
-// 3 Distinct Sound Ripples across the Town Plaza
+// 3 Distinct Cultural Sound Ripples across the Town Plaza
 export const TOWN_SOUND_RIPPLES: SoundRipple[] = [
   {
     id: 'ripple_cafe',
     x: 180,
     y: 360,
     challengeType: 'waveform_slider',
-    spirit: CLOUD_SLOTH_SPIRIT,
+    spirit: ALLEGRO_OWL_SPIRIT, // European Baroque Classical (Violin)
     discovered: false
   },
   {
@@ -348,7 +399,7 @@ export const TOWN_SOUND_RIPPLES: SoundRipple[] = [
     x: 400,
     y: 400,
     challengeType: 'call_response',
-    spirit: BRASS_BUNNY_SPIRIT,
+    spirit: SITAR_SWAN_SPIRIT, // Indian Classical (Sitar)
     discovered: false
   },
   {
@@ -356,7 +407,7 @@ export const TOWN_SOUND_RIPPLES: SoundRipple[] = [
     x: 620,
     y: 360,
     challengeType: 'rhythm_pulse',
-    spirit: BEAT_PUP_SPIRIT,
+    spirit: TAIKO_TANUKI_SPIRIT, // Japanese Matsuri (Taiko Drum)
     discovered: false
   }
 ];

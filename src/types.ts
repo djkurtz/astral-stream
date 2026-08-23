@@ -7,7 +7,15 @@ export type GameMode =
   | 'cleansing_cinematic'
   | 'victory';
 
-export type GenreType = 'synth' | 'bass' | 'brass' | 'static' | 'cosmic';
+export type GenreType = 
+  | 'symphonic'   // Classical, Baroque, Romantic Orchestral (Violin, Cello, Piano)
+  | 'global'       // Global traditions: Sitar, Kora, Flamenco, Gamelan, Steelpan
+  | 'jazz'         // Jazz, Blues, Bebop, Big Band Brass (Saxophone, Trumpet)
+  | 'synth'        // Chiptune, Synthwave, Electronic Pop
+  | 'bass'         // Funk, Rock, Overdrive Bass, 808
+  | 'static'       // Rogue Noise, Analog Desync
+  | 'cosmic';      // Omnigenre Fusion Mashup
+
 export type AudioChallengeType = 'waveform_slider' | 'call_response' | 'rhythm_pulse';
 
 export interface Move {
@@ -17,7 +25,7 @@ export interface Move {
   power: number;
   cost: number;
   description: string;
-  soundType: 'arpeggio' | 'bass_drop' | 'brass_riff' | 'glitch_hit' | 'cosmic_burst';
+  soundType: 'arpeggio' | 'bass_drop' | 'brass_riff' | 'glitch_hit' | 'cosmic_burst' | 'violin_staccato' | 'sitar_twang' | 'taiko_boom';
   effectiveness?: string;
 }
 
@@ -28,7 +36,8 @@ export interface StreamSpirit {
   vibeTag: string;
   species: string;
   instrument: string;
-  avatar?: string;
+  avatar: string;
+  originTradition: string; // e.g. "European Classical", "Indian Classical", "West African", "Caribbean", "Japanese Matsuri"
   type: GenreType;
   color: string;
   hp: number;
@@ -47,7 +56,7 @@ export interface NPCEntity {
   title: string;
   x: number;
   y: number;
-  sprite: 'aria' | 'dj_otter' | 'jax' | 'glitch_gate';
+  sprite: 'aria' | 'dj_otter' | 'jax' | 'maestro_owl' | 'glitch_gate';
   color: string;
   dialogue: string[];
   actionType?: 'talk' | 'battle_jax' | 'audio_match';

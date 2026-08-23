@@ -418,15 +418,15 @@ export class AstralRenderer {
     ctx.arc(x, y, pulse + 12, 0, Math.PI * 2);
     ctx.stroke();
 
-    // Ripple Icon
-    let icon = '🎷';
-    let label = 'Melody Jam';
-    if (challengeType === 'waveform_slider') { icon = '🎛️'; label = 'Equalizer'; }
-    else if (challengeType === 'rhythm_pulse') { icon = '🥁'; label = 'Beat Sync'; }
+    // Ripple Icon & World Music Labels
+    let icon = '🪕';
+    let label = 'Indian Sitar Jam';
+    if (challengeType === 'waveform_slider') { icon = '🎻'; label = 'Baroque Violin'; }
+    else if (challengeType === 'rhythm_pulse') { icon = '🥁'; label = 'Taiko Festival'; }
 
-    ctx.font = '22px sans-serif';
+    ctx.font = '24px sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText(icon, x, y + 7);
+    ctx.fillText(icon, x, y + 8);
 
     // Crisp Label Above
     ctx.fillStyle = '#fbbf24';

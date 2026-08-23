@@ -471,13 +471,16 @@ export class AstralGameEngine {
     const move = b.playerSpirit.moves[b.pendingMoveIndex];
     b.turn = 'animating';
 
-    // Genre Affinity Multiplier
+    // Global Genre Affinity Multipliers:
+    // 🎻 Symphonic > 🎹 Synth > 🪕 Global > 🎷 Jazz > 🎻 Symphonic
     let genreMult = 1.0;
     const eType = b.type === 'rival' ? b.enemySpirit?.type : b.enemyBoss?.type;
-    if (move.type === 'synth' && eType === 'bass') genreMult = 1.4;
-    if (move.type === 'brass' && eType === 'synth') genreMult = 1.4;
-    if (move.type === 'bass' && eType === 'brass') genreMult = 1.4;
-    if (move.type === 'cosmic' && eType === 'static') genreMult = 1.6;
+    if (move.type === 'symphonic' && eType === 'synth') genreMult = 1.5;
+    if (move.type === 'synth' && eType === 'global') genreMult = 1.5;
+    if (move.type === 'global' && eType === 'jazz') genreMult = 1.5;
+    if (move.type === 'jazz' && eType === 'symphonic') genreMult = 1.5;
+    if (move.type === 'bass' && (eType === 'jazz' || eType === 'synth')) genreMult = 1.3;
+    if (move.type === 'cosmic' && eType === 'static') genreMult = 1.8;
 
     const totalDmg = Math.max(8, Math.floor((move.power + b.playerSpirit.attack * 0.4) * multiplier * genreMult));
 

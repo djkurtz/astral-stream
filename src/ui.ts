@@ -94,9 +94,9 @@ export class AstralUIManager {
       if (state.mode === 'audio_match_scan' && state.audioMatch) {
         scanPanel.classList.remove('hidden');
         const m = state.audioMatch;
-        let title = '🔍 EQUALIZER WAVEFORM SCAN';
-        if (m.challengeType === 'call_response') title = '🎹 CALL & RESPONSE MELODY JAM';
-        else if (m.challengeType === 'rhythm_pulse') title = '🥁 RHYTHM PULSE BEAT SYNC';
+        let title = '🎻 BAROQUE VIOLIN EQUALIZER';
+        if (m.challengeType === 'call_response') title = '🪕 INDIAN SITAR RAGA JAM';
+        else if (m.challengeType === 'rhythm_pulse') title = '🥁 JAPANESE TAIKO BEAT SYNC';
         
         document.getElementById('scan-stage-title')!.textContent = title;
 
