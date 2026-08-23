@@ -617,17 +617,35 @@ export class AstralRenderer {
       ctx.stroke();
     }
 
-    // 1. Player Spirit (Left)
+    // 1. Player Spirit(s) (Left)
     const pSpirit = battle.playerSpirit;
     const px = w * 0.25;
     const py = h * 0.55;
 
-    ctx.fillStyle = 'rgba(6, 182, 212, 0.3)';
-    ctx.beginPath();
-    ctx.ellipse(px, py + 25, 70, 20, 0, 0, Math.PI * 2);
-    ctx.fill();
+    if (battle.type === 'boss' && !battle.blendActive) {
+      // TAG TEAM DUO: Chime-Cat AND Bass-Hound fighting together!
+      ctx.fillStyle = 'rgba(6, 182, 212, 0.3)';
+      ctx.beginPath();
+      ctx.ellipse(px - 36, py + 25, 45, 15, 0, 0, Math.PI * 2);
+      ctx.ellipse(px + 36, py + 25, 45, 15, 0, 0, Math.PI * 2);
+      ctx.fill();
 
-    this.drawSpiritBattleSprite(ctx, px, py + Math.sin(t * 4) * 5, pSpirit, 1.4);
+      // Chime-Cat
+      this.drawSpiritBattleSprite(ctx, px - 36, py + Math.sin(t * 4) * 5, pSpirit, 1.2);
+      // Bass-Hound (Jax's companion)
+      const bassHound = state.streamQueue.find(s => s.id === 'spirit_bass_hound') || pSpirit;
+      this.drawSpiritBattleSprite(ctx, px + 36, py + Math.sin(t * 4 + 1.5) * 5, bassHound, 1.2);
+      
+      // Jax standing behind the squad
+      this.drawPixelNPC(ctx, px - 75, py - 20, 'jax', t, 'Jax');
+    } else {
+      ctx.fillStyle = 'rgba(6, 182, 212, 0.3)';
+      ctx.beginPath();
+      ctx.ellipse(px, py + 25, 70, 20, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      this.drawSpiritBattleSprite(ctx, px, py + Math.sin(t * 4) * 5, pSpirit, battle.blendActive ? 1.7 : 1.4);
+    }
 
     // 2. Enemy (Right)
     const ex = w * 0.75;

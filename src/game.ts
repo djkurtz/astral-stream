@@ -414,6 +414,8 @@ export class AstralGameEngine {
         blendActive: false
       };
     } else {
+      this.state.glitchActive = true;
+      soundEngine.setWarped(true);
       this.state.battle = {
         type: 'boss',
         playerSpirit,
@@ -425,8 +427,8 @@ export class AstralGameEngine {
         targetWindowStart: 0.38,
         targetWindowEnd: 0.62,
         rhythmResult: null,
-        log: `DEAD CHANNEL 000 hijacked the feed! Time your hits to pierce the static!`,
-        canBlend: !!this.state.activeCompanion,
+        log: `DEAD CHANNEL 000 hijacked the feed! Press [B] to FUSE with Bass-Hound!`,
+        canBlend: true,
         blendActive: false
       };
     }
@@ -542,15 +544,22 @@ export class AstralGameEngine {
     if (b.type === 'rival') {
       soundEngine.playLockChime();
       this.state.activeCompanion = 'jax';
-      this.state.streamQueue.push(JSON.parse(JSON.stringify(JAX_SPIRIT)));
+      if (!this.state.streamQueue.find(s => s.id === JAX_SPIRIT.id)) {
+        this.state.streamQueue.push(JSON.parse(JSON.stringify(JAX_SPIRIT)));
+      }
       this.state.mode = 'exploration';
       this.state.battle = null;
       soundEngine.switchTrack('town');
 
-      this.showDialogue(RIVAL_JAX.name, '🎸', RIVAL_JAX.dialogueDefeat, () => {
+      this.showDialogue('Jax & Bass-Hound', '🐶🎸', [
+        "Whoa... okay, your timing is clean and your rhythm is sharp. I respect that!",
+        "My Bass-Hound and I are joining your active squad right now!",
+        "Look up—the Glitch Gate is cracking open! Let's breach the rift together and smash Dead Channel 000!"
+      ], () => {
         this.showDialogue('Aria', '☕', [
-          "Incredible battle! Jax has officially linked his playlist with yours!",
-          "Now you two are ready. Step through the Glitch Gate to face Dead Channel 000!"
+          "Jax & Bass-Hound have joined your party! 🎉",
+          "During the Boss Battle, hit [B] or tap BLEND to fuse Chime-Cat + Bass-Hound into the Cyber-Fuzz Chimera!",
+          "Entering the Glitch Gate now... good luck streamers!"
         ], () => {
           this.startBattle('boss');
         });
