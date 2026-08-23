@@ -1892,45 +1892,45 @@ export class HarmoniaRenderer {
       let topPointsLeft = true;
       let bottomPointsLeft = false;
 
-      if (npc?.id === 'npc_signpost_west_arch') {
+      if (npc?.id === 'npc_signpost_west_arch' || npc?.id === 'npc_sign_west_wilds') {
         topText = 'Grand Symphony';
-        topPointsLeft = true;
-        bottomText = 'Cavatina Plaza';
-        bottomPointsLeft = false;
-      } else if (npc?.id === 'npc_signpost_east_gate') {
+        topPointsLeft = false;
+        bottomText = 'Cavatina Village';
+        bottomPointsLeft = true;
+      } else if (npc?.id === 'npc_signpost_east_gate' || npc?.id === 'npc_sign_east_wilds') {
         topText = 'Woodwind Woods';
         topPointsLeft = false;
-        bottomText = 'Cavatina Plaza';
+        bottomText = 'Grand Symphony';
         bottomPointsLeft = true;
-      } else if (npc?.id === 'npc_signpost_north_gate') {
+      } else if (npc?.id === 'npc_signpost_north_gate' || npc?.id === 'npc_sign_north_wilds') {
         topText = 'Brass Citadel';
-        topPointsLeft = false;
-        bottomText = 'Cavatina Plaza';
-        bottomPointsLeft = true;
-      } else if (npc?.id === 'npc_signpost_south_bridge') {
+        topPointsLeft = true;
+        bottomText = 'Grand Symphony';
+        bottomPointsLeft = false;
+      } else if (npc?.id === 'npc_signpost_south_bridge' || npc?.id === 'npc_sign_south_wilds') {
         topText = 'Percussion Peaks';
         topPointsLeft = false;
-        bottomText = 'Cavatina Plaza';
+        bottomText = 'Grand Symphony';
         bottomPointsLeft = true;
-      } else if (npc?.id === 'npc_signpost_woods_exit') {
-        topText = 'Cavatina Village';
+      } else if (npc?.id === 'npc_signpost_grand_hall') {
+        topText = 'Central Hub';
+        topPointsLeft = false;
+        bottomText = 'Cardinal Realms';
+        bottomPointsLeft = true;
+      } else if (npc?.id?.includes('woods')) {
+        topText = 'Woodwind Woods';
         topPointsLeft = true;
-        bottomText = 'Vivace Glade';
+        bottomText = 'Breeze Glade';
         bottomPointsLeft = false;
-      } else if (npc?.id === 'npc_signpost_citadel_exit') {
-        topText = 'Cavatina Village';
+      } else if (npc?.id?.includes('citadel')) {
+        topText = 'Brass Citadel';
         topPointsLeft = true;
-        bottomText = 'Echo Concourse';
+        bottomText = 'Echo Canyon';
         bottomPointsLeft = false;
-      } else if (npc?.id === 'npc_signpost_peaks_exit') {
-        topText = 'Cavatina Village';
+      } else if (npc?.id?.includes('peaks')) {
+        topText = 'Percussion Peaks';
         topPointsLeft = true;
-        bottomText = 'Rondo Summit';
-        bottomPointsLeft = false;
-      } else if (npc?.id === 'npc_signpost_hall_exit') {
-        topText = 'Cavatina Village';
-        topPointsLeft = true;
-        bottomText = 'Eternal Stage';
+        bottomText = 'Rumble Gorge';
         bottomPointsLeft = false;
       }
 

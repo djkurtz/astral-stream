@@ -326,7 +326,88 @@ export class HarmoniaSoundEngine {
     });
   }
 
-  /* ---------------- DYNAMIC ENSEMBLE BGM ---------------- */
+    /* ---------------- DYNAMIC BIOME SOUNDSCAPES & WILDLIFE FX ---------------- */
+
+  public playWildlifeCall(species: string): void {
+    if (this.isMuted || !this.ensureContext() || !this.ctx || !this.masterGain) return;
+    
+    if (species.includes('hare') || species.includes('bunny')) {
+      // Playful rapid staccato plucks
+      [659.25, 880.00, 987.77].forEach((freq, idx) => {
+        setTimeout(() => this.playInstrumentNote('acoustic_guitar', freq, 0.15, 0.7), idx * 80);
+      });
+    } else if (species.includes('swan')) {
+      // Lyrical singing vibrato glide
+      [587.33, 880.00, 1046.50].forEach((freq, idx) => {
+        setTimeout(() => this.playInstrumentNote('violin', freq, 0.45, 0.8), idx * 150);
+      });
+    } else if (species.includes('frog')) {
+      // Bubbly staccato trill
+      [392.00, 440.00, 392.00, 523.25].forEach((freq, idx) => {
+        setTimeout(() => this.playInstrumentNote('silver_flute', freq, 0.1, 0.8), idx * 70);
+      });
+    } else if (species.includes('finch') || species.includes('bird')) {
+      // High fluttering birdsong chirps
+      [1046.50, 1174.66, 1318.51, 1567.98].forEach((freq, idx) => {
+        setTimeout(() => this.playInstrumentNote('silver_flute', freq, 0.12, 0.75), idx * 60);
+      });
+    } else if (species.includes('badger')) {
+      // Punchy double-tongued brass call
+      [293.66, 293.66, 440.00, 587.33].forEach((freq, idx) => {
+        setTimeout(() => this.playInstrumentNote('pocket_trumpet', freq, 0.15, 0.85), idx * 90);
+      });
+    } else if (species.includes('terrier') || species.includes('hound')) {
+      // Energetic rhythmic fanfare barking
+      [440.00, 659.25, 440.00, 880.00].forEach((freq, idx) => {
+        setTimeout(() => this.playInstrumentNote('pocket_trumpet', freq, 0.18, 0.9), idx * 110);
+      });
+    } else if (species.includes('armadillo') || species.includes('raccoon')) {
+      // Snappy rolling percussion tap
+      [0, 60, 120, 180].forEach(delay => {
+        setTimeout(() => this.playInstrumentNote('snare_kit', 220, 0.1, 0.8), delay);
+      });
+    } else if (species.includes('tortoise') || species.includes('bear')) {
+      // Deep resonant bronze gong strike
+      this.playInstrumentNote('timpani', 110, 0.8, 0.9);
+      setTimeout(() => this.playInstrumentNote('glockenspiel', 880, 0.6, 0.5), 50);
+    } else {
+      this.playInstrumentNote('glockenspiel', 659.25, 0.3, 0.6);
+    }
+  }
+
+  public playBiomeNatureAmbience(zone: string): void {
+    if (this.isMuted || !this.ensureContext() || !this.ctx || !this.masterGain) return;
+    const t = this.ctx.currentTime;
+
+    if (zone.includes('wilderness') || zone.includes('woods') || zone.includes('valley') || zone.includes('glade')) {
+      // Soft rustling wind breeze (filtered white noise)
+      const bufferSize = this.ctx.sampleRate * 0.8;
+      const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+      const output = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        output[i] = (Math.random() * 2 - 1) * 0.08;
+      }
+      const whiteNoise = this.ctx.createBufferSource();
+      whiteNoise.buffer = buffer;
+      const filter = this.ctx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(zone.includes('canyon') ? 400 : 800, t);
+      filter.Q.setValueAtTime(3.0, t);
+
+      const gain = this.ctx.createGain();
+      gain.gain.setValueAtTime(0.01, t);
+      gain.gain.linearRampToValueAtTime(0.12, t + 0.3);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.8);
+
+      whiteNoise.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.masterGain);
+      whiteNoise.start(t);
+      whiteNoise.stop(t + 0.8);
+    }
+  }
+
+  /* ---------------- DYNAMIC MULTI-BIOME ENSEMBLE BGM ---------------- */
 
   public startBGM(zone: string = 'cavatina_village', activeSections: InstrumentSection[] = ['strings']): void {
     if (this.bgmInterval) {
@@ -336,55 +417,147 @@ export class HarmoniaSoundEngine {
     this.currentBgm = zone;
     this.step = 0;
 
-    // Harmonic Progressions for each zone
-    // Cavatina Village: Pastoral F Major (F - Dm - Bb - C)
-    const cavatinaChords = [
-      { root: 174.61, strings: [349.23, 440.00, 523.25], winds: [698.46, 880.00], brass: [261.63, 349.23], drum: 'marimba' },
-      { root: 146.83, strings: [293.66, 349.23, 440.00], winds: [587.33, 698.46], brass: [220.00, 293.66], drum: 'snare_kit' },
-      { root: 116.54, strings: [233.08, 349.23, 466.16], winds: [466.16, 587.33], brass: [174.61, 233.08], drum: 'marimba' },
-      { root: 130.81, strings: [261.63, 329.63, 392.00], winds: [523.25, 659.25], brass: [196.00, 261.63], drum: 'snare_kit' }
-    ];
+    interface BiomeChord {
+      root: number;
+      strings: number[];
+      winds: number[];
+      brass: number[];
+      leadInst: InstrumentId;
+    }
 
-    const bpm = 100;
+    let chords: BiomeChord[] = [];
+    let bpm = 100;
+
+    if (zone === 'cavatina_village') {
+      // Pastoral F Major (F - Dm - Bb - C)
+      bpm = 96;
+      chords = [
+        { root: 174.61, strings: [349.23, 440.00, 523.25], winds: [698.46, 880.00], brass: [261.63, 349.23], leadInst: 'violin' },
+        { root: 146.83, strings: [293.66, 349.23, 440.00], winds: [587.33, 698.46], brass: [220.00, 293.66], leadInst: 'violin' },
+        { root: 116.54, strings: [233.08, 349.23, 466.16], winds: [466.16, 587.33], brass: [174.61, 233.08], leadInst: 'cello' },
+        { root: 130.81, strings: [261.63, 329.63, 392.00], winds: [523.25, 659.25], brass: [196.00, 261.63], leadInst: 'violin' }
+      ];
+    } else if (zone === 'west_wilderness') {
+      // Lyre Valley: Gentle Folk G Major (G - Em - C - D)
+      bpm = 88;
+      chords = [
+        { root: 196.00, strings: [392.00, 493.88, 587.33], winds: [783.99, 987.77], brass: [196.00, 293.66], leadInst: 'acoustic_guitar' },
+        { root: 164.81, strings: [329.63, 392.00, 493.88], winds: [659.25, 783.99], brass: [164.81, 246.94], leadInst: 'acoustic_guitar' },
+        { root: 130.81, strings: [261.63, 329.63, 392.00], winds: [523.25, 659.25], brass: [130.81, 196.00], leadInst: 'violin' },
+        { root: 146.83, strings: [293.66, 369.99, 440.00], winds: [587.33, 739.99], brass: [146.83, 220.00], leadInst: 'acoustic_guitar' }
+      ];
+    } else if (zone === 'woodwind_woods') {
+      // Sylvan Bossa Nova / Jazz G Dorian (Gmaj7 - Em9 - Am7 - D7)
+      bpm = 112;
+      chords = [
+        { root: 196.00, strings: [392.00, 493.88, 587.33], winds: [739.99, 880.00], brass: [293.66, 392.00], leadInst: 'silver_flute' },
+        { root: 164.81, strings: [329.63, 392.00, 493.88], winds: [659.25, 739.99], brass: [246.94, 329.63], leadInst: 'soprano_sax' },
+        { root: 220.00, strings: [261.63, 329.63, 440.00], winds: [523.25, 659.25], brass: [220.00, 329.63], leadInst: 'clarinet' },
+        { root: 146.83, strings: [293.66, 369.99, 440.00], winds: [587.33, 698.46], brass: [220.00, 293.66], leadInst: 'silver_flute' }
+      ];
+    } else if (zone === 'east_wilderness') {
+      // Breeze Glade: Misty Impressionist Pentatonic in D (D - G - A - Bm)
+      bpm = 86;
+      chords = [
+        { root: 146.83, strings: [293.66, 440.00, 587.33], winds: [587.33, 880.00], brass: [220.00, 293.66], leadInst: 'silver_flute' },
+        { root: 196.00, strings: [392.00, 493.88, 587.33], winds: [783.99, 987.77], brass: [196.00, 293.66], leadInst: 'oboe' },
+        { root: 220.00, strings: [440.00, 554.37, 659.25], winds: [880.00, 1108.73], brass: [220.00, 329.63], leadInst: 'silver_flute' },
+        { root: 123.47, strings: [246.94, 369.99, 493.88], winds: [493.88, 739.99], brass: [185.00, 246.94], leadInst: 'oboe' }
+      ];
+    } else if (zone === 'brass_citadel') {
+      // Gilded Citadel: Heroic Eb Major (Eb - Ab - Bb - Cm)
+      bpm = 106;
+      chords = [
+        { root: 155.56, strings: [311.13, 392.00, 466.16], winds: [622.25, 783.99], brass: [233.08, 311.13], leadInst: 'pocket_trumpet' },
+        { root: 207.65, strings: [261.63, 329.63, 415.30], winds: [523.25, 659.25], brass: [207.65, 311.13], leadInst: 'french_horn' },
+        { root: 116.54, strings: [233.08, 349.23, 466.16], winds: [466.16, 698.46], brass: [174.61, 233.08], leadInst: 'trombone' },
+        { root: 130.81, strings: [261.63, 311.13, 392.00], winds: [523.25, 622.25], brass: [196.00, 261.63], leadInst: 'pocket_trumpet' }
+      ];
+    } else if (zone === 'north_wilderness') {
+      // Echo Canyon: Red Rock Steppe Mixolydian in D (D - C - G - D)
+      bpm = 94;
+      chords = [
+        { root: 146.83, strings: [293.66, 369.99, 440.00], winds: [587.33, 739.99], brass: [220.00, 293.66], leadInst: 'french_horn' },
+        { root: 130.81, strings: [261.63, 329.63, 392.00], winds: [523.25, 659.25], brass: [196.00, 261.63], leadInst: 'pocket_trumpet' },
+        { root: 196.00, strings: [392.00, 493.88, 587.33], winds: [783.99, 987.77], brass: [196.00, 293.66], leadInst: 'trombone' },
+        { root: 146.83, strings: [293.66, 369.99, 440.00], winds: [587.33, 739.99], brass: [220.00, 293.66], leadInst: 'french_horn' }
+      ];
+    } else if (zone === 'percussion_peaks') {
+      // Percussion Peaks: Driving Harmonic A Minor (Am - F - G - Em)
+      bpm = 124;
+      chords = [
+        { root: 220.00, strings: [261.63, 329.63, 440.00], winds: [523.25, 659.25], brass: [220.00, 329.63], leadInst: 'marimba' },
+        { root: 174.61, strings: [349.23, 440.00, 523.25], winds: [698.46, 880.00], brass: [261.63, 349.23], leadInst: 'timpani' },
+        { root: 196.00, strings: [392.00, 493.88, 587.33], winds: [783.99, 987.77], brass: [196.00, 293.66], leadInst: 'glockenspiel' },
+        { root: 164.81, strings: [329.63, 392.00, 493.88], winds: [659.25, 783.99], brass: [164.81, 246.94], leadInst: 'snare_kit' }
+      ];
+    } else if (zone === 'south_wilderness') {
+      // Rumble Gorge: Volcanic Tribal E Minor (Em - G - D - C)
+      bpm = 132;
+      chords = [
+        { root: 164.81, strings: [329.63, 392.00, 493.88], winds: [659.25, 783.99], brass: [164.81, 246.94], leadInst: 'timpani' },
+        { root: 196.00, strings: [392.00, 493.88, 587.33], winds: [783.99, 987.77], brass: [196.00, 293.66], leadInst: 'marimba' },
+        { root: 146.83, strings: [293.66, 369.99, 440.00], winds: [587.33, 739.99], brass: [146.83, 220.00], leadInst: 'snare_kit' },
+        { root: 130.81, strings: [261.63, 329.63, 392.00], winds: [523.25, 659.25], brass: [130.81, 196.00], leadInst: 'timpani' }
+      ];
+    } else {
+      // Grand Symphony Hall: Majestic C Major Orchestral (C - G - Am - F)
+      bpm = 100;
+      chords = [
+        { root: 130.81, strings: [261.63, 329.63, 392.00], winds: [523.25, 659.25], brass: [196.00, 261.63], leadInst: 'harp' },
+        { root: 196.00, strings: [392.00, 493.88, 587.33], winds: [783.99, 987.77], brass: [196.00, 293.66], leadInst: 'pocket_trumpet' },
+        { root: 220.00, strings: [261.63, 329.63, 440.00], winds: [523.25, 659.25], brass: [220.00, 329.63], leadInst: 'violin' },
+        { root: 174.61, strings: [349.23, 440.00, 523.25], winds: [698.46, 880.00], brass: [261.63, 349.23], leadInst: 'silver_flute' }
+      ];
+    }
+
     const intervalMs = (60 / bpm / 2) * 1000; // Eighth notes
 
     this.bgmInterval = window.setInterval(() => {
       if (this.isMuted || !this.ctx) return;
-      const chordIdx = Math.floor(this.step / 8) % cavatinaChords.length;
+      const chordIdx = Math.floor(this.step / 8) % chords.length;
       const subStep = this.step % 8;
-      const chord = cavatinaChords[chordIdx];
+      const chord = chords[chordIdx];
 
-      // Bass root on downbeats
+      // Occasional ambient nature sounds in wilderness biomes
+      if (this.step % 32 === 0 && Math.random() < 0.5) {
+        this.playBiomeNatureAmbience(zone);
+      }
+
+      // Bass root on downbeats (measure starts and half-measures)
       if (subStep === 0 || subStep === 4) {
         if (activeSections.includes('strings') || activeSections.includes('brass')) {
-          this.playInstrumentNote(activeSections.includes('brass') ? 'french_horn' : 'cello', chord.root, 0.4, 0.6);
+          this.playInstrumentNote(activeSections.includes('brass') ? 'french_horn' : 'cello', chord.root, 0.45, 0.6);
         }
       }
 
       // Melodic arpeggio for strings
       if (activeSections.includes('strings') && (subStep % 2 === 0)) {
         const noteIdx = (subStep / 2) % chord.strings.length;
-        this.playInstrumentNote('violin', chord.strings[noteIdx], 0.25, 0.5);
+        const inst = activeSections.includes('strings') ? (chord.leadInst === 'acoustic_guitar' ? 'acoustic_guitar' : 'violin') : 'violin';
+        this.playInstrumentNote(inst, chord.strings[noteIdx], 0.28, 0.55);
       }
 
       // Woodwinds breathy counter-melody
       if (activeSections.includes('woodwinds') && (subStep === 2 || subStep === 6)) {
         const windNote = chord.winds[subStep === 2 ? 0 : 1];
-        this.playInstrumentNote('silver_flute', windNote, 0.35, 0.55);
+        const inst = (chord.leadInst === 'oboe' || chord.leadInst === 'soprano_sax') ? chord.leadInst : 'silver_flute';
+        this.playInstrumentNote(inst, windNote, 0.38, 0.6);
       }
 
       // Brass majestic punctuation
       if (activeSections.includes('brass') && (subStep === 0 || subStep === 6)) {
-        this.playInstrumentNote('pocket_trumpet', chord.brass[0], 0.3, 0.6);
+        this.playInstrumentNote('pocket_trumpet', chord.brass[0], 0.32, 0.65);
       }
 
-      // Percussion pulse
+      // Percussion pulse & grooves
       if (activeSections.includes('percussion')) {
         if (subStep === 0 || subStep === 4) {
-          this.playInstrumentNote('timpani', chord.root * 0.75, 0.2, 0.6);
+          this.playInstrumentNote('timpani', chord.root * 0.75, 0.22, 0.65);
         }
         if (subStep === 2 || subStep === 6) {
-          this.playInstrumentNote('glockenspiel', chord.strings[0] * 2, 0.15, 0.4);
+          this.playInstrumentNote('snare_kit', 220, 0.15, 0.5);
+          this.playInstrumentNote('glockenspiel', chord.strings[0] * 2, 0.18, 0.45);
         }
       }
 
@@ -401,3 +574,4 @@ export class HarmoniaSoundEngine {
 }
 
 export const soundEngine = new HarmoniaSoundEngine();
+

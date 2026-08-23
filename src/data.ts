@@ -1109,7 +1109,7 @@ export const RECRUITABLE_MUSICIANS: Musician[] = [
   {
     id: 'npc_clara',
     name: 'Clara',
-    title: 'Virtuoso Violinist',
+    title: 'Teen Violin Prodigy (Age 15)',
     avatar: '🎻',
     paletteColor: '#ec4899',
     instrumentId: 'violin',
@@ -1129,21 +1129,21 @@ export const RECRUITABLE_MUSICIANS: Musician[] = [
     level: 2,
     xp: 150,
     dialogue: [
-      "Greetings! The acoustic resonance of Cavatina Village is simply sublime today.",
-      "My partner Vibrato and I are seeking a dedicated chamber ensemble with true artistic vision.",
-      "Would you care for a friendly Audition Duel? Let us test how well our motifs harmonize!"
+      "Hey! Clara here (15 and proud!). I've been running scale drills for four hours straight—my fingers are practically humming!",
+      "My swan familiar, Vibrato, says I need to chill, but the Conservatory Auditions are next month and I refuse to fumble my cadenza.",
+      "You look like you've got serious musical drive! Wanna trade licks in a fast Audition Duel and see how our motifs match up?"
     ],
     auditionDialogue: [
-      "Let us begin! Show me your bow control and melodic phrasing!"
+      "Let's see that bow dexterity! Can your phrasing match my lyrical vibrato?"
     ],
     recruitedDialogue: [
-      "Splendid! Your phrasing was impeccable. Vibrato and I would be honored to join your ensemble!"
+      "Whoa, your counterpoint is incredible! Pack up, Vibrato—we just found our dream ensemble!"
     ]
   },
   {
     id: 'npc_oliver',
     name: 'Oliver',
-    title: 'Forest Flute Wandler',
+    title: 'Preteen Flute Nature Nerd (Age 13)',
     avatar: '🪈',
     paletteColor: '#10b981',
     instrumentId: 'silver_flute',
@@ -1163,21 +1163,21 @@ export const RECRUITABLE_MUSICIANS: Musician[] = [
     level: 2,
     xp: 120,
     dialogue: [
-      "Phew... practicing scales in the bamboo breeze always clears my tone.",
-      "My Piccolo Finch, Chirpy, can match pitch with any songbird in the forest.",
-      "If you're assembling a multi-part ensemble, a crisp woodwind lead is essential. Care to jam?"
+      "Shh! Listen! Did you hear that? That was a piccolo warbler in the high branches! I'm Oliver (13 and 3/4!).",
+      "Everyone at school complains that the flute is 'too delicate', but Chirpy and I can play triple-tongued chromatic runs that leave them speechless!",
+      "If you're putting together a real ensemble, you definitely need a lightning-fast woodwind voice. Care to jam?"
     ],
     auditionDialogue: [
-      "Listen closely to the wind's rapid tempo! Can you match my staccato cadence?"
+      "Catch the gust! Try to keep up with my rapid-fire staccato arpeggios!"
     ],
     recruitedDialogue: [
-      "Incredible breath support! Chirpy and I are packing our sheet music—we're on your team!"
+      "YES! That was so tight! Chirpy, grab the sheet music binder—we're hitting the road together!"
     ]
   },
   {
     id: 'npc_baron',
-    name: 'Baron Von Brass',
-    title: 'Citadel Trumpet Captain',
+    name: 'Jax "The Brass Baron"',
+    title: 'High School Band Lead (Age 17)',
     avatar: '🎺',
     paletteColor: '#eab308',
     instrumentId: 'pocket_trumpet',
@@ -1197,21 +1197,21 @@ export const RECRUITABLE_MUSICIANS: Musician[] = [
     level: 3,
     xp: 240,
     dialogue: [
-      "Halt! You stand before the Brass Citadel. Only musicians with true projection may pass.",
-      "Rally and I have heralded royal arrivals for a decade. Our fortissimo commands respect!",
-      "Think your ensemble has the stamina to support my brass fanfares? Prove it in an Audition!"
+      "Yo! What's good! I'm Jax—first chair trumpet in the Citadel Youth Marching Brigade.",
+      "The crew calls me 'The Brass Baron' because my high-C fanfares can literally shake dust off the castle chandeliers! Rally, sound off!",
+      "You think your group's got the lung power and spine to back up my golden leads? Step up and prove it!"
     ],
     auditionDialogue: [
-      "Hear the golden blare! Brace your ears for a true fortissimo swell!"
+      "Brace your ears! Here comes a true fortissimo blast that'll test your harmonic shield!"
     ],
     recruitedDialogue: [
-      "Ha! Outstanding tone! Your ensemble has genuine spine. Rally and I shall march with you!"
+      "Ha! That was legit! You actually held the pocket against my blast! Rally, we found our crew!"
     ]
   },
   {
     id: 'npc_rita',
-    name: 'Rhythm Rita',
-    title: 'Mountain Snare Maestro',
+    name: 'Rita',
+    title: 'Skate-Punk Drummer (Age 16)',
     avatar: '🥁',
     paletteColor: '#8b5cf6',
     instrumentId: 'snare_kit',
@@ -1231,16 +1231,221 @@ export const RECRUITABLE_MUSICIANS: Musician[] = [
     level: 3,
     xp: 280,
     dialogue: [
-      "One, two, three, four! Tap your feet! You can't have harmony without a rock-solid pocket.",
-      "Groove and I keep the pulse of Percussion Peaks running like clockwork.",
-      "Want to see if you can hold your tempo under pressure? Let's take it to the practice stage!"
+      "One-two-three-BAM! Sup! I'm Rita. Most kids in town play polite salon minuets, but me and Groove? We live for thunderous backbeats and polyrhythms.",
+      "If your ensemble can't lock into an unflinching 160 BPM pocket, you're gonna crumble on the big stage.",
+      "Think your internal metronome is steady enough? Let's take it to the stage and trade rhythm chops!"
     ],
     auditionDialogue: [
-      "Lock into the rhythm! Don't let your tempo rush or drag!"
+      "Lock in! Don't let your tempo rush or drag even a microsecond!"
     ],
     recruitedDialogue: [
-      "Solid as a rock! That was right in the pocket. You've got yourself a drummer!"
+      "Boom! Right in the pocket. You've got real rhythm instinct. Count me in—let's make some noise!"
     ]
+  },
+  {
+    id: 'npc_toby',
+    name: 'Toby',
+    title: 'Acoustic Folk Kid (Age 11)',
+    avatar: '🪕',
+    paletteColor: '#f59e0b',
+    instrumentId: 'acoustic_guitar',
+    instrumentName: 'Cedar Acoustic Guitar',
+    section: 'strings',
+    pet: {
+      id: 'pet_hare_toby',
+      name: 'Barnaby Jr',
+      species: 'Vivace Hare',
+      sprite: 'hare',
+      section: 'strings',
+      instrumentName: 'Cedar Guitar',
+      leitmotifSound: 'guitar_strum',
+      color: '#f59e0b'
+    },
+    stats: { technique: 26, toneQuality: 34, tempoStability: 30, sightReading: 24 },
+    level: 2,
+    xp: 100,
+    dialogue: [
+      "Hi mister maestro! I'm Toby (I'm eleven!). My big brother said I was too little for the town square concerts...",
+      "...so Hoppy and I have been writing secret woodland folk songs out here in Lyre Valley! Want to hear one?"
+    ],
+    auditionDialogue: ["Watch my fingerpicking! I've been practicing every single afternoon!"],
+    recruitedDialogue: ["YAY! I'm in a real ensemble now! Wait till my brother hears about this!"]
+  },
+  {
+    id: 'npc_maya',
+    name: 'Maya',
+    title: 'Goth Cello Teen (Age 15)',
+    avatar: '🎻',
+    paletteColor: '#7c3aed',
+    instrumentId: 'cello',
+    instrumentName: 'Midnight Cello',
+    section: 'strings',
+    pet: {
+      id: 'pet_cat_maya',
+      name: 'Nocturne',
+      species: 'Allegro Swan',
+      sprite: 'swan',
+      section: 'strings',
+      instrumentName: 'Midnight Cello',
+      leitmotifSound: 'violin_pure',
+      color: '#7c3aed'
+    },
+    stats: { technique: 38, toneQuality: 44, tempoStability: 32, sightReading: 36 },
+    level: 3,
+    xp: 220,
+    dialogue: [
+      "Everything sounds more profound in D minor. I'm Maya.",
+      "The other academy kids obsess over cheerful major scales, but the cello was born for weeping cantabiles and dark resonance.",
+      "Can your music handle genuine emotional depth, or is it all just sunshine and arpeggios?"
+    ],
+    auditionDialogue: ["Feel the melancholic weight of my bass resonance! Respond with true emotion!"],
+    recruitedDialogue: ["...Impressive. Your harmonic phrasing actually resonated with my soul. I'll join your journey."]
+  },
+  {
+    id: 'npc_chloe',
+    name: 'Chloe',
+    title: 'Shy Oboe Prodigy (Age 12)',
+    avatar: '🌾',
+    paletteColor: '#059669',
+    instrumentId: 'oboe',
+    instrumentName: 'Silver-Keyed Oboe',
+    section: 'woodwinds',
+    pet: {
+      id: 'pet_frog_chloe',
+      name: 'Pebble',
+      species: 'Flute Frog',
+      sprite: 'frog',
+      section: 'woodwinds',
+      instrumentName: 'Silver Oboe',
+      leitmotifSound: 'flute_chirp',
+      color: '#059669'
+    },
+    stats: { technique: 40, toneQuality: 42, tempoStability: 36, sightReading: 42 },
+    level: 3,
+    xp: 210,
+    dialogue: [
+      "U-um... hello. I'm Chloe. Double reeds are super tricky to control, and crowds make me kind of nervous...",
+      "Pebble the frog helps me steady my breath out here in the quiet mist of Breeze Glade. Would you... like to play a duet?"
+    ],
+    auditionDialogue: ["I-I'll try my best! Listen to the overtone resonance of my rosewood reed!"],
+    recruitedDialogue: ["You made me feel so calm and confident! Pebble and I would love to travel with you!"]
+  },
+  {
+    id: 'npc_devon',
+    name: 'Devon',
+    title: 'Indie College Saxophonist (Age 19)',
+    avatar: '🎷',
+    paletteColor: '#0d9488',
+    instrumentId: 'soprano_sax',
+    instrumentName: 'Vintage Curved Sax',
+    section: 'woodwinds',
+    pet: {
+      id: 'pet_hound_devon',
+      name: 'Miles',
+      species: 'Piccolo Finch',
+      sprite: 'finch',
+      section: 'woodwinds',
+      instrumentName: 'Vintage Sax',
+      leitmotifSound: 'flute_chirp',
+      color: '#0d9488'
+    },
+    stats: { technique: 48, toneQuality: 52, tempoStability: 44, sightReading: 46 },
+    level: 4,
+    xp: 380,
+    dialogue: [
+      "Hey man. Devon here. Ditching morning theory lectures to transcribe bird calls in the canopy.",
+      "Jazz isn't just about playing all the right notes—it's about the space between 'em. Got an interesting chord chart you wanna jam on?"
+    ],
+    auditionDialogue: ["Let's ride this modal groove. Show me your improvisational chops!"],
+    recruitedDialogue: ["Smooth phrasing, my friend. Pure vibes. Miles and I are definitely down for this tour."]
+  },
+  {
+    id: 'npc_sam',
+    name: 'Sam',
+    title: 'Trombone Hotshot (Age 16)',
+    avatar: '🎺',
+    paletteColor: '#f97316',
+    instrumentId: 'trombone',
+    instrumentName: 'Tenor Slide Trombone',
+    section: 'brass',
+    pet: {
+      id: 'pet_badger_sam',
+      name: 'Diesel',
+      species: 'Fanfare Badger',
+      sprite: 'badger',
+      section: 'brass',
+      instrumentName: 'Tenor Trombone',
+      leitmotifSound: 'horn_call',
+      color: '#f97316'
+    },
+    stats: { technique: 46, toneQuality: 48, tempoStability: 42, sightReading: 38 },
+    level: 4,
+    xp: 350,
+    dialogue: [
+      "Jax thinks he's the loudest horn in Sonora? Hilarious! My trombone slide reaches low pedal tones that shake the whole canyon!",
+      "Echo Canyon is my personal practice amphitheater. Want to see whose sound waves carry further?"
+    ],
+    auditionDialogue: ["Incoming glissando! Catch this sonic wave if you can!"],
+    recruitedDialogue: ["Whoa, you actually harmonized with that gliss! That was epic! Count me in on your brass lineup!"]
+  },
+  {
+    id: 'npc_ren',
+    name: 'Ren',
+    title: 'Taiko Dynamo Kid (Age 12)',
+    avatar: '🥁',
+    paletteColor: '#a855f7',
+    instrumentId: 'timpani',
+    instrumentName: 'Twin Thunder Bongo Mallets',
+    section: 'percussion',
+    pet: {
+      id: 'pet_armadillo_ren',
+      name: 'Tank',
+      species: 'Rhythm Armadillo',
+      sprite: 'armadillo',
+      section: 'percussion',
+      instrumentName: 'Thunder Bongos',
+      leitmotifSound: 'drum_beat',
+      color: '#a855f7'
+    },
+    stats: { technique: 45, toneQuality: 38, tempoStability: 55, sightReading: 30 },
+    level: 4,
+    xp: 360,
+    dialogue: [
+      "YEAH! DID YOU HEAR THAT CRACKLE?! I'm Ren! These basalt stones sound just like giant timpani!",
+      "Tank can curl into a ball and roll a 240 BPM blast beat! CAN YOU MATCH OUR PRIMAL ENERGY?!"
+    ],
+    auditionDialogue: ["MAXIMUM TEMPO! Try to stay standing against our volcanic rhythm rush!"],
+    recruitedDialogue: ["THAT WAS SO SICK! Your whole ensemble was grooving! We're coming with you for sure!"]
+  },
+  {
+    id: 'npc_nico',
+    name: 'Nico',
+    title: 'Conservatory Arranger (Age 20)',
+    avatar: '📜',
+    paletteColor: '#ec4899',
+    instrumentId: 'harp',
+    instrumentName: 'Orchestral Lever Harp',
+    section: 'strings',
+    pet: {
+      id: 'pet_swan_nico',
+      name: 'Symphony',
+      species: 'Allegro Swan',
+      sprite: 'swan',
+      section: 'strings',
+      instrumentName: 'Lever Harp',
+      leitmotifSound: 'violin_pure',
+      color: '#ec4899'
+    },
+    stats: { technique: 55, toneQuality: 58, tempoStability: 50, sightReading: 60 },
+    level: 5,
+    xp: 500,
+    dialogue: [
+      "Whew... running on two hours of sleep and iced coffee. I'm Nico, senior composition student at the High Conservatory.",
+      "If you're preparing for the Grand Solstice Symphony, remember: balance across all 4 instrument families is what creates true harmonic transcendence.",
+      "Would you like to test your ensemble's multi-part voicing against my orchestral harp counterpoint?"
+    ],
+    auditionDialogue: ["Observe the voice leading across four independent registers! Show me your ensemble synergy!"],
+    recruitedDialogue: ["Magnificent polyphony! Your orchestration has genuine brilliance. I would be thrilled to arrange and perform with your ensemble!"]
   }
 ];
 
@@ -1251,12 +1456,12 @@ export const RIVAL_ENSEMBLES: RivalEnsemble[] = [
     id: 'rival_novice_buskers',
     name: 'The Cavatina Street Soloists',
     tier: 'solo',
-    conductorName: 'Busker Tim',
+    conductorName: 'Timmy (Age 12)',
     members: [
       {
         id: 'rival_tim',
-        name: 'Tim',
-        title: 'Street Busker',
+        name: 'Timmy',
+        title: 'Preteen Street Busker (Age 12)',
         avatar: '🎸',
         paletteColor: '#f59e0b',
         instrumentId: 'acoustic_guitar',
@@ -1280,18 +1485,18 @@ export const RIVAL_ENSEMBLES: RivalEnsemble[] = [
     piece: REPERTOIRE_DATABASE[0], // Minuet in G
     reputationRequired: 0,
     rewardStars: 1,
-    description: 'A cheerful local street busker looking for a friendly musical exchange at the Cavatina gazebo.'
+    description: 'An enthusiastic preteen street busker performing friendly folk tunes by the Cavatina fountain.'
   },
   {
     id: 'rival_woodwind_trio',
     name: 'The Whispering Canopy Trio',
     tier: 'trio',
-    conductorName: 'Master Sylvan',
+    conductorName: 'Leo (Age 14)',
     members: [
       {
         id: 'rival_sylvan',
-        name: 'Master Sylvan',
-        title: 'Forest Flutist',
+        name: 'Leo',
+        title: 'Flute Prodigy (Age 14)',
         avatar: '🪈',
         paletteColor: '#10b981',
         instrumentId: 'silver_flute',
@@ -1313,9 +1518,9 @@ export const RIVAL_ENSEMBLES: RivalEnsemble[] = [
       },
       {
         id: 'rival_reed',
-        name: 'Reed',
-        title: 'Cane Oboist',
-        avatar: '🌾',
+        name: 'Penny',
+        title: 'Alto Sax Teen (Age 15)',
+        avatar: '🎷',
         paletteColor: '#059669',
         instrumentId: 'oboe',
         instrumentName: 'Rosewood Oboe',
@@ -1337,7 +1542,7 @@ export const RIVAL_ENSEMBLES: RivalEnsemble[] = [
       {
         id: 'rival_moss',
         name: 'Rowan',
-        title: 'Woodland Cellist',
+        title: 'Woodland Cellist (Age 16)',
         avatar: '🎻',
         paletteColor: '#047857',
         instrumentId: 'cello',
@@ -1361,18 +1566,18 @@ export const RIVAL_ENSEMBLES: RivalEnsemble[] = [
     piece: REPERTOIRE_DATABASE[2], // Bossa Nova Serenade
     reputationRequired: 1,
     rewardStars: 2,
-    description: 'A nimble woodland trio performing syncopated bossa nova rhythms under the resonant forest canopies.'
+    description: 'A nimble teenage jazz trio jamming syncopated bossa nova rhythms under the sunlit forest canopies.'
   },
   {
     id: 'rival_brass_quartet',
     name: 'The Gilded Citadel Fanfare',
     tier: 'quartet',
-    conductorName: 'Baroness Vesta',
+    conductorName: 'Baroness Vesta (Age 17)',
     members: [
       {
         id: 'rival_vesta',
         name: 'Baroness Vesta',
-        title: 'Citadel Hornist',
+        title: 'Marching Captain (Age 17)',
         avatar: '📯',
         paletteColor: '#eab308',
         instrumentId: 'french_horn',
@@ -1395,7 +1600,7 @@ export const RIVAL_ENSEMBLES: RivalEnsemble[] = [
       {
         id: 'rival_cornet_guard',
         name: 'Lieutenant Val',
-        title: 'Herald Cornet',
+        title: 'Lead Cornet Teen (Age 16)',
         avatar: '🎺',
         paletteColor: '#ca8a04',
         instrumentId: 'pocket_trumpet',
@@ -1421,18 +1626,18 @@ export const RIVAL_ENSEMBLES: RivalEnsemble[] = [
     piece: REPERTOIRE_DATABASE[3], // Starlight Quartet
     reputationRequired: 3,
     rewardStars: 3,
-    description: 'A regal brass and string quartet whose wall of sound commands authority across the Citadel concourse.'
+    description: 'A disciplined high school brass and string quartet commanding immense fortissimo projection across the Citadel.'
   },
   {
     id: 'rival_thunder_chamber',
     name: 'The Mountain Thunder Corps',
     tier: 'chamber',
-    conductorName: 'Chief Korath',
+    conductorName: 'Ronin (Age 18)',
     members: [
       {
         id: 'rival_korath',
-        name: 'Chief Korath',
-        title: 'Thunder Timpanist',
+        name: 'Ronin',
+        title: 'Street Percussion Master (Age 18)',
         avatar: '🥁',
         paletteColor: '#8b5cf6',
         instrumentId: 'timpani',
@@ -1460,18 +1665,18 @@ export const RIVAL_ENSEMBLES: RivalEnsemble[] = [
     piece: REPERTOIRE_DATABASE[4], // Mountain Rondo
     reputationRequired: 5,
     rewardStars: 4,
-    description: 'A colossal rhythmic chamber troupe driving intricate polyrhythmic grooves with thundering stone bells.'
+    description: 'A thunderous youth percussion chamber troupe driving intricate polyrhythmic grooves with heavy volcanic beats.'
   },
   {
     id: 'rival_grand_orchestra',
-    name: 'The Grand Philharmonic of Sonora',
+    name: 'The Sonora Youth Symphony',
     tier: 'orchestra',
-    conductorName: 'Maestro Valerius',
+    conductorName: 'Aurelius (Age 21)',
     members: [
       {
         id: 'rival_valerius',
-        name: 'Maestro Valerius',
-        title: 'Grand Conductor',
+        name: 'Aurelius',
+        title: 'Student Conductor (Age 21)',
         avatar: '🎼',
         paletteColor: '#ec4899',
         instrumentId: 'violin',
@@ -1499,7 +1704,7 @@ export const RIVAL_ENSEMBLES: RivalEnsemble[] = [
     piece: REPERTOIRE_DATABASE[5], // Ode to Harmony
     reputationRequired: 7,
     rewardStars: 5,
-    description: 'The supreme masters of orchestral music in Sonora. Defeating them seals your legacy as the Grand Maestro!'
+    description: 'The premier conservatory youth orchestra of Sonora, uniting all four instrument families in transcendent polyphony.'
   }
 ];
 
@@ -1750,7 +1955,7 @@ export const WORLD_ZONES: Record<string, WorldZone> = {
 /* ---------------- WORLD NPCS ROSTER ---------------- */
 
 export const INITIAL_WORLD_NPCS: WorldNPC[] = [
-  // Cavatina Village NPCs & Props
+  // ==================== CAVATINA VILLAGE (SETTLED STRINGS HAMLET) ====================
   {
     id: 'npc_practice_shed',
     name: 'Practice Shed Stand',
@@ -1813,7 +2018,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     actionType: 'talk',
     dialogue: [
       "Greetings, young maestro! Study the Theory Lectern to advance through our 8-tier curriculum. Every drill permanently elevates your Sight-Reading!",
-      "When you feel ready to explore Sonora, the North Gate leads to the Brass Citadel, while the East Gate leads to Woodwind Woods."
+      "When you feel ready to explore Sonora, the East Gate leads out into Lyre Valley, the wild path toward the Grand Symphony Hall."
     ]
   },
   {
@@ -1912,9 +2117,8 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     },
     actionType: 'talk',
     dialogue: [
-      "Welcome, weary traveler, to The Melodic Rose Tavern & Inn! I'm Barnaby, your host.",
-      "Looking for village gossip? Word is that a rare Vivace Hare strums wild guitar chords out in the eastern meadow!",
-      "If you're heading north to the Brass Citadel, make sure your ensemble has strong brass or percussion — Baroness Vesta's fanfare hits like a sonic wall.",
+      "Welcome, young traveler, to The Melodic Rose Tavern & Inn! I'm Barnaby, your host.",
+      "The tavern is packed with young musicians trading gossip! Young Toby is out in Lyre Valley writing folk songs, and Clara has been burning up the academy floor with scale drills.",
       "Take a seat by the hearth, rest your ears, and enjoy the warm tavern hospitality!"
     ]
   },
@@ -2002,23 +2206,23 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     actionType: 'signpost',
     dialogue: [
       "🗺️ CAVATINA VILLAGE NAVIGATION GUIDE:",
-      "• ⬆️ NORTH GATE: Follow the paved road north to reach the Brass Citadel & Metro Cadenza!",
-      "• ➡️ EAST GATE: Follow the paved road east to reach Woodwind Woods & the Coastal Coast!",
-      "• ⬇️ SOUTH BRIDGE: Cross the stone bridge south to reach Percussion Peaks & Mountbeat!",
-      "• ⬅️ WEST ARCH: Head west to reach The Grand Symphony Hall!"
+      "• ➡️ EAST GATE: Follow the trail into Lyre Valley (West Wilderness) toward the Grand Symphony Hub!",
+      "• 🍺 THE MELODIC ROSE TAVERN & INN: Rest your ears and hear local youth gossip in the southwest plaza.",
+      "• 🔨 ARTISAN FORGE: Master Marco crafts signature instrument artifacts in the northwest quarter.",
+      "• 🎼 CONSERVATORY: Study theory and practice scales in the northeast quarter."
     ]
   },
   {
     id: 'npc_busker_tim',
-    name: 'Busker Tim',
-    title: 'Gazebo Soloist [SPACE to Compete]',
+    name: 'Timmy',
+    title: 'Preteen Street Busker (Age 12) [SPACE to Compete]',
     x: 1000,
     y: 640,
     zone: 'cavatina_village',
     musicianData: {
       id: 'rival_tim',
-      name: 'Tim',
-      title: 'Street Busker',
+      name: 'Timmy',
+      title: 'Preteen Busker',
       avatar: '🎸',
       paletteColor: '#f59e0b',
       instrumentId: 'acoustic_guitar',
@@ -2041,13 +2245,13 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     actionType: 'competition_stage',
     rivalId: 'rival_novice_buskers',
     dialogue: [
-      "Hey there! Want to enter a friendly Busking Showcase to earn your first Reputation Star?"
+      "Hey! I'm Timmy! I busk out here by the fountain after middle school to earn lunch money and practice my chords. Wanna battle for a Reputation Star?"
     ]
   },
   {
     id: 'npc_clara_world',
     name: 'Clara',
-    title: 'Virtuoso Violinist [SPACE to Jam]',
+    title: 'Teen Violin Prodigy (Age 15) [SPACE to Jam]',
     x: 820,
     y: 850,
     zone: 'cavatina_village',
@@ -2056,581 +2260,34 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     dialogue: RECRUITABLE_MUSICIANS[0].dialogue || []
   },
   {
-    id: 'npc_gatekeeper_elias',
-    name: 'Gatekeeper Elias',
-    title: 'Citadel Highway Guard [SPACE]',
-    x: 1000,
-    y: 110,
+    id: 'npc_maya_world',
+    name: 'Maya',
+    title: 'Goth Cello Teen (Age 15) [SPACE to Jam]',
+    x: 1250,
+    y: 850,
     zone: 'cavatina_village',
-    musicianData: {
-      id: 'guard_elias',
-      name: 'Elias',
-      title: 'Highway Gatekeeper',
-      avatar: '💂',
-      paletteColor: '#475569',
-      instrumentId: 'pocket_trumpet',
-      instrumentName: 'Signal Bugle',
-      section: 'brass',
-      pet: {
-        id: 'pet_hound_elias',
-        name: 'Sentinel',
-        species: 'Herald Hound',
-        sprite: 'hound',
-        section: 'brass',
-        instrumentName: 'Signal Bugle',
-        leitmotifSound: 'trumpet_fanfare',
-        color: '#eab308'
-      },
-      stats: { technique: 35, toneQuality: 35, tempoStability: 35, sightReading: 35 },
-      level: 4,
-      xp: 300
-    },
+    musicianData: RECRUITABLE_MUSICIANS[5],
+    actionType: 'audition_battle',
+    dialogue: RECRUITABLE_MUSICIANS[5].dialogue || []
+  },
+  {
+    id: 'npc_side_musicbox',
+    name: 'Elder Timothy',
+    title: 'Elderly Music Box Collector [SPACE]',
+    x: 1100,
+    y: 1100,
+    zone: 'cavatina_village',
     actionType: 'talk',
+    questId: 'quest_side_musicbox',
     dialogue: [
-      "Greetings traveler! This is the North Grand Gate of Cavatina Village.",
-      "Just walk straight up through this archway to enter the Brass Citadel Highway and continue to Metro Cadenza!"
+      "Ah, young maestro! My cherished antique music box lost its delicate brass cylinder pins...",
+      "Could you visit Master Marco at the Artisan Forge and craft replacement pins? I would reward you handsomely with Notes and Sparks!"
     ]
   },
-
-  {
-    id: 'npc_signpost_north_gate',
-    name: 'North Brass Citadel Highway Sign',
-    title: '🗺️ Road Sign: ⬆️ To Brass Citadel & Metro [SPACE]',
-    x: 880,
-    y: 100,
-    zone: 'cavatina_village',
-    isProp: true,
-    propType: 'road_sign',
-    actionType: 'signpost',
-    dialogue: [
-      "🎺 NORTH ROAD SIGN (CITADEL HIGHWAY):",
-      "• ⬆️ NORTH HIGHWAY: Ascends the gilded ramparts to The Brass Citadel & Metro Cadenza.",
-      "• Home of Captain Baron Von Brass and the Echo Amphitheater."
-    ]
-  },
-  {
-    id: 'npc_signpost_east_gate',
-    name: 'East Woodwind Woods Signpost',
-    title: '🗺️ Road Sign: ➡️ To Woodwind Woods [SPACE]',
-    x: 1860,
-    y: 600,
-    zone: 'cavatina_village',
-    isProp: true,
-    propType: 'road_sign',
-    actionType: 'signpost',
-    dialogue: [
-      "🌲 EAST ROAD SIGN (FOREST TRAIL):",
-      "• ➡️ EAST ROAD: Leads into Woodwind Woods & Vivace Canopy.",
-      "• Home of Flutist Oliver, elusive woodwind familiars, and whispering reeds."
-    ]
-  },
-  {
-    id: 'npc_signpost_south_bridge',
-    name: 'South Percussion Peaks Bridge Sign',
-    title: '🗺️ Road Sign: ⬇️ To Percussion Peaks [SPACE]',
-    x: 880,
-    y: 1480,
-    zone: 'cavatina_village',
-    isProp: true,
-    propType: 'road_sign',
-    actionType: 'signpost',
-    dialogue: [
-      "🥁 SOUTH ROAD SIGN (RIVER BRIDGE):",
-      "• ⬇️ SOUTH BRIDGE: Crosses the Melodic River into Percussion Peaks & Rondo Caldera.",
-      "• Home of Rhythm Rita and resonant Taiko mountain steps."
-    ]
-  },
-  {
-    id: 'npc_signpost_west_arch',
-    name: 'West Grand Symphony Signpost',
-    title: '🗺️ Road Sign: ⬅️ To Grand Symphony Hall [SPACE]',
-    x: 120,
-    y: 600,
-    zone: 'cavatina_village',
-    isProp: true,
-    propType: 'road_sign',
-    actionType: 'signpost',
-    dialogue: [
-      "🏛️ WEST ROAD SIGN (GRAND COLONNADE):",
-      "• ⬅️ WEST ROAD: Leads directly to The Grand Symphony Hall.",
-      "• Assemble all 4 instrument sections to audition before Maestro Valerius!"
-    ]
-  },
-
-  // ==================== WOODWIND WOODS (WILDERNESS & CANOPY) ====================
-  {
-    id: 'npc_oliver_world',
-    name: 'Oliver',
-    title: 'Forest Flutist [SPACE to Jam]',
-    x: 900,
-    y: 850,
-    zone: 'woodwind_woods',
-    musicianData: RECRUITABLE_MUSICIANS[1],
-    actionType: 'audition_battle',
-    dialogue: RECRUITABLE_MUSICIANS[1].dialogue || []
-  },
-  {
-    id: 'npc_sylvan_grove',
-    name: 'Master Sylvan',
-    title: 'Canopy Trio Bandleader [SPACE to Compete]',
-    x: 1500,
-    y: 950,
-    zone: 'woodwind_woods',
-    actionType: 'competition_stage',
-    rivalId: 'rival_woodwind_trio',
-    dialogue: [
-      "Greetings! We are The Whispering Canopy Trio. Do your woodwinds have the phrasing and syncopation to match our Bossa Nova groove?"
-    ]
-  },
-  {
-    id: 'npc_theory_woods',
-    name: 'Forest Druid Lectern',
-    title: 'Woodwind Theory Exam (Intervals) [SPACE]',
-    x: 900,
-    y: 400,
-    zone: 'woodwind_woods',
-    isProp: true,
-    propType: 'lectern',
-    actionType: 'theory_bench',
-    theoryType: 'intervals_ear_training',
-    dialogue: [
-      "Study the natural overtones of the forest canopy to master interval recognition and harmonic skips!"
-    ]
-  },
-  {
-    id: 'npc_music_stand_woods',
-    name: 'Ancient Stone Stand',
-    title: 'Study Sheet Music [SPACE]',
-    x: 1300,
-    y: 650,
-    zone: 'woodwind_woods',
-    isProp: true,
-    propType: 'ancient_stone_stand',
-    actionType: 'sheet_music_stand',
-    sheetMusicReward: 'piece_bossa_trio',
-    dialogue: [
-      "You discovered the sheet music for 'Sonora Sunset Serenade' (Bossa Nova Trio)!"
-    ]
-  },
-  {
-    id: 'npc_vista_woods_bellflower',
-    name: 'Bellflower Basin Vista',
-    title: 'Acoustic Inspiration Vista [SPACE to Attune]',
-    x: 1400,
-    y: 1100,
-    zone: 'woodwind_woods',
-    isProp: true,
-    propType: 'vista_monolith',
-    actionType: 'inspiration_vista',
-    vistaId: 'vista_bellflower',
-    dialogue: [
-      "You sit amidst the resonant bellflowers. Tone Quality permanently increased by +5! (+10 Inspiration Sparks ✨)"
-    ]
-  },
-  {
-    id: 'npc_vista_woods_waterfall',
-    name: 'Verdant Cascade Vista',
-    title: 'Acoustic Inspiration Vista [SPACE to Attune]',
-    x: 500,
-    y: 1200,
-    zone: 'woodwind_woods',
-    isProp: true,
-    propType: 'vista_monolith',
-    actionType: 'inspiration_vista',
-    vistaId: 'vista_verdant_waterfall',
-    dialogue: [
-      "You meditate beside the roaring waterfall. Sight-Reading permanently increased by +5! (+10 Inspiration Sparks ✨)"
-    ]
-  },
-  {
-    id: 'npc_signpost_woods_exit',
-    name: 'Vivace Canopy Exit Signpost',
-    title: '🗺️ Road Sign: ⬅️ Back to Cavatina Village [SPACE]',
-    x: 120,
-    y: 600,
-    zone: 'woodwind_woods',
-    isProp: true,
-    propType: 'road_sign',
-    actionType: 'signpost',
-    dialogue: [
-      "🌲 VIVACE CANOPY TRAILHEAD:",
-      "• ⬅️ WEST TRAIL: Follow the winding forest path back to Cavatina Village Plaza.",
-      "• ➡️ EAST GLADE: Leads toward Flutist Oliver, Master Sylvan, and the Bellflower Basin."
-    ]
-  },
-  {
-    id: 'npc_wild_otter',
-    name: 'Wild Cantabile Otter',
-    title: 'Wild Harmonipet (Oboe) [SPACE to Harmonize]',
-    x: 1550,
-    y: 850,
-    zone: 'woodwind_woods',
-    actionType: 'wild_harmonipet',
-    wildPetData: {
-      id: 'pet_otter_wild',
-      name: 'Lento',
-      species: 'Cantabile Otter',
-      sprite: 'otter',
-      section: 'woodwinds',
-      instrumentName: 'Oboe',
-      leitmotifSound: 'oboe_melody',
-      color: '#10b981'
-    },
-    dialogue: [
-      "A graceful Cantabile Otter is piping warm lyrical melodies by the brook! Match its cadence to bond with it!"
-    ]
-  },
-  {
-    id: 'npc_wild_finch',
-    name: 'Wild Piccolo Finch',
-    title: 'Wild Harmonipet (Silver Flute) [SPACE to Harmonize]',
-    x: 600,
-    y: 550,
-    zone: 'woodwind_woods',
-    actionType: 'wild_harmonipet',
-    wildPetData: {
-      id: 'pet_finch_wild',
-      name: 'Cadenza',
-      species: 'Piccolo Finch',
-      sprite: 'finch',
-      section: 'woodwinds',
-      instrumentName: 'Silver Flute',
-      leitmotifSound: 'flute_chirp',
-      color: '#38bdf8'
-    },
-    dialogue: [
-      "A chirping Piccolo Finch flutters between branches singing rapid trills! Match its cadence to bond with it!"
-    ]
-  },
-
-  // ==================== THE BRASS CITADEL (FORTRESS & HIGHWAY) ====================
-  {
-    id: 'npc_baron_world',
-    name: 'Baron Von Brass',
-    title: 'Citadel Trumpet Captain [SPACE to Jam]',
-    x: 1000,
-    y: 750,
-    zone: 'brass_citadel',
-    musicianData: RECRUITABLE_MUSICIANS[2],
-    actionType: 'audition_battle',
-    dialogue: RECRUITABLE_MUSICIANS[2].dialogue || []
-  },
-  {
-    id: 'npc_vesta_amphitheater',
-    name: 'Baroness Vesta',
-    title: 'Citadel Fanfare Bandleader [SPACE to Compete]',
-    x: 1000,
-    y: 400,
-    zone: 'brass_citadel',
-    actionType: 'competition_stage',
-    rivalId: 'rival_brass_quartet',
-    dialogue: [
-      "Welcome to the Gilded Amphitheater! The Citadel Fanfare Quartet challenges you to match our regal volume and soaring four-part harmony!"
-    ]
-  },
-  {
-    id: 'npc_theory_citadel',
-    name: 'Citadel Golden Lectern',
-    title: 'Royal Harmony Exam (Chords & Triads) [SPACE]',
-    x: 600,
-    y: 750,
-    zone: 'brass_citadel',
-    isProp: true,
-    propType: 'lectern',
-    actionType: 'theory_bench',
-    theoryType: 'triads_chords',
-    dialogue: [
-      "Master triad inversions and chord analysis to command royal fanfare authority!"
-    ]
-  },
-  {
-    id: 'npc_music_stand_citadel',
-    name: 'Golden Music Stand',
-    title: 'Study Sheet Music [SPACE]',
-    x: 1200,
-    y: 450,
-    zone: 'brass_citadel',
-    isProp: true,
-    propType: 'golden_music_stand',
-    actionType: 'sheet_music_stand',
-    sheetMusicReward: 'piece_starlight_quartet',
-    dialogue: [
-      "You discovered the sheet music for 'Starlight String & Brass Quartet'!"
-    ]
-  },
-  {
-    id: 'npc_vista_citadel_echo',
-    name: 'Echo Rampart Vista',
-    title: 'Acoustic Inspiration Vista [SPACE to Attune]',
-    x: 1400,
-    y: 1200,
-    zone: 'brass_citadel',
-    isProp: true,
-    propType: 'vista_monolith',
-    actionType: 'inspiration_vista',
-    vistaId: 'vista_echo_falls',
-    dialogue: [
-      "The echoing ramparts sharpen your sonic projection. Tone Quality permanently increased by +5! (+10 Inspiration Sparks ✨)"
-    ]
-  },
-  {
-    id: 'npc_vista_citadel_pinnacle',
-    name: 'Sunlit Brass Pinnacle',
-    title: 'Acoustic Inspiration Vista [SPACE to Attune]',
-    x: 400,
-    y: 400,
-    zone: 'brass_citadel',
-    isProp: true,
-    propType: 'vista_monolith',
-    actionType: 'inspiration_vista',
-    vistaId: 'vista_sunlit_pinnacle',
-    dialogue: [
-      "Sunlight gleaming on polished brass inspires effortless dexterity. Technique permanently increased by +5! (+10 Inspiration Sparks ✨)"
-    ]
-  },
-  {
-    id: 'npc_signpost_citadel_exit',
-    name: 'Allegro Citadel Exit Marker',
-    title: '🗺️ Road Sign: ⬇️ Back to Cavatina Village [SPACE]',
-    x: 1080,
-    y: 1440,
-    zone: 'brass_citadel',
-    isProp: true,
-    propType: 'road_sign',
-    actionType: 'signpost',
-    dialogue: [
-      "🎺 ALLEGRO CITADEL HIGHWAY POST:",
-      "• ⬇️ SOUTH HIGHWAY: Descends the Gilded Ramparts back to Cavatina Village Plaza.",
-      "• ⬆️ NORTH CONCOURSE: Leads to Baroness Vesta and the Echo Amphitheater."
-    ]
-  },
-  {
-    id: 'npc_wild_ram',
-    name: 'Wild Alpine Ram',
-    title: 'Wild Harmonipet (French Horn) [SPACE to Harmonize]',
-    x: 1600,
-    y: 700,
-    zone: 'brass_citadel',
-    actionType: 'wild_harmonipet',
-    wildPetData: {
-      id: 'pet_ram_wild',
-      name: 'Rondo',
-      species: 'Alpine Ram',
-      sprite: 'ram',
-      section: 'brass',
-      instrumentName: 'French Horn',
-      leitmotifSound: 'horn_call',
-      color: '#f97316'
-    },
-    dialogue: [
-      "A noble Alpine Ram calls out with rich horn echoes! Match its cadence to bond with it!"
-    ]
-  },
-  {
-    id: 'npc_wild_hound',
-    name: 'Wild Fanfare Hound',
-    title: 'Wild Harmonipet (Trumpet) [SPACE to Harmonize]',
-    x: 500,
-    y: 1100,
-    zone: 'brass_citadel',
-    actionType: 'wild_harmonipet',
-    wildPetData: {
-      id: 'pet_hound_wild',
-      name: 'Major',
-      species: 'Fanfare Hound',
-      sprite: 'hound',
-      section: 'brass',
-      instrumentName: 'Herald Trumpet',
-      leitmotifSound: 'trumpet_fanfare',
-      color: '#eab308'
-    },
-    dialogue: [
-      "A loyal Fanfare Hound barks bright brass intervals! Match its cadence to bond with it!"
-    ]
-  },
-
-  // ==================== PERCUSSION PEAKS (MOUNTAIN VALLEYS & GHATS) ====================
-  {
-    id: 'npc_rita_world',
-    name: 'Rhythm Rita',
-    title: 'Mountain Snare Maestro [SPACE to Jam]',
-    x: 1000,
-    y: 950,
-    zone: 'percussion_peaks',
-    musicianData: RECRUITABLE_MUSICIANS[3],
-    actionType: 'audition_battle',
-    dialogue: RECRUITABLE_MUSICIANS[3].dialogue || []
-  },
-  {
-    id: 'npc_korath_summit',
-    name: 'Chief Korath',
-    title: 'Thunder Corps Chieftain [SPACE to Compete]',
-    x: 1000,
-    y: 650,
-    zone: 'percussion_peaks',
-    actionType: 'competition_stage',
-    rivalId: 'rival_thunder_chamber',
-    dialogue: [
-      "Boom! The Mountain Thunder Corps holds the summit. Can your ensemble maintain flawless tempo against our thundering stone bells?"
-    ]
-  },
-  {
-    id: 'npc_theory_peaks',
-    name: 'Sonic Caldera Lectern',
-    title: 'Peaks Acoustics & Dynamics Exam [SPACE]',
-    x: 600,
-    y: 950,
-    zone: 'percussion_peaks',
-    isProp: true,
-    propType: 'lectern',
-    actionType: 'theory_bench',
-    theoryType: 'tempo_dynamics_terms',
-    dialogue: [
-      "Master polyrhythms, tempo markings, and acoustic decay across the mountain valleys!"
-    ]
-  },
-  {
-    id: 'npc_music_stand_peaks',
-    name: 'Basalt Standing Ledger',
-    title: 'Study Sheet Music [SPACE]',
-    x: 1400,
-    y: 450,
-    zone: 'percussion_peaks',
-    isProp: true,
-    propType: 'ancient_stone_stand',
-    actionType: 'sheet_music_stand',
-    sheetMusicReward: 'piece_mountain_rondo',
-    dialogue: [
-      "You discovered the sheet music for 'Mountain Rondo & Thunder Bell' (Chamber Suite)!"
-    ]
-  },
-  {
-    id: 'npc_vista_peaks_monolith',
-    name: 'High Ridge Monolith Vista',
-    title: 'Acoustic Inspiration Vista [SPACE to Attune]',
-    x: 1000,
-    y: 400,
-    zone: 'percussion_peaks',
-    isProp: true,
-    propType: 'vista_monolith',
-    actionType: 'inspiration_vista',
-    vistaId: 'vista_monolith_peak',
-    dialogue: [
-      "Metronomic pulses from the monolith steady your heartbeat. Tempo Stability permanently increased by +5! (+10 Inspiration Sparks ✨)"
-    ]
-  },
-  {
-    id: 'npc_vista_peaks_thunder',
-    name: 'Thunder Bell Gorge Vista',
-    title: 'Acoustic Inspiration Vista [SPACE to Attune]',
-    x: 1600,
-    y: 1100,
-    zone: 'percussion_peaks',
-    isProp: true,
-    propType: 'vista_monolith',
-    actionType: 'inspiration_vista',
-    vistaId: 'vista_thunder_gorge',
-    dialogue: [
-      "Deep sub-bass tremors anchor your inner rhythmic pocket. Tempo Stability permanently increased by +5! (+10 Inspiration Sparks ✨)"
-    ]
-  },
-  {
-    id: 'npc_signpost_peaks_exit',
-    name: 'Rondo Caldera Exit Marker',
-    title: '🗺️ Road Sign: ⬆️ Back to Cavatina Village [SPACE]',
-    x: 1080,
-    y: 140,
-    zone: 'percussion_peaks',
-    isProp: true,
-    propType: 'road_sign',
-    actionType: 'signpost',
-    dialogue: [
-      "🥁 RONDO CALDERA BRIDGE POST:",
-      "• ⬆️ NORTH BRIDGE: Crosses the Resonant Gorge back to Cavatina Village Plaza.",
-      "• ⬇️ SOUTH RIDGE: Leads down the Stepped Ghats toward Chief Korath and Rhythm Rita."
-    ]
-  },
-  {
-    id: 'npc_wild_squirrel',
-    name: 'Wild Marimba Squirrel',
-    title: 'Wild Harmonipet (Rosewood Marimba) [SPACE to Harmonize]',
-    x: 1400,
-    y: 850,
-    zone: 'percussion_peaks',
-    actionType: 'wild_harmonipet',
-    wildPetData: {
-      id: 'pet_squirrel_wild',
-      name: 'Click',
-      species: 'Marimba Squirrel',
-      sprite: 'squirrel',
-      section: 'percussion',
-      instrumentName: 'Marimba',
-      leitmotifSound: 'marimba_roll',
-      color: '#ec4899'
-    },
-    dialogue: [
-      "A nimble Marimba Squirrel is tapping energetic triplets on polished rosewood bars! Match its cadence to bond with it!"
-    ]
-  },
-  {
-    id: 'npc_wild_badger',
-    name: 'Wild Thunder Badger',
-    title: 'Wild Harmonipet (Timpani) [SPACE to Harmonize]',
-    x: 1500,
-    y: 1200,
-    zone: 'percussion_peaks',
-    actionType: 'wild_harmonipet',
-    wildPetData: {
-      id: 'pet_badger_wild',
-      name: 'Basso',
-      species: 'Thunder Badger',
-      sprite: 'badger',
-      section: 'percussion',
-      instrumentName: 'Caldera Timpani',
-      leitmotifSound: 'timpani_boom',
-      color: '#8b5cf6'
-    },
-    dialogue: [
-      "A fierce Thunder Badger rumbles powerful subterranean beats on rock timpani! Match its cadence to bond with it!"
-    ]
-  },
-
-  // ==================== THE GRAND SYMPHONY HALL (CLIMAX) ====================
-  {
-    id: 'npc_maestro_valerius',
-    name: 'Maestro Valerius',
-    title: 'Grand Symphony Conductor [SPACE to Compete]',
-    x: 1000,
-    y: 550,
-    zone: 'grand_hall',
-    actionType: 'competition_stage',
-    rivalId: 'rival_grand_orchestra',
-    dialogue: [
-      "Welcome, Maestro! Has your ensemble mastered all 4 sections? If so, let us perform the Ode to Harmony for the world!"
-    ]
-  },
-  {
-    id: 'npc_signpost_hall_exit',
-    name: 'Grand Symphony Foyer Directory',
-    title: '🏛️ Directory: ⬇️ Back to Cavatina Village [SPACE]',
-    x: 1080,
-    y: 1440,
-    zone: 'grand_hall',
-    isProp: true,
-    propType: 'road_sign',
-    actionType: 'signpost',
-    dialogue: [
-      "🏛️ SINFONIA HALL FOYER DIRECTORY:",
-      "• ⬇️ GRAND PORTICO: Exit doors leading back to Cavatina Village West Colonnade.",
-      "• ⬆️ THE ETERNAL STAGE: Conductor's Podium & Maestro Valerius."
-    ]
-  },
-
-  // ==================== CAVATINA VILLAGE EXPLORATION & QUESTS ====================
   {
     id: 'npc_vista_cavatina',
     name: 'Canyon of Thirds Vista',
-    title: 'Acoustic Inspiration Vista [SPACE to Attune]',
+    title: 'Attune to Acoustic Vista [SPACE]',
     x: 1650,
     y: 1100,
     zone: 'cavatina_village',
@@ -2638,21 +2295,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     propType: 'vista_monolith',
     actionType: 'inspiration_vista',
     vistaId: 'vista_canyon_thirds',
-    dialogue: [
-      "You sit and listen to the natural third intervals echoing across the canyon. Technique permanently increased by +5! (+10 Inspiration Sparks ✨)"
-    ]
-  },
-  {
-    id: 'npc_side_musicbox',
-    name: 'Elder Timothy',
-    title: 'Antique Music Box Repair [SPACE]',
-    x: 1200,
-    y: 1150,
-    zone: 'cavatina_village',
-    actionType: 'talk',
-    dialogue: [
-      "Oh my! My grandfather's music box lost its cylinder pins. If you can gather brass pins from the luthier, I'll reward you handsomely with 150 Notes (♪)!"
-    ]
+    dialogue: ["You stand atop the Canyon of Thirds. Natural stone arches amplify harmonic third intervals, sharpening your technique!"]
   },
   {
     id: 'npc_wild_hare',
@@ -2675,9 +2318,9 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     dialogue: [
       "A wild Vivace Hare is strumming harmonic rhythms on its acoustic guitar! Match its cadence to bond with it!"
     ]
-  }
-,
-  // 🌲 West Wilderness (Lyre Valley) Exploration
+  },
+
+  // ==================== WEST WILDERNESS (LYRE VALLEY & WHISPERING GLEN) ====================
   {
     id: 'npc_sign_west_wilds',
     name: 'Lyre Valley Trail Marker',
@@ -2721,8 +2364,150 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     sheetMusicReward: 'piece_bach_minuet',
     dialogue: ["You discovered the ancient lost folio for 'Minuet in G Major' (Baroque Duet)!"]
   },
+  {
+    id: 'npc_toby_world',
+    name: 'Toby',
+    title: 'Acoustic Folk Kid (Age 11) [SPACE to Jam]',
+    x: 750,
+    y: 850,
+    zone: 'west_wilderness',
+    musicianData: RECRUITABLE_MUSICIANS[4],
+    actionType: 'audition_battle',
+    dialogue: RECRUITABLE_MUSICIANS[4].dialogue || []
+  },
+  {
+    id: 'npc_wild_swan',
+    name: 'Wild Cantabile Swan',
+    title: 'Wild Harmonipet (Violin) [SPACE to Harmonize]',
+    x: 1200,
+    y: 1100,
+    zone: 'west_wilderness',
+    actionType: 'wild_harmonipet',
+    wildPetData: {
+      id: 'pet_swan_wild',
+      name: 'Grace',
+      species: 'Cantabile Swan',
+      sprite: 'swan',
+      section: 'strings',
+      instrumentName: 'Concert Violin',
+      leitmotifSound: 'violin_pure',
+      color: '#ec4899'
+    },
+    dialogue: [
+      "A majestic Cantabile Swan glides across the stream, singing pure lyrical violin tones! Harmonize with its melody to bond with it!"
+    ]
+  },
 
-  // 🍃 East Wilderness (Breeze Glade) Exploration
+  // ==================== WOODWIND WOODS (SETTLED CANOPY VILLAGE) ====================
+  {
+    id: 'npc_oliver_world',
+    name: 'Oliver',
+    title: 'Preteen Flute Nature Nerd (Age 13) [SPACE to Jam]',
+    x: 900,
+    y: 850,
+    zone: 'woodwind_woods',
+    musicianData: RECRUITABLE_MUSICIANS[1],
+    actionType: 'audition_battle',
+    dialogue: RECRUITABLE_MUSICIANS[1].dialogue || []
+  },
+  {
+    id: 'npc_devon_world',
+    name: 'Devon',
+    title: 'Indie College Saxophonist (Age 19) [SPACE to Jam]',
+    x: 1300,
+    y: 550,
+    zone: 'woodwind_woods',
+    musicianData: RECRUITABLE_MUSICIANS[7],
+    actionType: 'audition_battle',
+    dialogue: RECRUITABLE_MUSICIANS[7].dialogue || []
+  },
+  {
+    id: 'npc_sylvan_grove',
+    name: 'Leo & The Canopy Trio',
+    title: 'Teen Bossa Trio (Ages 14-16) [SPACE to Compete]',
+    x: 1500,
+    y: 950,
+    zone: 'woodwind_woods',
+    actionType: 'competition_stage',
+    rivalId: 'rival_woodwind_trio',
+    dialogue: [
+      "Yo! We're the Whispering Canopy Trio! We won the regional youth jazz fest last summer. Think you can handle our bossa syncopation?"
+    ]
+  },
+  {
+    id: 'npc_theory_woods',
+    name: 'Forest Druid Lectern',
+    title: 'Woodwind Theory Exam (Intervals) [SPACE]',
+    x: 900,
+    y: 400,
+    zone: 'woodwind_woods',
+    isProp: true,
+    propType: 'lectern',
+    actionType: 'theory_bench',
+    theoryType: 'intervals_ear_training',
+    dialogue: [
+      "Study the natural overtones of the forest canopy to master interval recognition and harmonic skips!"
+    ]
+  },
+  {
+    id: 'npc_music_stand_woods',
+    name: 'Canopy Music Stand',
+    title: 'Study Sheet Music [SPACE]',
+    x: 1300,
+    y: 650,
+    zone: 'woodwind_woods',
+    isProp: true,
+    propType: 'music_stand',
+    actionType: 'sheet_music_stand',
+    sheetMusicReward: 'piece_bossa_trio',
+    dialogue: [
+      "You discovered the sheet music for 'Sylvan Bossa Nova Serenade' (Trio piece for Woodwinds & Strings)!"
+    ]
+  },
+  {
+    id: 'npc_wild_finch',
+    name: 'Wild Piccolo Finch',
+    title: 'Wild Harmonipet (Silver Flute) [SPACE to Harmonize]',
+    x: 600,
+    y: 900,
+    zone: 'woodwind_woods',
+    actionType: 'wild_harmonipet',
+    wildPetData: {
+      id: 'pet_finch_wild',
+      name: 'Chirpy',
+      species: 'Piccolo Finch',
+      sprite: 'finch',
+      section: 'woodwinds',
+      instrumentName: 'Silver Flute',
+      leitmotifSound: 'flute_chirp',
+      color: '#10b981'
+    },
+    dialogue: [
+      "A colorful Piccolo Finch flutters between the branches, chirping high-velocity woodwind runs! Echo its pitch to bond with it!"
+    ]
+  },
+
+  {
+    id: 'npc_wild_otter',
+    name: 'Wild Reed Otter',
+    title: 'Wild Harmonipet (Clarinet) [SPACE to Harmonize]',
+    x: 1400,
+    y: 1200,
+    zone: 'woodwind_woods',
+    actionType: 'wild_harmonipet',
+    wildPetData: {
+      id: 'pet_otter_wild',
+      name: 'Echo',
+      species: 'River Otter',
+      sprite: 'otter',
+      section: 'woodwinds',
+      instrumentName: 'Clarinet',
+      leitmotifSound: 'flute_chirp',
+      color: '#059669'
+    },
+    dialogue: ["A playful River Otter slides down the mudbank, blowing smooth clarinet arpeggios! Match its tone to bond!"]
+  },
+  // ==================== EAST WILDERNESS (BREEZE GLADE & BAMBOO MARSH) ====================
   {
     id: 'npc_sign_east_wilds',
     name: 'Breeze Glade Trail Marker',
@@ -2766,8 +2551,139 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     sheetMusicReward: 'piece_debussy_reverie',
     dialogue: ["You unearthed the impressionist masterpiece 'Rêverie for Woodwind Trio'!"]
   },
+  {
+    id: 'npc_chloe_world',
+    name: 'Chloe',
+    title: 'Shy Oboe Prodigy (Age 12) [SPACE to Jam]',
+    x: 1100,
+    y: 800,
+    zone: 'east_wilderness',
+    musicianData: RECRUITABLE_MUSICIANS[6],
+    actionType: 'audition_battle',
+    dialogue: RECRUITABLE_MUSICIANS[6].dialogue || []
+  },
+  {
+    id: 'npc_wild_frog',
+    name: 'Wild Flute Frog',
+    title: 'Wild Harmonipet (Oboe) [SPACE to Harmonize]',
+    x: 800,
+    y: 1000,
+    zone: 'east_wilderness',
+    actionType: 'wild_harmonipet',
+    wildPetData: {
+      id: 'pet_frog_wild',
+      name: 'Syncopate',
+      species: 'Flute Frog',
+      sprite: 'frog',
+      section: 'woodwinds',
+      instrumentName: 'Silver Oboe',
+      leitmotifSound: 'flute_chirp',
+      color: '#059669'
+    },
+    dialogue: [
+      "A luminous green Flute Frog croaks with rich double-reed resonance upon a lily pad! Match its arpeggio to bond with it!"
+    ]
+  },
 
-  // 🏜️ North Wilderness (Echo Canyon) Exploration
+  // ==================== BRASS CITADEL (SETTLED GILDED METRO) ====================
+  {
+    id: 'npc_baron_world',
+    name: 'Jax "The Brass Baron"',
+    title: 'High School Band Lead (Age 17) [SPACE to Jam]',
+    x: 1000,
+    y: 800,
+    zone: 'brass_citadel',
+    musicianData: RECRUITABLE_MUSICIANS[2],
+    actionType: 'audition_battle',
+    dialogue: RECRUITABLE_MUSICIANS[2].dialogue || []
+  },
+  {
+    id: 'npc_vesta_citadel',
+    name: 'Baroness Vesta',
+    title: 'High School Marching Captain (Age 17) [SPACE to Compete]',
+    x: 1500,
+    y: 600,
+    zone: 'brass_citadel',
+    actionType: 'competition_stage',
+    rivalId: 'rival_brass_quartet',
+    dialogue: [
+      "Attention! I'm Baroness Vesta, drum major of the Citadel Fanfare Brigade. Our brass quartet has won state honors three years running. Think you can out-project us?"
+    ]
+  },
+  {
+    id: 'npc_theory_citadel',
+    name: 'Citadel Theory Lectern',
+    title: 'Brass Theory Exam (Triads & Chords) [SPACE]',
+    x: 600,
+    y: 400,
+    zone: 'brass_citadel',
+    isProp: true,
+    propType: 'lectern',
+    actionType: 'theory_bench',
+    theoryType: 'triads_chords',
+    dialogue: [
+      "Master the construction of major, minor, and augmented brass triads to command heroic projection!"
+    ]
+  },
+  {
+    id: 'npc_music_stand_citadel',
+    name: 'Gilded Music Stand',
+    title: 'Study Sheet Music [SPACE]',
+    x: 1400,
+    y: 400,
+    zone: 'brass_citadel',
+    isProp: true,
+    propType: 'music_stand',
+    actionType: 'sheet_music_stand',
+    sheetMusicReward: 'piece_starlight_quartet',
+    dialogue: [
+      "You discovered the sheet music for 'Starlight Fanfare' (Quartet piece for Brass & Ensemble)!"
+    ]
+  },
+  {
+    id: 'npc_wild_terrier',
+    name: 'Wild Fanfare Terrier',
+    title: 'Wild Harmonipet (Pocket Trumpet) [SPACE to Harmonize]',
+    x: 1200,
+    y: 1100,
+    zone: 'brass_citadel',
+    actionType: 'wild_harmonipet',
+    wildPetData: {
+      id: 'pet_terrier_wild',
+      name: 'Rally',
+      species: 'Fanfare Terrier',
+      sprite: 'terrier',
+      section: 'brass',
+      instrumentName: 'Pocket Trumpet',
+      leitmotifSound: 'trumpet_blare',
+      color: '#eab308'
+    },
+    dialogue: [
+      "An energetic Fanfare Terrier is yapping out crisp brass fifths! Match its barking rhythm to bond with it!"
+    ]
+  },
+
+  {
+    id: 'npc_wild_ram',
+    name: 'Wild Citadel Ram',
+    title: 'Wild Harmonipet (French Horn) [SPACE to Harmonize]',
+    x: 400,
+    y: 1200,
+    zone: 'brass_citadel',
+    actionType: 'wild_harmonipet',
+    wildPetData: {
+      id: 'pet_ram_wild',
+      name: 'Valiant',
+      species: 'Citadel Ram',
+      sprite: 'ram',
+      section: 'brass',
+      instrumentName: 'French Horn',
+      leitmotifSound: 'horn_call',
+      color: '#eab308'
+    },
+    dialogue: ["A noble Citadel Ram stomps proudly upon the gilded stone, blaring warm French horn fanfares! Echo its motif!"]
+  },
+  // ==================== NORTH WILDERNESS (ECHO CANYON & RED ROCK STEPPES) ====================
   {
     id: 'npc_sign_north_wilds',
     name: 'Echo Canyon Trail Marker',
@@ -2811,8 +2727,139 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     sheetMusicReward: 'piece_vivaldi_spring',
     dialogue: ["You recovered the energetic score of 'Spring Allegro for Brass Quartet'!"]
   },
+  {
+    id: 'npc_sam_world',
+    name: 'Sam',
+    title: 'Trombone Hotshot (Age 16) [SPACE to Jam]',
+    x: 1200,
+    y: 900,
+    zone: 'north_wilderness',
+    musicianData: RECRUITABLE_MUSICIANS[8],
+    actionType: 'audition_battle',
+    dialogue: RECRUITABLE_MUSICIANS[8].dialogue || []
+  },
+  {
+    id: 'npc_wild_badger',
+    name: 'Wild Fanfare Badger',
+    title: 'Wild Harmonipet (French Horn) [SPACE to Harmonize]',
+    x: 700,
+    y: 700,
+    zone: 'north_wilderness',
+    actionType: 'wild_harmonipet',
+    wildPetData: {
+      id: 'pet_badger_wild',
+      name: 'Diesel',
+      species: 'Fanfare Badger',
+      sprite: 'badger',
+      section: 'brass',
+      instrumentName: 'French Horn',
+      leitmotifSound: 'horn_call',
+      color: '#f97316'
+    },
+    dialogue: [
+      "A stout Fanfare Badger puffs its chest and echoes deep horn calls against the canyon walls! Match its call to bond with it!"
+    ]
+  },
 
-  // 🌋 South Wilderness (Rumble Gorge) Exploration
+  // ==================== PERCUSSION PEAKS (SETTLED TAIKO GHATS) ====================
+  {
+    id: 'npc_rita_world',
+    name: 'Rita',
+    title: 'Skate-Punk Drummer (Age 16) [SPACE to Jam]',
+    x: 1000,
+    y: 1050,
+    zone: 'percussion_peaks',
+    musicianData: RECRUITABLE_MUSICIANS[3],
+    actionType: 'audition_battle',
+    dialogue: RECRUITABLE_MUSICIANS[3].dialogue || []
+  },
+  {
+    id: 'npc_ronin_peaks',
+    name: 'Chieftain Ronin',
+    title: 'Street Percussion Leader (Age 18) [SPACE to Compete]',
+    x: 1500,
+    y: 1150,
+    zone: 'percussion_peaks',
+    actionType: 'competition_stage',
+    rivalId: 'rival_thunder_chamber',
+    dialogue: [
+      "Yo! I'm Ronin. We run the Mountbeat street drum crew. In Percussion Peaks, timing isn't a suggestion—it's law. Let's see your pulse!"
+    ]
+  },
+  {
+    id: 'npc_theory_peaks',
+    name: 'Mountain Metronome Lectern',
+    title: 'Rhythm Theory Exam (Polyrhythms) [SPACE]',
+    x: 600,
+    y: 500,
+    zone: 'percussion_peaks',
+    isProp: true,
+    propType: 'lectern',
+    actionType: 'theory_bench',
+    theoryType: 'rhythm_meter_1',
+    dialogue: [
+      "Master irregular meters (5/4, 7/8) and syncopated cross-rhythms to lock into the ultimate rhythmic groove!"
+    ]
+  },
+  {
+    id: 'npc_music_stand_peaks',
+    name: 'Basalt Music Stand',
+    title: 'Study Sheet Music [SPACE]',
+    x: 1400,
+    y: 500,
+    zone: 'percussion_peaks',
+    isProp: true,
+    propType: 'music_stand',
+    actionType: 'sheet_music_stand',
+    sheetMusicReward: 'piece_taiko_thunder',
+    dialogue: [
+      "You discovered the sheet music for 'Mountbeat Thunderclap' (Chamber piece for Full Percussion & Ensemble)!"
+    ]
+  },
+  {
+    id: 'npc_wild_tortoise',
+    name: 'Wild Tempo Tortoise',
+    title: 'Wild Harmonipet (Timpani) [SPACE to Harmonize]',
+    x: 1200,
+    y: 800,
+    zone: 'percussion_peaks',
+    actionType: 'wild_harmonipet',
+    wildPetData: {
+      id: 'pet_tortoise_wild',
+      name: 'Meter',
+      species: 'Tempo Tortoise',
+      sprite: 'tortoise',
+      section: 'percussion',
+      instrumentName: 'Timpani',
+      leitmotifSound: 'drum_beat',
+      color: '#8b5cf6'
+    },
+    dialogue: [
+      "A massive Tempo Tortoise taps its resonant shell like a grand orchestral timpani with metronomic precision! Lock into its cadence to bond with it!"
+    ]
+  },
+
+  {
+    id: 'npc_wild_raccoon',
+    name: 'Wild Beat Raccoon',
+    title: 'Wild Harmonipet (Snare Kit) [SPACE to Harmonize]',
+    x: 1600,
+    y: 1200,
+    zone: 'percussion_peaks',
+    actionType: 'wild_harmonipet',
+    wildPetData: {
+      id: 'pet_raccoon_wild',
+      name: 'Groove',
+      species: 'Beat Raccoon',
+      sprite: 'raccoon',
+      section: 'percussion',
+      instrumentName: 'Custom Snare',
+      leitmotifSound: 'drum_snap',
+      color: '#8b5cf6'
+    },
+    dialogue: ["A clever Beat Raccoon drums with rapid paw-taps on hollow basalt stones! Lock into its groove!"]
+  },
+  // ==================== SOUTH WILDERNESS (RUMBLE GORGE & VOLCANIC CAVERNS) ====================
   {
     id: 'npc_sign_south_wilds',
     name: 'Rumble Gorge Trail Marker',
@@ -2855,6 +2902,113 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     actionType: 'sheet_music_stand',
     sheetMusicReward: 'piece_tchaikovsky_dance',
     dialogue: ["You discovered the thrilling score 'Dance of the Tumblers for Percussion Chamber'!"]
+  },
+  {
+    id: 'npc_ren_world',
+    name: 'Ren',
+    title: 'Taiko Dynamo Kid (Age 12) [SPACE to Jam]',
+    x: 800,
+    y: 900,
+    zone: 'south_wilderness',
+    musicianData: RECRUITABLE_MUSICIANS[9],
+    actionType: 'audition_battle',
+    dialogue: RECRUITABLE_MUSICIANS[9].dialogue || []
+  },
+  {
+    id: 'npc_wild_armadillo',
+    name: 'Wild Rhythm Armadillo',
+    title: 'Wild Harmonipet (Snare Kit) [SPACE to Harmonize]',
+    x: 1200,
+    y: 900,
+    zone: 'south_wilderness',
+    actionType: 'wild_harmonipet',
+    wildPetData: {
+      id: 'pet_armadillo_wild',
+      name: 'Tank',
+      species: 'Rhythm Armadillo',
+      sprite: 'armadillo',
+      section: 'percussion',
+      instrumentName: 'Snare Kit',
+      leitmotifSound: 'drum_snap',
+      color: '#a855f7'
+    },
+    dialogue: [
+      "A spirited Rhythm Armadillo rolls along the basalt rocks, rattling its armor in syncopated snare bursts! Match its rhythm to bond with it!"
+    ]
+  },
+
+  // ==================== GRAND SYMPHONY HALL (CENTRAL CONSERVATORY HUB) ====================
+  {
+    id: 'npc_nico_world',
+    name: 'Nico',
+    title: 'Conservatory Arranger (Age 20) [SPACE to Jam]',
+    x: 600,
+    y: 800,
+    zone: 'grand_hall',
+    musicianData: RECRUITABLE_MUSICIANS[10],
+    actionType: 'audition_battle',
+    dialogue: RECRUITABLE_MUSICIANS[10].dialogue || []
+  },
+  {
+    id: 'npc_aurelius_grand_hall',
+    name: 'Aurelius',
+    title: 'Student Conductor (Age 21) [SPACE to Compete]',
+    x: 1800,
+    y: 800,
+    zone: 'grand_hall',
+    actionType: 'competition_stage',
+    rivalId: 'rival_grand_orchestra',
+    dialogue: [
+      "Welcome to the Eternal Stage! I'm Aurelius. My youth orchestra has unified all four musical sections into one voice. Show us the breadth of your ensemble's harmony!"
+    ]
+  },
+  {
+    id: 'npc_theory_grand_hall',
+    name: 'Grand High Lectern',
+    title: 'Master Theory Exam (Acoustics & Orchestration) [SPACE]',
+    x: 400,
+    y: 750,
+    zone: 'grand_hall',
+    isProp: true,
+    propType: 'lectern',
+    actionType: 'theory_bench',
+    theoryType: 'orchestral_acoustics',
+    dialogue: [
+      "The pinnacle of theoretical studies: learn to balance timbral weight, dynamic frequencies, and polyphonic counterpoint across full symphony orchestras!"
+    ]
+  },
+  {
+    id: 'npc_music_stand_grand_hall',
+    name: 'Celestial Music Stand',
+    title: 'Study Sheet Music [SPACE]',
+    x: 1200,
+    y: 600,
+    zone: 'grand_hall',
+    isProp: true,
+    propType: 'golden_music_stand',
+    actionType: 'sheet_music_stand',
+    sheetMusicReward: 'piece_ode_to_harmony',
+    dialogue: [
+      "You discovered the legendary master score: 'Ode to Harmonic Resonance' (Full 8-Piece Symphony Orchestra)!"
+    ]
+  },
+  {
+    id: 'npc_signpost_grand_hall',
+    name: 'Grand Colonnade Compass Sign',
+    title: 'Read Central Overworld Marker [SPACE]',
+    x: 1200,
+    y: 1300,
+    zone: 'grand_hall',
+    isProp: true,
+    propType: 'road_sign',
+    actionType: 'signpost',
+    dialogue: [
+      "🏛️ THE GRAND SYMPHONY HUB — CENTRAL COMPASS:",
+      "• ⬅️ WEST SYMPHONY ARCH: Lyre Valley $\rightarrow$ Cavatina Village (Strings).",
+      "• ➡️ EAST GRAND GATE: Breeze Glade $\rightarrow$ Woodwind Woods (Woodwinds).",
+      "• ⬆️ NORTH COLONNADE: Echo Canyon $\rightarrow$ The Brass Citadel (Brass).",
+      "• ⬇️ SOUTH GRAND BRIDGE: Rumble Gorge $\rightarrow$ Percussion Peaks (Percussion)."
+    ]
   }
 ];
 

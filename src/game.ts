@@ -542,12 +542,13 @@ export class HarmoniaGameEngine {
     };
     this.state.mode = 'harmonize_wild';
     soundEngine.stopBGM();
+    soundEngine.playWildlifeCall(pet.species.toLowerCase());
 
     // Play creature's introductory call phrase
     targetMelody.forEach((freq, idx) => {
       setTimeout(() => {
         soundEngine.playInstrumentNote(this.state.harmonizeEncounter?.instrumentId || 'silver_flute', freq, 0.25, 0.7);
-      }, idx * 250);
+      }, (idx + 1) * 250);
     });
   }
 

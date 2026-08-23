@@ -376,6 +376,7 @@ export interface WorldNPC {
   wildPetData?: Harmonipet;
   rivalId?: string;
   theoryType?: TheoryChallengeType;
+  questId?: string;
 }
 
 export interface GameDialogue {
