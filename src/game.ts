@@ -1,6 +1,6 @@
 import { soundEngine } from './audio';
-import { BOSS_SIGNAL_OVERLORD, FUSED_CHIMERA, JAX_SPIRIT, RIVAL_JAX, STARTER_SPIRIT, TOWN_NPCS, TOWN_SOUND_RIPPLES } from './data';
-import { GameState, Move, NPCEntity, SoundRipple } from './types';
+import { BOSS_SIGNAL_OVERLORD, FUSED_CHIMERA, JAX_SPIRIT, RIVAL_JAX, STARTER_SPIRIT, TOWN_NPCS, TOWN_SOUND_RIPPLES, TOWN_WILD_GLITCHES } from './data';
+import { GameState, Move, NPCEntity, SoundRipple, WildGlitchEntity } from './types';
 
 export class AstralGameEngine {
   private state: GameState;
@@ -28,6 +28,7 @@ export class AstralGameEngine {
       },
       npcs: JSON.parse(JSON.stringify(TOWN_NPCS)),
       soundRipples: JSON.parse(JSON.stringify(TOWN_SOUND_RIPPLES)),
+      wildGlitches: JSON.parse(JSON.stringify(TOWN_WILD_GLITCHES)),
       activeCompanion: null,
       streamQueue: [JSON.parse(JSON.stringify(STARTER_SPIRIT))],
       activeSpiritIndex: 0,
@@ -202,7 +203,7 @@ export class AstralGameEngine {
   private updateProximity(): void {
     const px = this.state.player.x;
     const py = this.state.player.y;
-    let closest: NPCEntity | SoundRipple | null = null;
+    let closest: NPCEntity | SoundRipple | WildGlitchEntity | null = null;
     let minDist = 65;
 
     // Check NPCs
@@ -225,12 +226,29 @@ export class AstralGameEngine {
       }
     }
 
+    // Check Wild Glitches
+    for (const g of this.state.wildGlitches) {
+      if (!g.defeated) {
+        const d = Math.hypot(px - g.x, py - g.y);
+        if (d < minDist) {
+          minDist = d;
+          closest = g;
+        }
+      }
+    }
+
     this.state.nearbyInteractable = closest;
   }
 
   public interactWithNearby(): void {
     const target = this.state.nearbyInteractable;
     if (!target) return;
+
+    if ('spirit' in target && 'defeated' in target) {
+      // Wild Glitch Encounter
+      this.startWildBattle(target as WildGlitchEntity);
+      return;
+    }
 
     if ('dialogue' in target) {
       // NPC
@@ -422,6 +440,28 @@ export class AstralGameEngine {
   }
 
   /* ---------------- BATTLE & RHYTHM TIMING SYSTEM ---------------- */
+  public startWildBattle(glitch: WildGlitchEntity): void {
+    this.state.mode = 'battle';
+    soundEngine.switchTrack('battle');
+    const playerSpirit = JSON.parse(JSON.stringify(this.state.streamQueue[0] || STARTER_SPIRIT));
+
+    this.state.battle = {
+      type: 'wild',
+      playerSpirit,
+      enemySpirit: JSON.parse(JSON.stringify(glitch.spirit)),
+      turn: 'player',
+      pendingMoveIndex: null,
+      rhythmCursor: 0,
+      rhythmSpeed: 1.2,
+      targetWindowStart: 0.40,
+      targetWindowEnd: 0.65,
+      rhythmResult: null,
+      log: `A wild ${glitch.name} emerged from the static sands! Pick a move!`,
+      canBlend: !!this.state.activeCompanion,
+      blendActive: false
+    };
+  }
+
   public startBattle(type: 'rival' | 'boss'): void {
     this.state.mode = 'battle';
     soundEngine.switchTrack('battle');
@@ -479,13 +519,15 @@ export class AstralGameEngine {
     const b = this.state.battle;
     if (!b || b.turn !== 'rhythm_timing' || b.pendingMoveIndex === null) return;
 
-    const cur = b.rhythmCursor;
+    const inWindow = b.rhythmCursor >= b.targetWindowStart && b.rhythmCursor <= b.targetWindowEnd;
+    const center = (b.targetWindowStart + b.targetWindowEnd) / 2;
+    const dist = Math.abs(b.rhythmCursor - center);
+
     let grade: 'PERFECT' | 'GREAT' | 'MISS' = 'MISS';
     let multiplier = 0.5;
 
-    if (cur >= b.targetWindowStart && cur <= b.targetWindowEnd) {
-      const center = (b.targetWindowStart + b.targetWindowEnd) / 2;
-      if (Math.abs(cur - center) < 0.06) {
+    if (inWindow) {
+      if (dist < 0.05) {
         grade = 'PERFECT';
         multiplier = 1.5;
         b.playerSpirit.energy = Math.min(100, b.playerSpirit.energy + 10);
@@ -504,7 +546,7 @@ export class AstralGameEngine {
     // Global Genre Affinity Multipliers:
     // 🎻 Symphonic > 🎹 Synth > 🪕 Global > 🎷 Jazz > 🎻 Symphonic
     let genreMult = 1.0;
-    const eType = b.type === 'rival' ? b.enemySpirit?.type : b.enemyBoss?.type;
+    const eType = (b.type === 'rival' || b.type === 'wild') ? b.enemySpirit?.type : b.enemyBoss?.type;
     if (move.type === 'symphonic' && eType === 'synth') genreMult = 1.5;
     if (move.type === 'synth' && eType === 'global') genreMult = 1.5;
     if (move.type === 'global' && eType === 'jazz') genreMult = 1.5;
@@ -517,7 +559,7 @@ export class AstralGameEngine {
     soundEngine.playMoveSound(move.soundType);
 
     setTimeout(() => {
-      if (b.type === 'rival' && b.enemySpirit) {
+      if ((b.type === 'rival' || b.type === 'wild') && b.enemySpirit) {
         b.enemySpirit.hp = Math.max(0, b.enemySpirit.hp - totalDmg);
         b.log = `[${grade} SYNC!] ${b.playerSpirit.name} landed ${move.name} for ${totalDmg} damage!`;
         if (b.enemySpirit.hp <= 0) {
@@ -554,7 +596,7 @@ export class AstralGameEngine {
     let enemyName = '';
     let move: Move;
 
-    if (b.type === 'rival' && b.enemySpirit) {
+    if ((b.type === 'rival' || b.type === 'wild') && b.enemySpirit) {
       enemyName = b.enemySpirit.name;
       move = b.enemySpirit.moves[Math.floor(Math.random() * b.enemySpirit.moves.length)];
     } else if (b.type === 'boss' && b.enemyBoss) {
@@ -574,7 +616,37 @@ export class AstralGameEngine {
 
   private handleBattleVictory(): void {
     const b = this.state.battle!;
-    if (b.type === 'rival') {
+    if (b.type === 'wild') {
+      soundEngine.playSuccessDing();
+      soundEngine.playLockChime();
+      this.state.mode = 'exploration';
+      this.state.battle = null;
+      soundEngine.switchTrack('town');
+
+      // Find and mark defeated
+      const activeGlitch = this.state.wildGlitches.find(g => !g.defeated && g.spirit.id === b.enemySpirit?.id);
+      if (activeGlitch) activeGlitch.defeated = true;
+
+      // Frequency Resonance XP & Level Up
+      const activeSpirit = this.state.streamQueue[0];
+      activeSpirit.xp += 50;
+      let levelUpMsg = '';
+      if (activeSpirit.xp >= activeSpirit.maxXp) {
+        activeSpirit.level++;
+        activeSpirit.xp -= activeSpirit.maxXp;
+        activeSpirit.maxXp = Math.floor(activeSpirit.maxXp * 1.5);
+        activeSpirit.maxHp += 15;
+        activeSpirit.hp = activeSpirit.maxHp;
+        activeSpirit.attack += 4;
+        levelUpMsg = ` 🌟 LEVEL UP! ${activeSpirit.name} reached Lv. ${activeSpirit.level}! (Max HP +15, ATK +4)`;
+      }
+
+      this.showDialogue('Battle Victory', '✨🎉', [
+        `✨ You cleansed the ${b.enemySpirit?.name || 'Wild Glitch'}!`,
+        `${activeSpirit.name} gained +50 Frequency Resonance (XP)!${levelUpMsg}`,
+        `Keep exploring Cadence Plaza to strengthen your team before facing Dead Channel 000!`
+      ]);
+    } else if (b.type === 'rival') {
       soundEngine.playLockChime();
       this.state.activeCompanion = 'jax';
       if (!this.state.streamQueue.find(s => s.id === JAX_SPIRIT.id)) {
@@ -588,7 +660,7 @@ export class AstralGameEngine {
         "Whoa... okay, your timing is clean and your rhythm is sharp. I respect that!",
         "My Sub-Woofer Bass-Hound and I are officially joining your active squad! 🐶🎸",
         "We're linked and ready, but Dead Channel 000 is a massive anomaly. Take time to explore Cadence Plaza!",
-        "Discover the 3 cultural sound stations in town to stream the Baroque Violin, Indian Sitar, and Taiko Drum.",
+        "Battle wild static glitches on the beach to level up your squad, and discover the 3 cultural sound stations in town.",
         "Whenever you're ready for the final battle, step up to the Glitch Gate to breach the static storm together!"
       ]);
     } else if (b.type === 'boss') {

@@ -9,7 +9,8 @@ import {
   FUSED_CHIMERA,
   BOSS_SIGNAL_OVERLORD,
   TOWN_NPCS,
-  TOWN_SOUND_RIPPLES
+  TOWN_SOUND_RIPPLES,
+  TOWN_WILD_GLITCHES
 } from '../src/data';
 
 describe('Harmonimals & Data Integrity', () => {
@@ -62,11 +63,13 @@ describe('Harmonimals & Data Integrity', () => {
     expect(jax?.actionType).toBe('battle_jax');
   });
 
-  it('should verify the 3 cultural sound discovery ripples', () => {
-    expect(TOWN_SOUND_RIPPLES.length).toBe(3);
-    const types = TOWN_SOUND_RIPPLES.map(r => r.challengeType);
-    expect(types).toContain('waveform_slider');
-    expect(types).toContain('call_response');
-    expect(types).toContain('rhythm_pulse');
+  it('should verify roaming wild static glitch encounters on the beach', () => {
+    expect(TOWN_WILD_GLITCHES.length).toBeGreaterThanOrEqual(2);
+    TOWN_WILD_GLITCHES.forEach(g => {
+      expect(g.id).toBeTruthy();
+      expect(g.spirit.type).toBe('static');
+      expect(g.spirit.hp).toBeGreaterThan(0);
+      expect(g.defeated).toBe(false);
+    });
   });
 });

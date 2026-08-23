@@ -156,6 +156,13 @@ export class AstralRenderer {
       }
     }
 
+    // 7.5 Wild Static Glitches (Roaming on beach)
+    for (const g of state.wildGlitches) {
+      if (!g.defeated) {
+        this.drawWildGlitch(ctx, g.x, g.y, g.spirit, t);
+      }
+    }
+
     // 8. NPCs
     for (const npc of state.npcs) {
       this.drawPixelNPC(ctx, npc.x, npc.y, npc.sprite, t, npc.name);
@@ -195,7 +202,9 @@ export class AstralRenderer {
       ctx.textAlign = 'center';
 
       let promptText = '';
-      if ('name' in target) {
+      if ('spirit' in target && 'defeated' in target) {
+        promptText = `⚔️ [SPACE] Battle ${(target as any).name}`;
+      } else if ('name' in target) {
         if (target.id === 'npc_gate') {
           promptText = state.activeCompanion === 'jax' ? '⚠️ [SPACE] Breach Glitch Gate' : '⚠️ [SPACE] Inspect Gate';
         } else if (target.actionType === 'battle_jax') {
@@ -665,6 +674,39 @@ export class AstralRenderer {
     for (let sp = -6; sp <= 4; sp += 3) {
       ctx.fillRect(sp, -9, 2, 2);
     }
+
+    ctx.restore();
+  }
+
+  private drawWildGlitch(ctx: CanvasRenderingContext2D, x: number, y: number, spirit: StreamSpirit, t: number): void {
+    ctx.save();
+    ctx.translate(x, y);
+
+    // Drop Shadow
+    ctx.fillStyle = 'rgba(239, 68, 68, 0.25)';
+    ctx.beginPath();
+    ctx.ellipse(0, 6, 14, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Glitch Shiver & Floating
+    const jitterX = (Math.random() - 0.5) * 2;
+    const jitterY = Math.sin(t * 8) * 3;
+
+    ctx.font = '24px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(spirit.avatar, jitterX, jitterY);
+
+    // Scanline Sparks
+    ctx.fillStyle = '#ef4444';
+    ctx.fillRect(jitterX - 10, jitterY - 12, 4, 1);
+    ctx.fillStyle = '#38bdf8';
+    ctx.fillRect(jitterX + 6, jitterY + 8, 4, 1);
+
+    // Label above
+    ctx.fillStyle = '#f87171';
+    ctx.font = '700 11px Fredoka, sans-serif';
+    ctx.fillText(`Lv.${spirit.level} ${spirit.name}`, 0, -18);
 
     ctx.restore();
   }

@@ -40,6 +40,9 @@ export interface StreamSpirit {
   originTradition: string; // e.g. "European Classical", "Indian Classical", "West African", "Caribbean", "Japanese Matsuri"
   type: GenreType;
   color: string;
+  level: number;
+  xp: number;
+  maxXp: number;
   hp: number;
   maxHp: number;
   energy: number;
@@ -71,8 +74,17 @@ export interface SoundRipple {
   discovered: boolean;
 }
 
+export interface WildGlitchEntity {
+  id: string;
+  name: string;
+  x: number;
+  y: number;
+  spirit: StreamSpirit;
+  defeated: boolean;
+}
+
 export interface BattleState {
-  type: 'rival' | 'boss';
+  type: 'wild' | 'rival' | 'boss';
   playerSpirit: StreamSpirit;
   enemySpirit?: StreamSpirit;
   enemyBoss?: {
@@ -135,10 +147,11 @@ export interface GameState {
   player: PlayerPosition;
   npcs: NPCEntity[];
   soundRipples: SoundRipple[];
+  wildGlitches: WildGlitchEntity[];
   activeCompanion: string | null;
   streamQueue: StreamSpirit[];
   activeSpiritIndex: number;
-  nearbyInteractable: NPCEntity | SoundRipple | null;
+  nearbyInteractable: NPCEntity | SoundRipple | WildGlitchEntity | null;
   audioMatch: AudioMatchState | null;
   battle: BattleState | null;
   dialogue: {

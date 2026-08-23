@@ -136,16 +136,16 @@ export class AstralUIManager {
 
         // Player HP
         const pPct = Math.max(0, (b.playerSpirit.hp / b.playerSpirit.maxHp) * 100);
-        document.getElementById('player-name')!.textContent = `${b.playerSpirit.name} [${b.playerSpirit.vibeTag}]`;
+        document.getElementById('player-name')!.textContent = `Lv.${b.playerSpirit.level} ${b.playerSpirit.name} [${b.playerSpirit.vibeTag}]`;
         document.getElementById('player-hp-bar')!.style.width = `${pPct}%`;
-        document.getElementById('player-hp-text')!.textContent = `${b.playerSpirit.hp}/${b.playerSpirit.maxHp} HP`;
+        document.getElementById('player-hp-text')!.textContent = `${b.playerSpirit.hp}/${b.playerSpirit.maxHp} HP (XP: ${b.playerSpirit.xp}/${b.playerSpirit.maxXp})`;
 
         // Enemy HP
         let eName = '';
         let eHp = 0;
         let eMaxHp = 1;
-        if (b.type === 'rival' && b.enemySpirit) {
-          eName = `${b.enemySpirit.name} [${b.enemySpirit.vibeTag}]`;
+        if ((b.type === 'rival' || b.type === 'wild') && b.enemySpirit) {
+          eName = `Lv.${b.enemySpirit.level} ${b.enemySpirit.name} [${b.enemySpirit.vibeTag}]`;
           eHp = b.enemySpirit.hp;
           eMaxHp = b.enemySpirit.maxHp;
         } else if (b.type === 'boss' && b.enemyBoss) {

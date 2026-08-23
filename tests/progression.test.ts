@@ -61,4 +61,36 @@ describe('Story Progression & Tag-Team Fusion', () => {
     expect(state.mode).toBe('cleansing_cinematic');
     expect(state.battle).toBeNull();
   });
+
+  it('should start wild glitch battle, award XP, and level up Harmonimal', () => {
+    const state = engine.getState();
+    const glitch = state.wildGlitches[0];
+    
+    engine.startWildBattle(glitch);
+    expect(state.battle?.type).toBe('wild');
+    expect(state.battle?.enemySpirit?.name).toBe(glitch.spirit.name);
+
+    // Initial level & XP
+    const playerSpirit = state.streamQueue[0];
+    expect(playerSpirit.level).toBe(1);
+    expect(playerSpirit.xp).toBe(0);
+
+    // First victory (+50 XP)
+    state.battle!.enemySpirit!.hp = 0;
+    (engine as any).handleBattleVictory();
+
+    expect(playerSpirit.xp).toBe(50);
+    expect(playerSpirit.level).toBe(1);
+    expect(glitch.defeated).toBe(true);
+
+    // Second victory (+50 XP -> 100 XP -> LEVEL UP to Lv.2)
+    const glitch2 = state.wildGlitches[1];
+    engine.startWildBattle(glitch2);
+    state.battle!.enemySpirit!.hp = 0;
+    (engine as any).handleBattleVictory();
+
+    expect(playerSpirit.level).toBe(2);
+    expect(playerSpirit.maxHp).toBeGreaterThan(70);
+    expect(playerSpirit.attack).toBeGreaterThan(18);
+  });
 });

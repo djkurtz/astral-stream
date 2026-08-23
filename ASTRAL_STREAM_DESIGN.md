@@ -64,22 +64,29 @@ $$\text{🎻 SYMPHONIC} \xrightarrow{\text{overpowers}} \text{🎹 SYNTH} \xrigh
 * **The Harmony Fountain**: A multi-tiered stone fountain in the plaza center spouting physical 3D musical note particles (`♪ ♫ ♬`) that catch the sunlight.
 * **The Glitch Gate**: An ominous floating 3D portal at the north plaza steps, emitting crackling red-and-purple CRT static scanlines and reality-warping gravitational waves.
 
-### Demo Narrative Arc:
-1. **Act 1 — Waking in Cadence Plaza**: Explore the 3D diorama, talk with Aria and DJ Otter, and discover the 3 cultural sound stations.
-2. **Act 2 — Discovering World Traditions**:
-   * Tune the Equalizer near the cafe to unlock **Allegro-Owl** (`#BaroqueViolin`).
-   * Jam with the Sitar at the fountain to unlock **Sitar-Swan** (`#RagaAura`).
-   * Lock the Festival Beat by the vinyl den to unlock **Taiko-Tanuki** (`#MatsuriThunder`).
-3. **Act 3 — Duel with Jax the Underground Punk**:
-   * Duel Jax and his Sub-Woofer Bass-Hound at the Glitch Gate to test your timing.
-   * Defeating Jax links your playlists, adding Bass-Hound to your squad as an active tag-team ally.
-4. **Act 4 — The 3D Static Storm (Dead Channel 000)**:
-   * Breach the Glitch Gate into a dramatic 3D warped void.
-   * Chime-Cat and Bass-Hound battle side-by-side with Jax against the towering CRT Signal Overlord.
-   * Hit **`[B]`** to trigger the **Playlist Blend Fusion**, uniting Classical, Sitar, and Chiptune into the **Omni-Harmony Chimera**!
-5. **Act 5 — The Cleansing Drop**:
-   * The static rift shatters in an explosion of 3D rainbow pixel confetti.
-   * Full stereo fidelity and vibrant sunlight return to the plaza as everyone dances to a celebratory triumphant drop.
+### Demo Narrative & Gameplay Arc:
+1. **Act 1 — Emergency Broadcast Intro & Awakening**:
+   * An ominous alert overrides the airwaves: `DEAD CHANNEL 000` has hijacked the northern frequency and is muting the island!
+   * Aria and Chime-Cat (`☕🐱`) motivate the player to explore Cadence Plaza, build up their frequency resonance, and find the underground rocker Jax.
+2. **Act 2 — Normal Encounters & Character Progression**:
+   * **Wild Static Glitches**: Roaming rogue data entities (`👾 Bit-Bug` and `📺 Noise-Mote`) haunt the lower shoreline dunes.
+   * **Frequency Resonance (XP & Leveling)**: Winning normal encounters grants +50 XP, leveling up Harmonimals (`Lv. 1 -> Lv. 2 -> Lv. 3`), increasing Max HP, Attack power, and battle endurance.
+   * **Mentor Coaching**: Aria explains the 5-genre cultural wheel and how living creatures bond through shared acoustic frequencies.
+3. **Act 3 — Discovering World Traditions (Audio Match Radar)**:
+   * **🎛️ Equalizer at the Cafe**: Tune into European Classical to stream **Allegro-Owl** (`#BaroqueViolin`).
+   * **🪕 Sitar Jam at the Fountain**: Repeat the Indian Raga motif to stream **Sitar-Swan** (`#RagaAura`).
+   * **🥁 Taiko Beat at the Vinyl Den**: Lock the 120 BPM festival rhythm to stream **Taiko-Tanuki** (`#MatsuriThunder`).
+4. **Act 4 — Character Development: Duel with Jax the Punk**:
+   * Jax reveals his emotional vulnerability: his former rock band's frequency was muted by Dead Channel 000, leaving him bitter and trying to fight solo.
+   * You duel his Sub-Woofer Bass-Hound (`🎸🐶`). Proving your rhythm earns his deep respect.
+5. **Act 5 — World Exploration Phase (Tag-Team Alliance)**:
+   * Jax and Bass-Hound officially ally with your squad. Both Chime-Cat and Bass-Hound follow you in real-time 2.5D across the 3D diorama!
+   * You freely explore town, level up your creatures in wild beach encounters, and prepare for the finale.
+6. **Act 6 — The 3D Static Storm & Cleansing Drop**:
+   * Approach the 3D Glitch Gate and press `[SPACE]` to breach into the warped static void.
+   * Tag-team combat against the towering CRT Signal Overlord with Jax backing you up.
+   * Trigger the **`🌟 COLLABORATIVE PLAYLIST BLEND`** (`[B]`) to fuse into the colossal **Omni-Harmony Chimera (`🐯✨`)**!
+   * Defeating the boss shatters the rift into rainbow pixel confetti, restoring lush colors, full stereo audio, and celebratory dancing!
 
 ---
 

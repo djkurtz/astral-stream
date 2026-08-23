@@ -1,4 +1,4 @@
-import { NPCEntity, SoundRipple, StreamSpirit } from './types';
+import { NPCEntity, SoundRipple, StreamSpirit, WildGlitchEntity } from './types';
 
 export const STARTER_SPIRIT: StreamSpirit = {
   id: 'spirit_chime_cat',
@@ -11,6 +11,9 @@ export const STARTER_SPIRIT: StreamSpirit = {
   avatar: '🎹🐱',
   type: 'synth',
   color: '#38bdf8',
+  level: 1,
+  xp: 0,
+  maxXp: 100,
   hp: 70,
   maxHp: 70,
   energy: 100,
@@ -52,6 +55,9 @@ export const ALLEGRO_OWL_SPIRIT: StreamSpirit = {
   avatar: '🎻🦉',
   type: 'symphonic',
   color: '#a855f7',
+  level: 1,
+  xp: 0,
+  maxXp: 100,
   hp: 75,
   maxHp: 75,
   energy: 100,
@@ -93,6 +99,9 @@ export const SITAR_SWAN_SPIRIT: StreamSpirit = {
   avatar: '🪕🦢',
   type: 'global',
   color: '#f59e0b',
+  level: 1,
+  xp: 0,
+  maxXp: 100,
   hp: 70,
   maxHp: 70,
   energy: 100,
@@ -134,6 +143,9 @@ export const TAIKO_TANUKI_SPIRIT: StreamSpirit = {
   avatar: '🥁🦝',
   type: 'global',
   color: '#ef4444',
+  level: 1,
+  xp: 0,
+  maxXp: 100,
   hp: 85,
   maxHp: 85,
   energy: 100,
@@ -175,6 +187,9 @@ export const BRASS_BUNNY_SPIRIT: StreamSpirit = {
   avatar: '🎷🐰',
   type: 'jazz',
   color: '#fbbf24',
+  level: 1,
+  xp: 0,
+  maxXp: 100,
   hp: 65,
   maxHp: 65,
   energy: 100,
@@ -216,6 +231,9 @@ export const JAX_SPIRIT: StreamSpirit = {
   avatar: '🎸🐶',
   type: 'bass',
   color: '#c084fc',
+  level: 2,
+  xp: 0,
+  maxXp: 150,
   hp: 90,
   maxHp: 90,
   energy: 100,
@@ -246,6 +264,73 @@ export const JAX_SPIRIT: StreamSpirit = {
   ]
 };
 
+// Wild Static Glitchlings roaming the shoreline
+export const BIT_BUG_SPIRIT: StreamSpirit = {
+  id: 'spirit_bit_bug',
+  name: 'Bit-Bug',
+  title: 'Rogue Byte Glitchling',
+  vibeTag: '#StaticNoise',
+  species: 'Pixelated Static Insect',
+  instrument: 'Corrupted Bit-Crush Antennae',
+  originTradition: 'Rogue Data Leak',
+  avatar: '👾',
+  type: 'static',
+  color: '#f87171',
+  level: 1,
+  xp: 0,
+  maxXp: 60,
+  hp: 45,
+  maxHp: 45,
+  energy: 100,
+  attack: 14,
+  defense: 8,
+  speed: 12,
+  moves: [
+    {
+      id: 'm_static_nibble',
+      name: 'Bit-Crush Nibble',
+      type: 'static',
+      power: 16,
+      cost: 10,
+      description: 'Chitters with noisy digital static teeth.',
+      soundType: 'glitch_hit'
+    }
+  ]
+};
+
+export const NOISE_MOTE_SPIRIT: StreamSpirit = {
+  id: 'spirit_noise_mote',
+  name: 'Noise-Mote',
+  title: 'Analog Static Orb',
+  vibeTag: '#AnalogGlitch',
+  species: 'Electromagnetic Anomaly',
+  instrument: 'White Noise Discharge Core',
+  originTradition: 'Rogue Data Leak',
+  avatar: '📺',
+  type: 'static',
+  color: '#fb7185',
+  level: 1,
+  xp: 0,
+  maxXp: 60,
+  hp: 50,
+  maxHp: 50,
+  energy: 100,
+  attack: 16,
+  defense: 10,
+  speed: 14,
+  moves: [
+    {
+      id: 'm_white_hiss',
+      name: 'White Noise Flash',
+      type: 'static',
+      power: 18,
+      cost: 12,
+      description: 'Flashes blinding analog snow to disorient the listener.',
+      soundType: 'glitch_hit'
+    }
+  ]
+};
+
 export const FUSED_CHIMERA: StreamSpirit = {
   id: 'spirit_cyber_chimera',
   name: 'Omni-Harmony Chimera',
@@ -257,6 +342,9 @@ export const FUSED_CHIMERA: StreamSpirit = {
   avatar: '🐯✨',
   type: 'cosmic',
   color: '#f43f5e',
+  level: 3,
+  xp: 0,
+  maxXp: 300,
   hp: 160,
   maxHp: 160,
   energy: 100,
@@ -324,7 +412,7 @@ export const TOWN_NPCS: NPCEntity[] = [
   {
     id: 'npc_aria',
     name: 'Aria',
-    title: 'Neon Cafe Barista',
+    title: 'Neon Cafe Barista & Sound Mentor',
     x: 180,
     y: 220,
     sprite: 'aria',
@@ -332,7 +420,8 @@ export const TOWN_NPCS: NPCEntity[] = [
     actionType: 'talk',
     dialogue: [
       "Welcome to Cadence Plaza! ☕ Notice how our Harmonimals are living, breathing instruments?",
-      "Chime-Cat has piano keys down its spine, and Allegro-Owl's wings are literal violin bows!",
+      "Every time you defeat rogue static glitches in battle, your Harmonimals gain Frequency Resonance (XP) and level up!",
+      "Higher resonance boosts your attack and max HP to help you withstand the Dead Channel's desync attacks.",
       "Here is how the Global Genre wheel turns:",
       "🎻 SYMPHONIC (Violin) overpowers 🎹 SYNTH (Chiptune)!",
       "🎹 SYNTH overpowers 🪕 GLOBAL (Sitar & Taiko)!",
@@ -349,11 +438,12 @@ export const TOWN_NPCS: NPCEntity[] = [
     color: '#fbbf24',
     actionType: 'talk',
     dialogue: [
-      "Yo! Check out the biological marvels living in our sound ripples: 💽",
-      "🎻 Allegro-Owl (F-Hole Stradivarius Owl) near the cafe terrace,",
+      "Yo! The rogue static is leaking onto the shoreline dunes down south. 💽",
+      "If you need to test your battle chops, go duel those rogue Bit-Bugs on the beach!",
+      "And don't forget the 3 cultural sound stations in town:",
+      "🎻 Allegro-Owl (Violin-Winged Owl) near the cafe terrace,",
       "🪕 Sitar-Swan (Gourd-Bodied Veena Swan) at the center fountain,",
-      "🥁 Taiko-Tanuki (Belly-Drum Matsuri Raccoon) by my vinyl shop!",
-      "When you audio-match them, listen for their unique signature cries!"
+      "🥁 Taiko-Tanuki (Belly-Drum Matsuri Raccoon) by my vinyl shop!"
     ]
   },
   {
@@ -366,8 +456,9 @@ export const TOWN_NPCS: NPCEntity[] = [
     color: '#c084fc',
     actionType: 'battle_jax',
     dialogue: [
-      "Hey! The rogue Dead Channel has completely hijacked the northern airwaves! 🐶🎸",
-      "The Glitch Gate behind me is humming with volatile static. Solo streamers get muted in seconds.",
+      "Hey... you're here about the Dead Channel anomaly?",
+      "My band used to rock Cadence Shore until Dead Channel 000 swallowed our broadcast whole. I thought I had to fight it alone with raw overdrive...",
+      "The Glitch Gate behind me is vibrating with volatile static. Solo streamers get muted in seconds.",
       "Duel my Sub-Woofer Bass-Hound so we can test your rhythm and link our audio frequencies!"
     ]
   },
@@ -392,8 +483,10 @@ export const RIVAL_JAX = {
   title: 'The Underground Punk',
   dialogueDefeat: [
     "Whoa... okay, your timing is clean and your rhythm is sharp. I respect that!",
-    "My Sub-Woofer Bass-Hound and I are joining your squad right now! 🐶🎸",
-    "Let's breach the Glitch Gate and blend our playlist to blast Dead Channel 000 into pieces!"
+    "My Sub-Woofer Bass-Hound and I are officially joining your active squad! 🐶🎸",
+    "We're linked and ready, but Dead Channel 000 is a massive anomaly. Take time to explore Cadence Plaza!",
+    "Battle wild static glitches on the beach to level up your squad, and discover the 3 cultural sound stations in town.",
+    "Whenever you're ready for the final battle, step up to the Glitch Gate to breach the static storm together!"
   ]
 };
 
@@ -422,5 +515,25 @@ export const TOWN_SOUND_RIPPLES: SoundRipple[] = [
     challengeType: 'rhythm_pulse',
     spirit: TAIKO_TANUKI_SPIRIT, // Japanese Matsuri (Belly-Drum Taiko Tanuki)
     discovered: false
+  }
+];
+
+// Roaming Wild Static Glitch Encounters on the Shoreline
+export const TOWN_WILD_GLITCHES: WildGlitchEntity[] = [
+  {
+    id: 'glitch_beach_1',
+    name: 'Wild Bit-Bug',
+    x: 250,
+    y: 500,
+    spirit: BIT_BUG_SPIRIT,
+    defeated: false
+  },
+  {
+    id: 'glitch_beach_2',
+    name: 'Wild Noise-Mote',
+    x: 550,
+    y: 500,
+    spirit: NOISE_MOTE_SPIRIT,
+    defeated: false
   }
 ];
