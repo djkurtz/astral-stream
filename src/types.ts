@@ -158,7 +158,80 @@ export interface ConcertCompetition {
   rewardsGiven?: boolean;
 }
 
-export type ZoneId = 'cavatina_village' | 'woodwind_woods' | 'brass_citadel' | 'percussion_peaks' | 'grand_hall';
+export type ZoneId = 
+  | 'cavatina_village' 
+  | 'woodwind_woods' 
+  | 'brass_citadel' 
+  | 'percussion_peaks' 
+  | 'grand_hall';
+
+export interface PlayerWallet {
+  gold: number;             // Notes / Acoustic Gold (♪)
+  inspirationSparks: number;// Harmonic Resonance (✨)
+  reputationStars: number;  // Prestige (★)
+}
+
+export interface InstrumentArtifact {
+  id: string;
+  name: string;
+  section: InstrumentSection;
+  tier: number; // 1 to 5
+  bonusTechnique: number;
+  bonusTone: number;
+  bonusTempo: number;
+  traitName: string;
+  traitDescription: string;
+  costGold: number;
+  costSparks: number;
+  equipped: boolean;
+}
+
+export interface LostScore {
+  id: string;
+  title: string;
+  composer: string;
+  fragmentsFound: number;
+  totalFragments: number;
+  unlocked: boolean;
+  pieceId: string;
+}
+
+export interface InspirationVista {
+  id: string;
+  name: string;
+  zone: ZoneId;
+  x: number;
+  y: number;
+  description: string;
+  statReward: keyof MusicianStats;
+  statAmount: number;
+  visited: boolean;
+}
+
+export interface PerformanceVenue {
+  id: string;
+  name: string;
+  zone: ZoneId;
+  type: 'gazebo' | 'cafe' | 'lounge' | 'salon' | 'concert_hall';
+  baseGoldReward: number;
+  reputationRequirement: number;
+  acousticProfile: string;
+}
+
+export type QuestType = 'main' | 'side' | 'gig' | 'rescue' | 'restoration';
+
+export interface GameQuest {
+  id: string;
+  title: string;
+  chapter: number;
+  type: QuestType;
+  description: string;
+  objective: string;
+  rewardGold: number;
+  rewardSparks: number;
+  rewardStars: number;
+  completed: boolean;
+}
 
 export interface WorldObstacle {
   type: 'box' | 'circle';
@@ -199,9 +272,10 @@ export interface WorldNPC {
   y: number;
   zone: ZoneId;
   musicianData?: Musician;
-  actionType: 'talk' | 'audition_battle' | 'practice_bench' | 'competition_stage' | 'sheet_music_stand';
+  actionType: 'talk' | 'audition_battle' | 'practice_bench' | 'competition_stage' | 'sheet_music_stand' | 'inspiration_vista' | 'luthier_shop';
   dialogue: string[];
   sheetMusicReward?: string; // piece ID
+  vistaId?: string;
 }
 
 export interface GameDialogue {
@@ -219,7 +293,9 @@ export type GameMode =
   | 'audition_battle' 
   | 'competition' 
   | 'dialogue' 
-  | 'repertoire_menu';
+  | 'repertoire_menu'
+  | 'luthier_menu'
+  | 'quest_menu';
 
 export interface GameState {
   mode: GameMode;
@@ -238,6 +314,12 @@ export interface GameState {
   discoveredZones: Record<ZoneId, boolean>;
   npcs: WorldNPC[];
   nearbyInteractable: WorldNPC | null;
+  wallet: PlayerWallet;
+  artifacts: InstrumentArtifact[];
+  lostScores: LostScore[];
+  vistas: InspirationVista[];
+  quests: GameQuest[];
+  activeQuestId: string | null;
   practiceSession: PracticeSession | null;
   auditionBattle: AuditionBattle | null;
   competition: ConcertCompetition | null;

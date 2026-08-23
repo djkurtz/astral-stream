@@ -540,14 +540,14 @@ export class HarmoniaRenderer {
     ctx.textAlign = 'center';
     ctx.fillText(`🎼 [${tierName} - ${count} Musician${count > 1 ? 's' : ''}]`, this.width / 2, 34);
 
-    // Reputation Stars & Fame
+    // Currency Wallet & Reputation
     ctx.fillStyle = '#fbbf24';
-    ctx.font = 'bold 16px "Inter", sans-serif';
+    ctx.font = 'bold 15px "Inter", sans-serif';
     ctx.textAlign = 'right';
     let stars = '';
-    for (let i = 0; i < state.ensemble.reputationStars; i++) stars += '★';
+    for (let i = 0; i < state.wallet.reputationStars; i++) stars += '★';
     if (stars === '') stars = '☆☆☆☆☆';
-    ctx.fillText(`Reputation: ${stars} (Fame Lv.${state.ensemble.fameLevel})`, this.width - 24, 34);
+    ctx.fillText(`♪ ${state.wallet.gold}  |  ✨ ${state.wallet.inspirationSparks}  |  ★ ${stars}`, this.width - 24, 34);
   }
 
   /* ---------------- DIALOGUE OVERLAY ---------------- */

@@ -6,7 +6,8 @@ import {
 } from './types';
 import {
   STARTER_OPTIONS, REPERTOIRE_DATABASE,
-  RIVAL_ENSEMBLES, WORLD_ZONES, INITIAL_WORLD_NPCS, BATTLE_MOVES
+  RIVAL_ENSEMBLES, WORLD_ZONES, INITIAL_WORLD_NPCS, BATTLE_MOVES,
+  INSTRUMENT_ARTIFACTS, INITIAL_LOST_SCORES, INITIAL_INSPIRATION_VISTAS, INITIAL_GAME_QUESTS
 } from './data';
 import { soundEngine } from './audio';
 
@@ -54,6 +55,16 @@ export class HarmoniaGameEngine {
       },
       npcs: JSON.parse(JSON.stringify(INITIAL_WORLD_NPCS)),
       nearbyInteractable: null,
+      wallet: {
+        gold: 150,
+        inspirationSparks: 10,
+        reputationStars: 0
+      },
+      artifacts: JSON.parse(JSON.stringify(INSTRUMENT_ARTIFACTS)),
+      lostScores: JSON.parse(JSON.stringify(INITIAL_LOST_SCORES)),
+      vistas: JSON.parse(JSON.stringify(INITIAL_INSPIRATION_VISTAS)),
+      quests: JSON.parse(JSON.stringify(INITIAL_GAME_QUESTS)),
+      activeQuestId: 'quest_ch1',
       practiceSession: null,
       auditionBattle: null,
       competition: null,
@@ -303,6 +314,10 @@ export class HarmoniaGameEngine {
       else if (count >= 8) tier = 'orchestra';
       this.state.ensemble.tier = tier;
 
+      // Currency rewards for recruiting
+      this.state.wallet.gold += 100;
+      this.state.wallet.inspirationSparks += 15;
+
       // Update dynamic BGM section layering
       const activeSections = Array.from(new Set(this.state.ensemble.members.map(m => m.section)));
       soundEngine.startBGM(this.state.currentZone, activeSections);
@@ -310,7 +325,7 @@ export class HarmoniaGameEngine {
 
     soundEngine.playFanfare();
     this.showDialogue('Audition Triumphant!', '🎉', [
-      `Splendid performance! ${recruited.name} and ${recruited.pet.name} (${recruited.pet.species}) are deeply moved by your musicianship!`,
+      `Splendid performance! ${recruited.name} and ${recruited.pet.name} (${recruited.pet.species}) are deeply moved by your musicianship! (+100 Notes ♪, +15 Sparks ✨)`,
       `${recruited.name} joined your ensemble! Your ensemble is now a [${this.state.ensemble.tier.toUpperCase()}]!`,
       "Check your Repertoire binder to see which multi-part pieces you can now perform!"
     ], () => {
@@ -363,14 +378,19 @@ export class HarmoniaGameEngine {
 
       if (comp.won && !comp.rewardsGiven) {
         comp.rewardsGiven = true;
-        this.state.ensemble.reputationStars += comp.rival.rewardStars;
+        const goldGain = comp.rival.rewardStars * 200;
+        const sparksGain = comp.rival.rewardStars * 10;
+        this.state.wallet.gold += goldGain;
+        this.state.wallet.inspirationSparks += sparksGain;
+        this.state.wallet.reputationStars += comp.rival.rewardStars;
+        this.state.ensemble.reputationStars = this.state.wallet.reputationStars;
         this.state.ensemble.fameLevel = 1 + Math.floor(this.state.ensemble.reputationStars / 2);
         soundEngine.playFanfare();
       }
 
       this.showDialogue('Concert Results', '🏆', [
         `Performance Concluded! Final Score: ${comp.playerScore} vs Rival ${comp.rivalScore}!`,
-        comp.won ? `VICTORY! The audience erupts in standing ovation! Earned +${comp.rival.rewardStars} Reputation Stars (Total: ${this.state.ensemble.reputationStars} ★).` : "A valiant effort! Practice your ensemble's Technique and try again!"
+        comp.won ? `VICTORY! The audience erupts in standing ovation! Earned +${comp.rival.rewardStars} Reputation Stars (Total: ${this.state.ensemble.reputationStars} ★), +${comp.rival.rewardStars * 200} Notes ♪, +${comp.rival.rewardStars * 10} Sparks ✨.` : "A valiant effort! Practice your ensemble's Technique and try again!"
       ], () => {
         this.state.mode = 'exploration';
         this.state.competition = null;
@@ -568,6 +588,48 @@ export class HarmoniaGameEngine {
 
     if (target.actionType === 'competition_stage') {
       this.startConcertCompetition();
+      return;
+    }
+
+    if (target.actionType === 'inspiration_vista' && target.vistaId) {
+      const vista = this.state.vistas.find(v => v.id === target.vistaId);
+      if (vista && !vista.visited) {
+        vista.visited = true;
+        const player = this.state.ensemble.members[0];
+        player.stats[vista.statReward] = Math.min(100, player.stats[vista.statReward] + vista.statAmount);
+        this.state.wallet.inspirationSparks += 10;
+        soundEngine.playFanfare();
+        this.showDialogue(vista.name, '✨', [
+          vista.description,
+          `Acoustic resonance absorbed! ${vista.statReward.toUpperCase()} permanently increased by +${vista.statAmount}! (+10 Inspiration Sparks ✨)`
+        ]);
+        return;
+      }
+      this.showDialogue(target.name, '✨', ["You reflect on the harmonic echoes of this acoustic vista."]);
+      return;
+    }
+
+    if (target.actionType === 'luthier_shop') {
+      const lead = this.state.ensemble.members[0];
+      const availArtifact = this.state.artifacts.find(a => a.section === lead.section && !a.equipped);
+      if (availArtifact && this.state.wallet.gold >= availArtifact.costGold && this.state.wallet.inspirationSparks >= availArtifact.costSparks) {
+        this.state.wallet.gold -= availArtifact.costGold;
+        this.state.wallet.inspirationSparks -= availArtifact.costSparks;
+        availArtifact.equipped = true;
+        lead.stats.technique = Math.min(100, lead.stats.technique + availArtifact.bonusTechnique);
+        lead.stats.toneQuality = Math.min(100, lead.stats.toneQuality + availArtifact.bonusTone);
+        lead.stats.tempoStability = Math.min(100, lead.stats.tempoStability + availArtifact.bonusTempo);
+        soundEngine.playFanfare();
+        this.showDialogue('Master Luthier Marco', '🔨', [
+          `Splendid! I have forged the [${availArtifact.name}] for your ${lead.instrumentName}!`,
+          `Bonus: +${availArtifact.bonusTechnique} TEC, +${availArtifact.bonusTone} TON, +${availArtifact.bonusTempo} TEM!`,
+          `Special Trait Awakened: [${availArtifact.traitName}] - ${availArtifact.traitDescription}`
+        ]);
+        return;
+      }
+      this.showDialogue('Master Luthier Marco', '🔨', [
+        "Welcome to the Forge! Bring me Notes (♪) and Inspiration Sparks (✨) to craft signature instrument artifacts and ascend your tone!"
+      ]);
       return;
     }
 

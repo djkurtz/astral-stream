@@ -1,6 +1,9 @@
 // Harmonia: Opus of the Ensemble - Game Database
 
-import { Harmonipet, Musician, RepertoirePiece, RivalEnsemble, WorldZone, WorldNPC, BattleMove, InstrumentId } from './types';
+import {
+  Harmonipet, Musician, RepertoirePiece, RivalEnsemble, WorldZone, WorldNPC, BattleMove, InstrumentId,
+  InstrumentArtifact, LostScore, InspirationVista, PerformanceVenue, GameQuest
+} from './types';
 
 /* ---------------- STARTER INSTRUMENTS & PETS ---------------- */
 
@@ -737,5 +740,301 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     dialogue: [
       "Welcome, Maestro! Has your ensemble mastered all 4 sections? If so, let us perform the Ode to Harmony for the world!"
     ]
+  },
+
+  // Master Luthier & Vistas
+  {
+    id: 'npc_luthier_marco',
+    name: 'Master Luthier Marco',
+    title: 'Instrument Workshop & Forge [SPACE]',
+    x: 350,
+    y: 850,
+    zone: 'cavatina_village',
+    actionType: 'luthier_shop',
+    dialogue: [
+      "Welcome to the Luthier's Forge! Bring me Notes (♪) and Inspiration Sparks (✨) to ascend your instruments and craft signature artifacts."
+    ]
+  },
+  {
+    id: 'npc_vista_cavatina',
+    name: 'Canyon of Thirds Vista',
+    title: 'Acoustic Inspiration Vista [SPACE to Attune]',
+    x: 1650,
+    y: 1100,
+    zone: 'cavatina_village',
+    actionType: 'inspiration_vista',
+    vistaId: 'vista_canyon_thirds',
+    dialogue: [
+      "You sit and listen to the natural third intervals echoing across the canyon. Technique permanently increased by +5!"
+    ]
+  },
+  {
+    id: 'npc_side_musicbox',
+    name: 'Elder Timothy',
+    title: 'Antique Music Box Repair [SPACE]',
+    x: 1200,
+    y: 1150,
+    zone: 'cavatina_village',
+    actionType: 'talk',
+    dialogue: [
+      "Oh my! My grandfather's music box lost its cylinder pins. If you can gather brass pins from the luthier, I'll reward you handsomely with 150 Notes (♪)!"
+    ]
+  }
+];
+
+/* ---------------- INSTRUMENT ARTIFACTS (LUTHIER FORGE) ---------------- */
+
+export const INSTRUMENT_ARTIFACTS: InstrumentArtifact[] = [
+  {
+    id: 'artifact_rosin_swan',
+    name: 'Bow Rosin of the Swan',
+    section: 'strings',
+    tier: 2,
+    bonusTechnique: 15,
+    bonusTone: 10,
+    bonusTempo: 5,
+    traitName: 'Lyrical Vibrato',
+    traitDescription: 'Heals ensemble Harmony by 5% and cures tempo wobble every 4th measure. (Swan crit multiplier 2.0x)',
+    costGold: 300,
+    costSparks: 15,
+    equipped: false
+  },
+  {
+    id: 'artifact_lip_plate',
+    name: 'Silver Embouchure Lip Plate',
+    section: 'woodwinds',
+    tier: 2,
+    bonusTechnique: 12,
+    bonusTone: 15,
+    bonusTempo: 5,
+    traitName: 'Breathless Cadenza',
+    traitDescription: 'Eliminates breath penalties during rapid runs. (Finch move cost -25%)',
+    costGold: 300,
+    costSparks: 15,
+    equipped: false
+  },
+  {
+    id: 'artifact_brass_mute',
+    name: 'Resonant Brass Mute',
+    section: 'brass',
+    tier: 2,
+    bonusTechnique: 8,
+    bonusTone: 20,
+    bonusTempo: 10,
+    traitName: 'Dual-Harmonic Shift',
+    traitDescription: 'Toggles between Open Flare (+30% attack) and Harmon Mute (AoE charm). (Terrier dissonance immunity)',
+    costGold: 350,
+    costSparks: 18,
+    equipped: false
+  },
+  {
+    id: 'artifact_bronze_cymbals',
+    name: 'Hand-Hammered Bronze Cymbals',
+    section: 'percussion',
+    tier: 2,
+    bonusTechnique: 10,
+    bonusTone: 5,
+    bonusTempo: 25,
+    traitName: 'Sonic Dispersal Crash',
+    traitDescription: 'Disperses opponent buffs on Beat 1 and locks tempo meter. (Raccoon syncopation gold bonus)',
+    costGold: 350,
+    costSparks: 18,
+    equipped: false
+  }
+];
+
+/* ---------------- LOST SCORES ---------------- */
+
+export const INITIAL_LOST_SCORES: LostScore[] = [
+  {
+    id: 'score_canon_whispers',
+    title: 'The Canon of Whispers',
+    composer: 'The First Maestro',
+    fragmentsFound: 1,
+    totalFragments: 3,
+    unlocked: false,
+    pieceId: 'piece_cavatina_duet'
+  },
+  {
+    id: 'score_sunken_grotto',
+    title: 'Sonata of the Sunken Grotto',
+    composer: 'The First Maestro',
+    fragmentsFound: 0,
+    totalFragments: 3,
+    unlocked: false,
+    pieceId: 'piece_bossa_trio'
+  },
+  {
+    id: 'score_tempest_fugue',
+    title: 'The Tempest Fugue',
+    composer: 'The First Maestro',
+    fragmentsFound: 0,
+    totalFragments: 4,
+    unlocked: false,
+    pieceId: 'piece_starlight_quartet'
+  },
+  {
+    id: 'score_cosmic_lyre',
+    title: 'Hymn of the Cosmic Lyre',
+    composer: 'The First Maestro',
+    fragmentsFound: 0,
+    totalFragments: 4,
+    unlocked: false,
+    pieceId: 'piece_ode_to_harmony'
+  }
+];
+
+/* ---------------- INSPIRATION VISTAS ---------------- */
+
+export const INITIAL_INSPIRATION_VISTAS: InspirationVista[] = [
+  {
+    id: 'vista_canyon_thirds',
+    name: 'The Canyon of Thirds',
+    zone: 'cavatina_village',
+    x: 1650,
+    y: 1100,
+    description: 'Natural stone arches amplify perfect third intervals, sharpening bow dexterity.',
+    statReward: 'technique',
+    statAmount: 5,
+    visited: false
+  },
+  {
+    id: 'vista_bellflower',
+    name: 'The Bellflower Basin',
+    zone: 'woodwind_woods',
+    x: 1400,
+    y: 1100,
+    description: 'Acoustic blossoms resonate with soft overtones, enriching tone quality.',
+    statReward: 'toneQuality',
+    statAmount: 5,
+    visited: false
+  },
+  {
+    id: 'vista_echo_falls',
+    name: 'The Echo Rampart',
+    zone: 'brass_citadel',
+    x: 1400,
+    y: 1200,
+    description: 'Gilded walls reflect bold acoustic waves, granting unwavering dynamic control.',
+    statReward: 'toneQuality',
+    statAmount: 5,
+    visited: false
+  },
+  {
+    id: 'vista_monolith_peak',
+    name: 'The High Ridge Monolith',
+    zone: 'percussion_peaks',
+    x: 1000,
+    y: 400,
+    description: 'Ancient metronomic vibrations stabilize the pulse under pressure.',
+    statReward: 'tempoStability',
+    statAmount: 5,
+    visited: false
+  }
+];
+
+/* ---------------- PERFORMANCE VENUES ---------------- */
+
+export const PERFORMANCE_VENUES: PerformanceVenue[] = [
+  {
+    id: 'venue_cavatina_gazebo',
+    name: 'Cavatina Park Gazebo',
+    zone: 'cavatina_village',
+    type: 'gazebo',
+    baseGoldReward: 60,
+    reputationRequirement: 0,
+    acousticProfile: 'Open air with light pedestrian chatter. Great for early busking.'
+  },
+  {
+    id: 'venue_roasted_bean',
+    name: 'The Roasted Bean Café',
+    zone: 'cavatina_village',
+    type: 'cafe',
+    baseGoldReward: 160,
+    reputationRequirement: 1,
+    acousticProfile: 'Intimate dry acoustics. Clattering espresso machines require dynamic focus.'
+  },
+  {
+    id: 'venue_manor_salon',
+    name: 'Manor Solana Chamber Salon',
+    zone: 'cavatina_village',
+    type: 'salon',
+    baseGoldReward: 450,
+    reputationRequirement: 3,
+    acousticProfile: 'High reflection. Strict Pianissimo-to-Mezzo-Forte dynamic ceilings.'
+  },
+  {
+    id: 'venue_royal_hall',
+    name: 'The Royal Symphony Hall',
+    zone: 'grand_hall',
+    type: 'concert_hall',
+    baseGoldReward: 1500,
+    reputationRequirement: 6,
+    acousticProfile: 'Cathedral reverb decay (3.5s). Demands full 4-section orchestral balance.'
+  }
+];
+
+/* ---------------- GAME QUESTS ---------------- */
+
+export const INITIAL_GAME_QUESTS: GameQuest[] = [
+  {
+    id: 'quest_ch1',
+    title: 'Chapter 1: The Street Soloist',
+    chapter: 1,
+    type: 'main',
+    description: 'Begin your journey in Cavatina Village. Hone your technique in the Practice Shed and recruit your first Duet partner.',
+    objective: 'Recruit Clara or Oliver and defeat Busker Tim at the Gazebo.',
+    rewardGold: 200,
+    rewardSparks: 20,
+    rewardStars: 1,
+    completed: false
+  },
+  {
+    id: 'quest_ch2',
+    title: 'Chapter 2: The Bossa Trio',
+    chapter: 2,
+    type: 'main',
+    description: 'Travel beyond the village to assemble a 3-piece rhythm section and win the Coastal Showdown.',
+    objective: 'Recruit Rhythm Rita and master the Bossa Nova Serenade.',
+    rewardGold: 400,
+    rewardSparks: 35,
+    rewardStars: 2,
+    completed: false
+  },
+  {
+    id: 'quest_ch3',
+    title: 'Chapter 3: The Starlight Quartet',
+    chapter: 3,
+    type: 'main',
+    description: 'Enter the competitive Citadel, recruit Baron Von Brass, and perform the Starlight Quartet.',
+    objective: 'Recruit Baron Von Brass and achieve 4-piece ensemble synergy.',
+    rewardGold: 700,
+    rewardSparks: 50,
+    rewardStars: 3,
+    completed: false
+  },
+  {
+    id: 'quest_ch5',
+    title: 'Chapter 5: The Grand Symphony',
+    chapter: 5,
+    type: 'main',
+    description: 'Unite all 4 acoustic families and perform the Ode to Harmony at the Grand Symphony Hall.',
+    objective: 'Defeat Maestro Valerius in the Grand Philharmonic Showdown.',
+    rewardGold: 2500,
+    rewardSparks: 100,
+    rewardStars: 5,
+    completed: false
+  },
+  {
+    id: 'quest_side_musicbox',
+    title: 'Side Quest: The Antique Music Box',
+    chapter: 1,
+    type: 'restoration',
+    description: 'Elder Timothy needs help replacing the brass cylinder pins of his family heirloom.',
+    objective: 'Speak with Master Luthier Marco and return to Elder Timothy.',
+    rewardGold: 150,
+    rewardSparks: 10,
+    rewardStars: 0,
+    completed: false
   }
 ];
