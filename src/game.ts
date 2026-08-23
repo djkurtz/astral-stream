@@ -1,13 +1,15 @@
 import { soundEngine } from './audio';
-import { BOSS_SIGNAL_OVERLORD, FUSED_CHIMERA, JAX_SPIRIT, RIVAL_JAX, STARTER_SPIRIT } from './data';
-import { GameState, Move } from './types';
+import { BOSS_SIGNAL_OVERLORD, FUSED_CHIMERA, JAX_SPIRIT, RIVAL_JAX, STARTER_SPIRIT, TOWN_NPCS, TOWN_SOUND_RIPPLES } from './data';
+import { GameState, Move, NPCEntity, SoundRipple } from './types';
 
 export class AstralGameEngine {
   private state: GameState;
   private lastTick: number = 0;
+  private keysDown: Set<string> = new Set();
 
   constructor() {
     this.state = this.createInitialState();
+    this.setupInputHandlers();
   }
 
   public getState(): GameState {
@@ -18,25 +20,55 @@ export class AstralGameEngine {
     return {
       mode: 'intro',
       zoneClean: false,
+      player: {
+        x: 400,
+        y: 460,
+        dir: 'up',
+        isMoving: false
+      },
+      npcs: JSON.parse(JSON.stringify(TOWN_NPCS)),
+      soundRipples: JSON.parse(JSON.stringify(TOWN_SOUND_RIPPLES)),
       activeCompanion: null,
-      streamQueue: [],
+      streamQueue: [JSON.parse(JSON.stringify(STARTER_SPIRIT))],
       activeSpiritIndex: 0,
+      nearbyInteractable: null,
       audioMatch: null,
       battle: null,
       dialogue: {
-        speaker: 'Vibe-Phone OS',
-        avatar: '📱',
+        speaker: 'Aria & Chime-Cat',
+        avatar: '☕',
         text: [
-          "Beep-boop! ✨ Vibe-Phone network connected. Welcome to Frequency Beach!",
-          "This shoreline is vibrating with uncataloged cosmic music streams.",
-          "Let's launch the Sonic Radar to scan and Audio-Match your starter companion!"
+          "Welcome to Cadence Plaza! 🎶 Music streams through every corner of our town.",
+          "Use [W, A, S, D] or Arrow Keys to walk around and explore the plaza.",
+          "Talk to locals, scan mysterious sound ripples, and visit the Glitch Gate when you're ready to duel!"
         ],
         index: 0
       },
       time: 0,
-      glitchActive: false,
+      glitchActive: true,
       cleansingProgress: 0
     };
+  }
+
+  private setupInputHandlers(): void {
+    window.addEventListener('keydown', (e) => {
+      this.keysDown.add(e.code);
+
+      // Interaction Key (Space or E or Enter)
+      if (e.code === 'Space' || e.code === 'KeyE' || e.code === 'Enter') {
+        if (this.state.dialogue) {
+          this.advanceDialogue();
+        } else if (this.state.mode === 'battle' && this.state.battle?.turn === 'rhythm_timing') {
+          this.resolveRhythmHit();
+        } else if (this.state.mode === 'exploration' && this.state.nearbyInteractable) {
+          this.interactWithNearby();
+        }
+      }
+    });
+
+    window.addEventListener('keyup', (e) => {
+      this.keysDown.delete(e.code);
+    });
   }
 
   public update(now: number): void {
@@ -49,6 +81,21 @@ export class AstralGameEngine {
 
     this.state.time += dt;
 
+    // Exploration Movement & Proximity
+    if (this.state.mode === 'exploration') {
+      this.updatePlayerMovement(dt);
+      this.updateProximity();
+    }
+
+    // Rhythm Timing Bar Animation
+    if (this.state.mode === 'battle' && this.state.battle?.turn === 'rhythm_timing') {
+      const b = this.state.battle;
+      b.rhythmCursor += b.rhythmSpeed * dt;
+      if (b.rhythmCursor > 1.0) {
+        b.rhythmCursor = 0; // Loop cursor
+      }
+    }
+
     // Cleansing Cinematic Progress
     if (this.state.mode === 'cleansing_cinematic') {
       this.state.cleansingProgress += dt * 0.5;
@@ -57,13 +104,100 @@ export class AstralGameEngine {
         this.state.zoneClean = true;
         this.state.glitchActive = false;
         soundEngine.setWarped(false);
+        soundEngine.switchTrack('town');
         soundEngine.playCleansingBloom();
-        this.showDialogue('Jax & Chime-Cat', '🎉', [
-          "WE DID IT! Look at the sky... all the colors and high-definition beats are back!",
-          "That Collaborative Playlist Blend was legendary. We completely crushed the Dead Channel!",
-          "Thank you for playtesting the modern Astral Stream demo!"
+        this.showDialogue('Jax & Aria', '🎉', [
+          "WE DID IT! Look at Cadence Plaza... the entire static rift has dissolved!",
+          "High-definition stereo melodies and vibrant colors have completely restored the shoreline!",
+          "Thank you for exploring and rocking the Astral Stream demo!"
         ]);
       }
+    }
+  }
+
+  /* ---------------- EXPLORATION & MOVEMENT ---------------- */
+  private updatePlayerMovement(dt: number): void {
+    const speed = 160 * dt;
+    let dx = 0;
+    let dy = 0;
+
+    if (this.keysDown.has('KeyW') || this.keysDown.has('ArrowUp')) { dy -= speed; this.state.player.dir = 'up'; }
+    if (this.keysDown.has('KeyS') || this.keysDown.has('ArrowDown')) { dy += speed; this.state.player.dir = 'down'; }
+    if (this.keysDown.has('KeyA') || this.keysDown.has('ArrowLeft')) { dx -= speed; this.state.player.dir = 'left'; }
+    if (this.keysDown.has('KeyD') || this.keysDown.has('ArrowRight')) { dx += speed; this.state.player.dir = 'right'; }
+
+    this.state.player.isMoving = (dx !== 0 || dy !== 0);
+
+    // Bounding Box (Canvas area clamp)
+    const newX = Math.max(110, Math.min(690, this.state.player.x + dx));
+    const newY = Math.max(90, Math.min(520, this.state.player.y + dy));
+
+    // Collision with Buildings & Fountain
+    if (!this.checkBuildingCollision(newX, newY)) {
+      this.state.player.x = newX;
+      this.state.player.y = newY;
+    }
+  }
+
+  private checkBuildingCollision(x: number, y: number): boolean {
+    // Cafe (110, 90, 160, 110)
+    if (x > 90 && x < 280 && y > 70 && y < 210) return true;
+    // Vinyl Den (530, 90, 160, 110)
+    if (x > 510 && x < 700 && y > 70 && y < 210) return true;
+    // Fountain (400, 330, radius 38)
+    const distToFountain = Math.hypot(x - 400, y - 330);
+    if (distToFountain < 42) return true;
+
+    return false;
+  }
+
+  private updateProximity(): void {
+    const px = this.state.player.x;
+    const py = this.state.player.y;
+    let closest: NPCEntity | SoundRipple | null = null;
+    let minDist = 65;
+
+    // Check NPCs
+    for (const npc of this.state.npcs) {
+      const d = Math.hypot(px - npc.x, py - npc.y);
+      if (d < minDist) {
+        minDist = d;
+        closest = npc;
+      }
+    }
+
+    // Check Sound Ripples
+    for (const rip of this.state.soundRipples) {
+      if (!rip.discovered) {
+        const d = Math.hypot(px - rip.x, py - rip.y);
+        if (d < minDist) {
+          minDist = d;
+          closest = rip;
+        }
+      }
+    }
+
+    this.state.nearbyInteractable = closest;
+  }
+
+  public interactWithNearby(): void {
+    const target = this.state.nearbyInteractable;
+    if (!target) return;
+
+    if ('dialogue' in target) {
+      // NPC
+      const npc = target as NPCEntity;
+      if (npc.actionType === 'battle_jax') {
+        this.showDialogue(npc.name, '🎸', npc.dialogue, () => {
+          this.startBattle('rival');
+        });
+      } else {
+        this.showDialogue(npc.name, npc.sprite === 'aria' ? '☕' : '💽', npc.dialogue);
+      }
+    } else {
+      // Sound Ripple
+      const rip = target as SoundRipple;
+      this.startAudioMatchScan(rip);
     }
   }
 
@@ -80,7 +214,8 @@ export class AstralGameEngine {
       if (onComplete) {
         onComplete();
       } else if (this.state.mode === 'intro') {
-        this.startAudioMatchScan();
+        this.state.mode = 'exploration';
+        soundEngine.switchTrack('town');
       }
     }
   }
@@ -89,17 +224,16 @@ export class AstralGameEngine {
     this.state.dialogue = { speaker, avatar, text, index: 0, onComplete };
   }
 
-  /* ---------------- AUDIO MATCH / SHAZAM MINIGAME ---------------- */
-  public startAudioMatchScan(): void {
+  /* ---------------- AUDIO MATCH SCANNER ---------------- */
+  public startAudioMatchScan(ripple: SoundRipple): void {
     this.state.mode = 'audio_match_scan';
     this.state.audioMatch = {
       targetWaveformSync: 100,
       currentSync: 15,
       scanPulses: 0,
       isMatched: false,
-      spiritToUnlock: JSON.parse(JSON.stringify(STARTER_SPIRIT))
+      spiritToUnlock: JSON.parse(JSON.stringify(ripple.spirit))
     };
-    soundEngine.startBGM();
   }
 
   public pulseRadarScan(): void {
@@ -107,61 +241,49 @@ export class AstralGameEngine {
     if (!match || match.isMatched) return;
 
     match.scanPulses++;
-    match.currentSync = Math.min(100, match.currentSync + 25 + Math.floor(Math.random() * 10));
+    match.currentSync = Math.min(100, match.currentSync + 30);
     soundEngine.playTuningClick();
-    soundEngine.playTone(400 + match.currentSync * 4, 'triangle', 0.12, 0.1);
 
     if (match.currentSync >= 100) {
-      this.completeAudioMatch();
+      match.isMatched = true;
+      soundEngine.playLockChime();
+
+      setTimeout(() => {
+        const unlocked = match.spiritToUnlock;
+        this.state.streamQueue.push(unlocked);
+        // Mark ripple discovered
+        const rip = this.state.soundRipples.find(r => r.spirit.id === unlocked.id);
+        if (rip) rip.discovered = true;
+
+        this.state.audioMatch = null;
+        this.state.mode = 'exploration';
+        this.showDialogue(unlocked.name, '🎷', [
+          `New Harmonimal Streamed: ${unlocked.name} [${unlocked.vibeTag}]!`,
+          "Its golden brass leads have been added to your living playlist!"
+        ]);
+      }, 1200);
     }
   }
 
-  public completeAudioMatch(): void {
-    const match = this.state.audioMatch;
-    if (!match || match.isMatched) return;
-
-    match.isMatched = true;
-    match.currentSync = 100;
-    soundEngine.playLockChime();
-
-    setTimeout(() => {
-      const unlocked = match.spiritToUnlock;
-      this.state.streamQueue.push(unlocked);
-      this.state.audioMatch = null;
-      this.state.mode = 'exploration';
-
-      this.showDialogue('Chime-Cat', '🐱', [
-        "Mew-chime! ✨ (Audio Match Verified: Chime-Cat has streamed into your library!)",
-        "Suddenly, a pirate static signal hacks the sky! Colors fade and scanlines buzz..."
-      ], () => {
-        this.triggerStaticIncursion();
-      });
-    }, 1200);
-  }
-
-  /* ---------------- STATIC INCURSION & RIVAL BATTLE ---------------- */
-  public triggerStaticIncursion(): void {
-    this.state.glitchActive = true;
-    soundEngine.setWarped(true);
-    soundEngine.playStaticHiss(0.6, 0.25);
-
-    this.showDialogue(RIVAL_JAX.name, RIVAL_JAX.avatar, RIVAL_JAX.dialogueGreet, () => {
-      this.startBattle('rival');
-    });
-  }
-
+  /* ---------------- BATTLE & RHYTHM TIMING SYSTEM ---------------- */
   public startBattle(type: 'rival' | 'boss'): void {
     this.state.mode = 'battle';
+    soundEngine.switchTrack('battle');
     const playerSpirit = JSON.parse(JSON.stringify(this.state.streamQueue[0] || STARTER_SPIRIT));
 
     if (type === 'rival') {
       this.state.battle = {
         type: 'rival',
         playerSpirit,
-        enemySpirit: JSON.parse(JSON.stringify(RIVAL_JAX.spirit)),
+        enemySpirit: JSON.parse(JSON.stringify(JAX_SPIRIT)),
         turn: 'player',
-        selectedMoveIndex: 0,
-        log: `${RIVAL_JAX.name} dropped into battle with ${RIVAL_JAX.spirit.name}! Resonance battle start!`,
+        pendingMoveIndex: null,
+        rhythmCursor: 0,
+        rhythmSpeed: 1.4,
+        targetWindowStart: 0.40,
+        targetWindowEnd: 0.65,
+        rhythmResult: null,
+        log: `${RIVAL_JAX.name} dropped into battle with Bass-Hound! Pick a move!`,
         canBlend: false,
         blendActive: false
       };
@@ -171,47 +293,88 @@ export class AstralGameEngine {
         playerSpirit,
         enemyBoss: JSON.parse(JSON.stringify(BOSS_SIGNAL_OVERLORD)),
         turn: 'player',
-        selectedMoveIndex: 0,
-        log: `DEAD CHANNEL 000 hijacked the feed! The audio stream is violently muffled!`,
+        pendingMoveIndex: null,
+        rhythmCursor: 0,
+        rhythmSpeed: 1.6,
+        targetWindowStart: 0.38,
+        targetWindowEnd: 0.62,
+        rhythmResult: null,
+        log: `DEAD CHANNEL 000 hijacked the feed! Time your hits to pierce the static!`,
         canBlend: !!this.state.activeCompanion,
         blendActive: false
       };
     }
   }
 
-  public executePlayerMove(moveIndex: number): void {
+  public initiatePlayerMove(moveIndex: number): void {
     const b = this.state.battle;
     if (!b || b.turn !== 'player') return;
 
-    const move = b.playerSpirit.moves[moveIndex];
-    if (!move) return;
+    b.pendingMoveIndex = moveIndex;
+    b.turn = 'rhythm_timing';
+    b.rhythmCursor = 0;
+    b.rhythmResult = null;
+    b.log = `Sync your attack! Hit [SPACE] or Click in the green target zone!`;
+  }
 
-    soundEngine.playMoveSound(move.soundType);
-    b.turn = 'animating';
+  public resolveRhythmHit(): void {
+    const b = this.state.battle;
+    if (!b || b.turn !== 'rhythm_timing' || b.pendingMoveIndex === null) return;
 
-    const dmg = Math.max(8, Math.floor(move.power + (b.playerSpirit.attack * 0.4)));
+    const cur = b.rhythmCursor;
+    let grade: 'PERFECT' | 'GREAT' | 'MISS' = 'MISS';
+    let multiplier = 0.5;
 
-    if (b.type === 'rival' && b.enemySpirit) {
-      b.enemySpirit.hp = Math.max(0, b.enemySpirit.hp - dmg);
-      b.log = `${b.playerSpirit.name} used ${move.name}! Dealt ${dmg} Harmonic damage!`;
-
-      if (b.enemySpirit.hp <= 0) {
-        setTimeout(() => this.handleBattleVictory(), 1000);
-        return;
-      }
-    } else if (b.type === 'boss' && b.enemyBoss) {
-      b.enemyBoss.hp = Math.max(0, b.enemyBoss.hp - dmg);
-      b.log = `${b.playerSpirit.name} used ${move.name}! Struck the Static Core for ${dmg} damage!`;
-
-      if (b.enemyBoss.hp <= 0) {
-        setTimeout(() => this.handleBattleVictory(), 1000);
-        return;
+    if (cur >= b.targetWindowStart && cur <= b.targetWindowEnd) {
+      // Target Center is (start + end)/2
+      const center = (b.targetWindowStart + b.targetWindowEnd) / 2;
+      if (Math.abs(cur - center) < 0.06) {
+        grade = 'PERFECT';
+        multiplier = 1.5;
+        b.playerSpirit.energy = Math.min(100, b.playerSpirit.energy + 10);
+      } else {
+        grade = 'GREAT';
+        multiplier = 1.0;
       }
     }
 
+    b.rhythmResult = grade;
+    soundEngine.playRhythmHit(grade);
+
+    const move = b.playerSpirit.moves[b.pendingMoveIndex];
+    b.turn = 'animating';
+
+    // Genre Affinity Multiplier
+    let genreMult = 1.0;
+    const eType = b.type === 'rival' ? b.enemySpirit?.type : b.enemyBoss?.type;
+    if (move.type === 'synth' && eType === 'bass') genreMult = 1.4;
+    if (move.type === 'brass' && eType === 'synth') genreMult = 1.4;
+    if (move.type === 'bass' && eType === 'brass') genreMult = 1.4;
+    if (move.type === 'cosmic' && eType === 'static') genreMult = 1.6;
+
+    const totalDmg = Math.max(8, Math.floor((move.power + b.playerSpirit.attack * 0.4) * multiplier * genreMult));
+
+    soundEngine.playMoveSound(move.soundType);
+
     setTimeout(() => {
-      this.executeEnemyTurn();
-    }, 1200);
+      if (b.type === 'rival' && b.enemySpirit) {
+        b.enemySpirit.hp = Math.max(0, b.enemySpirit.hp - totalDmg);
+        b.log = `[${grade} SYNC!] ${b.playerSpirit.name} landed ${move.name} for ${totalDmg} damage!`;
+        if (b.enemySpirit.hp <= 0) {
+          setTimeout(() => this.handleBattleVictory(), 1000);
+          return;
+        }
+      } else if (b.type === 'boss' && b.enemyBoss) {
+        b.enemyBoss.hp = Math.max(0, b.enemyBoss.hp - totalDmg);
+        b.log = `[${grade} SYNC!] ${b.playerSpirit.name} smashed the Core for ${totalDmg} damage!`;
+        if (b.enemyBoss.hp <= 0) {
+          setTimeout(() => this.handleBattleVictory(), 1000);
+          return;
+        }
+      }
+
+      setTimeout(() => this.executeEnemyTurn(), 1200);
+    }, 600);
   }
 
   public triggerPlaylistBlend(): void {
@@ -221,7 +384,7 @@ export class AstralGameEngine {
     soundEngine.playCleansingBloom();
     b.blendActive = true;
     b.playerSpirit = JSON.parse(JSON.stringify(FUSED_CHIMERA));
-    b.log = `🌟 COLLABORATIVE PLAYLIST BLEND! Chime-Cat & Bass-Hound mashed up into Cyber-Fuzz Chimera!`;
+    b.log = `🌟 COLLABORATIVE PLAYLIST BLEND! Fused into Cyber-Fuzz Chimera!`;
   }
 
   private executeEnemyTurn(): void {
@@ -242,10 +405,10 @@ export class AstralGameEngine {
     }
 
     soundEngine.playMoveSound(move.soundType);
-    const dmg = Math.max(5, Math.floor(move.power * 0.7));
+    const dmg = Math.max(6, Math.floor(move.power * 0.7));
     b.playerSpirit.hp = Math.max(1, b.playerSpirit.hp - dmg);
 
-    b.log = `${enemyName} dropped ${move.name}! Dealt ${dmg} damage.`;
+    b.log = `${enemyName} unleashed ${move.name}! Dealt ${dmg} damage.`;
     b.turn = 'player';
   }
 
@@ -253,15 +416,16 @@ export class AstralGameEngine {
     const b = this.state.battle!;
     if (b.type === 'rival') {
       soundEngine.playLockChime();
-      this.state.activeCompanion = RIVAL_JAX;
+      this.state.activeCompanion = 'jax';
       this.state.streamQueue.push(JSON.parse(JSON.stringify(JAX_SPIRIT)));
       this.state.mode = 'exploration';
       this.state.battle = null;
+      soundEngine.switchTrack('town');
 
-      this.showDialogue(RIVAL_JAX.name, RIVAL_JAX.avatar, RIVAL_JAX.dialogueDefeat, () => {
-        this.showDialogue('Narrator', '📺', [
-          "The pirate broadcast reaches peak distortion! Dead Channel 000 has materialized.",
-          "Link your playlists and activate the Collaborative Blend to cleanse the stream!"
+      this.showDialogue(RIVAL_JAX.name, '🎸', RIVAL_JAX.dialogueDefeat, () => {
+        this.showDialogue('Aria', '☕', [
+          "Incredible battle! Jax has officially linked his playlist with yours!",
+          "Now you two are ready. Step through the Glitch Gate to face Dead Channel 000!"
         ], () => {
           this.startBattle('boss');
         });

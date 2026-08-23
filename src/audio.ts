@@ -1,11 +1,12 @@
-// Procedural Web Audio Engine for Astral Stream (Zero external asset dependencies)
+// Advanced Procedural Web Audio Engine for Astral Stream
 
 export class AudioEngine {
   private ctx: AudioContext | null = null;
   private isMuted: boolean = false;
   private isWarped: boolean = false;
   private bgmInterval: number | null = null;
-  private beatCount: number = 0;
+  private currentTrack: 'town' | 'battle' | null = null;
+  private stepCount: number = 0;
   private filterNode: BiquadFilterNode | null = null;
 
   public init(): void {
@@ -14,19 +15,19 @@ export class AudioEngine {
     this.ctx = new AudioCtx();
     this.filterNode = this.ctx.createBiquadFilter();
     this.filterNode.type = 'lowpass';
-    this.filterNode.frequency.setValueAtTime(12000, this.ctx.currentTime);
+    this.filterNode.frequency.setValueAtTime(14000, this.ctx.currentTime);
     this.filterNode.connect(this.ctx.destination);
   }
 
   public setWarped(warped: boolean): void {
     this.isWarped = warped;
     if (!this.ctx || !this.filterNode) return;
-    const targetFreq = warped ? 1100 : 14000;
-    this.filterNode.frequency.exponentialRampToValueAtTime(targetFreq, this.ctx.currentTime + 0.5);
+    const targetFreq = warped ? 1200 : 14000;
+    this.filterNode.frequency.exponentialRampToValueAtTime(targetFreq, this.ctx.currentTime + 0.4);
   }
 
   public playTone(freq: number, type: OscillatorType = 'square', duration: number = 0.15, vol: number = 0.1): void {
-    if (!this.ctx || this.isMuted) return;
+    if (!this.ctx || this.isMuted || freq <= 0) return;
     try {
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
@@ -42,32 +43,30 @@ export class AudioEngine {
 
       osc.start();
       osc.stop(this.ctx.currentTime + duration);
-    } catch (e) {
-      console.warn('Audio error:', e);
-    }
+    } catch (e) {}
   }
 
-  public playDrum(kind: 'kick' | 'snare' | 'hihat'): void {
+  public playDrum(kind: 'kick' | 'snare' | 'hihat' | 'clap'): void {
     if (!this.ctx || this.isMuted) return;
     try {
       if (kind === 'kick') {
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
-        osc.frequency.setValueAtTime(130, this.ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(30, this.ctx.currentTime + 0.18);
+        osc.frequency.setValueAtTime(140, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(32, this.ctx.currentTime + 0.16);
 
-        gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.18);
+        gain.gain.setValueAtTime(0.35, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.16);
 
         osc.connect(gain);
         gain.connect(this.filterNode || this.ctx.destination);
         osc.start();
-        osc.stop(this.ctx.currentTime + 0.18);
-      } else if (kind === 'snare') {
-        this.playTone(180, 'triangle', 0.1, 0.2);
-        this.playStaticHiss(0.1, 0.08);
+        osc.stop(this.ctx.currentTime + 0.16);
+      } else if (kind === 'snare' || kind === 'clap') {
+        this.playTone(kind === 'clap' ? 240 : 180, 'triangle', 0.1, 0.2);
+        this.playStaticHiss(0.1, 0.09);
       } else if (kind === 'hihat') {
-        this.playStaticHiss(0.04, 0.04);
+        this.playStaticHiss(0.03, 0.04);
       }
     } catch (e) {}
   }
@@ -75,7 +74,7 @@ export class AudioEngine {
   public playStaticHiss(duration: number = 0.15, vol: number = 0.1): void {
     if (!this.ctx || this.isMuted) return;
     try {
-      const bufferSize = this.ctx.sampleRate * duration;
+      const bufferSize = Math.floor(this.ctx.sampleRate * duration);
       const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
       const output = buffer.getChannelData(0);
       for (let i = 0; i < bufferSize; i++) {
@@ -95,24 +94,37 @@ export class AudioEngine {
     } catch (e) {}
   }
 
+  public playRhythmHit(grade: 'PERFECT' | 'GREAT' | 'MISS'): void {
+    if (grade === 'PERFECT') {
+      this.playDrum('clap');
+      this.playTone(1046.5, 'sine', 0.25, 0.25); // High C6 chime
+      setTimeout(() => this.playTone(1318.5, 'triangle', 0.2, 0.2), 60); // E6
+    } else if (grade === 'GREAT') {
+      this.playDrum('snare');
+      this.playTone(659.25, 'sine', 0.18, 0.18);
+    } else {
+      this.playTone(110, 'sawtooth', 0.25, 0.2); // Low thud
+    }
+  }
+
   public playTuningClick(): void {
-    this.playTone(600 + Math.random() * 300, 'square', 0.04, 0.05);
+    this.playTone(700 + Math.random() * 250, 'sine', 0.05, 0.08);
   }
 
   public playLockChime(): void {
-    const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+    const notes = [523.25, 659.25, 783.99, 1046.50];
     notes.forEach((note, i) => {
       setTimeout(() => this.playTone(note, 'sine', 0.25, 0.15), i * 70);
     });
   }
 
   public playCleansingBloom(): void {
-    const notes = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99, 1046.50, 1318.51];
+    const notes = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98];
     notes.forEach((note, i) => {
       setTimeout(() => {
-        this.playTone(note, 'triangle', 0.5, 0.2);
+        this.playTone(note, 'triangle', 0.6, 0.2);
         this.playTone(note * 1.5, 'sine', 0.4, 0.1);
-      }, i * 90);
+      }, i * 80);
     });
   }
 
@@ -124,56 +136,111 @@ export class AudioEngine {
       const gain = this.ctx?.createGain();
       if (!this.ctx || !osc || !gain) return;
       osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(110, this.ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(35, this.ctx.currentTime + 0.35);
-      gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
+      osc.frequency.setValueAtTime(120, this.ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(38, this.ctx.currentTime + 0.35);
+      gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.35);
       osc.connect(gain);
       gain.connect(this.filterNode || this.ctx.destination);
       osc.start();
       osc.stop(this.ctx.currentTime + 0.35);
     } else if (type === 'glitch_hit') {
-      this.playStaticHiss(0.25, 0.25);
-      this.playTone(90, 'sawtooth', 0.2, 0.2);
+      this.playStaticHiss(0.3, 0.3);
+      this.playTone(85, 'sawtooth', 0.25, 0.25);
     } else if (type === 'cosmic_burst') {
       this.playCleansingBloom();
     }
   }
 
+  /* ---------------- STRUCTURED BGM SYSTEM ---------------- */
+  public switchTrack(track: 'town' | 'battle'): void {
+    if (this.currentTrack === track && this.bgmInterval) return;
+    this.stopBGM();
+    this.currentTrack = track;
+    this.startBGM();
+  }
+
   public startBGM(): void {
     if (this.bgmInterval) return;
     this.init();
+    this.stepCount = 0;
 
-    // 120 BPM chiptune pattern
-    const melodyC = [523, 0, 659, 0, 783, 659, 1046, 783];
-    const bassC = [130, 0, 130, 0, 164, 0, 196, 0];
+    // 16-Step Sequences
+    // Town: Am - F - C - G (Cozy Lo-Fi Vibe)
+    const townChords = [
+      // Am (Steps 0-3)
+      { b: 110, m: [440, 523, 659, 523] },
+      // F (Steps 4-7)
+      { b: 87.3, m: [349, 440, 523, 440] },
+      // C (Steps 8-11)
+      { b: 130.8, m: [523, 659, 783, 659] },
+      // G (Steps 12-15)
+      { b: 98.0, m: [392, 493, 587, 493] }
+    ];
+
+    // Battle: Driving Synth-Punk (Dm - Bb - F - C)
+    const battleChords = [
+      // Dm (0-3)
+      { b: 146.8, m: [587, 698, 880, 698] },
+      // Bb (4-7)
+      { b: 116.5, m: [466, 587, 698, 587] },
+      // F (8-11)
+      { b: 174.6, m: [698, 880, 1046, 880] },
+      // C (12-15)
+      { b: 130.8, m: [523, 659, 783, 1046] }
+    ];
+
+    const tempoMs = this.currentTrack === 'battle' ? 125 : 175; // Faster for battle
 
     this.bgmInterval = window.setInterval(() => {
       if (!this.ctx || this.isMuted) return;
-      const step = this.beatCount % 8;
 
-      // Drums
-      if (step === 0 || step === 4) this.playDrum('kick');
-      if (step === 2 || step === 6) this.playDrum('snare');
-      this.playDrum('hihat');
+      const track = this.currentTrack || 'town';
+      const chords = track === 'battle' ? battleChords : townChords;
+      const step16 = this.stepCount % 16;
+      const chordIndex = Math.floor(step16 / 4);
+      const subStep = step16 % 4;
+      const chord = chords[chordIndex];
 
-      // Bass & Melody
-      const mNote = melodyC[step];
-      const bNote = bassC[step];
+      if (track === 'battle') {
+        // Driving Dance Drums
+        if (step16 % 4 === 0) this.playDrum('kick');
+        if (step16 % 4 === 2) this.playDrum('snare');
+        this.playDrum('hihat');
 
-      if (mNote > 0) {
-        this.playTone(this.isWarped ? mNote * 0.98 : mNote, 'square', 0.1, 0.04);
+        // Bass
+        if (subStep === 0 || subStep === 2) {
+          this.playTone(this.isWarped ? chord.b * 0.98 : chord.b, 'sawtooth', 0.12, 0.12);
+        }
+
+        // Melody Lead
+        const mel = chord.m[subStep];
+        this.playTone(this.isWarped ? mel * 1.02 : mel, 'square', 0.08, 0.05);
+
+      } else {
+        // Chill Town Drums
+        if (step16 === 0 || step16 === 8) this.playDrum('kick');
+        if (step16 === 4 || step16 === 12) this.playDrum('snare');
+        if (step16 % 2 === 0) this.playDrum('hihat');
+
+        // Warm Bass
+        if (subStep === 0) {
+          this.playTone(chord.b, 'triangle', 0.25, 0.1);
+        }
+
+        // Acoustic Arpeggio
+        const mel = chord.m[subStep];
+        if (subStep % 2 === 0) {
+          this.playTone(mel, 'sine', 0.18, 0.06);
+        }
       }
-      if (bNote > 0) {
-        this.playTone(this.isWarped ? bNote * 1.03 : bNote, 'triangle', 0.15, 0.08);
+
+      if (this.isWarped && Math.random() < 0.15) {
+        this.playStaticHiss(0.06, 0.05);
       }
 
-      if (this.isWarped && Math.random() < 0.2) {
-        this.playStaticHiss(0.08, 0.06);
-      }
-
-      this.beatCount++;
-    }, 150);
+      this.stepCount++;
+    }, tempoMs);
   }
 
   public stopBGM(): void {

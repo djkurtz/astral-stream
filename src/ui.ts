@@ -13,27 +13,27 @@ export class AstralUIManager {
   }
 
   private setupEventListeners(): void {
-    // Dialogue advance
+    // Dialogue advance on click
     const dialogueBox = document.getElementById('dialogue-box');
     dialogueBox?.addEventListener('click', () => {
       this.engine.advanceDialogue();
       this.updateUI();
     });
 
-    window.addEventListener('keydown', (e) => {
-      if (e.code === 'Space' || e.code === 'Enter') {
-        const state = this.engine.getState();
-        if (state.dialogue) {
-          this.engine.advanceDialogue();
-          this.updateUI();
-        } else if (state.mode === 'audio_match_scan') {
-          this.engine.pulseRadarScan();
-          this.updateUI();
-        }
+    // Canvas click: either interact with nearby NPC or resolve rhythm hit!
+    const canvas = document.getElementById('game-canvas');
+    canvas?.addEventListener('click', () => {
+      const state = this.engine.getState();
+      if (state.mode === 'battle' && state.battle?.turn === 'rhythm_timing') {
+        this.engine.resolveRhythmHit();
+        this.updateUI();
+      } else if (state.mode === 'exploration' && state.nearbyInteractable) {
+        this.engine.interactWithNearby();
+        this.updateUI();
       }
     });
 
-    // Modern Audio Match Radar Pulse Button
+    // Audio Match Radar Pulse Button
     document.getElementById('radar-scan-btn')?.addEventListener('click', () => {
       this.engine.pulseRadarScan();
       this.updateUI();
@@ -112,7 +112,7 @@ export class AstralUIManager {
         document.getElementById('enemy-hp-bar')!.style.width = `${ePct}%`;
         document.getElementById('enemy-hp-text')!.textContent = `${eHp}/${eMaxHp} HP`;
 
-        // Only rebuild move buttons if spirit moves changed (e.g. initial load or after fusion)
+        // Only rebuild move buttons if spirit moves changed
         const movesContainer = document.getElementById('battle-moves');
         if (movesContainer) {
           const currentSpiritKey = `${b.playerSpirit.id}_${b.playerSpirit.moves.length}`;
@@ -122,7 +122,8 @@ export class AstralUIManager {
                 <div class="pad-light"></div>
                 <div class="pad-content">
                   <div style="font-weight: 700; font-size: 0.95rem;">${m.name}</div>
-                  <div style="font-size: 0.75rem; opacity: 0.8;">${m.type.toUpperCase()} STEM • PWR: ${m.power}</div>
+                  <div style="font-size: 0.75rem; color: var(--accent-yellow); font-weight: 600;">${m.effectiveness || `${m.type.toUpperCase()} STEM`}</div>
+                  <div style="font-size: 0.72rem; opacity: 0.8;">Power: ${m.power}</div>
                 </div>
               </button>
             `).join('');
@@ -130,7 +131,7 @@ export class AstralUIManager {
             movesContainer.querySelectorAll<HTMLButtonElement>('.stem-pad-btn').forEach(btn => {
               btn.addEventListener('click', (e) => {
                 const idx = parseInt((e.currentTarget as HTMLElement).dataset.idx || '0', 10);
-                this.engine.executePlayerMove(idx);
+                this.engine.initiatePlayerMove(idx);
                 this.updateUI();
               });
             });
@@ -138,7 +139,7 @@ export class AstralUIManager {
             this.renderedSpiritIdForMoves = currentSpiritKey;
           }
 
-          // Simply toggle disabled state without destroying DOM
+          // Toggle disabled state during rhythm timing or enemy turn
           const isPlayerTurn = b.turn === 'player';
           movesContainer.querySelectorAll<HTMLButtonElement>('.stem-pad-btn').forEach(btn => {
             btn.disabled = !isPlayerTurn;
@@ -148,7 +149,7 @@ export class AstralUIManager {
         // Blend Button
         const blendBtn = document.getElementById('battle-blend-btn');
         if (blendBtn) {
-          if (b.canBlend && !b.blendActive) {
+          if (b.canBlend && !b.blendActive && b.turn === 'player') {
             blendBtn.classList.remove('hidden');
           } else {
             blendBtn.classList.add('hidden');
@@ -160,12 +161,12 @@ export class AstralUIManager {
       }
     }
 
-    // 4. Stream Queue Top Bar (Only rebuild when items are added)
+    // 4. Stream Queue Top Bar
     const queueContainer = document.getElementById('stream-queue');
     if (queueContainer && this.renderedQueueLength !== state.streamQueue.length) {
       queueContainer.innerHTML = state.streamQueue.map((s, idx) => `
         <div class="stream-badge ${idx === state.activeSpiritIndex ? 'active' : ''}">
-          <span>${s.avatar}</span>
+          <span style="font-size: 1.1rem;">${s.avatar || '🐱'}</span>
           <span style="font-size: 0.8rem; font-weight: 700;">${s.name} <span style="opacity: 0.7; font-size: 0.7rem;">${s.vibeTag}</span></span>
         </div>
       `).join('');
