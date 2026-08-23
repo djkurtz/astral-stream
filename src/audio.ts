@@ -12,6 +12,7 @@ export class AudioEngine {
   public init(): void {
     if (this.ctx) return;
     const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioCtx) return;
     this.ctx = new AudioCtx();
     this.filterNode = this.ctx.createBiquadFilter();
     this.filterNode.type = 'lowpass';

@@ -599,3 +599,5 @@ export class AstralGameEngine {
     }
   }
 }
+
+export { AstralGameEngine as GameEngine };
