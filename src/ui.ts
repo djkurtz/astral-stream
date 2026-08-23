@@ -109,6 +109,18 @@ export class HarmoniaUI {
       });
     }
 
+    // Fullscreen Toggle Button
+    const btnFullscreen = document.getElementById('btn-fullscreen');
+    if (btnFullscreen) {
+      btnFullscreen.addEventListener('click', () => {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen().catch(() => {});
+        } else {
+          document.exitFullscreen().catch(() => {});
+        }
+      });
+    }
+
     // Keyboard Shortcuts for Modals
     window.addEventListener('keydown', (e) => {
       const mode = this.engine.getState().mode;
