@@ -1,6 +1,6 @@
 export type GameMode = 
   | 'intro'
-  | 'tuning_tutorial'
+  | 'audio_match_scan'
   | 'exploration'
   | 'dialogue'
   | 'battle'
@@ -12,7 +12,7 @@ export interface Move {
   name: string;
   type: 'synth' | 'bass' | 'brass' | 'static' | 'cosmic';
   power: number;
-  cost: number; // Harmonic Energy (HE)
+  cost: number;
   description: string;
   soundType: 'arpeggio' | 'bass_drop' | 'brass_riff' | 'glitch_hit' | 'cosmic_burst';
 }
@@ -21,14 +21,14 @@ export interface StreamSpirit {
   id: string;
   name: string;
   title: string;
-  frequency: number; // e.g. 98.0
+  vibeTag: string; // e.g. '#ChiptuneSynth'
   species: string;
   instrument: string;
-  avatar: string; // pixel sprite identifier
+  avatar: string;
   color: string;
   hp: number;
   maxHp: number;
-  energy: number; // 0 to 100 HE
+  energy: number;
   attack: number;
   defense: number;
   speed: number;
@@ -58,7 +58,7 @@ export interface BossEntity {
   maxHp: number;
   attack: number;
   moves: Move[];
-  glitchIntensity: number; // 0 to 1
+  glitchIntensity: number;
 }
 
 export interface BattleState {
@@ -69,15 +69,15 @@ export interface BattleState {
   turn: 'player' | 'enemy' | 'animating';
   selectedMoveIndex: number;
   log: string;
-  canFuse: boolean;
-  fusionActive: boolean;
+  canBlend: boolean;
+  blendActive: boolean;
 }
 
-export interface TuningState {
-  targetFrequency: number;
-  currentFrequency: number;
-  tolerance: number;
-  isLocked: boolean;
+export interface AudioMatchState {
+  targetWaveformSync: number; // 0 to 100
+  currentSync: number;
+  scanPulses: number;
+  isMatched: boolean;
   spiritToUnlock: StreamSpirit;
 }
 
@@ -85,9 +85,9 @@ export interface GameState {
   mode: GameMode;
   zoneClean: boolean;
   activeCompanion: RivalCharacter | null;
-  streamQueue: StreamSpirit[]; // Collected spirits
+  streamQueue: StreamSpirit[];
   activeSpiritIndex: number;
-  tuning: TuningState | null;
+  audioMatch: AudioMatchState | null;
   battle: BattleState | null;
   dialogue: {
     speaker: string;
@@ -98,5 +98,5 @@ export interface GameState {
   } | null;
   time: number;
   glitchActive: boolean;
-  cleansingProgress: number; // 0 to 1
+  cleansingProgress: number;
 }

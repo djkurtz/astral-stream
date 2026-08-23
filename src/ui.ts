@@ -9,7 +9,7 @@ export class AstralUIManager {
   }
 
   private setupEventListeners(): void {
-    // Dialogue advance on click anywhere on dialogue box or pressing Space/Enter
+    // Dialogue advance
     const dialogueBox = document.getElementById('dialogue-box');
     dialogueBox?.addEventListener('click', () => {
       this.engine.advanceDialogue();
@@ -22,34 +22,22 @@ export class AstralUIManager {
         if (state.dialogue) {
           this.engine.advanceDialogue();
           this.updateUI();
+        } else if (state.mode === 'audio_match_scan') {
+          this.engine.pulseRadarScan();
+          this.updateUI();
         }
       }
     });
 
-    // Tuning Controls
-    document.getElementById('tune-down-btn')?.addEventListener('click', () => {
-      this.engine.adjustFrequency(-2.0);
+    // Modern Audio Match Radar Pulse Button
+    document.getElementById('radar-scan-btn')?.addEventListener('click', () => {
+      this.engine.pulseRadarScan();
       this.updateUI();
     });
 
-    document.getElementById('tune-up-btn')?.addEventListener('click', () => {
-      this.engine.adjustFrequency(2.0);
-      this.updateUI();
-    });
-
-    document.getElementById('tune-fine-down-btn')?.addEventListener('click', () => {
-      this.engine.adjustFrequency(-0.5);
-      this.updateUI();
-    });
-
-    document.getElementById('tune-fine-up-btn')?.addEventListener('click', () => {
-      this.engine.adjustFrequency(0.5);
-      this.updateUI();
-    });
-
-    // Battle Fusion Button
-    document.getElementById('battle-fuse-btn')?.addEventListener('click', () => {
-      this.engine.triggerFusion();
+    // Battle Playlist Blend Button
+    document.getElementById('battle-blend-btn')?.addEventListener('click', () => {
+      this.engine.triggerPlaylistBlend();
       this.updateUI();
     });
   }
@@ -71,19 +59,20 @@ export class AstralUIManager {
       }
     }
 
-    // 2. Tuning Panel
-    const tuningPanel = document.getElementById('tuning-panel');
-    if (tuningPanel) {
-      if (state.mode === 'tuning_tutorial' && state.tuning) {
-        tuningPanel.classList.remove('hidden');
-        document.getElementById('current-freq-display')!.textContent = `${state.tuning.currentFrequency.toFixed(1)} FM`;
-        document.getElementById('target-freq-display')!.textContent = `${state.tuning.targetFrequency.toFixed(1)} FM`;
+    // 2. Audio Match Radar Panel
+    const scanPanel = document.getElementById('audio-scan-panel');
+    if (scanPanel) {
+      if (state.mode === 'audio_match_scan' && state.audioMatch) {
+        scanPanel.classList.remove('hidden');
+        const m = state.audioMatch;
+        document.getElementById('scan-sync-display')!.textContent = `${m.currentSync}%`;
+        document.getElementById('scan-target-display')!.textContent = `${m.spiritToUnlock.name} (${m.spiritToUnlock.vibeTag})`;
       } else {
-        tuningPanel.classList.add('hidden');
+        scanPanel.classList.add('hidden');
       }
     }
 
-    // 3. Battle Control Panel
+    // 3. Battle Launchpad Panel
     const battlePanel = document.getElementById('battle-panel');
     if (battlePanel) {
       if (state.mode === 'battle' && state.battle) {
@@ -92,7 +81,7 @@ export class AstralUIManager {
 
         // Player HP
         const pPct = Math.max(0, (b.playerSpirit.hp / b.playerSpirit.maxHp) * 100);
-        document.getElementById('player-name')!.textContent = b.playerSpirit.name;
+        document.getElementById('player-name')!.textContent = `${b.playerSpirit.name} [${b.playerSpirit.vibeTag}]`;
         document.getElementById('player-hp-bar')!.style.width = `${pPct}%`;
         document.getElementById('player-hp-text')!.textContent = `${b.playerSpirit.hp}/${b.playerSpirit.maxHp} HP`;
 
@@ -101,11 +90,11 @@ export class AstralUIManager {
         let eHp = 0;
         let eMaxHp = 1;
         if (b.type === 'rival' && b.enemySpirit) {
-          eName = b.enemySpirit.name;
+          eName = `${b.enemySpirit.name} [${b.enemySpirit.vibeTag}]`;
           eHp = b.enemySpirit.hp;
           eMaxHp = b.enemySpirit.maxHp;
         } else if (b.type === 'boss' && b.enemyBoss) {
-          eName = b.enemyBoss.name;
+          eName = `${b.enemyBoss.name} [GLITCH STREAM]`;
           eHp = b.enemyBoss.hp;
           eMaxHp = b.enemyBoss.maxHp;
         }
@@ -114,17 +103,20 @@ export class AstralUIManager {
         document.getElementById('enemy-hp-bar')!.style.width = `${ePct}%`;
         document.getElementById('enemy-hp-text')!.textContent = `${eHp}/${eMaxHp} HP`;
 
-        // Move Buttons
+        // Stem Pad Buttons
         const movesContainer = document.getElementById('battle-moves');
         if (movesContainer) {
           movesContainer.innerHTML = b.playerSpirit.moves.map((m, idx) => `
-            <button class="move-btn" data-idx="${idx}" ${b.turn !== 'player' ? 'disabled' : ''}>
-              <div style="font-weight: 700;">${m.name}</div>
-              <div style="font-size: 0.75rem; opacity: 0.8;">Power: ${m.power} • ${m.type.toUpperCase()}</div>
+            <button class="stem-pad-btn" data-idx="${idx}" ${b.turn !== 'player' ? 'disabled' : ''}>
+              <div class="pad-light"></div>
+              <div class="pad-content">
+                <div style="font-weight: 700; font-size: 0.95rem;">${m.name}</div>
+                <div style="font-size: 0.75rem; opacity: 0.8;">${m.type.toUpperCase()} STEM • PWR: ${m.power}</div>
+              </div>
             </button>
           `).join('');
 
-          movesContainer.querySelectorAll('.move-btn').forEach(btn => {
+          movesContainer.querySelectorAll('.stem-pad-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
               const idx = parseInt((e.currentTarget as HTMLElement).dataset.idx || '0', 10);
               this.engine.executePlayerMove(idx);
@@ -133,13 +125,13 @@ export class AstralUIManager {
           });
         }
 
-        // Fusion Button Display
-        const fuseBtn = document.getElementById('battle-fuse-btn');
-        if (fuseBtn) {
-          if (b.canFuse && !b.fusionActive) {
-            fuseBtn.classList.remove('hidden');
+        // Blend Button
+        const blendBtn = document.getElementById('battle-blend-btn');
+        if (blendBtn) {
+          if (b.canBlend && !b.blendActive) {
+            blendBtn.classList.remove('hidden');
           } else {
-            fuseBtn.classList.add('hidden');
+            blendBtn.classList.add('hidden');
           }
         }
       } else {
@@ -153,7 +145,7 @@ export class AstralUIManager {
       queueContainer.innerHTML = state.streamQueue.map((s, idx) => `
         <div class="stream-badge ${idx === state.activeSpiritIndex ? 'active' : ''}">
           <span>${s.avatar}</span>
-          <span style="font-size: 0.8rem; font-weight: 700;">${s.name} (${s.frequency.toFixed(1)} FM)</span>
+          <span style="font-size: 0.8rem; font-weight: 700;">${s.name} <span style="opacity: 0.7; font-size: 0.7rem;">${s.vibeTag}</span></span>
         </div>
       `).join('');
     }

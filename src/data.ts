@@ -4,7 +4,7 @@ export const STARTER_SPIRIT: StreamSpirit = {
   id: 'spirit_chime_cat',
   name: 'Chime-Cat',
   title: '8-Bit Synth Kitten',
-  frequency: 98.0,
+  vibeTag: '#ChiptunePop',
   species: 'Chime Feline',
   instrument: 'Chiptune Synthesizer',
   avatar: '🐱',
@@ -41,7 +41,7 @@ export const JAX_SPIRIT: StreamSpirit = {
   id: 'spirit_bass_hound',
   name: 'Bass-Hound',
   title: 'Spiked Fuzz Basset',
-  frequency: 88.3,
+  vibeTag: '#SpikedBass',
   species: 'Sub-Woofer Canine',
   instrument: 'Overdrive Bass',
   avatar: '🐶',
@@ -77,8 +77,8 @@ export const JAX_SPIRIT: StreamSpirit = {
 export const FUSED_CHIMERA: StreamSpirit = {
   id: 'spirit_cyber_chimera',
   name: 'Cyber-Fuzz Chimera',
-  title: 'Dual-Stream Celestial Beast',
-  frequency: 186.3,
+  title: 'Blended Stream Legend',
+  vibeTag: '#CosmicMashup',
   species: 'Ascended Harmonimal',
   instrument: 'Chiptune-Metal Mashup',
   avatar: '🐯⚡',
@@ -93,7 +93,7 @@ export const FUSED_CHIMERA: StreamSpirit = {
   moves: [
     {
       id: 'm_dual_drop',
-      name: 'DUAL-STREAM DROP',
+      name: 'PLAYLIST BLEND DROP',
       type: 'cosmic',
       power: 55,
       cost: 40,
@@ -120,14 +120,14 @@ export const RIVAL_JAX: RivalCharacter = {
   avatar: '🎸',
   color: '#c084fc',
   dialogueGreet: [
-    "Hey! You're the one walking around with that vintage Astral Tuner?",
-    "This shoreline is my turf. The music here is completely jammed by some weird static glitch.",
-    "If you think you're ready to take on the anomaly, prove your rhythm to me first in a Resonance Duel!"
+    "Hey! You're the one scanning audio signatures with that slick Vibe-Phone?",
+    "This shoreline is my turf. The audio feed here is completely jammed by some weird rogue glitch.",
+    "If you think your playlist has what it takes to face the anomaly, prove your rhythm to me first in a Resonance Duel!"
   ],
   dialogueDefeat: [
-    "Whoa... okay, your timing is clean. I respect that.",
+    "Whoa... okay, your tracks are straight fire. I respect that.",
     "My Bass-Hound and I have been trying to breach that static storm for days.",
-    "Let's team up. If we stream our frequencies together, we can blast that Dead Channel into pieces!"
+    "Let's link our feeds into a Collaborative Playlist Blend! Together, we can blast that Dead Channel into pieces!"
   ],
   spirit: JAX_SPIRIT
 };
@@ -154,11 +154,11 @@ export const BOSS_SIGNAL_OVERLORD: BossEntity = {
     },
     {
       id: 'b_desync',
-      name: 'Frequency Jammer',
+      name: 'Stream Desync Jammer',
       type: 'static',
       power: 30,
       cost: 25,
-      description: 'Desynchronizes your tuner, warping the battle tempo.',
+      description: 'Hacks your audio feed, desynchronizing the battle tempo.',
       soundType: 'glitch_hit'
     }
   ]

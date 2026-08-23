@@ -35,8 +35,8 @@ export class AstralRenderer {
 
     if (state.mode === 'battle') {
       this.renderBattleArena(state, w, h);
-    } else if (state.mode === 'tuning_tutorial' && state.tuning) {
-      this.renderTuningOscilloscope(state, w, h);
+    } else if (state.mode === 'audio_match_scan' && state.audioMatch) {
+      this.renderAudioMatchRadar(state, w, h);
     } else {
       this.renderWorldScene(state, w, h);
     }
@@ -146,86 +146,81 @@ export class AstralRenderer {
     }
   }
 
-  private renderTuningOscilloscope(state: GameState, w: number, h: number): void {
+  private renderAudioMatchRadar(state: GameState, w: number, h: number): void {
     const ctx = this.ctx;
     const t = state.time;
-    const tuning = state.tuning!;
+    const match = state.audioMatch!;
 
     ctx.fillStyle = '#090d16';
     ctx.fillRect(0, 0, w, h);
 
-    // Grid Lines
-    ctx.strokeStyle = 'rgba(6, 182, 212, 0.15)';
-    ctx.lineWidth = 1;
-    for (let x = 0; x < w; x += 40) {
+    const centerX = w / 2;
+    const centerY = h * 0.42;
+
+    // Glowing Concentric Radar Rings (Shazam Style)
+    for (let r = 40; r <= 180; r += 35) {
+      ctx.strokeStyle = 'rgba(6, 182, 212, 0.25)';
+      ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, h);
-      ctx.stroke();
-    }
-    for (let y = 0; y < h; y += 40) {
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(w, y);
+      ctx.arc(centerX, centerY, r, 0, Math.PI * 2);
       ctx.stroke();
     }
 
-    // Oscilloscope Frame
-    ctx.strokeStyle = '#06b6d4';
-    ctx.lineWidth = 4;
-    ctx.strokeRect(30, 30, w - 60, h - 60);
-
-    const centerY = h * 0.45;
-    const diff = Math.abs(tuning.currentFrequency - tuning.targetFrequency);
-    const isSynced = diff < tuning.tolerance;
-
-    // Target Waveform (Cyan)
-    ctx.strokeStyle = isSynced ? '#10b981' : 'rgba(56, 189, 248, 0.5)';
-    ctx.lineWidth = isSynced ? 4 : 2;
+    // Rotating Radar Sweep Beam
+    const sweepAngle = t * 3;
+    ctx.save();
+    ctx.translate(centerX, centerY);
+    ctx.rotate(sweepAngle);
+    const beamGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, 180);
+    beamGrad.addColorStop(0, 'rgba(6, 182, 212, 0.4)');
+    beamGrad.addColorStop(1, 'rgba(6, 182, 212, 0)');
+    ctx.fillStyle = beamGrad;
     ctx.beginPath();
-    for (let x = 40; x < w - 40; x += 4) {
-      const y = centerY + Math.sin(x * 0.05 + t * 4) * 45;
-      if (x === 40) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
+    ctx.moveTo(0, 0);
+    ctx.arc(0, 0, 180, 0, Math.PI * 0.25);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+
+    // Sound Spectrum Equalizer Bars (Bottom of Radar)
+    const barCount = 24;
+    const barW = (w * 0.7) / barCount;
+    const startX = w * 0.15;
+    const baseBarY = h * 0.75;
+
+    for (let i = 0; i < barCount; i++) {
+      const freqHeight = Math.abs(Math.sin(t * 6 + i * 0.4)) * 45 + 10;
+      const syncMultiplier = match.currentSync / 100;
+      const barH = freqHeight * (0.4 + syncMultiplier * 0.8);
+
+      ctx.fillStyle = match.isMatched 
+        ? '#10b981' 
+        : (i % 2 === 0 ? '#06b6d4' : '#ec4899');
+      ctx.fillRect(startX + i * barW + 2, baseBarY - barH, barW - 4, barH);
     }
-    ctx.stroke();
 
-    // Player Tuner Waveform (Magenta / Green)
-    ctx.strokeStyle = isSynced ? '#10b981' : '#f43f5e';
-    ctx.lineWidth = isSynced ? 4 : 3;
-    ctx.beginPath();
-    const playerFreqScale = 0.02 + (tuning.currentFrequency / 100) * 0.04;
-    for (let x = 40; x < w - 40; x += 4) {
-      const y = centerY + Math.sin(x * playerFreqScale + t * 5) * 50;
-      if (x === 40) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    }
-    ctx.stroke();
-
-    // Resonance Pulse on Sync
-    if (isSynced) {
-      const pulseSize = (t * 100) % 120;
-      ctx.strokeStyle = `rgba(16, 185, 129, ${1 - pulseSize / 120})`;
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.arc(w / 2, centerY, pulseSize, 0, Math.PI * 2);
-      ctx.stroke();
-
+    // Audio Match Sync Indicator
+    if (match.isMatched) {
       ctx.fillStyle = '#10b981';
       ctx.font = '700 24px Rajdhani';
       ctx.textAlign = 'center';
-      ctx.fillText('✨ FREQUENCY LOCKED! DOWNLOADING SPIRIT... ✨', w / 2, centerY - 80);
+      ctx.fillText('✨ AUDIO MATCH 100%! DOWNLOADING STREAM... ✨', centerX, centerY - 110);
+    } else {
+      ctx.fillStyle = '#06b6d4';
+      ctx.font = '700 20px Rajdhani';
+      ctx.textAlign = 'center';
+      ctx.fillText(`SONIC RADAR: LISTENING TO AMBIENT VIBE... (${match.currentSync}%)`, centerX, centerY - 110);
     }
 
-    // Creature Preview
-    const spirit = tuning.spiritToUnlock;
+    // Target Creature Card
+    const spirit = match.spiritToUnlock;
     ctx.fillStyle = '#ffffff';
     ctx.font = '700 20px Rajdhani';
     ctx.textAlign = 'center';
-    ctx.fillText(`Target: ${spirit.name} (${tuning.targetFrequency.toFixed(1)} FM)`, w / 2, h * 0.78);
+    ctx.fillText(`${spirit.name} • ${spirit.vibeTag}`, centerX, h * 0.84);
 
-    ctx.font = '40px sans-serif';
-    ctx.fillText(spirit.avatar, w / 2, h * 0.88);
+    ctx.font = '46px sans-serif';
+    ctx.fillText(spirit.avatar, centerX, centerY);
   }
 
   private renderBattleArena(state: GameState, w: number, h: number): void {
@@ -252,7 +247,6 @@ export class AstralRenderer {
     const px = w * 0.25;
     const py = h * 0.65;
 
-    // Platform
     ctx.fillStyle = 'rgba(6, 182, 212, 0.3)';
     ctx.beginPath();
     ctx.ellipse(px, py + 25, 70, 20, 0, 0, Math.PI * 2);
@@ -271,7 +265,6 @@ export class AstralRenderer {
 
     if (battle.type === 'boss' && battle.enemyBoss) {
       const boss = battle.enemyBoss;
-      // Glitch Jitter
       const jx = ex + (Math.random() - 0.5) * (boss.glitchIntensity * 12);
       const jy = ey + (Math.random() - 0.5) * (boss.glitchIntensity * 8);
       this.drawSpiritSprite(ctx, jx, jy, boss.avatar, boss.name, '#ef4444', 2.0);
@@ -282,7 +275,7 @@ export class AstralRenderer {
 
     // Floating Battle Log
     if (battle.log) {
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
       ctx.fillRect(w * 0.15, h * 0.05, w * 0.7, 45);
       ctx.strokeStyle = '#38bdf8';
       ctx.lineWidth = 2;
@@ -315,13 +308,13 @@ export class AstralRenderer {
 
   private renderCleansingWave(state: GameState, w: number, h: number): void {
     const ctx = this.ctx;
-    const progress = state.cleansingProgress; // 0 to 1
+    const progress = state.cleansingProgress;
     const radius = progress * Math.hypot(w, h);
 
     const grad = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, radius);
-    grad.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
-    grad.addColorStop(0.4, 'rgba(6, 182, 212, 0.7)');
-    grad.addColorStop(0.8, 'rgba(236, 72, 153, 0.5)');
+    grad.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
+    grad.addColorStop(0.4, 'rgba(6, 182, 212, 0.75)');
+    grad.addColorStop(0.8, 'rgba(236, 72, 153, 0.55)');
     grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
 
     ctx.fillStyle = grad;
@@ -351,7 +344,6 @@ export class AstralRenderer {
     ctx.save();
     ctx.translate(x, y);
 
-    // Glow aura
     ctx.shadowColor = color;
     ctx.shadowBlur = 15;
 
@@ -373,24 +365,26 @@ export class AstralRenderer {
 
     // Player Sprite
     ctx.fillStyle = '#f43f5e';
-    ctx.fillRect(-10, -32, 20, 22); // Jacket
+    ctx.fillRect(-10, -32, 20, 22);
 
     ctx.fillStyle = '#fcd34d';
-    ctx.fillRect(-8, -46, 16, 14); // Head/Face
+    ctx.fillRect(-8, -46, 16, 14);
 
     ctx.fillStyle = '#38bdf8';
-    ctx.fillRect(-12, -48, 24, 6); // Headphones
+    ctx.fillRect(-12, -48, 24, 6);
 
     ctx.fillStyle = '#0f172a';
-    ctx.fillRect(-8, -10, 7, 12); // Legs
+    ctx.fillRect(-8, -10, 7, 12);
     ctx.fillRect(1, -10, 7, 12);
 
-    // Glowing Astral Tuner in hand
+    // Glowing Vibe-Phone in hand
     const bounce = Math.sin(t * 4) * 2;
     ctx.fillStyle = '#06b6d4';
     ctx.shadowColor = '#06b6d4';
-    ctx.shadowBlur = 8;
-    ctx.fillRect(12, -24 + bounce, 8, 12);
+    ctx.shadowBlur = 10;
+    ctx.fillRect(12, -24 + bounce, 7, 13);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(13, -22 + bounce, 5, 9);
     ctx.shadowBlur = 0;
 
     ctx.restore();
@@ -403,20 +397,20 @@ export class AstralRenderer {
 
     // Jax Sprite
     ctx.fillStyle = '#1e1b4b';
-    ctx.fillRect(-10, -34, 20, 24); // Spiked Jacket
+    ctx.fillRect(-10, -34, 20, 24);
 
     ctx.fillStyle = '#cbd5e1';
-    ctx.fillRect(-8, -48, 16, 14); // Face
+    ctx.fillRect(-8, -48, 16, 14);
 
     ctx.fillStyle = '#a855f7';
-    ctx.fillRect(-10, -52, 20, 6); // Purple hair
+    ctx.fillRect(-10, -52, 20, 6);
 
     // Spiked Electric Bass
     const strum = Math.sin(t * 8) * 1.5;
     ctx.fillStyle = '#ec4899';
-    ctx.fillRect(-16, -26 + strum, 6, 20); // Bass body
+    ctx.fillRect(-16, -26 + strum, 6, 20);
     ctx.fillStyle = '#94a3b8';
-    ctx.fillRect(-14, -40 + strum, 2, 14); // Bass neck
+    ctx.fillRect(-14, -40 + strum, 2, 14);
 
     ctx.restore();
   }
@@ -425,18 +419,16 @@ export class AstralRenderer {
     ctx.save();
     ctx.translate(x, y);
 
-    // Trunk
     ctx.fillStyle = isClean ? '#b45309' : '#475569';
     ctx.fillRect(-4, -60, 8, 60);
 
-    // Fronds
     ctx.fillStyle = isClean ? '#10b981' : '#64748b';
     ctx.beginPath();
     ctx.arc(0, -60, 28, 0, Math.PI, true);
     ctx.fill();
 
     if (isClean) {
-      ctx.fillStyle = '#ec4899'; // Neon coconuts/flowers
+      ctx.fillStyle = '#ec4899';
       ctx.fillRect(-8, -58, 4, 4);
       ctx.fillRect(4, -58, 4, 4);
     }

@@ -21,15 +21,15 @@ export class AstralGameEngine {
       activeCompanion: null,
       streamQueue: [],
       activeSpiritIndex: 0,
-      tuning: null,
+      audioMatch: null,
       battle: null,
       dialogue: {
-        speaker: 'Astral Tuner (AI)',
-        avatar: '📻',
+        speaker: 'Vibe-Phone OS',
+        avatar: '📱',
         text: [
-          "Bzzzt... Signal link established! Welcome to Frequency Beach on Cadence Island.",
-          "This island vibrates with cosmic musical energy streaming from the stars.",
-          "Let's tune your receiver to summon your first Harmonimal companion!"
+          "Beep-boop! ✨ Vibe-Phone network connected. Welcome to Frequency Beach!",
+          "This shoreline is vibrating with uncataloged cosmic music streams.",
+          "Let's launch the Sonic Radar to scan and Audio-Match your starter companion!"
         ],
         index: 0
       },
@@ -59,9 +59,9 @@ export class AstralGameEngine {
         soundEngine.setWarped(false);
         soundEngine.playCleansingBloom();
         this.showDialogue('Jax & Chime-Cat', '🎉', [
-          "WE DID IT! Look at the sky... all the colors and melodies are back!",
-          "That Dual-Stream Fusion was incredible. We completely destroyed the Dead Channel!",
-          "Thank you for playing the Astral Stream Playable Demo Level!"
+          "WE DID IT! Look at the sky... all the colors and high-definition beats are back!",
+          "That Collaborative Playlist Blend was legendary. We completely crushed the Dead Channel!",
+          "Thank you for playtesting the modern Astral Stream demo!"
         ]);
       }
     }
@@ -70,7 +70,7 @@ export class AstralGameEngine {
   /* ---------------- DIALOGUE SYSTEM ---------------- */
   public advanceDialogue(): void {
     if (!this.state.dialogue) return;
-    soundEngine.playTone(440, 'sine', 0.05, 0.05);
+    soundEngine.playTone(520, 'sine', 0.05, 0.05);
 
     if (this.state.dialogue.index < this.state.dialogue.text.length - 1) {
       this.state.dialogue.index++;
@@ -80,7 +80,7 @@ export class AstralGameEngine {
       if (onComplete) {
         onComplete();
       } else if (this.state.mode === 'intro') {
-        this.startTuningTutorial();
+        this.startAudioMatchScan();
       }
     }
   }
@@ -89,44 +89,50 @@ export class AstralGameEngine {
     this.state.dialogue = { speaker, avatar, text, index: 0, onComplete };
   }
 
-  /* ---------------- TUNING / STREAMING MINIGAME ---------------- */
-  public startTuningTutorial(): void {
-    this.state.mode = 'tuning_tutorial';
-    this.state.tuning = {
-      targetFrequency: 98.0,
-      currentFrequency: 85.0,
-      tolerance: 1.5,
-      isLocked: false,
+  /* ---------------- AUDIO MATCH / SHAZAM MINIGAME ---------------- */
+  public startAudioMatchScan(): void {
+    this.state.mode = 'audio_match_scan';
+    this.state.audioMatch = {
+      targetWaveformSync: 100,
+      currentSync: 15,
+      scanPulses: 0,
+      isMatched: false,
       spiritToUnlock: JSON.parse(JSON.stringify(STARTER_SPIRIT))
     };
     soundEngine.startBGM();
   }
 
-  public adjustFrequency(delta: number): void {
-    if (!this.state.tuning || this.state.tuning.isLocked) return;
-    this.state.tuning.currentFrequency = Math.max(70, Math.min(115, this.state.tuning.currentFrequency + delta));
-    soundEngine.playTuningClick();
+  public pulseRadarScan(): void {
+    const match = this.state.audioMatch;
+    if (!match || match.isMatched) return;
 
-    const diff = Math.abs(this.state.tuning.currentFrequency - this.state.tuning.targetFrequency);
-    if (diff < this.state.tuning.tolerance) {
-      this.lockFrequency();
+    match.scanPulses++;
+    match.currentSync = Math.min(100, match.currentSync + 25 + Math.floor(Math.random() * 10));
+    soundEngine.playTuningClick();
+    soundEngine.playTone(400 + match.currentSync * 4, 'triangle', 0.12, 0.1);
+
+    if (match.currentSync >= 100) {
+      this.completeAudioMatch();
     }
   }
 
-  public lockFrequency(): void {
-    if (!this.state.tuning || this.state.tuning.isLocked) return;
-    this.state.tuning.isLocked = true;
+  public completeAudioMatch(): void {
+    const match = this.state.audioMatch;
+    if (!match || match.isMatched) return;
+
+    match.isMatched = true;
+    match.currentSync = 100;
     soundEngine.playLockChime();
 
     setTimeout(() => {
-      const unlocked = this.state.tuning!.spiritToUnlock;
+      const unlocked = match.spiritToUnlock;
       this.state.streamQueue.push(unlocked);
-      this.state.tuning = null;
+      this.state.audioMatch = null;
       this.state.mode = 'exploration';
 
       this.showDialogue('Chime-Cat', '🐱', [
-        "Mew-chime! ✨ (Chime-Cat streamed directly from the cosmos into your playlist!)",
-        "Suddenly, the sky turns dark and television static rips through the air..."
+        "Mew-chime! ✨ (Audio Match Verified: Chime-Cat has streamed into your library!)",
+        "Suddenly, a pirate static signal hacks the sky! Colors fade and scanlines buzz..."
       ], () => {
         this.triggerStaticIncursion();
       });
@@ -155,9 +161,9 @@ export class AstralGameEngine {
         enemySpirit: JSON.parse(JSON.stringify(RIVAL_JAX.spirit)),
         turn: 'player',
         selectedMoveIndex: 0,
-        log: `${RIVAL_JAX.name} sent out ${RIVAL_JAX.spirit.name}! Resonance battle start!`,
-        canFuse: false,
-        fusionActive: false
+        log: `${RIVAL_JAX.name} dropped into battle with ${RIVAL_JAX.spirit.name}! Resonance battle start!`,
+        canBlend: false,
+        blendActive: false
       };
     } else {
       this.state.battle = {
@@ -166,9 +172,9 @@ export class AstralGameEngine {
         enemyBoss: JSON.parse(JSON.stringify(BOSS_SIGNAL_OVERLORD)),
         turn: 'player',
         selectedMoveIndex: 0,
-        log: `DEAD CHANNEL 000 appeared! The audio stream is violently warped!`,
-        canFuse: !!this.state.activeCompanion,
-        fusionActive: false
+        log: `DEAD CHANNEL 000 hijacked the feed! The audio stream is violently muffled!`,
+        canBlend: !!this.state.activeCompanion,
+        blendActive: false
       };
     }
   }
@@ -183,7 +189,6 @@ export class AstralGameEngine {
     soundEngine.playMoveSound(move.soundType);
     b.turn = 'animating';
 
-    // Calculate Damage
     const dmg = Math.max(8, Math.floor(move.power + (b.playerSpirit.attack * 0.4)));
 
     if (b.type === 'rival' && b.enemySpirit) {
@@ -204,20 +209,19 @@ export class AstralGameEngine {
       }
     }
 
-    // Enemy Turn
     setTimeout(() => {
       this.executeEnemyTurn();
     }, 1200);
   }
 
-  public triggerFusion(): void {
+  public triggerPlaylistBlend(): void {
     const b = this.state.battle;
-    if (!b || !b.canFuse || b.fusionActive) return;
+    if (!b || !b.canBlend || b.blendActive) return;
 
     soundEngine.playCleansingBloom();
-    b.fusionActive = true;
+    b.blendActive = true;
     b.playerSpirit = JSON.parse(JSON.stringify(FUSED_CHIMERA));
-    b.log = `🌟 DUAL-STREAM FUSION ACTIVATED! Chime-Cat and Bass-Hound merged into Cyber-Fuzz Chimera!`;
+    b.log = `🌟 COLLABORATIVE PLAYLIST BLEND! Chime-Cat & Bass-Hound mashed up into Cyber-Fuzz Chimera!`;
   }
 
   private executeEnemyTurn(): void {
@@ -239,9 +243,9 @@ export class AstralGameEngine {
 
     soundEngine.playMoveSound(move.soundType);
     const dmg = Math.max(5, Math.floor(move.power * 0.7));
-    b.playerSpirit.hp = Math.max(1, b.playerSpirit.hp - dmg); // Keep player alive for demo fun!
+    b.playerSpirit.hp = Math.max(1, b.playerSpirit.hp - dmg);
 
-    b.log = `${enemyName} attacked with ${move.name}! Dealt ${dmg} damage.`;
+    b.log = `${enemyName} dropped ${move.name}! Dealt ${dmg} damage.`;
     b.turn = 'player';
   }
 
@@ -256,8 +260,8 @@ export class AstralGameEngine {
 
       this.showDialogue(RIVAL_JAX.name, RIVAL_JAX.avatar, RIVAL_JAX.dialogueDefeat, () => {
         this.showDialogue('Narrator', '📺', [
-          "The static frequency intensifies! The epicenter of Dead Channel 000 is directly ahead.",
-          "Prepare your Dual-Stream Fusion and cleanse the signal!"
+          "The pirate broadcast reaches peak distortion! Dead Channel 000 has materialized.",
+          "Link your playlists and activate the Collaborative Blend to cleanse the stream!"
         ], () => {
           this.startBattle('boss');
         });

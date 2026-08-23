@@ -11,13 +11,13 @@
 </head>
 <body>
   <div id="app">
-    <!-- Top Bar: Streamer Header & Queue -->
+    <!-- Top Bar: Streamer Header & Living Queue -->
     <header id="top-bar">
       <div class="brand">
-        <span class="logo-icon">📻</span>
+        <span class="logo-icon">📱</span>
         <div>
           <h1>ASTRAL STREAM</h1>
-          <div class="subtitle">✨ THE FREQUENCY CHRONICLES ✨</div>
+          <div class="subtitle">✨ LIVE AUDIO-MATCH & PLAYLIST BLEND ✨</div>
         </div>
       </div>
 
@@ -32,28 +32,28 @@
       <div id="canvas-container">
         <canvas id="game-canvas"></canvas>
 
-        <!-- Floating Tuning Panel -->
-        <div id="tuning-panel" class="overlay-panel hidden">
-          <div class="panel-header">🎛️ ASTRAL FREQUENCY TUNER</div>
+        <!-- Floating Audio Match Radar Panel (Shazam / Sound Scan) -->
+        <div id="audio-scan-panel" class="overlay-panel hidden">
+          <div class="panel-header">🔍 SONIC RADAR: AUDIO-MATCH</div>
           <div class="freq-readout">
-            <div>TARGET: <span id="target-freq-display" class="highlight-cyan">98.0 FM</span></div>
-            <div>CURRENT: <span id="current-freq-display" class="highlight-pink">85.0 FM</span></div>
+            <div>TRACK: <span id="scan-target-display" class="highlight-cyan">Chime-Cat (#ChiptunePop)</span></div>
+            <div>SYNC: <span id="scan-sync-display" class="highlight-pink">15%</span></div>
           </div>
-          <div class="tuning-buttons">
-            <button id="tune-down-btn" class="tune-btn">◀◀ -2.0</button>
-            <button id="tune-fine-down-btn" class="tune-btn">◀ -0.5</button>
-            <button id="tune-fine-up-btn" class="tune-btn">+0.5 ▶</button>
-            <button id="tune-up-btn" class="tune-btn">+2.0 ▶▶</button>
+          <div class="radar-action-container">
+            <button id="radar-scan-btn" class="pulse-scan-btn">
+              <span class="pulse-ring"></span>
+              <span class="btn-text">📡 TAP TO MATCH VIBE! 📡</span>
+            </button>
           </div>
-          <div class="tuning-hint">👉 Align the frequencies until the waveforms lock and glow!</div>
+          <div class="tuning-hint">👉 Tap the radar button to sync with the ambient soundwaves!</div>
         </div>
 
-        <!-- Floating Battle Control Panel -->
+        <!-- Floating Battle Launchpad Panel -->
         <div id="battle-panel" class="overlay-panel hidden">
           <div class="battle-hud">
             <!-- Player Stats -->
             <div class="fighter-card player-card">
-              <div id="player-name" class="fighter-name">Chime-Cat</div>
+              <div id="player-name" class="fighter-name">Chime-Cat [#ChiptunePop]</div>
               <div class="meter-bar"><div id="player-hp-bar" class="meter-fill hp-fill"></div></div>
               <div id="player-hp-text" class="meter-text">65/65 HP</div>
             </div>
@@ -62,26 +62,26 @@
 
             <!-- Enemy Stats -->
             <div class="fighter-card enemy-card">
-              <div id="enemy-name" class="fighter-name">Bass-Hound</div>
+              <div id="enemy-name" class="fighter-name">Bass-Hound [#SpikedBass]</div>
               <div class="meter-bar"><div id="enemy-hp-bar" class="meter-fill enemy-hp-fill"></div></div>
               <div id="enemy-hp-text" class="meter-text">85/85 HP</div>
             </div>
           </div>
 
-          <!-- Fusion Button -->
-          <button id="battle-fuse-btn" class="fusion-btn hidden">
-            🌟 DUAL-STREAM FUSION MASHUP! 🌟
+          <!-- Collaborative Playlist Blend Button -->
+          <button id="battle-blend-btn" class="fusion-btn hidden">
+            🌟 COLLABORATIVE PLAYLIST BLEND! 🌟
           </button>
 
-          <!-- Attack Moves -->
+          <!-- Attack Moves (DJ Launchpad Grid) -->
           <div id="battle-moves" class="moves-grid">
-            <!-- Injected move buttons -->
+            <!-- Injected stem pad buttons -->
           </div>
         </div>
 
         <!-- Floating Story Dialogue Box -->
         <div id="dialogue-box" class="dialogue-card hidden">
-          <div id="dialogue-avatar" class="dialogue-avatar">📻</div>
+          <div id="dialogue-avatar" class="dialogue-avatar">📱</div>
           <div class="dialogue-content">
             <div id="dialogue-speaker" class="dialogue-speaker">Speaker</div>
             <div id="dialogue-text" class="dialogue-text">Dialogue text goes here...</div>
