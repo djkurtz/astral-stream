@@ -1,6 +1,6 @@
 import { BUILDING_DEFS, SHIP_DEFS } from './data';
-import { addLog, calculateRates, deductResources } from './state';
-import { BuildingType, GameState, Ship, ShipType } from './types';
+import { addLog, calculateBuildingCost, calculateRates, calculateUpgradeCost, deductResources } from './state';
+import { BuildingType, BuildTask, GameState, Ship, ShipType } from './types';
 
 export class GameEngine {
   private state: GameState;
@@ -79,14 +79,25 @@ export class GameEngine {
     }
   }
 
-  private completeBuildTask(task: { targetId: string; kind: 'building' | 'ship'; typeId: string; name: string }): void {
+  private completeBuildTask(task: BuildTask): void {
     const target = this.state.bodies.find(b => b.id === task.targetId);
     if (!target) return;
 
-    if (task.kind === 'building') {
+    if (task.kind === 'construct') {
       const bType = task.typeId as BuildingType;
-      target.buildings[bType] = (target.buildings[bType] || 0) + 1;
-      addLog(this.state, `Construction complete: ${task.name} upgraded on ${target.name}.`, 'success');
+      const newBuilding = {
+        id: 'b_' + Math.random().toString(36).substring(2, 8),
+        type: bType,
+        level: 1
+      };
+      target.buildings.push(newBuilding);
+      addLog(this.state, `Construction complete: New ${task.name} deployed on ${target.name}.`, 'success');
+    } else if (task.kind === 'upgrade') {
+      const building = target.buildings.find(b => b.id === task.buildingId);
+      if (building) {
+        building.level += 1;
+        addLog(this.state, `Upgrade complete: ${task.name} upgraded to Level ${building.level} on ${target.name}.`, 'success');
+      }
     } else if (task.kind === 'ship') {
       const sType = task.typeId as ShipType;
       const def = SHIP_DEFS[sType];
@@ -107,19 +118,46 @@ export class GameEngine {
     }
   }
 
-  public queueBuilding(bodyId: string, bType: BuildingType, cost: any): boolean {
+  public constructBuilding(bodyId: string, bType: BuildingType): boolean {
+    const body = this.state.bodies.find(b => b.id === bodyId);
+    if (!body || body.buildings.length >= body.maxBuildings) return false;
+
+    const cost = calculateBuildingCost(bType);
     deductResources(this.state.resources, cost);
     const def = BUILDING_DEFS[bType];
     this.state.buildQueue.push({
       id: Math.random().toString(36).substring(2, 9),
       targetId: bodyId,
-      kind: 'building',
+      kind: 'construct',
       typeId: bType,
       progress: 0,
-      totalTime: 4 + ((this.state.bodies.find(b => b.id === bodyId)?.buildings[bType] || 0) * 2),
+      totalTime: 4,
       name: def.name
     });
-    addLog(this.state, `Started construction of ${def.name} on ${(this.state.bodies.find(b => b.id === bodyId))?.name}.`, 'info');
+    addLog(this.state, `Started construction of new ${def.name} on ${body.name}.`, 'info');
+    return true;
+  }
+
+  public upgradeBuilding(bodyId: string, buildingId: string): boolean {
+    const body = this.state.bodies.find(b => b.id === bodyId);
+    if (!body) return false;
+    const building = body.buildings.find(b => b.id === buildingId);
+    if (!building) return false;
+
+    const cost = calculateUpgradeCost(building.type, building.level);
+    deductResources(this.state.resources, cost);
+    const def = BUILDING_DEFS[building.type];
+    this.state.buildQueue.push({
+      id: Math.random().toString(36).substring(2, 9),
+      targetId: bodyId,
+      kind: 'upgrade',
+      typeId: building.type,
+      buildingId: building.id,
+      progress: 0,
+      totalTime: 3 + building.level * 2,
+      name: `${def.name} (Lvl ${building.level + 1})`
+    });
+    addLog(this.state, `Started upgrade of ${def.name} to Level ${building.level + 1} on ${body.name}.`, 'info');
     return true;
   }
 
@@ -147,8 +185,10 @@ export class GameEngine {
     deductResources(this.state.resources, colonizeCost);
 
     body.colonized = true;
-    body.buildings.solar_array = 1;
-    body.buildings.mineral_mine = 1;
+    body.buildings = [
+      { id: 'col_' + Math.random().toString(36).substring(2, 6), type: 'solar_array', level: 1 },
+      { id: 'col_' + Math.random().toString(36).substring(2, 6), type: 'mineral_mine', level: 1 }
+    ];
 
     addLog(this.state, `Colony established on ${body.name}! Initial life support and mining online.`, 'success');
     return true;

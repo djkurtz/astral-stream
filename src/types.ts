@@ -27,6 +27,12 @@ export interface BuildingDef {
   energyConsumption: number;
 }
 
+export interface BuildingInstance {
+  id: string;
+  type: BuildingType;
+  level: number;
+}
+
 export interface CelestialBody {
   id: string;
   name: string;
@@ -41,7 +47,7 @@ export interface CelestialBody {
   parentId?: string; // id of parent body if orbiting a planet/moon
   colonized: boolean;
   canColonize: boolean;
-  buildings: Record<BuildingType, number>;
+  buildings: BuildingInstance[];
   maxBuildings: number;
   pirateThreat?: number; // 0-100
 }
@@ -76,8 +82,9 @@ export interface Ship {
 export interface BuildTask {
   id: string;
   targetId: string; // CelestialBody id
-  kind: 'building' | 'ship';
+  kind: 'construct' | 'upgrade' | 'ship';
   typeId: string;
+  buildingId?: string;
   progress: number;
   totalTime: number;
   name: string;

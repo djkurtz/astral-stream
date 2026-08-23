@@ -112,7 +112,7 @@ export const INITIAL_BODIES: CelestialBody[] = [
     color: '#fbbf24',
     colonized: false,
     canColonize: false,
-    buildings: { solar_array: 0, mineral_mine: 0, alloy_foundry: 0, research_lab: 0, orbital_shipyard: 0, defense_turret: 0 },
+    buildings: [],
     maxBuildings: 0
   },
   {
@@ -127,7 +127,15 @@ export const INITIAL_BODIES: CelestialBody[] = [
     detailsColor: '#22c55e',
     colonized: true,
     canColonize: true,
-    buildings: { solar_array: 2, mineral_mine: 2, alloy_foundry: 1, research_lab: 1, orbital_shipyard: 1, defense_turret: 0 },
+    buildings: [
+      { id: 'b_t_1', type: 'solar_array', level: 1 },
+      { id: 'b_t_2', type: 'solar_array', level: 1 },
+      { id: 'b_t_3', type: 'mineral_mine', level: 1 },
+      { id: 'b_t_4', type: 'mineral_mine', level: 1 },
+      { id: 'b_t_5', type: 'alloy_foundry', level: 1 },
+      { id: 'b_t_6', type: 'research_lab', level: 1 },
+      { id: 'b_t_7', type: 'orbital_shipyard', level: 1 }
+    ],
     maxBuildings: 12
   },
   {
@@ -142,7 +150,11 @@ export const INITIAL_BODIES: CelestialBody[] = [
     parentId: 'terra',
     colonized: true,
     canColonize: true,
-    buildings: { solar_array: 1, mineral_mine: 0, alloy_foundry: 0, research_lab: 1, orbital_shipyard: 0, defense_turret: 1 },
+    buildings: [
+      { id: 'b_s_1', type: 'solar_array', level: 1 },
+      { id: 'b_s_2', type: 'research_lab', level: 1 },
+      { id: 'b_s_3', type: 'defense_turret', level: 1 }
+    ],
     maxBuildings: 6
   },
   {
@@ -157,7 +169,7 @@ export const INITIAL_BODIES: CelestialBody[] = [
     detailsColor: '#991b1b',
     colonized: false,
     canColonize: true,
-    buildings: { solar_array: 0, mineral_mine: 0, alloy_foundry: 0, research_lab: 0, orbital_shipyard: 0, defense_turret: 0 },
+    buildings: [],
     maxBuildings: 8,
     pirateThreat: 15
   },
@@ -172,7 +184,7 @@ export const INITIAL_BODIES: CelestialBody[] = [
     color: '#94a3b8',
     colonized: false,
     canColonize: true,
-    buildings: { solar_array: 0, mineral_mine: 0, alloy_foundry: 0, research_lab: 0, orbital_shipyard: 0, defense_turret: 0 },
+    buildings: [],
     maxBuildings: 4,
     pirateThreat: 40
   },
@@ -188,7 +200,7 @@ export const INITIAL_BODIES: CelestialBody[] = [
     hasRings: true,
     colonized: false,
     canColonize: false,
-    buildings: { solar_array: 0, mineral_mine: 0, alloy_foundry: 0, research_lab: 0, orbital_shipyard: 0, defense_turret: 0 },
+    buildings: [],
     maxBuildings: 0
   },
   {
@@ -202,7 +214,7 @@ export const INITIAL_BODIES: CelestialBody[] = [
     color: '#dc2626',
     colonized: false,
     canColonize: false,
-    buildings: { solar_array: 0, mineral_mine: 0, alloy_foundry: 0, research_lab: 0, orbital_shipyard: 0, defense_turret: 0 },
+    buildings: [],
     maxBuildings: 0,
     pirateThreat: 90
   }

@@ -28,15 +28,16 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
     badge: 'MISSION 2',
     title: 'Powering the Colony',
     description: 'Colony structures consume power. If energy turns negative, your mines and foundries stall.',
-    instruction: 'Switch to the "Base / Colony" tab and construct a Solar Generator Matrix.',
-    hint: 'Select Nova Terra, click the Base / Colony tab on the right, and click "Construct" under Solar Generator.',
+    instruction: 'Switch to the "Base / Colony" tab and construct a new Solar Generator Matrix or upgrade an existing one.',
+    hint: 'Select Nova Terra, click the Base / Colony tab on the right, and click "Construct" or "Upgrade".',
     highlightTab: 'base',
     reward: { minerals: 100, alloys: 40 },
     isComplete: (state: GameState) => {
       const terra = state.bodies.find(b => b.id === 'terra');
-      const solarCount = terra?.buildings.solar_array || 0;
+      const solarList = terra && Array.isArray(terra.buildings) ? terra.buildings.filter(b => b.type === 'solar_array') : [];
+      const hasUpgrade = solarList.some(b => b.level >= 2);
       const inQueue = state.buildQueue.some(q => q.targetId === 'terra' && q.typeId === 'solar_array');
-      return solarCount >= 3 || inQueue;
+      return solarList.length >= 3 || hasUpgrade || inQueue;
     }
   },
   {
@@ -44,15 +45,16 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
     badge: 'MISSION 3',
     title: 'Raw Materials',
     description: 'Raw minerals are processed into alloys and fuel all orbital engineering.',
-    instruction: 'In the Base / Colony tab on Nova Terra, upgrade the Sub-surface Mining Rig.',
-    hint: 'Click "Construct" under Sub-surface Mining Rig.',
+    instruction: 'In the Base / Colony tab on Nova Terra, upgrade an active Sub-surface Mining Rig or construct a new one.',
+    hint: 'Click "Upgrade to Level 2" on an active Mining Rig.',
     highlightTab: 'base',
     reward: { alloys: 60, energy: 50 },
     isComplete: (state: GameState) => {
       const terra = state.bodies.find(b => b.id === 'terra');
-      const mineCount = terra?.buildings.mineral_mine || 0;
+      const mineList = terra && Array.isArray(terra.buildings) ? terra.buildings.filter(b => b.type === 'mineral_mine') : [];
+      const hasUpgrade = mineList.some(b => b.level >= 2);
       const inQueue = state.buildQueue.some(q => q.targetId === 'terra' && q.typeId === 'mineral_mine');
-      return mineCount >= 3 || inQueue;
+      return mineList.length >= 3 || hasUpgrade || inQueue;
     }
   },
   {

@@ -59,7 +59,12 @@ export function createInitialState(): GameState {
   };
 }
 
-export function calculateBuildingCost(type: BuildingType, currentLevel: number): Partial<Resources> {
+export function calculateBuildingCost(type: BuildingType): Partial<Resources> {
+  const def = BUILDING_DEFS[type];
+  return { ...def.baseCost };
+}
+
+export function calculateUpgradeCost(type: BuildingType, currentLevel: number): Partial<Resources> {
   const def = BUILDING_DEFS[type];
   const mult = Math.pow(def.costMultiplier, currentLevel);
   const cost: Partial<Resources> = {};
@@ -102,17 +107,17 @@ export function calculateRates(state: GameState): Resources {
   const rates: Resources = { energy: 0, minerals: 0, alloys: 0, science: 0 };
   
   for (const body of state.bodies) {
-    if (!body.colonized) continue;
-    for (const [bType, count] of Object.entries(body.buildings)) {
-      if (count <= 0) continue;
-      const def = BUILDING_DEFS[bType as BuildingType];
+    if (!body.colonized || !Array.isArray(body.buildings)) continue;
+    for (const b of body.buildings) {
+      const def = BUILDING_DEFS[b.type];
       if (!def) continue;
 
-      rates.energy -= def.energyConsumption * count;
-      if (def.production.energy) rates.energy += def.production.energy * count;
-      if (def.production.minerals) rates.minerals += def.production.minerals * count;
-      if (def.production.alloys) rates.alloys += def.production.alloys * count;
-      if (def.production.science) rates.science += def.production.science * count;
+      const lvl = b.level || 1;
+      rates.energy -= def.energyConsumption * lvl;
+      if (def.production.energy) rates.energy += def.production.energy * lvl;
+      if (def.production.minerals) rates.minerals += def.production.minerals * lvl;
+      if (def.production.alloys) rates.alloys += def.production.alloys * lvl;
+      if (def.production.science) rates.science += def.production.science * lvl;
     }
   }
 
@@ -172,6 +177,24 @@ export function loadGame(): GameState | null {
       }
       if (state.hegemonyProgress === undefined) {
         state.hegemonyProgress = 0;
+      }
+      if (state.bodies) {
+        for (const b of state.bodies) {
+          if (!Array.isArray(b.buildings)) {
+            const oldObj = (b.buildings || {}) as Record<string, number>;
+            const newArr = [];
+            for (const [bType, count] of Object.entries(oldObj)) {
+              for (let i = 0; i < count; i++) {
+                newArr.push({
+                  id: `b_${Math.random().toString(36).substring(2, 8)}`,
+                  type: bType as any,
+                  level: 1
+                });
+              }
+            }
+            b.buildings = newArr;
+          }
+        }
       }
       return state;
     }

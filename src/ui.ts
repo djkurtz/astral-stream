@@ -1,8 +1,8 @@
 import { BUILDING_DEFS, SHIP_DEFS } from './data';
 import { GameEngine } from './game';
-import { addLog, calculateBuildingCost, canAfford, grantResources, saveGame } from './state';
+import { addLog, calculateBuildingCost, calculateUpgradeCost, canAfford, grantResources, saveGame } from './state';
 import { TUTORIAL_STEPS } from './tutorial';
-import { BuildingType, GameState, ShipType } from './types';
+import { BuildingInstance, BuildingType, GameState, ShipType } from './types';
 
 export class UIManager {
   private state: GameState;
@@ -483,12 +483,23 @@ export class UIManager {
 
     // 3. Update build buttons affordability in-place
     if (this.activeTab === 'base' && selectedBody.colonized) {
-      const totalBuildings = Object.values(selectedBody.buildings as Record<string, number>).reduce((a, b) => a + b, 0);
-      container.querySelectorAll('.build-btn').forEach(btn => {
+      const buildingList = Array.isArray(selectedBody.buildings) ? selectedBody.buildings : [];
+      const canConstructMore = buildingList.length < selectedBody.maxBuildings;
+
+      container.querySelectorAll('.upgrade-btn').forEach(btn => {
+        const bId = (btn as HTMLElement).dataset.id!;
         const type = (btn as HTMLElement).dataset.type as BuildingType;
-        const currentLevel = selectedBody.buildings[type] || 0;
-        const cost = calculateBuildingCost(type, currentLevel);
-        const affordable = canAfford(this.state.resources, cost) && totalBuildings < selectedBody.maxBuildings;
+        const level = parseInt((btn as HTMLElement).dataset.level || '1', 10);
+        const cost = calculateUpgradeCost(type, level);
+        const affordable = canAfford(this.state.resources, cost);
+        const isUpgrading = this.state.buildQueue.some(q => q.targetId === selectedBody.id && q.kind === 'upgrade' && q.buildingId === bId);
+        (btn as HTMLButtonElement).disabled = !affordable || isUpgrading;
+      });
+
+      container.querySelectorAll('.construct-btn').forEach(btn => {
+        const type = (btn as HTMLElement).dataset.type as BuildingType;
+        const cost = calculateBuildingCost(type);
+        const affordable = canAfford(this.state.resources, cost) && canConstructMore;
         (btn as HTMLButtonElement).disabled = !affordable;
       });
     } else if (this.activeTab === 'shipyard' && selectedBody.colonized) {
@@ -508,7 +519,7 @@ export class UIManager {
   }
 
   private renderSectorOverview(container: HTMLElement, body: any): void {
-    const totalBuildings = body.buildings ? Object.values(body.buildings as Record<string, number>).reduce((a, b) => a + b, 0) : 0;
+    const totalBuildings = Array.isArray(body.buildings) ? body.buildings.length : 0;
     const shipsHere = this.state.ships.filter(s => s.locationId === body.id);
 
     let colonizeSection = '';
@@ -595,31 +606,69 @@ export class UIManager {
       return;
     }
 
-    const totalBuildings = Object.values(body.buildings as Record<string, number>).reduce((a, b) => a + b, 0);
+    const buildingList = Array.isArray(body.buildings) ? body.buildings : [];
+    const totalBuildings = buildingList.length;
+    const canConstructMore = totalBuildings < body.maxBuildings;
 
     let buildQueueHtml = '';
-    const pending = this.state.buildQueue.filter(t => t.targetId === body.id && t.kind === 'building');
+    const pending = this.state.buildQueue.filter(t => t.targetId === body.id && (t.kind === 'construct' || t.kind === 'upgrade'));
     if (pending.length > 0) {
       buildQueueHtml = `
-        <div class="section-title">Construction Queue</div>
+        <div class="section-title">Engineering Queue</div>
         ${pending.map(p => `
-          <div class="card" style="border-color: var(--accent-cyan);">
+          <div class="card" style="border-color: ${p.kind === 'upgrade' ? '#10b981' : 'var(--accent-cyan)'};">
             <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600;">
               <span>${p.name}</span>
               <span class="task-percent" data-task-id="${p.id}">${Math.floor((p.progress / p.totalTime) * 100)}%</span>
             </div>
             <div style="width: 100%; height: 4px; background: #1e293b; border-radius: 2px; margin-top: 6px; overflow: hidden;">
-              <div class="task-bar" data-task-id="${p.id}" style="width: ${(p.progress / p.totalTime) * 100}%; height: 100%; background: var(--accent-cyan); transition: width 0.1s linear;"></div>
+              <div class="task-bar" data-task-id="${p.id}" style="width: ${(p.progress / p.totalTime) * 100}%; height: 100%; background: ${p.kind === 'upgrade' ? '#10b981' : 'var(--accent-cyan)'}; transition: width 0.1s linear;"></div>
             </div>
           </div>
         `).join('')}
       `;
     }
 
-    const buildingCards = Object.entries(BUILDING_DEFS).map(([key, def]) => {
-      const currentLevel = body.buildings[key as BuildingType] || 0;
-      const cost = calculateBuildingCost(key as BuildingType, currentLevel);
-      const affordable = canAfford(this.state.resources, cost) && totalBuildings < body.maxBuildings;
+    // 1. Existing Active Facilities (Upgrades)
+    const activeFacilitiesHtml = buildingList.length === 0 ? '<div style="color: #64748b; font-size: 0.85rem; margin-bottom: 1rem;">No active facilities on this world.</div>' : buildingList.map((b: BuildingInstance) => {
+      const def = BUILDING_DEFS[b.type];
+      const upgradeCost = calculateUpgradeCost(b.type, b.level);
+      const canUpgrade = canAfford(this.state.resources, upgradeCost);
+      const isUpgrading = this.state.buildQueue.some(q => q.targetId === body.id && q.kind === 'upgrade' && q.buildingId === b.id);
+
+      const costParts: string[] = [];
+      if (upgradeCost.minerals) costParts.push(`${upgradeCost.minerals} Min`);
+      if (upgradeCost.alloys) costParts.push(`${upgradeCost.alloys} Alloy`);
+      if (upgradeCost.energy) costParts.push(`${upgradeCost.energy} Nrg`);
+
+      const prodParts: string[] = [];
+      if (def.production.energy) prodParts.push(`+${(def.production.energy * b.level).toFixed(1)} ⚡ Nrg`);
+      if (def.production.minerals) prodParts.push(`+${(def.production.minerals * b.level).toFixed(1)} ⛏️ Min`);
+      if (def.production.alloys) prodParts.push(`+${(def.production.alloys * b.level).toFixed(1)} ⚙️ Alloy`);
+      if (def.production.science) prodParts.push(`+${(def.production.science * b.level).toFixed(1)} 🔬 Sci`);
+      if (def.energyConsumption) prodParts.push(`-${(def.energyConsumption * b.level).toFixed(1)} ⚡ Drain`);
+
+      return `
+        <div class="card" style="border-left: 3px solid var(--accent-cyan);">
+          <div class="card-header">
+            <span class="card-title">${def.name}</span>
+            <span style="color: var(--accent-cyan); font-weight: 700; font-family: var(--font-display);">Lvl ${b.level}</span>
+          </div>
+          <div style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 0.4rem;">
+            Current Output: <span style="color: #e2e8f0;">${prodParts.join(' • ')}</span>
+          </div>
+          <div class="cost-row">Upgrade: ${costParts.join(' • ')}</div>
+          <button class="action-btn upgrade-btn" data-id="${b.id}" data-type="${b.type}" data-level="${b.level}" ${canUpgrade && !isUpgrading ? '' : 'disabled'} style="background: linear-gradient(135deg, #059669, #047857);">
+            ${isUpgrading ? '⏳ Upgrade in Progress...' : `⬆️ Upgrade to Level ${b.level + 1}`}
+          </button>
+        </div>
+      `;
+    }).join('');
+
+    // 2. Blueprint Cards for New Construction
+    const blueprintCards = Object.entries(BUILDING_DEFS).map(([key, def]) => {
+      const cost = calculateBuildingCost(key as BuildingType);
+      const affordable = canAfford(this.state.resources, cost) && canConstructMore;
 
       const costParts: string[] = [];
       if (cost.minerals) costParts.push(`${cost.minerals} Min`);
@@ -630,12 +679,12 @@ export class UIManager {
         <div class="card">
           <div class="card-header">
             <span class="card-title">${def.name}</span>
-            <span style="color: var(--accent-cyan); font-weight: 700; font-family: var(--font-display);">Lvl ${currentLevel}</span>
+            <span style="font-size: 0.75rem; color: #94a3b8;">New Facility</span>
           </div>
           <div class="card-desc">${def.description}</div>
           <div class="cost-row">Cost: ${costParts.join(' • ')}</div>
-          <button class="action-btn build-btn" data-type="${key}" ${affordable ? '' : 'disabled'}>
-            🔨 Construct (Upgrade to Lvl ${currentLevel + 1})
+          <button class="action-btn construct-btn" data-type="${key}" ${affordable ? '' : 'disabled'}>
+            🔨 Construct (Deploy Level 1)
           </button>
         </div>
       `;
@@ -644,25 +693,42 @@ export class UIManager {
     container.innerHTML = `
       <div class="section-title">
         <span>Colony Infrastructure</span>
-        <span style="font-size: 0.85rem;">Slots: ${totalBuildings}/${body.maxBuildings}</span>
+        <span style="font-size: 0.85rem;">Plots: ${totalBuildings}/${body.maxBuildings}</span>
       </div>
       ${buildQueueHtml}
-      ${buildingCards}
+
+      <div class="section-title" style="margin-top: 1rem; color: #10b981;">Active Facilities (${totalBuildings})</div>
+      ${activeFacilitiesHtml}
+
+      <div class="section-title" style="margin-top: 1rem;">
+        <span>Construct New Facility</span>
+        <span style="font-size: 0.8rem; color: ${canConstructMore ? 'var(--accent-cyan)' : '#ef4444'};">
+          ${canConstructMore ? `${body.maxBuildings - totalBuildings} Plots Available` : 'Plots Full'}
+        </span>
+      </div>
+      ${canConstructMore ? blueprintCards : '<div class="card"><div class="card-desc">All plots on this world are occupied. Upgrade existing facilities to increase output.</div></div>'}
     `;
 
-    container.querySelectorAll('.build-btn').forEach(btn => {
+    container.querySelectorAll('.upgrade-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const bId = (e.currentTarget as HTMLElement).dataset.id!;
+        this.engine.upgradeBuilding(body.id, bId);
+        this.renderTabContent();
+      });
+    });
+
+    container.querySelectorAll('.construct-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const type = (e.currentTarget as HTMLElement).dataset.type as BuildingType;
-        const currentLevel = body.buildings[type] || 0;
-        const cost = calculateBuildingCost(type, currentLevel);
-        this.engine.queueBuilding(body.id, type, cost);
+        this.engine.constructBuilding(body.id, type);
         this.renderTabContent();
       });
     });
   }
 
   private renderShipyard(container: HTMLElement, body: any): void {
-    const hasShipyard = body.colonized && (body.buildings.orbital_shipyard || 0) > 0;
+    const buildingList = Array.isArray(body.buildings) ? body.buildings : [];
+    const hasShipyard = body.colonized && buildingList.some((b: any) => b.type === 'orbital_shipyard');
 
     if (!hasShipyard) {
       container.innerHTML = `

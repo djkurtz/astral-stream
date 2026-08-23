@@ -7,9 +7,11 @@ export interface SurfacePlot {
   y: number;
   width: number;
   height: number;
+  buildingId?: string;
   buildingType?: BuildingType;
   level: number;
   isBuilding: boolean;
+  isUpgrading?: boolean;
   buildProgress: number;
 }
 
@@ -336,37 +338,34 @@ export class SpaceRenderer {
     const spacing = Math.min(95, (width - 120) / Math.max(1, maxPlots));
     const startX = (width - (maxPlots - 1) * spacing) / 2;
 
-    // Convert building quantities into flattened array of active buildings
-    const buildingList: { type: BuildingType; level: number }[] = [];
-    for (const [bType, count] of Object.entries(body.buildings)) {
-      for (let i = 0; i < count; i++) {
-        buildingList.push({ type: bType as BuildingType, level: count });
-      }
-    }
-
-    const pendingOnBody = state.buildQueue.filter(q => q.targetId === body.id && q.kind === 'building');
+    const buildingList = Array.isArray(body.buildings) ? body.buildings : [];
+    const pendingConstructs = state.buildQueue.filter(q => q.targetId === body.id && q.kind === 'construct');
 
     for (let i = 0; i < maxPlots; i++) {
       const x = startX + i * spacing;
-      // Slight planetary curvature arch
       const arch = Math.sin((i / (maxPlots - 1 || 1)) * Math.PI) * 24;
       const y = groundY - arch;
 
       if (i < buildingList.length) {
+        const b = buildingList[i];
+        const upgradeTask = state.buildQueue.find(q => q.targetId === body.id && q.kind === 'upgrade' && q.buildingId === b.id);
+
         plots.push({
           index: i,
           x,
           y,
           width: 70,
           height: 80,
-          buildingType: buildingList[i].type,
-          level: buildingList[i].level,
+          buildingId: b.id,
+          buildingType: b.type,
+          level: b.level,
           isBuilding: false,
-          buildProgress: 1
+          isUpgrading: !!upgradeTask,
+          buildProgress: upgradeTask ? (upgradeTask.progress / upgradeTask.totalTime) : 1
         });
-      } else if (i < buildingList.length + pendingOnBody.length) {
+      } else if (i < buildingList.length + pendingConstructs.length) {
         const pIndex = i - buildingList.length;
-        const task = pendingOnBody[pIndex];
+        const task = pendingConstructs[pIndex];
         plots.push({
           index: i,
           x,
@@ -589,9 +588,21 @@ export class SpaceRenderer {
         ctx.textAlign = 'center';
         ctx.fillText(def.name.split(' ')[0], 0, 22);
 
-        ctx.fillStyle = 'var(--accent-cyan)';
-        ctx.font = '700 11px Rajdhani';
-        ctx.fillText(`LVL ${plot.level}`, 0, 35);
+        if (plot.isUpgrading) {
+          ctx.fillStyle = '#10b981';
+          ctx.font = '700 11px Rajdhani';
+          ctx.fillText(`UPGRADING ${Math.floor(plot.buildProgress * 100)}%`, 0, 35);
+
+          // Small progress bar above building
+          ctx.fillStyle = '#10b981';
+          ctx.fillRect(-24, -58, 48 * plot.buildProgress, 3);
+          ctx.strokeStyle = 'rgba(16, 185, 129, 0.4)';
+          ctx.strokeRect(-24, -58, 48, 3);
+        } else {
+          ctx.fillStyle = 'var(--accent-cyan)';
+          ctx.font = '700 11px Rajdhani';
+          ctx.fillText(`LVL ${plot.level}`, 0, 35);
+        }
       } else {
         this.drawEmptyPlot(ctx, plot.index + 1, isHovered);
       }
