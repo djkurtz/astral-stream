@@ -198,9 +198,9 @@ export class HarmoniaRenderer {
       ctx.stroke();
 
       // Key prompts at bottom
-      ctx.fillStyle = '#64748b';
-      ctx.font = 'bold 16px "Inter", sans-serif';
-      const keyName = i === 0 ? 'A / 1' : (i === 1 ? 'S / 2' : (i === 2 ? 'D / 3' : 'F / 4'));
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = 'bold 15px "Inter", sans-serif';
+      const keyName = i === 0 ? '1 / D' : (i === 1 ? '2 / F' : (i === 2 ? '3 / J' : '4 / K'));
       ctx.fillText(keyName, hwX + i * laneW + laneW / 2, hwY + hwH - 20);
     }
 

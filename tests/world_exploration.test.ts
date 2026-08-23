@@ -46,4 +46,15 @@ describe('Harmonia: World Exploration & Zone Navigation', () => {
     const isWalkable = (engine as any).checkObstacleCollision(1000, 1000);
     expect(isWalkable).toBe(false);
   });
+
+  it('should move the player when pressing Arrow keys', () => {
+    const state = engine.getState();
+    const initialY = state.player.y;
+
+    engine.handleKeyDown('ArrowDown');
+    engine.update(100);
+    engine.handleKeyUp('ArrowDown');
+
+    expect(state.player.y).toBeGreaterThan(initialY);
+  });
 });

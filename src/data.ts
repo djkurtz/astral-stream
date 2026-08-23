@@ -517,7 +517,7 @@ export const WORLD_ZONES: Record<string, WorldZone> = {
     height: 1600,
     ambientBgm: 'cavatina_village',
     themeColor: '#38bdf8',
-    defaultSpawn: { x: 1000, y: 800, dir: 'down' },
+    defaultSpawn: { x: 1000, y: 920, dir: 'down' },
     transitions: [
       { id: 'tr_to_woods', targetZone: 'woodwind_woods', targetSpawn: { x: 120, y: 600, dir: 'right' }, bounds: { x: 1940, y: 500, w: 60, h: 200 }, promptText: 'To Woodwind Woods' },
       { id: 'tr_to_citadel', targetZone: 'brass_citadel', targetSpawn: { x: 1000, y: 1480, dir: 'up' }, bounds: { x: 900, y: 0, w: 200, h: 60 }, promptText: 'To Brass Citadel' },
@@ -529,7 +529,7 @@ export const WORLD_ZONES: Record<string, WorldZone> = {
       { type: 'box', x: 0, y: 1540, w: 2000, h: 60, name: 'South Boundary River' },
       { type: 'box', x: 450, y: 350, w: 280, h: 180, name: 'Practice Academy Shed' },
       { type: 'box', x: 1250, y: 350, w: 320, h: 180, name: 'Conservatory Library' },
-      { type: 'circle', x: 1000, y: 800, radius: 64, name: 'Clef Fountain' }
+      { type: 'circle', x: 1000, y: 720, radius: 64, name: 'Clef Fountain' }
     ]
   },
   woodwind_woods: {

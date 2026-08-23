@@ -31,11 +31,11 @@ export class HarmoniaGameEngine {
       currentZone: 'cavatina_village',
       player: {
         x: 1000,
-        y: 800,
+        y: 920,
         dir: 'down',
         isMoving: false
       },
-      followerTrail: [{ x: 1000, y: 820 }],
+      followerTrail: [{ x: 1000, y: 940 }],
       camera: { x: 360, y: 440 },
       ensemble: {
         name: 'The Harmonia Ensemble',
@@ -156,6 +156,7 @@ export class HarmoniaGameEngine {
       statGained: null
     };
 
+    soundEngine.stopBGM();
     this.state.mode = 'practice';
   }
 
@@ -169,7 +170,7 @@ export class HarmoniaGameEngine {
     let minDelta = Infinity;
 
     for (const note of session.notes) {
-      if (!note.hit && !note.missed) {
+      if (!note.hit && !note.missed && note.lane === lane) {
         const delta = Math.abs(now - note.targetTime);
         if (delta < minDelta) {
           minDelta = delta;
@@ -233,6 +234,8 @@ export class HarmoniaGameEngine {
     ], () => {
       this.state.mode = 'exploration';
       this.state.practiceSession = null;
+      const activeSections = Array.from(new Set(this.state.ensemble.members.map(m => m.section)));
+      soundEngine.startBGM(this.state.currentZone, activeSections);
     });
   }
 
@@ -789,18 +792,16 @@ export class HarmoniaGameEngine {
         this.advanceDialogue();
       } else if (this.state.mode === 'exploration') {
         this.interactWithNearby();
-      } else if (this.state.mode === 'practice') {
-        this.hitPracticeNote(0);
       } else if (this.state.mode === 'competition') {
         this.advanceConcertPerformance();
       }
     }
 
     if (this.state.mode === 'practice') {
-      if (code === 'Digit1' || code === 'KeyA') this.hitPracticeNote(0);
-      if (code === 'Digit2' || code === 'KeyS') this.hitPracticeNote(1);
-      if (code === 'Digit3' || code === 'KeyD') this.hitPracticeNote(2);
-      if (code === 'Digit4' || code === 'KeyF') this.hitPracticeNote(3);
+      if (code === 'Digit1' || code === 'KeyD') this.hitPracticeNote(0);
+      if (code === 'Digit2' || code === 'KeyF') this.hitPracticeNote(1);
+      if (code === 'Digit3' || code === 'KeyJ') this.hitPracticeNote(2);
+      if (code === 'Digit4' || code === 'KeyK') this.hitPracticeNote(3);
     }
   }
 

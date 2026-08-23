@@ -29,6 +29,9 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // Keyboard events
   window.addEventListener('keydown', (e) => {
+    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) {
+      e.preventDefault();
+    }
     soundEngine.init();
     engine.handleKeyDown(e.code);
 

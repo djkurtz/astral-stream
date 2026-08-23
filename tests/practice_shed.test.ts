@@ -56,4 +56,21 @@ describe('Harmonia: Practice Shed & Musicianship Grind Mechanics', () => {
     expect(state.dialogue).not.toBeNull();
     expect(state.dialogue?.speaker).toContain('Practice Complete');
   });
+
+  it('should reject hits on the wrong lane even if timing matches', () => {
+    engine.startPracticeSession('scale_run');
+    const session = engine.getState().practiceSession!;
+    const targetNote = session.notes[0];
+
+    // Simulate elapsed time matching note target time
+    session.elapsedTime = targetNote.targetTime;
+    
+    // Press a different lane (e.g. (targetNote.lane + 1) % 4)
+    const wrongLane = (targetNote.lane + 1) % 4;
+    engine.hitPracticeNote(wrongLane);
+
+    expect(targetNote.hit).toBe(false);
+    expect(session.combo).toBe(0);
+    expect(session.feedbackText).toBe('MISS!');
+  });
 });
