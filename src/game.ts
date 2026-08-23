@@ -92,6 +92,14 @@ export class AstralGameEngine {
         if (e.code === 'Digit2' || e.code === 'KeyK') this.inputMelodyPad(1);
         if (e.code === 'Digit3' || e.code === 'KeyL') this.inputMelodyPad(2);
       }
+
+      // Switch Active Harmonimal (Q or Tab)
+      if (this.state.mode === 'exploration' && !this.state.dialogue) {
+        if (e.code === 'KeyQ' || e.code === 'Tab') {
+          e.preventDefault();
+          this.cycleActiveSpirit();
+        }
+      }
     });
 
     window.addEventListener('keyup', (e) => {
@@ -543,16 +551,38 @@ export class AstralGameEngine {
       this.showDialogue(unlocked.name, unlocked.avatar, [
         `🎉 AUDIO MATCH VERIFIED! Streamed: ${unlocked.name} [${unlocked.vibeTag}]!`,
         `Biological Instrument: ${unlocked.instrument}!`,
-        `Origin Tradition: ${unlocked.originTradition}. Added to your living playlist queue!`
+        `Origin Tradition: ${unlocked.originTradition}. Added to your living playlist queue!`,
+        `💡 Tip: Click its badge at the top (or press [Q]) to switch your active lead Harmonimal!`
       ]);
     }, 1000);
+  }
+
+  public switchActiveSpirit(index: number): void {
+    if (index >= 0 && index < this.state.streamQueue.length) {
+      this.state.activeSpiritIndex = index;
+      const active = this.state.streamQueue[index];
+      soundEngine.playCreatureMotif(active.id);
+      if (this.state.mode === 'exploration') {
+        this.showDialogue(active.name, active.avatar, [
+          `Active Lead Harmonimal switched to: ${active.name} [${active.vibeTag}]!`,
+          `Instrument: ${active.instrument} (${active.originTradition}).`,
+          `Type: ${active.type.toUpperCase()} • Ready for battle!`
+        ]);
+      }
+    }
+  }
+
+  public cycleActiveSpirit(): void {
+    if (this.state.streamQueue.length <= 1) return;
+    const nextIdx = (this.state.activeSpiritIndex + 1) % this.state.streamQueue.length;
+    this.switchActiveSpirit(nextIdx);
   }
 
   /* ---------------- BATTLE & RHYTHM TIMING SYSTEM ---------------- */
   public startWildBattle(glitch: WildGlitchEntity): void {
     this.state.mode = 'battle';
     soundEngine.switchTrack('battle');
-    const playerSpirit = JSON.parse(JSON.stringify(this.state.streamQueue[0] || STARTER_SPIRIT));
+    const playerSpirit = JSON.parse(JSON.stringify(this.state.streamQueue[this.state.activeSpiritIndex] || this.state.streamQueue[0] || STARTER_SPIRIT));
 
     this.state.battle = {
       type: 'wild',
@@ -574,7 +604,7 @@ export class AstralGameEngine {
   public startBattle(type: 'rival' | 'boss'): void {
     this.state.mode = 'battle';
     soundEngine.switchTrack('battle');
-    const playerSpirit = JSON.parse(JSON.stringify(this.state.streamQueue[0] || STARTER_SPIRIT));
+    const playerSpirit = JSON.parse(JSON.stringify(this.state.streamQueue[this.state.activeSpiritIndex] || this.state.streamQueue[0] || STARTER_SPIRIT));
 
     if (type === 'rival') {
       this.state.battle = {
@@ -740,7 +770,7 @@ export class AstralGameEngine {
       }
 
       // Frequency Resonance XP & Level Up
-      const activeSpirit = this.state.streamQueue[0];
+      const activeSpirit = this.state.streamQueue[this.state.activeSpiritIndex] || this.state.streamQueue[0];
       activeSpirit.xp += 50;
       let levelUpMsg = '';
       if (activeSpirit.xp >= activeSpirit.maxXp) {

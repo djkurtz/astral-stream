@@ -3,7 +3,6 @@ import { AstralGameEngine } from './game';
 export class AstralUIManager {
   private engine: AstralGameEngine;
   private renderedSpiritIdForMoves: string = '';
-  private renderedQueueLength: number = -1;
   private lastDialogueIndex: number = -1;
   private lastDialogueSpeaker: string = '';
 
@@ -209,14 +208,21 @@ export class AstralUIManager {
 
     // 4. Stream Queue Top Bar
     const queueContainer = document.getElementById('stream-queue');
-    if (queueContainer && this.renderedQueueLength !== state.streamQueue.length) {
+    if (queueContainer) {
       queueContainer.innerHTML = state.streamQueue.map((s, idx) => `
-        <div class="stream-badge ${idx === state.activeSpiritIndex ? 'active' : ''}">
+        <div class="stream-badge ${idx === state.activeSpiritIndex ? 'active' : ''}" data-idx="${idx}" style="cursor: pointer;" title="Click or press [Q] to switch active Harmonimal">
           <span style="font-size: 1.1rem;">${s.avatar || '🐱'}</span>
-          <span style="font-size: 0.8rem; font-weight: 700;">${s.name} <span style="opacity: 0.7; font-size: 0.7rem;">${s.vibeTag}</span></span>
+          <span style="font-size: 0.8rem; font-weight: 700;">Lv.${s.level} ${s.name} <span style="opacity: 0.7; font-size: 0.7rem;">${s.vibeTag}</span></span>
         </div>
       `).join('');
-      this.renderedQueueLength = state.streamQueue.length;
+      
+      queueContainer.querySelectorAll<HTMLElement>('.stream-badge').forEach(badge => {
+        badge.addEventListener('click', (e) => {
+          const idx = parseInt((e.currentTarget as HTMLElement).dataset.idx || '0', 10);
+          this.engine.switchActiveSpirit(idx);
+          this.updateUI();
+        });
+      });
     }
   }
 }

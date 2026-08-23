@@ -211,11 +211,18 @@ export class AstralRenderer {
     // 18. Player Character
     this.drawDetailedPlayer(ctx, state.player.x, state.player.y, state.player.dir, state.player.isMoving, t);
 
-    // Follower Companions (Chime-Cat + Bass-Hound)
+    // Follower Companions (Lead Active Spirit + Bass-Hound)
     if (state.streamQueue.length > 0) {
-      const catX = state.player.x - 26;
-      const catY = state.player.y + 4 + Math.sin(t * 6) * 2.5;
-      this.drawDetailedCat(ctx, catX, catY, t);
+      const active = state.streamQueue[state.activeSpiritIndex] || state.streamQueue[0];
+      const leadX = state.player.x - 26;
+      const leadY = state.player.y + 4 + Math.sin(t * 6) * 2.5;
+      if (active.id === 'spirit_chime_cat') {
+        this.drawDetailedCat(ctx, leadX, leadY, t);
+      } else if (active.id === 'spirit_bass_hound') {
+        this.drawDetailedHound(ctx, leadX, leadY, t);
+      } else {
+        this.drawGenericCompanion(ctx, leadX, leadY, active, t);
+      }
     }
     if (state.activeCompanion === 'jax') {
       const houndX = state.player.x + 26;
@@ -1491,6 +1498,32 @@ export class AstralRenderer {
     for (let sp = -6; sp <= 4; sp += 3) {
       ctx.fillRect(sp, -9, 2, 2);
     }
+
+    ctx.restore();
+  }
+
+  private drawGenericCompanion(ctx: CanvasRenderingContext2D, x: number, y: number, spirit: StreamSpirit, t: number): void {
+    ctx.save();
+    ctx.translate(x, y);
+
+    // Drop Shadow
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+    ctx.beginPath();
+    ctx.ellipse(0, 6, 12, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Floating bobbing sprite
+    const bob = Math.sin(t * 6) * 3;
+    ctx.font = '24px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(spirit.avatar || '✨', 0, -12 + bob);
+
+    // Instrument Sparkle
+    ctx.fillStyle = '#f59e0b';
+    ctx.fillRect(8, -20 + bob, 3, 3);
+    ctx.fillStyle = '#38bdf8';
+    ctx.fillRect(-10, -8 + bob, 2, 2);
 
     ctx.restore();
   }

@@ -73,4 +73,48 @@ describe('GameEngine: Exploration & Dialogue State', () => {
     expect((engine as any).checkObstacleCollision(1600, 1450)).toBe(true); // Inside Center Fountain
     expect((engine as any).checkObstacleCollision(1500, 1400)).toBe(false); // Open Plaza Ground
   });
+
+  it('should switch active lead Harmonimal and cycle through stream queue', () => {
+    const state = engine.getState();
+    // Dismiss dialogue
+    while (state.dialogue) {
+      engine.advanceDialogue();
+    }
+
+    // Add Sitar Swan to queue
+    state.streamQueue.push({
+      id: 'spirit_sitar_swan',
+      name: 'Sitar-Swan',
+      title: 'Gourd-Bodied Veena Swan',
+      vibeTag: '#RagaAura',
+      species: 'Fretted Sitar Cygnus',
+      instrument: 'Fretted Dandi Neck',
+      originTradition: 'Indian Classical',
+      avatar: '🪕🦢',
+      type: 'global',
+      color: '#f59e0b',
+      level: 1,
+      xp: 0,
+      maxXp: 100,
+      hp: 70,
+      maxHp: 70,
+      energy: 100,
+      attack: 22,
+      defense: 18,
+      speed: 15,
+      moves: []
+    });
+
+    expect(state.activeSpiritIndex).toBe(0);
+    
+    // Switch to index 1 (Sitar-Swan)
+    engine.switchActiveSpirit(1);
+    expect(state.activeSpiritIndex).toBe(1);
+    expect(state.streamQueue[state.activeSpiritIndex].name).toBe('Sitar-Swan');
+
+    // Cycle active spirit
+    engine.cycleActiveSpirit();
+    expect(state.activeSpiritIndex).toBe(0);
+    expect(state.streamQueue[state.activeSpiritIndex].name).toBe('Chime-Cat');
+  });
 });
