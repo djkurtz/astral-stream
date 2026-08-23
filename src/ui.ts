@@ -12,21 +12,6 @@ export class AstralUIManager {
   constructor(engine: AstralGameEngine) {
     this.engine = engine;
     this.setupEventListeners();
-
-    // Trigger initial alert buzz on very first user interaction
-    const triggerInitialBuzz = () => {
-      if (!this.hasPlayedInitialAlertBuzz) {
-        this.hasPlayedInitialAlertBuzz = true;
-        soundEngine.playEmergencyAlertBuzz();
-      }
-      window.removeEventListener('click', triggerInitialBuzz);
-      window.removeEventListener('keydown', triggerInitialBuzz);
-      window.removeEventListener('touchstart', triggerInitialBuzz);
-    };
-
-    window.addEventListener('click', triggerInitialBuzz);
-    window.addEventListener('keydown', triggerInitialBuzz);
-    window.addEventListener('touchstart', triggerInitialBuzz);
   }
 
   private setupEventListeners(): void {
@@ -103,12 +88,19 @@ export class AstralUIManager {
       if (state.dialogue) {
         dialogueBox.classList.remove('hidden');
         const d = state.dialogue;
+        const avatarEl = document.getElementById('dialogue-avatar');
 
-        // Toggle phone buzz emergency alert visuals
+        // Toggle phone buzz emergency alert visuals & sound
         if (d.speaker.includes('EMERGENCY') || d.speaker.includes('BROADCAST')) {
           dialogueBox.classList.add('emergency-alert');
+          avatarEl?.classList.add('buzzing-phone');
+          if (!this.hasPlayedInitialAlertBuzz) {
+            this.hasPlayedInitialAlertBuzz = true;
+            soundEngine.playEmergencyAlertBuzz();
+          }
         } else {
           dialogueBox.classList.remove('emergency-alert');
+          avatarEl?.classList.remove('buzzing-phone');
         }
 
         if (this.lastDialogueSpeaker !== d.speaker || this.lastDialogueIndex !== d.index) {
@@ -121,6 +113,7 @@ export class AstralUIManager {
       } else {
         dialogueBox.classList.add('hidden');
         dialogueBox.classList.remove('emergency-alert');
+        document.getElementById('dialogue-avatar')?.classList.remove('buzzing-phone');
         this.lastDialogueIndex = -1;
       }
     }

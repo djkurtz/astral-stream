@@ -6,6 +6,7 @@ export class AstralGameEngine {
   private state: GameState;
   private lastTick: number = 0;
   private keysDown: Set<string> = new Set();
+  private emergencyTriggered: boolean = false;
 
   constructor() {
     this.state = this.createInitialState();
@@ -43,16 +44,13 @@ export class AstralGameEngine {
       audioMatch: null,
       battle: null,
       dialogue: {
-        speaker: '⚠️ EMERGENCY BROADCAST ⚠️',
-        avatar: '📺🚨',
+        speaker: 'Aria ☕',
+        avatar: '☕',
         text: [
-          "[CRACKLE... BZZZT...] ATTENTION ALL STREAMERS IN CADENCE REALM!",
-          "A catastrophic rogue anomaly known as DEAD CHANNEL 000 has hijacked the northern frequency!",
-          "Dense analog static is leaking through the Glitch Gate on Desolation Ridge, threatening to mute world harmonies and erase all Harmonimals!",
-          "[Aria & Chime-Cat ☕🐱] Streamer, welcome to Cadence Plaza! We must assemble a squad of diverse Harmonimals across the realm.",
-          "Beware: dense Sonic Vines block the northern passage to Desolation Ridge. Seek out traditions and harmonic gear across Port Resonata, the Bamboo Grove, and Sound Ruins.",
-          "First, seek out the underground rocker Jax at Desolation Ridge to test our battle rhythm, then breach the Glitch Gate to cleanse the rift!",
-          "Use [W, A, S, D] or Arrow Keys to explore town and tune into the world sound ripples!"
+          "Good morning, Streamer! Welcome to Cadence Plaza for the annual Soundwave Festival!",
+          "I see you brought your partner, Chime-Cat! 🐱 You two must be excited to broadcast live and tune into the realm's legendary acoustic traditions.",
+          "Here's your fresh roast latte on the house ☕. Take a stroll around the plaza using [W, A, S, D] to test your audio feed, check out the Harmony Fountain, and visit the Vinyl Den!",
+          "Come check back with me once you've stretched your legs."
         ],
         index: 0
       },
@@ -123,6 +121,14 @@ export class AstralGameEngine {
       this.updateWildMonsters(dt);
       this.updateProximity();
       soundEngine.updatePlayerPosition(this.state.player.x, this.state.player.y);
+
+      // Trigger Emergency Broadcast after basic exploration (reaching the Harmony Fountain or after 8s)
+      if (this.state.questStage === 'intro' && !this.emergencyTriggered) {
+        const distToFountain = Math.hypot(this.state.player.x - 1600, this.state.player.y - 1450);
+        if (distToFountain < 120 || this.state.time > 8) {
+          this.triggerEmergencyBroadcast();
+        }
+      }
     }
 
     // In update(now), calculate smooth camera centering:
@@ -443,7 +449,17 @@ export class AstralGameEngine {
       }
 
       let avatar = '💬';
-      if (npc.sprite === 'aria') avatar = '☕';
+      if (npc.sprite === 'aria') {
+        avatar = '☕';
+        if (this.state.questStage === 'intro') {
+          this.showDialogue(npc.name, '☕', [
+            "Enjoying your morning coffee? ☕",
+            "Try walking over to the Harmony Fountain in the center of the plaza to test Chime-Cat's acoustic sensors!",
+            "Use [W, A, S, D] to navigate around the cobblestone streets."
+          ]);
+          return;
+        }
+      }
       else if (npc.sprite === 'dj_otter') avatar = '💽';
       else if (npc.sprite === 'maestro_owl') avatar = '🦉';
       else if (npc.sprite === 'pelican') avatar = '🦢';
@@ -521,12 +537,25 @@ export class AstralGameEngine {
         onComplete();
       } else if (this.state.mode === 'intro') {
         this.state.mode = 'exploration';
-        if (this.state.questStage === 'intro') {
-          this.state.questStage = 'seek_traditions';
-        }
         soundEngine.switchTrack('town');
       }
     }
+  }
+
+  public triggerEmergencyBroadcast(): void {
+    if (this.emergencyTriggered) return;
+    this.emergencyTriggered = true;
+    this.showDialogue('⚠️ EMERGENCY BROADCAST ⚠️', '📳', [
+      "[CRACKLE... BZZZT...] ATTENTION ALL STREAMERS & CITIZENS IN CADENCE REALM!",
+      "A catastrophic rogue anomaly known as DEAD CHANNEL 000 has hijacked the northern broadcast tower!",
+      "Dense analog static is leaking through the Glitch Gate on Desolation Ridge, threatening to corrupt world harmonies and mute all Harmonimals!",
+      "[Aria ☕] Streamer! Your live stream transmitter is the only signal cutting through the static storm!",
+      "With Chime-Cat's unique resonance, you can tune into the realm's acoustic traditions to fight back.",
+      "Beware: dense Sonic Vines block the mountain pass to Desolation Ridge. Seek out traditions and harmonic gear across Port Resonata, the Bamboo Grove, and Sound Ruins.",
+      "First, gather squad members across the realm, then confront Jax at Desolation Ridge to breach the Glitch Gate!"
+    ], () => {
+      this.state.questStage = 'seek_traditions';
+    });
   }
 
   public showDialogue(speaker: string, avatar: string, text: string[], onComplete?: () => void): void {

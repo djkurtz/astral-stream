@@ -93,4 +93,38 @@ describe('Story Progression & Tag-Team Fusion', () => {
     expect(playerSpirit.maxHp).toBeGreaterThan(70);
     expect(playerSpirit.attack).toBeGreaterThan(18);
   });
+
+  it('should start with festival morning prologue and trigger emergency broadcast on exploration', () => {
+    const freshEngine = new GameEngine();
+    const freshState = freshEngine.getState();
+
+    // Starts in morning prologue with Aria
+    expect(freshState.dialogue?.speaker).toBe('Aria ☕');
+    expect(freshState.dialogue?.avatar).toBe('☕');
+    expect(freshState.questStage).toBe('intro');
+
+    // Dismiss morning coffee dialogue
+    while (freshState.dialogue) {
+      freshEngine.advanceDialogue();
+    }
+    expect(freshState.mode).toBe('exploration');
+    expect(freshState.dialogue).toBeNull();
+    expect(freshState.questStage).toBe('intro');
+
+    // Move near Harmony Fountain (1600, 1450)
+    freshState.player.x = 1600;
+    freshState.player.y = 1450;
+    freshEngine.update(1000);
+    freshEngine.update(1016);
+
+    // Emergency broadcast is triggered!
+    expect(freshState.dialogue?.speaker).toContain('EMERGENCY BROADCAST');
+    expect(freshState.dialogue?.avatar).toBe('📳');
+
+    // Dismiss broadcast to start quest
+    while (freshState.dialogue) {
+      freshEngine.advanceDialogue();
+    }
+    expect(freshState.questStage).toBe('seek_traditions');
+  });
 });

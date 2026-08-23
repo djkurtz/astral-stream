@@ -8,12 +8,12 @@ describe('GameEngine: Exploration & Dialogue State', () => {
     engine = new GameEngine();
   });
 
-  it('should initialize with Emergency Broadcast Intro dialogue', () => {
+  it('should initialize with Festival Morning Prologue dialogue', () => {
     const state = engine.getState();
     expect(state.mode).toBe('intro');
     expect(state.dialogue).toBeDefined();
-    expect(state.dialogue?.speaker).toContain('EMERGENCY BROADCAST');
-    expect(state.dialogue?.text[1]).toContain('DEAD CHANNEL 000');
+    expect(state.dialogue?.speaker).toContain('Aria ☕');
+    expect(state.dialogue?.text[0]).toContain('Soundwave Festival');
   });
 
   it('should transition from intro to exploration when dialogue completes', () => {

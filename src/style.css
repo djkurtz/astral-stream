@@ -420,22 +420,30 @@ h1 {
 
 .dialogue-card.emergency-alert {
   border: 4px solid #ef4444;
-  background: linear-gradient(135deg, rgba(30, 10, 15, 0.96), rgba(15, 23, 42, 0.96));
-  box-shadow: 0 0 45px rgba(239, 68, 68, 0.85), inset 0 0 25px rgba(239, 68, 68, 0.4);
-  animation: phone-buzz 0.12s infinite alternate, alert-pulse 1.2s infinite ease-in-out;
+  background: linear-gradient(135deg, rgba(30, 10, 15, 0.98), rgba(15, 23, 42, 0.98));
+  box-shadow: 0 0 35px rgba(239, 68, 68, 0.7), inset 0 0 20px rgba(239, 68, 68, 0.3);
+  animation: alert-pulse 1.6s infinite ease-in-out;
 }
 
-@keyframes phone-buzz {
-  0% { transform: translateX(-50%) translateY(0) rotate(0deg); }
-  25% { transform: translateX(-51%) translateY(-2px) rotate(-1deg); }
-  50% { transform: translateX(-49%) translateY(1px) rotate(1deg); }
-  75% { transform: translateX(-50.5%) translateY(-1px) rotate(-0.5deg); }
-  100% { transform: translateX(-49.5%) translateY(2px) rotate(0.8deg); }
+.dialogue-avatar.buzzing-phone {
+  animation: icon-buzz 2.4s infinite ease-in-out;
+  border: 2px solid #ef4444;
+  background: rgba(239, 68, 68, 0.25) !important;
+}
+
+@keyframes icon-buzz {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  3%, 9% { transform: scale(1.15) rotate(-10deg); }
+  6%, 12% { transform: scale(1.15) rotate(10deg); }
+  15% { transform: scale(1) rotate(0deg); }
+  20%, 26% { transform: scale(1.15) rotate(-10deg); }
+  23%, 29% { transform: scale(1.15) rotate(10deg); }
+  32% { transform: scale(1) rotate(0deg); }
 }
 
 @keyframes alert-pulse {
-  0%, 100% { border-color: #ef4444; box-shadow: 0 0 45px rgba(239, 68, 68, 0.85); }
-  50% { border-color: #f59e0b; box-shadow: 0 0 60px rgba(245, 158, 11, 0.95); }
+  0%, 100% { border-color: #ef4444; box-shadow: 0 0 30px rgba(239, 68, 68, 0.7); }
+  50% { border-color: #f59e0b; box-shadow: 0 0 45px rgba(245, 158, 11, 0.85); }
 }
 
 .dialogue-card.hidden {
