@@ -1,6 +1,6 @@
 // Harmonia: Opus of the Ensemble - Procedural Multi-Voice Audio Engine
 
-import { InstrumentId, InstrumentSection } from './types';
+import { InstrumentId, InstrumentSection, Musician } from './types';
 
 export class HarmoniaSoundEngine {
   private ctx: AudioContext | null = null;
@@ -63,42 +63,31 @@ export class HarmoniaSoundEngine {
     switch (instrumentId) {
       // --- STRINGS ---
       case 'violin':
-      case 'cello':
-      case 'harp':
-      case 'acoustic_guitar': {
+      case 'cello': {
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         const filter = this.ctx.createBiquadFilter();
 
-        osc.type = instrumentId === 'acoustic_guitar' || instrumentId === 'harp' ? 'triangle' : 'sawtooth';
+        osc.type = 'sawtooth';
         osc.frequency.setValueAtTime(freq, t);
 
         // Add gentle vibrato for bowed strings
-        if (instrumentId === 'violin' || instrumentId === 'cello') {
-          const lfo = this.ctx.createOscillator();
-          const lfoGain = this.ctx.createGain();
-          lfo.frequency.setValueAtTime(5.5, t); // 5.5 Hz vibrato
-          lfoGain.gain.setValueAtTime(freq * 0.015, t);
-          lfo.connect(osc.frequency);
-          lfo.start(t);
-          lfo.stop(t + duration);
-        }
+        const lfo = this.ctx.createOscillator();
+        const lfoGain = this.ctx.createGain();
+        lfo.frequency.setValueAtTime(5.5, t); // 5.5 Hz vibrato
+        lfoGain.gain.setValueAtTime(freq * 0.015, t);
+        lfo.connect(osc.frequency);
+        lfo.start(t);
+        lfo.stop(t + duration);
 
         filter.type = 'lowpass';
         filter.frequency.setValueAtTime(instrumentId === 'cello' ? 800 : 2400, t);
 
-        // Envelope
+        // Bowed envelope: smooth swell and release
         gain.gain.setValueAtTime(0, t);
-        if (instrumentId === 'acoustic_guitar' || instrumentId === 'harp') {
-          // Plucked envelope: rapid attack, exponential decay
-          gain.gain.linearRampToValueAtTime(0.35 * velocity, t + 0.01);
-          gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
-        } else {
-          // Bowed envelope: smooth swell and release
-          gain.gain.linearRampToValueAtTime(0.3 * velocity, t + 0.05);
-          gain.gain.setValueAtTime(0.25 * velocity, t + duration * 0.7);
-          gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
-        }
+        gain.gain.linearRampToValueAtTime(0.3 * velocity, t + 0.05);
+        gain.gain.setValueAtTime(0.25 * velocity, t + duration * 0.7);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
 
         osc.connect(filter);
         filter.connect(gain);
@@ -106,6 +95,57 @@ export class HarmoniaSoundEngine {
 
         osc.start(t);
         osc.stop(t + duration);
+        break;
+      }
+
+      case 'harp':
+      case 'acoustic_guitar': {
+        // Karplus-Strong physical modeling string resonance with pluck burst & damped harmonics
+        const isHarp = instrumentId === 'harp';
+        const pluckGain = this.ctx.createGain();
+        const mainGain = this.ctx.createGain();
+        const stringFilter = this.ctx.createBiquadFilter();
+
+        // 1. Pluck excitation impulse (noise burst)
+        const burstLen = Math.max(128, Math.floor(this.ctx.sampleRate * 0.008));
+        const noiseBuffer = this.ctx.createBuffer(1, burstLen, this.ctx.sampleRate);
+        const data = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < burstLen; i++) {
+          data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (burstLen * 0.4));
+        }
+        const pluckNoise = this.ctx.createBufferSource();
+        pluckNoise.buffer = noiseBuffer;
+
+        // 2. Resonant string body oscillator
+        const bodyOsc = this.ctx.createOscillator();
+        bodyOsc.type = isHarp ? 'sine' : 'triangle';
+        bodyOsc.frequency.setValueAtTime(freq, t);
+
+        // String damping filter
+        stringFilter.type = 'lowpass';
+        stringFilter.frequency.setValueAtTime(isHarp ? 3800 : 2600, t);
+        stringFilter.frequency.exponentialRampToValueAtTime(Math.max(80, freq * 1.5), t + duration);
+        stringFilter.Q.setValueAtTime(isHarp ? 2.5 : 1.8, t);
+
+        // Pluck transient envelope
+        pluckGain.gain.setValueAtTime(0.4 * velocity, t);
+        pluckGain.gain.exponentialRampToValueAtTime(0.001, t + 0.02);
+
+        // Sustained string ring envelope
+        const stringSustain = Math.max(duration, isHarp ? 0.9 : 0.7);
+        mainGain.gain.setValueAtTime(0, t);
+        mainGain.gain.linearRampToValueAtTime((isHarp ? 0.38 : 0.35) * velocity, t + 0.008);
+        mainGain.gain.exponentialRampToValueAtTime(0.001, t + stringSustain);
+
+        pluckNoise.connect(pluckGain);
+        pluckGain.connect(stringFilter);
+        bodyOsc.connect(stringFilter);
+        stringFilter.connect(mainGain);
+        mainGain.connect(this.masterGain);
+
+        pluckNoise.start(t);
+        bodyOsc.start(t);
+        bodyOsc.stop(t + stringSustain);
         break;
       }
 
@@ -199,8 +239,7 @@ export class HarmoniaSoundEngine {
       case 'silver_flute':
       case 'soprano_sax':
       case 'saxophone':
-      case 'clarinet':
-      case 'oboe': {
+      case 'clarinet': {
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         const filter = this.ctx.createBiquadFilter();
@@ -239,6 +278,46 @@ export class HarmoniaSoundEngine {
 
         osc.start(t);
         osc.stop(t + duration);
+        break;
+      }
+
+      case 'oboe': {
+        // Oboe with FM double-reed nasal sidebands
+        const carrier = this.ctx.createOscillator();
+        const modulator = this.ctx.createOscillator();
+        const modGain = this.ctx.createGain();
+        const filter = this.ctx.createBiquadFilter();
+        const gain = this.ctx.createGain();
+
+        carrier.type = 'sawtooth';
+        carrier.frequency.setValueAtTime(freq, t);
+
+        // Double-reed FM modulation (2:1 ratio creating nasal harmonic sidebands)
+        modulator.type = 'sine';
+        modulator.frequency.setValueAtTime(freq * 2, t);
+        modGain.gain.setValueAtTime(freq * 0.45, t);
+        modGain.gain.exponentialRampToValueAtTime(Math.max(1, freq * 0.15), t + duration);
+
+        modulator.connect(carrier.frequency);
+
+        // Formant cavity filter
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(1400, t);
+        filter.Q.setValueAtTime(2.2, t);
+
+        gain.gain.setValueAtTime(0, t);
+        gain.gain.linearRampToValueAtTime(0.3 * velocity, t + 0.04);
+        gain.gain.setValueAtTime(0.25 * velocity, t + duration * 0.75);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
+
+        carrier.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.masterGain);
+
+        modulator.start(t);
+        carrier.start(t);
+        modulator.stop(t + duration);
+        carrier.stop(t + duration);
         break;
       }
 
@@ -380,11 +459,10 @@ export class HarmoniaSoundEngine {
 
       case 'snare_kit':
       case 'marimba':
-      case 'timpani':
-      case 'glockenspiel': {
+      case 'timpani': {
         if (instrumentId === 'snare_kit') {
           // Snare: Noise Burst + Snare Body Sine
-          const bufferSize = this.ctx.sampleRate * 0.15;
+          const bufferSize = Math.floor(this.ctx.sampleRate * 0.15);
           const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
           const data = buffer.getChannelData(0);
           for (let i = 0; i < bufferSize; i++) {
@@ -433,21 +511,59 @@ export class HarmoniaSoundEngine {
           osc.start(t);
           osc.stop(t + duration);
         } else {
-          // Marimba / Glockenspiel: Wooden or Metallic Mallet Strike
+          // Marimba: Warm Wooden Mallet Strike
           const osc = this.ctx.createOscillator();
           const gain = this.ctx.createGain();
-          osc.type = instrumentId === 'glockenspiel' ? 'sine' : 'triangle';
+          osc.type = 'triangle';
           osc.frequency.setValueAtTime(freq, t);
 
           gain.gain.setValueAtTime(0, t);
           gain.gain.linearRampToValueAtTime(0.35 * velocity, t + 0.005);
-          gain.gain.exponentialRampToValueAtTime(0.001, t + (instrumentId === 'glockenspiel' ? 0.8 : 0.25));
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
 
           osc.connect(gain);
           gain.connect(this.masterGain);
           osc.start(t);
-          osc.stop(t + (instrumentId === 'glockenspiel' ? 0.8 : 0.25));
+          osc.stop(t + 0.25);
         }
+        break;
+      }
+
+      case 'glockenspiel': {
+        // Glockenspiel with FM metallic bell sidebands (inharmonic ratio 2.756)
+        const carrier = this.ctx.createOscillator();
+        const modulator = this.ctx.createOscillator();
+        const modGain = this.ctx.createGain();
+        const filter = this.ctx.createBiquadFilter();
+        const gain = this.ctx.createGain();
+
+        carrier.type = 'sine';
+        carrier.frequency.setValueAtTime(freq, t);
+
+        // Metallic bell sidebands via inharmonic FM ratio (2.756)
+        modulator.type = 'sine';
+        modulator.frequency.setValueAtTime(freq * 2.756, t);
+        modGain.gain.setValueAtTime(freq * 1.2 * velocity, t);
+        modGain.gain.exponentialRampToValueAtTime(0.01, t + 0.35);
+
+        modulator.connect(carrier.frequency);
+
+        filter.type = 'highpass';
+        filter.frequency.setValueAtTime(600, t);
+
+        const bellDuration = Math.max(duration, 0.85);
+        gain.gain.setValueAtTime(0, t);
+        gain.gain.linearRampToValueAtTime(0.36 * velocity, t + 0.003);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + bellDuration);
+
+        carrier.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.masterGain);
+
+        modulator.start(t);
+        carrier.start(t);
+        modulator.stop(t + bellDuration);
+        carrier.stop(t + bellDuration);
         break;
       }
     }
@@ -509,34 +625,172 @@ export class HarmoniaSoundEngine {
 
   /**
    * Synthesize distinct percussion timbres for Harmonipet encounters (no pitch frequencies)
-   * 0: Snare Tap (snare_kit)
-   * 1: Bass Drum Thud (timpani / kick)
-   * 2: Marimba Strike (marimba)
-   * 3: Crash Cymbal / Cannon / Bell (glockenspiel or cannon)
+   * Adapts dynamically to Typewriter, Cannon, Timpani, Marimba, and Snare Kit
    */
   public playHarmonizePercussion(index: number, velocity: number = 0.85, specialInstrument?: InstrumentId): void {
-    if (this.isMuted || !this.ensureContext()) return;
+    if (this.isMuted || !this.ensureContext() || !this.ctx || !this.masterGain) return;
+    const t = this.ctx.currentTime;
+
+    if (specialInstrument === 'typewriter') {
+      switch (index) {
+        case 0: {
+          // 1. Key Clack (light mechanical strike)
+          const bufferSize = Math.floor(this.ctx.sampleRate * 0.03);
+          const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+          const data = buffer.getChannelData(0);
+          for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+          const noise = this.ctx.createBufferSource();
+          noise.buffer = buffer;
+          const noiseGain = this.ctx.createGain();
+          const filter = this.ctx.createBiquadFilter();
+          filter.type = 'highpass';
+          filter.frequency.setValueAtTime(2200, t);
+          noiseGain.gain.setValueAtTime(0.35 * velocity, t);
+          noiseGain.gain.exponentialRampToValueAtTime(0.001, t + 0.025);
+          noise.connect(filter);
+          filter.connect(noiseGain);
+          noiseGain.connect(this.masterGain);
+          noise.start(t);
+          break;
+        }
+        case 1: {
+          // 2. Spacebar (deep mechanical thud)
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(320, t);
+          osc.frequency.exponentialRampToValueAtTime(80, t + 0.06);
+          gain.gain.setValueAtTime(0.4 * velocity, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.06);
+          osc.connect(gain);
+          gain.connect(this.masterGain);
+          osc.start(t);
+          osc.stop(t + 0.06);
+          break;
+        }
+        case 2: {
+          // 3. Carriage Return Slide & Zip (mechanical ratchet)
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(600, t);
+          osc.frequency.linearRampToValueAtTime(1400, t + 0.08);
+          gain.gain.setValueAtTime(0.25 * velocity, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.09);
+          osc.connect(gain);
+          gain.connect(this.masterGain);
+          osc.start(t);
+          osc.stop(t + 0.09);
+          break;
+        }
+        case 3:
+        default: {
+          // 4. Margin Bell Chime
+          const bell = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          bell.type = 'sine';
+          bell.frequency.setValueAtTime(2093, t); // C7 silver chime
+          gain.gain.setValueAtTime(0, t);
+          gain.gain.linearRampToValueAtTime(0.35 * velocity, t + 0.005);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+          bell.connect(gain);
+          gain.connect(this.masterGain);
+          bell.start(t);
+          bell.stop(t + 0.5);
+          break;
+        }
+      }
+      return;
+    }
+
+    if (specialInstrument === 'cannon') {
+      switch (index) {
+        case 0: {
+          // 1. Fuse Sizzle (high noise hiss)
+          const bufferSize = Math.floor(this.ctx.sampleRate * 0.15);
+          const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+          const data = buffer.getChannelData(0);
+          for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+          const noise = this.ctx.createBufferSource();
+          noise.buffer = buffer;
+          const gain = this.ctx.createGain();
+          const filter = this.ctx.createBiquadFilter();
+          filter.type = 'bandpass';
+          filter.frequency.setValueAtTime(3500, t);
+          gain.gain.setValueAtTime(0.3 * velocity, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.14);
+          noise.connect(filter);
+          filter.connect(gain);
+          gain.connect(this.masterGain);
+          noise.start(t);
+          break;
+        }
+        case 1: {
+          // 2. Powder Pack Thud (damped punch)
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(200, t);
+          osc.frequency.exponentialRampToValueAtTime(50, t + 0.1);
+          gain.gain.setValueAtTime(0.45 * velocity, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+          osc.connect(gain);
+          gain.connect(this.masterGain);
+          osc.start(t);
+          osc.stop(t + 0.1);
+          break;
+        }
+        case 2: {
+          // 3. Canyon Echo (sub-bass roll)
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(90, t);
+          osc.frequency.exponentialRampToValueAtTime(30, t + 0.4);
+          gain.gain.setValueAtTime(0.4 * velocity, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
+          osc.connect(gain);
+          gain.connect(this.masterGain);
+          osc.start(t);
+          osc.stop(t + 0.45);
+          break;
+        }
+        case 3:
+        default: {
+          // 4. Artillery Cannon Blast
+          this.playInstrumentNote('cannon', 60, 0.65, velocity * 1.2);
+          break;
+        }
+      }
+      return;
+    }
+
+    if (specialInstrument === 'timpani') {
+      const timpaniPitches = [73.42, 87.31, 110.00, 146.83]; // D2, F2, A2, D3
+      this.playInstrumentNote('timpani', timpaniPitches[index] || 110, 0.45, velocity);
+      return;
+    }
+
+    if (specialInstrument === 'marimba') {
+      const marimbaPitches = [261.63, 329.63, 392.00, 523.25]; // C4, E4, G4, C5
+      this.playInstrumentNote('marimba', marimbaPitches[index] || 392, 0.35, velocity);
+      return;
+    }
+
+    // Default: Snare Kit (Hi-hat, Snare, Kick, Cymbal)
     switch (index) {
       case 0:
-        // Snare Tap
-        this.playInstrumentNote('snare_kit', 200, 0.15, velocity);
+        this.playInstrumentNote('snare_kit', 220, 0.12, velocity * 0.9);
         break;
       case 1:
-        // Bass Drum Thud (deep punchy kettledrum fundamental)
-        this.playInstrumentNote('timpani', 75, 0.45, velocity * 1.1);
+        this.playInstrumentNote('snare_kit', 160, 0.18, velocity);
         break;
       case 2:
-        // Marimba Strike (woody resonance)
-        this.playInstrumentNote('marimba', 440, 0.25, velocity);
+        this.playInstrumentNote('timpani', 65, 0.35, velocity * 1.1); // Kick
         break;
       case 3:
       default:
-        // Crash Cymbal / Cannon / Bell
-        if (specialInstrument === 'cannon') {
-          this.playInstrumentNote('cannon', 60, 0.6, velocity * 1.2);
-        } else {
-          this.playInstrumentNote('glockenspiel', 1760, 0.5, velocity);
-        }
+        this.playInstrumentNote('glockenspiel', 1760, 0.5, velocity); // Crash/Bell
         break;
     }
   }
@@ -610,6 +864,124 @@ export class HarmoniaSoundEngine {
         this.playGrandPianoNote(f, 1.6, 0.95);
       });
     }, 700);
+  }
+
+  /**
+   * Synthesize authentic structured chord notes and melodic voice during concert competition
+   */
+  public playStructuredConcertHarmony(options: {
+    chord?: {
+      strings?: number[];
+      woodwinds?: number[];
+      winds?: number[];
+      brass?: number[];
+      percussion?: string;
+    };
+    melodyNotes?: number[];
+    members: Musician[];
+    sectionBalance?: Record<InstrumentSection, number>;
+    hasPianoAccompaniment?: boolean;
+    isPianistDuel?: boolean;
+    maestroFlow?: number;
+    duration?: number;
+  }): void {
+    if (this.isMuted || !this.ensureContext()) return;
+
+    const chord = options.chord || {};
+    const stringNotes = chord.strings && chord.strings.length > 0 ? chord.strings : [261.63, 329.63, 392.0];
+    const windNotes = (chord.woodwinds && chord.woodwinds.length > 0 ? chord.woodwinds : (chord.winds && chord.winds.length > 0 ? chord.winds : [523.25, 659.25]));
+    const brassNotes = chord.brass && chord.brass.length > 0 ? chord.brass : [261.63, 392.0];
+    const percType = chord.percussion || 'timpani';
+
+    const flow = options.maestroFlow !== undefined ? options.maestroFlow : 50;
+    const flowBonus = (flow / 100) * 0.25;
+
+    // Track how many musicians per section to voice chords across polyphony
+    const sectionCounts: Record<InstrumentSection, number> = {
+      strings: 0,
+      woodwinds: 0,
+      brass: 0,
+      percussion: 0
+    };
+
+    options.members.forEach((m) => {
+      const idx = sectionCounts[m.section]++;
+      const balance = options.sectionBalance ? (options.sectionBalance[m.section] ?? 70) : 70;
+      const balanceMod = Math.max(0.3, Math.min(1.3, balance / 70));
+      const velocity = Math.min(1.0, 0.65 * balanceMod + flowBonus);
+      const dur = options.duration || 0.45;
+
+      if (m.section === 'strings') {
+        const pitch = stringNotes[idx % stringNotes.length];
+        this.playInstrumentNote(m.instrumentId, pitch, dur, velocity);
+      } else if (m.section === 'woodwinds') {
+        const pitch = windNotes[idx % windNotes.length];
+        this.playInstrumentNote(m.instrumentId, pitch, dur, velocity);
+      } else if (m.section === 'brass') {
+        const pitch = brassNotes[idx % brassNotes.length];
+        this.playInstrumentNote(m.instrumentId, pitch, dur, velocity);
+      } else if (m.section === 'percussion') {
+        const rootPitch = stringNotes[0] ? stringNotes[0] * 0.5 : 130.81;
+        const inst = (m.instrumentId === 'timpani' || m.instrumentId === 'marimba' || m.instrumentId === 'glockenspiel' || m.instrumentId === 'snare_kit' || m.instrumentId === 'typewriter' || m.instrumentId === 'cannon')
+          ? m.instrumentId
+          : (percType as InstrumentId);
+        this.playInstrumentNote(inst, rootPitch, dur, velocity);
+      }
+    });
+
+    // Melodic voice phrase playback
+    if (options.melodyNotes && options.melodyNotes.length > 0) {
+      const leadMusician = options.members[0];
+      const leadInst: InstrumentId = leadMusician ? leadMusician.instrumentId : 'violin';
+      options.melodyNotes.forEach((noteFreq, nIdx) => {
+        setTimeout(() => {
+          this.playInstrumentNote(leadInst, noteFreq, 0.3, Math.min(1.0, 0.8 + flowBonus));
+        }, nIdx * 120);
+      });
+    }
+
+    // Piano Accompaniment Harmonic Flourishes
+    if (options.hasPianoAccompaniment && !options.isPianistDuel) {
+      // Arpeggiate harmonic chord tones with sparkling grand piano
+      const pianoNotes = [
+        stringNotes[0] || 261.63,
+        stringNotes[1] || (stringNotes[0] * 1.25) || 329.63,
+        stringNotes[2] || (stringNotes[0] * 1.5) || 392.0,
+        (stringNotes[0] || 261.63) * 2,
+        (stringNotes[1] || 329.63) * 2
+      ];
+      pianoNotes.forEach((pfreq, pIdx) => {
+        setTimeout(() => {
+          this.playGrandPianoNote(pfreq, 0.4, Math.min(1.0, 0.75 + flowBonus * 0.5));
+        }, pIdx * 70);
+      });
+    }
+
+    // Pianist Duel counterpoint flourish
+    if (options.isPianistDuel) {
+      const duelRoot = stringNotes[0] || 261.63;
+      const duelNotes = [duelRoot * 0.5, duelRoot * 0.75, duelRoot, duelRoot * 1.25, duelRoot * 1.5, duelRoot * 2];
+      duelNotes.forEach((pfreq, pIdx) => {
+        setTimeout(() => {
+          this.playGrandPianoNote(pfreq, 0.4, 0.85);
+        }, pIdx * 80);
+      });
+    }
+  }
+
+  /**
+   * Resonant feedback when conducting / cueing a specific instrument section
+   */
+  public playSectionCueFeedback(section: InstrumentSection, note?: number): void {
+    if (this.isMuted || !this.ensureContext()) return;
+    const defaultFrequencies: Record<InstrumentSection, { inst: InstrumentId; freq: number }> = {
+      strings: { inst: 'violin', freq: note || 440 },
+      woodwinds: { inst: 'silver_flute', freq: note || 587.33 },
+      brass: { inst: 'pocket_trumpet', freq: note || 523.25 },
+      percussion: { inst: 'timpani', freq: note || 146.83 }
+    };
+    const target = defaultFrequencies[section] || defaultFrequencies.strings;
+    this.playInstrumentNote(target.inst, target.freq, 0.35, 0.9);
   }
 
   /**
@@ -756,6 +1128,93 @@ export class HarmoniaSoundEngine {
     } else {
       this.playFanfare();
     }
+  }
+
+  /**
+   * Post-game celebratory jam session playback for the Maestro's Roundtable
+   * Weaves together Mozart, Beethoven, Bach, Paganini, and Satie with full orchestral triumph.
+   */
+  public playMaestroRoundtableJam(): void {
+    if (this.isMuted || !this.ensureContext() || !this.ctx || !this.masterGain) return;
+
+    // 1. Satie's velvet opening chords (0ms - 400ms)
+    setTimeout(() => this.playInstrumentNote('acoustic_guitar', 196.00, 0.8, 0.8), 0);
+    setTimeout(() => {
+      this.playInstrumentNote('harp', 493.88, 0.6, 0.7);
+      this.playInstrumentNote('harp', 587.33, 0.6, 0.7);
+      this.playInstrumentNote('harp', 739.99, 0.6, 0.7);
+    }, 200);
+
+    // 2. Bach's polyphonic counterpoint arpeggios (400ms - 1000ms)
+    const bachNotes = [
+      { freq: 440.00, dur: 0.12, delay: 400 },
+      { freq: 523.25, dur: 0.12, delay: 520 },
+      { freq: 659.25, dur: 0.12, delay: 640 },
+      { freq: 587.33, dur: 0.15, delay: 760 },
+      { freq: 440.00, dur: 0.25, delay: 900 }
+    ];
+    bachNotes.forEach(n => {
+      setTimeout(() => {
+        this.playInstrumentNote('oboe', n.freq, n.dur, 0.85);
+        this.playInstrumentNote('cello', n.freq * 0.5, n.dur, 0.8);
+      }, n.delay);
+    });
+
+    // 3. Mozart's joyful Eine kleine Nachtmusik leap (1100ms - 1700ms)
+    const mozartNotes = [
+      { freq: 392.00, dur: 0.14, delay: 1100 }, // G4
+      { freq: 293.66, dur: 0.14, delay: 1250 }, // D4
+      { freq: 392.00, dur: 0.14, delay: 1400 }, // G4
+      { freq: 493.88, dur: 0.14, delay: 1550 }, // B4
+      { freq: 587.33, dur: 0.28, delay: 1700 }, // D5
+    ];
+    mozartNotes.forEach(n => {
+      setTimeout(() => {
+        this.playInstrumentNote('violin', n.freq, n.dur, 0.9);
+        this.playInstrumentNote('glockenspiel', n.freq * 2, n.dur, 0.6);
+      }, n.delay);
+    });
+
+    // 4. Paganini's high-octane shredding triplets (1900ms - 2400ms)
+    const paganiniNotes = [
+      { freq: 880.00, dur: 0.08, delay: 1900 }, // A5
+      { freq: 783.99, dur: 0.08, delay: 1980 }, // G5
+      { freq: 698.46, dur: 0.08, delay: 2060 }, // F5
+      { freq: 659.25, dur: 0.08, delay: 2140 }, // E5
+      { freq: 587.33, dur: 0.08, delay: 2220 }, // D5
+      { freq: 880.00, dur: 0.25, delay: 2300 }, // A5
+    ];
+    paganiniNotes.forEach(n => {
+      setTimeout(() => {
+        this.playInstrumentNote('violin', n.freq, n.dur, 0.95);
+      }, n.delay);
+    });
+
+    // 5. Beethoven's heroic brass fanfare & timpani impact (2500ms - 3100ms)
+    const beethovenFanfare = [
+      { freq: 392.00, dur: 0.15, delay: 2500 }, // G4
+      { freq: 392.00, dur: 0.15, delay: 2680 }, // G4
+      { freq: 392.00, dur: 0.15, delay: 2860 }, // G4
+      { freq: 311.13, dur: 0.60, delay: 3040 }, // Eb4
+    ];
+    beethovenFanfare.forEach(n => {
+      setTimeout(() => {
+        this.playInstrumentNote('pocket_trumpet', n.freq, n.dur, 0.95);
+        this.playInstrumentNote('french_horn', n.freq * 0.5, n.dur, 0.9);
+        this.playInstrumentNote('timpani', n.freq * 0.25, n.dur, 1.0);
+      }, n.delay);
+    });
+
+    // 6. Grand Solstice Tutti Chord with festive cannon salute (3600ms)
+    setTimeout(() => {
+      [130.81, 196.00, 261.63, 329.63, 392.00, 523.25, 659.25, 783.99, 1046.50].forEach(f => {
+        this.playInstrumentNote('violin', f, 1.2, 0.9);
+        this.playInstrumentNote('pocket_trumpet', f * 0.5, 1.2, 0.85);
+        this.playInstrumentNote('glockenspiel', f * 2, 1.0, 0.7);
+      });
+      this.playInstrumentNote('cannon', 65.41, 1.0, 1.0);
+      this.playInstrumentNote('timpani', 98.00, 1.0, 1.0);
+    }, 3600);
   }
 
     /* ---------------- DYNAMIC BIOME SOUNDSCAPES & WILDLIFE FX ---------------- */

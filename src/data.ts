@@ -1,8 +1,8 @@
 import {
   Harmonipet, Musician, MusicianStats, RepertoirePiece, RivalEnsemble, WorldZone, WorldNPC, BattleMove, InstrumentId, FestivalEvent,
-  InstrumentArtifact, LostScore, InspirationVista, PerformanceVenue, GameQuest,
+  InstrumentArtifact, LostScore, InspirationVista, PerformanceVenue, GameQuest, DispatchVenue,
   HarmoniDexEntry, ClefBadge, PlayerCustomization, TheoryChallengeType, TheoryQuestion,
-  InstrumentSection, PlayerProficiency
+  InstrumentSection, PlayerProficiency, PetSynergy
 } from './types';
 
 export const DEFAULT_CUSTOMIZATION: PlayerCustomization = {
@@ -1990,12 +1990,16 @@ export const WORLD_ZONES: Record<string, WorldZone> = {
       { type: 'building', buildingType: 'wall', x: 0, y: 1080, w: 60, h: 920, name: 'West Colonnade Wall Bottom' },
       { type: 'building', buildingType: 'wall', x: 2340, y: 0, w: 60, h: 920, name: 'East Colonnade Wall Top' },
       { type: 'building', buildingType: 'wall', x: 2340, y: 1080, w: 60, h: 920, name: 'East Colonnade Wall Bottom' },
-      // Central City Iconic Buildings
-      { type: 'building', buildingType: 'academy', x: 950, y: 600, w: 500, h: 320, name: 'The Grand Symphony Hall', signIcon: '🏛️', roofColor: '#831843' },
-      { type: 'building', buildingType: 'academy', x: 240, y: 260, w: 420, h: 240, name: 'High Conservatory of Maestros', signIcon: '🎼', roofColor: '#1e3a8a' },
-      { type: 'building', buildingType: 'library', x: 1740, y: 260, w: 420, h: 240, name: 'Royal Archives & Grand Library', signIcon: '📖', roofColor: '#065f46' },
-      { type: 'building', buildingType: 'tavern', x: 240, y: 1360, w: 420, h: 240, name: "The Maestro's Forum & Taphouse", signIcon: '🍷', roofColor: '#991b1b' },
-      { type: 'building', buildingType: 'clocktower', x: 1740, y: 1360, w: 420, h: 240, name: 'Solstice Clocktower & Council Hall', signIcon: '⏰', roofColor: '#4c1d95' }
+      // Central City Iconic Buildings - Positioned in the 4 Quadrants (North road x:1120..1280, y:0..1000 completely clear)
+      // NW Quadrant: High Conservatory of Maestros
+      { type: 'building', buildingType: 'academy', x: 260, y: 260, w: 480, h: 320, name: 'High Conservatory of Maestros', signIcon: '🎼', roofColor: '#1e3a8a' },
+      // NE Quadrant: The Grand Symphony Hall
+      { type: 'building', buildingType: 'academy', x: 1460, y: 240, w: 640, h: 360, name: 'The Grand Symphony Hall', signIcon: '🏛️', roofColor: '#831843' },
+      // SW Quadrant: The Maestro's Forum & Taphouse
+      { type: 'building', buildingType: 'tavern', x: 260, y: 1320, w: 480, h: 320, name: "The Maestro's Forum & Taphouse", signIcon: '🍷', roofColor: '#991b1b' },
+      // SE Quadrant: Royal Archives & Solstice Council
+      { type: 'building', buildingType: 'library', x: 1380, y: 1320, w: 420, h: 320, name: 'Royal Archives & Grand Library', signIcon: '📖', roofColor: '#065f46' },
+      { type: 'building', buildingType: 'clocktower', x: 1860, y: 1320, w: 420, h: 320, name: 'Solstice Clocktower & Council Hall', signIcon: '⏰', roofColor: '#4c1d95' }
     ]
   }
 };
@@ -2036,6 +2040,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     x: 370,
     y: 540,
     zone: 'cavatina_village',
+    isNonMusician: true,
     musicianData: {
       id: 'prof_lyra',
       name: 'Professor Lyra',
@@ -2045,7 +2050,8 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       instrumentId: 'silver_flute',
       instrumentName: 'Silver Baton',
       section: 'woodwinds',
-      pet: { id: 'pet_lyra', name: 'Cadenza', species: 'Piccolo Finch', sprite: 'finch', section: 'woodwinds', instrumentName: 'Silver Baton', leitmotifSound: 'flute_chirp', color: '#38bdf8' },
+      pet: { id: 'pet_lyra', name: 'Syllable', species: 'Staccato Songbird', sprite: 'bird', section: 'woodwinds', instrumentName: 'Silver Baton', leitmotifSound: 'flute_chirp', color: '#0284c7' },
+      isNonMusician: true,
       stats: { technique: 50, toneQuality: 50, tempoStability: 50, sightReading: 50 },
       level: 10,
       xp: 1000
@@ -2063,6 +2069,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     x: 730,
     y: 540,
     zone: 'cavatina_village',
+    isNonMusician: true,
     musicianData: {
       id: 'luthier_marco',
       name: 'Master Marco',
@@ -2072,7 +2079,8 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       instrumentId: 'violin',
       instrumentName: 'Carving Chisel',
       section: 'strings',
-      pet: { id: 'pet_marco', name: 'Chisel', species: 'Vivace Hare', sprite: 'hare', section: 'strings', instrumentName: 'Carving Chisel', leitmotifSound: 'guitar_strum', color: '#d97706' },
+      pet: { id: 'pet_marco', name: 'Chisel', species: 'Harmonic Beaver', sprite: 'beaver', section: 'strings', instrumentName: 'Carving Chisel', leitmotifSound: 'violin_pure', color: '#b45309' },
+      isNonMusician: true,
       stats: { technique: 60, toneQuality: 70, tempoStability: 40, sightReading: 40 },
       level: 8,
       xp: 800
@@ -2112,6 +2120,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     x: 480,
     y: 1200,
     zone: 'cavatina_village',
+    isNonMusician: true,
     musicianData: {
       id: 'barkeep_barnaby',
       name: 'Barnaby',
@@ -2119,9 +2128,10 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       avatar: '🍺',
       paletteColor: '#b45309',
       instrumentId: 'acoustic_guitar',
-      instrumentName: 'Tavern Mandolin',
+      instrumentName: 'Tavern Stein',
       section: 'strings',
-      pet: { id: 'pet_barnaby', name: 'Mug', species: 'Cantabile Swan', sprite: 'swan', section: 'strings', instrumentName: 'Tavern Mandolin', leitmotifSound: 'violin_pure', color: '#b45309' },
+      pet: { id: 'pet_barnaby', name: 'Stein', species: 'Melody Hound', sprite: 'hound', section: 'strings', instrumentName: 'Tavern Stein', leitmotifSound: 'guitar_strum', color: '#d97706' },
+      isNonMusician: true,
       stats: { technique: 45, toneQuality: 55, tempoStability: 50, sightReading: 40 },
       level: 5,
       xp: 400
@@ -2353,6 +2363,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       sprite: 'hare',
       section: 'strings',
       instrumentName: 'Acoustic Guitar',
+      instrumentId: 'acoustic_guitar',
       leitmotifSound: 'guitar_strum',
       color: '#f59e0b'
     },
@@ -2376,6 +2387,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       sprite: 'swan',
       section: 'strings',
       instrumentName: 'Concert Violin',
+      instrumentId: 'violin',
       leitmotifSound: 'violin_pure',
       color: '#ec4899'
     },
@@ -2393,6 +2405,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     anchorX: 750,
     anchorY: 800,
     actionType: 'talk',
+    questId: 'quest_mrs_chen_score',
     dialogue: [
       "Have you seen Clara? She promised she'd practice for 40 hours today, but she's out challenging strangers by the fountain!",
       "If she doesn't make first chair at the High Conservatory, her aunt in the Brass Citadel will never let me hear the end of it."
@@ -2507,6 +2520,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       sprite: 'hare',
       section: 'strings',
       instrumentName: 'Acoustic Guitar',
+      instrumentId: 'acoustic_guitar',
       leitmotifSound: 'guitar_strum',
       color: '#f59e0b'
     },
@@ -2543,6 +2557,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       sprite: 'swan',
       section: 'strings',
       instrumentName: 'Concert Violin',
+      instrumentId: 'violin',
       leitmotifSound: 'violin_pure',
       color: '#ec4899'
     },
@@ -2596,6 +2611,18 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     },
     dialogue: ["A rebellious Rockabilly Hedgehog cranks up the amplifier distortion on its electric guitar! Match its crunchy rock riffs to bond!"]
   },
+  {
+    id: 'npc_puzzle_gate_west',
+    name: 'Circle of Fifths Acoustic Gate (Verdant Pass)',
+    title: '🌀 Circle of Fifths Acoustic Portal [SPACE to Modulate]',
+    x: 550,
+    y: 300,
+    zone: 'west_wilderness',
+    isProp: true,
+    propType: 'circle_of_fifths_monolith',
+    actionType: 'circle_of_fifths_puzzle',
+    dialogue: ["Vines wrap around an ancient crystalline portal resonating in pure fifth intervals. Align the key modulations through the Circle of Fifths to pass!"]
+  },
 
   // ==================== WOODWIND WOODS (SETTLED CANOPY VILLAGE) ====================
   {
@@ -2618,6 +2645,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     x: 370,
     y: 540,
     zone: 'woodwind_woods',
+    isNonMusician: true,
     musicianData: {
       id: 'dean_zephyr',
       name: 'Druid Zephyr',
@@ -2625,9 +2653,10 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       avatar: '🍃',
       paletteColor: '#10b981',
       instrumentId: 'silver_flute',
-      instrumentName: 'Bamboo Flute',
+      instrumentName: 'Druid Staff',
       section: 'woodwinds',
-      pet: { id: 'pet_zephyr', name: 'Breeze', species: 'Piccolo Finch', sprite: 'finch', section: 'woodwinds', instrumentName: 'Bamboo Flute', leitmotifSound: 'flute_chirp', color: '#10b981' },
+      pet: { id: 'pet_zephyr', name: 'Whisper', species: 'Canopy Jay', sprite: 'bird', section: 'woodwinds', instrumentName: 'Druid Staff', leitmotifSound: 'flute_chirp', color: '#10b981' },
+      isNonMusician: true,
       stats: { technique: 55, toneQuality: 65, tempoStability: 45, sightReading: 60 },
       level: 9,
       xp: 900
@@ -2645,16 +2674,18 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     x: 730,
     y: 540,
     zone: 'woodwind_woods',
+    isNonMusician: true,
     musicianData: {
       id: 'luthier_reed',
       name: 'Master Reed',
       title: 'Cane & Flute Crafter',
       avatar: '🌾',
       paletteColor: '#059669',
-      instrumentId: 'oboe',
+      instrumentId: 'silver_flute',
       instrumentName: 'Gouging Machine',
       section: 'woodwinds',
       pet: { id: 'pet_reed', name: 'Cane', species: 'River Otter', sprite: 'otter', section: 'woodwinds', instrumentName: 'Gouging Machine', leitmotifSound: 'flute_chirp', color: '#059669' },
+      isNonMusician: true,
       stats: { technique: 65, toneQuality: 65, tempoStability: 50, sightReading: 45 },
       level: 8,
       xp: 800
@@ -2694,6 +2725,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     x: 480,
     y: 1200,
     zone: 'woodwind_woods',
+    isNonMusician: true,
     musicianData: {
       id: 'hostess_flora',
       name: 'Flora',
@@ -2701,9 +2733,10 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       avatar: '🍵',
       paletteColor: '#15803d',
       instrumentId: 'silver_flute',
-      instrumentName: 'Tea Kettle Piccolo',
+      instrumentName: 'Tea Kettle',
       section: 'woodwinds',
-      pet: { id: 'pet_flora', name: 'Blossom', species: 'Flute Frog', sprite: 'frog', section: 'woodwinds', instrumentName: 'Tea Kettle Piccolo', leitmotifSound: 'flute_chirp', color: '#15803d' },
+      pet: { id: 'pet_flora', name: 'Blossom', species: 'Flute Frog', sprite: 'frog', section: 'woodwinds', instrumentName: 'Tea Kettle', leitmotifSound: 'flute_chirp', color: '#15803d' },
+      isNonMusician: true,
       stats: { technique: 40, toneQuality: 60, tempoStability: 45, sightReading: 45 },
       level: 5,
       xp: 400
@@ -2884,6 +2917,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       sprite: 'finch',
       section: 'woodwinds',
       instrumentName: 'Silver Flute',
+      instrumentId: 'silver_flute',
       leitmotifSound: 'flute_chirp',
       color: '#10b981'
     },
@@ -2907,6 +2941,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       sprite: 'otter',
       section: 'woodwinds',
       instrumentName: 'Clarinet',
+      instrumentId: 'clarinet',
       leitmotifSound: 'flute_chirp',
       color: '#059669'
     },
@@ -3082,6 +3117,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       sprite: 'frog',
       section: 'woodwinds',
       instrumentName: 'Silver Oboe',
+      instrumentId: 'oboe',
       leitmotifSound: 'flute_chirp',
       color: '#059669'
     },
@@ -3105,6 +3141,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       sprite: 'finch',
       section: 'woodwinds',
       instrumentName: 'Silver Flute',
+      instrumentId: 'silver_flute',
       leitmotifSound: 'flute_chirp',
       color: '#10b981'
     },
@@ -3182,6 +3219,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     x: 370,
     y: 540,
     zone: 'brass_citadel',
+    isNonMusician: true,
     musicianData: {
       id: 'dean_sterling',
       name: 'Commandant Sterling',
@@ -3189,9 +3227,10 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       avatar: '🎺',
       paletteColor: '#eab308',
       instrumentId: 'pocket_trumpet',
-      instrumentName: 'Commander Trumpet',
+      instrumentName: 'Command Baton',
       section: 'brass',
-      pet: { id: 'pet_sterling', name: 'Valor', species: 'Fanfare Terrier', sprite: 'terrier', section: 'brass', instrumentName: 'Commander Trumpet', leitmotifSound: 'trumpet_blare', color: '#eab308' },
+      pet: { id: 'pet_sterling', name: 'Valor', species: 'Fanfare Terrier', sprite: 'terrier', section: 'brass', instrumentName: 'Command Baton', leitmotifSound: 'trumpet_blare', color: '#eab308' },
+      isNonMusician: true,
       stats: { technique: 65, toneQuality: 70, tempoStability: 60, sightReading: 50 },
       level: 10,
       xp: 1000
@@ -3209,6 +3248,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     x: 730,
     y: 540,
     zone: 'brass_citadel',
+    isNonMusician: true,
     musicianData: {
       id: 'luthier_vulcan',
       name: 'Master Vulcan',
@@ -3219,6 +3259,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       instrumentName: 'Brass Anvil',
       section: 'brass',
       pet: { id: 'pet_vulcan', name: 'Anvil', species: 'Citadel Ram', sprite: 'ram', section: 'brass', instrumentName: 'Brass Anvil', leitmotifSound: 'horn_call', color: '#a16207' },
+      isNonMusician: true,
       stats: { technique: 60, toneQuality: 75, tempoStability: 55, sightReading: 40 },
       level: 8,
       xp: 800
@@ -3258,6 +3299,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     x: 480,
     y: 1200,
     zone: 'brass_citadel',
+    isNonMusician: true,
     musicianData: {
       id: 'sergeant_brass',
       name: 'Sgt Brass',
@@ -3265,9 +3307,10 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       avatar: '🍺',
       paletteColor: '#c2410c',
       instrumentId: 'pocket_trumpet',
-      instrumentName: 'Mess Hall Bugle',
+      instrumentName: 'Canteen Stein',
       section: 'brass',
-      pet: { id: 'pet_sgt_brass', name: 'Bugler', species: 'Fanfare Badger', sprite: 'badger', section: 'brass', instrumentName: 'Mess Hall Bugle', leitmotifSound: 'horn_call', color: '#c2410c' },
+      pet: { id: 'pet_sgt_brass', name: 'Bugler', species: 'Fanfare Badger', sprite: 'badger', section: 'brass', instrumentName: 'Canteen Stein', leitmotifSound: 'horn_call', color: '#c2410c' },
+      isNonMusician: true,
       stats: { technique: 50, toneQuality: 60, tempoStability: 55, sightReading: 40 },
       level: 6,
       xp: 500
@@ -3403,6 +3446,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       sprite: 'terrier',
       section: 'brass',
       instrumentName: 'Pocket Trumpet',
+      instrumentId: 'pocket_trumpet',
       leitmotifSound: 'trumpet_blare',
       color: '#eab308'
     },
@@ -3426,6 +3470,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       sprite: 'ram',
       section: 'brass',
       instrumentName: 'French Horn',
+      instrumentId: 'french_horn',
       leitmotifSound: 'horn_call',
       color: '#eab308'
     },
@@ -3583,6 +3628,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       sprite: 'terrier',
       section: 'brass',
       instrumentName: 'Pocket Trumpet',
+      instrumentId: 'pocket_trumpet',
       leitmotifSound: 'trumpet_blare',
       color: '#eab308'
     },
@@ -3650,6 +3696,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       sprite: 'badger',
       section: 'brass',
       instrumentName: 'French Horn',
+      instrumentId: 'french_horn',
       leitmotifSound: 'horn_call',
       color: '#f97316'
     },
@@ -3679,6 +3726,18 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     },
     dialogue: ["A heavily armored Bombardier Beetle primes its resonance chamber, detonating massive sub-bass artillery cannon booms across the canyon! Match its thunderous pulse!"]
   },
+  {
+    id: 'npc_puzzle_gate_north',
+    name: 'Circle of Fifths Acoustic Gate (North Pass)',
+    title: '🌀 Circle of Fifths Acoustic Monolith [SPACE to Modulate]',
+    x: 600,
+    y: 250,
+    zone: 'north_wilderness',
+    isProp: true,
+    propType: 'circle_of_fifths_monolith',
+    actionType: 'circle_of_fifths_puzzle',
+    dialogue: ["An ancient acoustic gate carved with key signatures. Modulating through the Circle of Fifths (C -> G -> D -> A -> E) will open the mountain passage."]
+  },
 
   // ==================== PERCUSSION PEAKS (SETTLED TAIKO GHATS) ====================
   {
@@ -3701,6 +3760,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     x: 370,
     y: 540,
     zone: 'percussion_peaks',
+    isNonMusician: true,
     musicianData: {
       id: 'dean_goro',
       name: 'Master Goro',
@@ -3708,9 +3768,10 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       avatar: '🥁',
       paletteColor: '#8b5cf6',
       instrumentId: 'timpani',
-      instrumentName: 'Grand Oak Mallet',
+      instrumentName: 'Gong Mallet',
       section: 'percussion',
-      pet: { id: 'pet_goro', name: 'Thunder', species: 'Tempo Tortoise', sprite: 'tortoise', section: 'percussion', instrumentName: 'Grand Oak Mallet', leitmotifSound: 'drum_beat', color: '#8b5cf6' },
+      pet: { id: 'pet_goro', name: 'Thunder', species: 'Tempo Tortoise', sprite: 'tortoise', section: 'percussion', instrumentName: 'Gong Mallet', leitmotifSound: 'drum_beat', color: '#8b5cf6' },
+      isNonMusician: true,
       stats: { technique: 70, toneQuality: 65, tempoStability: 80, sightReading: 45 },
       level: 10,
       xp: 1000
@@ -3728,6 +3789,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     x: 730,
     y: 540,
     zone: 'percussion_peaks',
+    isNonMusician: true,
     musicianData: {
       id: 'luthier_tetsu',
       name: 'Master Tetsu',
@@ -3738,6 +3800,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       instrumentName: 'Forging Sledge',
       section: 'percussion',
       pet: { id: 'pet_tetsu', name: 'Forge', species: 'Rhythm Armadillo', sprite: 'armadillo', section: 'percussion', instrumentName: 'Forging Sledge', leitmotifSound: 'drum_snap', color: '#6b21a8' },
+      isNonMusician: true,
       stats: { technique: 65, toneQuality: 60, tempoStability: 75, sightReading: 40 },
       level: 8,
       xp: 800
@@ -3777,6 +3840,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     x: 480,
     y: 1200,
     zone: 'percussion_peaks',
+    isNonMusician: true,
     musicianData: {
       id: 'mama_beat',
       name: 'Mama Beat',
@@ -3784,9 +3848,10 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       avatar: '🍖',
       paletteColor: '#4c1d95',
       instrumentId: 'snare_kit',
-      instrumentName: 'Frying Pan Snare',
+      instrumentName: 'Saloon Ladle',
       section: 'percussion',
-      pet: { id: 'pet_mama_beat', name: 'Skillet', species: 'Beat Raccoon', sprite: 'raccoon', section: 'percussion', instrumentName: 'Frying Pan Snare', leitmotifSound: 'drum_snap', color: '#4c1d95' },
+      pet: { id: 'pet_mama_beat', name: 'Skillet', species: 'Beat Raccoon', sprite: 'raccoon', section: 'percussion', instrumentName: 'Saloon Ladle', leitmotifSound: 'drum_snap', color: '#4c1d95' },
+      isNonMusician: true,
       stats: { technique: 55, toneQuality: 50, tempoStability: 70, sightReading: 40 },
       level: 6,
       xp: 500
@@ -3922,6 +3987,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       sprite: 'tortoise',
       section: 'percussion',
       instrumentName: 'Timpani',
+      instrumentId: 'timpani',
       leitmotifSound: 'drum_beat',
       color: '#8b5cf6'
     },
@@ -3945,6 +4011,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       sprite: 'raccoon',
       section: 'percussion',
       instrumentName: 'Custom Snare',
+      instrumentId: 'snare_kit',
       leitmotifSound: 'drum_snap',
       color: '#8b5cf6'
     },
@@ -4102,6 +4169,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       sprite: 'tortoise',
       section: 'percussion',
       instrumentName: 'Timpani',
+      instrumentId: 'timpani',
       leitmotifSound: 'drum_beat',
       color: '#8b5cf6'
     },
@@ -4169,6 +4237,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       sprite: 'armadillo',
       section: 'percussion',
       instrumentName: 'Snare Kit',
+      instrumentId: 'snare_kit',
       leitmotifSound: 'drum_snap',
       color: '#a855f7'
     },
@@ -4198,6 +4267,18 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     },
     dialogue: ["A focused Typist Woodpecker pecks rapid rhythmic mechanical clacks and silver margin bell chimes into a petrified trunk! Harmonize with its cadence!"]
   },
+  {
+    id: 'npc_puzzle_gate_south',
+    name: 'Circle of Fifths Acoustic Gate (Rumble Pass)',
+    title: '🌀 Circle of Fifths Mountain Monolith [SPACE to Modulate]',
+    x: 1350,
+    y: 550,
+    zone: 'south_wilderness',
+    isProp: true,
+    propType: 'circle_of_fifths_monolith',
+    actionType: 'circle_of_fifths_puzzle',
+    dialogue: ["The magma-warmed stone monolith hums in harmonic fifths. Match the modulation sequence to unlock the passage!"]
+  },
 
   // ==================== CENTRAL CITY (THE GRAND SYMPHONY HUB) ====================
   // Central Landmark Buildings & Interactive Doors
@@ -4205,73 +4286,74 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     id: 'npc_door_grand_symphony',
     name: 'The Grand Symphony Hall Entrance',
     title: '🏛️ Enter The Grand Symphony Hall [SPACE to Compete]',
-    x: 1200,
-    y: 920,
+    x: 1780,
+    y: 600,
     zone: 'grand_hall',
     isProp: true,
     propType: 'door_trigger',
     actionType: 'competition_stage',
     rivalId: 'rival_grand_orchestra',
-    dialogue: ["You step into the majestic auditorium of The Grand Symphony Hall. Velvet seats and gilded acoustics surround the ultimate competition stage!"]
+    dialogue: ["You step into the majestic auditorium of The Grand Symphony Hall in the Northeast Quarter. Velvet seats and gilded acoustics surround the ultimate competition stage!"]
   },
   {
     id: 'npc_door_grand_conservatory',
     name: 'High Conservatory Entrance',
     title: '🎼 Enter High Conservatory of Maestros [SPACE to Study]',
-    x: 450,
-    y: 500,
+    x: 500,
+    y: 580,
     zone: 'grand_hall',
     isProp: true,
     propType: 'door_trigger',
     actionType: 'theory_bench',
     theoryType: 'orchestral_acoustics',
-    dialogue: ["You enter the vaulted halls of the High Conservatory of Maestros. Master scholars dissect the physics of acoustic resonance."]
+    dialogue: ["You enter the vaulted halls of the High Conservatory of Maestros in the Northwest Quarter. Master scholars dissect the physics of acoustic resonance."]
   },
   {
     id: 'npc_door_grand_archives',
     name: 'Royal Archives Entrance',
     title: '📖 Enter Royal Archives & Grand Library [SPACE]',
-    x: 1950,
-    y: 500,
+    x: 1590,
+    y: 1320,
     zone: 'grand_hall',
     isProp: true,
     propType: 'door_trigger',
     actionType: 'sheet_music_stand',
     sheetMusicReward: 'piece_ode_to_harmony',
-    dialogue: ["You enter the Royal Archives. Shelves towering four stories high hold every score ever composed across Harmonia! Discovered the 'Ode to Harmonic Resonance'!"]
+    dialogue: ["You enter the Royal Archives in the Southeast Quarter. Shelves towering four stories high hold every score ever composed across Harmonia! Discovered the 'Ode to Harmonic Resonance'!"]
   },
   {
     id: 'npc_door_grand_forum',
     name: "The Maestro's Forum Entrance",
     title: "🍷 Enter The Maestro's Forum & Taphouse [SPACE]",
-    x: 450,
-    y: 1600,
+    x: 500,
+    y: 1320,
     zone: 'grand_hall',
     isProp: true,
     propType: 'door_trigger',
     actionType: 'talk',
-    dialogue: ["You enter the lively Maestro's Forum. Conductors, concertmasters, and soloists from all four cardinal realms raise sparkling glasses in celebration!"]
+    dialogue: ["You enter the lively Maestro's Forum in the Southwest Quarter. Conductors, concertmasters, and soloists from all four cardinal realms raise sparkling glasses in celebration!"]
   },
   {
     id: 'npc_door_grand_council',
     name: 'Solstice Council Entrance',
     title: '⏰ Enter Solstice Clocktower & Council Hall [SPACE]',
-    x: 1950,
-    y: 1600,
+    x: 2070,
+    y: 1320,
     zone: 'grand_hall',
     isProp: true,
     propType: 'door_trigger',
     actionType: 'talk',
-    dialogue: ["You enter the Solstice Council Hall beneath the astronomical clock. The grand tournament calendar and realm-wide quests are overseen here."]
+    dialogue: ["You enter the Solstice Council Hall in the Southeast Quarter beneath the astronomical clock. The grand tournament calendar and realm-wide quests are overseen here."]
   },
   // Central City Characters
   {
     id: 'npc_maestro_vane',
     name: 'Maestro Vane',
-    title: '🍺 Maestro Vane (Central Taphouse Host) [SPACE]',
-    x: 450,
-    y: 1650,
+    title: '🍷 Maestro Vane (Central Taphouse Host) [SPACE]',
+    x: 500,
+    y: 1260,
     zone: 'grand_hall',
+    isNonMusician: true,
     musicianData: {
       id: 'maestro_vane',
       name: 'Maestro Vane',
@@ -4279,16 +4361,17 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       avatar: '🍷',
       paletteColor: '#991b1b',
       instrumentId: 'cello',
-      instrumentName: 'Vintage Cellar Cello',
+      instrumentName: 'Sommelier Key',
       section: 'strings',
-      pet: { id: 'pet_vane', name: 'Vintage', species: 'Cantabile Swan', sprite: 'swan', section: 'strings', instrumentName: 'Vintage Cellar Cello', leitmotifSound: 'violin_pure', color: '#991b1b' },
+      pet: { id: 'pet_vane', name: 'Vintage', species: 'Cantabile Swan', sprite: 'swan', section: 'strings', instrumentName: 'Sommelier Key', leitmotifSound: 'violin_pure', color: '#991b1b' },
+      isNonMusician: true,
       stats: { technique: 75, toneQuality: 80, tempoStability: 75, sightReading: 70 },
       level: 10,
       xp: 1200
     },
     actionType: 'talk',
     dialogue: [
-      "Welcome to The Central City, young maestro! I am Vane. Here at the Forum, masters of Strings, Woodwinds, Brass, and Percussion share table and tune.",
+      "Welcome to The Central City, young maestro! I am Vane. Here at the Forum in the Southwest Quarter, masters of Strings, Woodwinds, Brass, and Percussion share table and tune.",
       "The Solstice Symphony Tournament in the Grand Hall is the crowning glory of all Harmonia. Assemble an 8-piece chamber ensemble to claim your title!"
     ]
   },
@@ -4296,9 +4379,10 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     id: 'npc_archivist_selene',
     name: 'Archivist Selene',
     title: 'Royal Musicologist [SPACE to Talk]',
-    x: 1950,
-    y: 550,
+    x: 1590,
+    y: 1260,
     zone: 'grand_hall',
+    isNonMusician: true,
     musicianData: {
       id: 'archivist_selene',
       name: 'Selene',
@@ -4306,9 +4390,10 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       avatar: '📜',
       paletteColor: '#065f46',
       instrumentId: 'harp',
-      instrumentName: 'Archive Lyre',
+      instrumentName: 'Archive Scroll',
       section: 'strings',
-      pet: { id: 'pet_selene', name: 'Scroll', species: 'Vivace Hare', sprite: 'hare', section: 'strings', instrumentName: 'Archive Lyre', leitmotifSound: 'guitar_strum', color: '#065f46' },
+      pet: { id: 'pet_selene', name: 'Scroll', species: 'Vivace Hare', sprite: 'hare', section: 'strings', instrumentName: 'Archive Scroll', leitmotifSound: 'guitar_strum', color: '#065f46' },
+      isNonMusician: true,
       stats: { technique: 70, toneQuality: 70, tempoStability: 65, sightReading: 95 },
       level: 10,
       xp: 1200
@@ -4324,11 +4409,11 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     name: 'Nico',
     title: 'Conservatory Arranger (Age 20) [SPACE to Jam]',
     x: 800,
-    y: 1100,
+    y: 1000,
     zone: 'grand_hall',
     wander: true,
     anchorX: 800,
-    anchorY: 1100,
+    anchorY: 1000,
     musicianData: RECRUITABLE_MUSICIANS[10],
     actionType: 'audition_battle',
     dialogue: RECRUITABLE_MUSICIANS[10].dialogue || []
@@ -4338,11 +4423,11 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     name: 'Aurelius',
     title: 'Student Conductor (Age 21) [SPACE to Compete]',
     x: 1600,
-    y: 1100,
+    y: 1000,
     zone: 'grand_hall',
     wander: true,
     anchorX: 1600,
-    anchorY: 1100,
+    anchorY: 1000,
     actionType: 'competition_stage',
     rivalId: 'rival_grand_orchestra',
     dialogue: ["Welcome to the Eternal Stage! I'm Aurelius. My youth orchestra has unified all four musical sections into one voice. Show us the breadth of your ensemble's harmony!"]
@@ -4351,8 +4436,8 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     id: 'npc_theory_grand_hall',
     name: 'Grand High Lectern',
     title: 'Master Theory Exam (Acoustics & Orchestration) [SPACE]',
-    x: 460,
-    y: 540,
+    x: 500,
+    y: 640,
     zone: 'grand_hall',
     isProp: true,
     propType: 'lectern',
@@ -4426,6 +4511,65 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       "• ⬆️ NORTH COLONNADE: Highway through Echo Canyon to The Brass Citadel (Brass).",
       "• ⬇️ SOUTH GRAND BRIDGE: Highway through Rumble Gorge to Percussion Peaks (Percussion).",
       "• 🏛️ THE GRAND SYMPHONY HALL: Center stage for realm championship tournaments."
+    ]
+  },
+  {
+    id: 'npc_blind_conductor',
+    name: 'Maestro Tiresias',
+    title: 'The Blind Conductor (Timbre Clinic) [SPACE to Consult]',
+    x: 750,
+    y: 550,
+    zone: 'grand_hall',
+    wander: true,
+    anchorX: 750,
+    anchorY: 550,
+    actionType: 'talk',
+    questId: 'quest_blind_conductor',
+    musicianData: {
+      id: 'maestro_tiresias',
+      name: 'Maestro Tiresias',
+      title: 'The Blind Conductor',
+      avatar: '🦯',
+      paletteColor: '#6366f1',
+      instrumentId: 'french_horn',
+      instrumentName: 'Resonant Brass Horn',
+      section: 'brass',
+      pet: {
+        id: 'pet_tiresias',
+        name: 'Echo',
+        species: 'Nocturne Bat',
+        sprite: '🦇',
+        section: 'brass',
+        instrumentName: 'Resonant Brass Horn',
+        leitmotifSound: 'horn_call',
+        color: '#6366f1'
+      },
+      stats: { technique: 90, toneQuality: 100, tempoStability: 95, sightReading: 95 },
+      level: 15,
+      xp: 4000
+    },
+    dialogue: [
+      "Maestro Tiresias raises an ivory baton, listening to the ambient air:",
+      "\"Sight is a distraction to the true ear. I hear the subtle timbral clash between your woodwind formants and brass overtones.\"",
+      "\"Let us align the frequencies: let the warm cello and horn ground the lower mids, while the violin and flutes soar freely in pristine acoustic harmony!\""
+    ]
+  },
+  {
+    id: 'npc_maestro_roundtable',
+    name: "The Maestro's Roundtable",
+    title: "🍷 The Maestro's Roundtable (Titan Jam Session) [SPACE]",
+    x: 520,
+    y: 1650,
+    zone: 'grand_hall',
+    actionType: 'talk',
+    questId: 'quest_maestro_roundtable',
+    dialogue: [
+      "A grand banquet table laden with sparkling cider and scored parchment. Mozart, Beethoven, Bach, Paganini, and Satie raise their glasses!",
+      "Mozart: \"Hahaha! What did I tell you? True harmony is alive and kicking!\"",
+      "Beethoven: \"I FEEL the titanic resonance of your symphony shaking the taphouse rafters!\"",
+      "Bach: \"A sublime contrapuntal architecture. Well played, young maestro.\"",
+      "Paganini: \"Your virtuosic flair on the fingerboard is truly devilish!\"",
+      "Satie: \"Ah, finally... let us lounge, sip pear cider, and jam in ambient serenity.\""
     ]
   }
 ];
@@ -4848,6 +4992,74 @@ export const INITIAL_GAME_QUESTS: GameQuest[] = [
     rewardStars: 3,
     completed: false,
     requiredTheoryTier: 4
+  },
+  {
+    id: 'quest_brass_bow_debate',
+    title: 'Rivalry Duet: The Brass & Bow Debate',
+    chapter: 3,
+    type: 'side',
+    section: 'brass',
+    description: 'Clara (Violin) and Jax (Trumpet) are locked in a fierce debate over whose instrument commands superior acoustic projection. Unite both prodigies in your ensemble to harmonize their sonic rivalry.',
+    objective: 'Recruit both Clara and Jax into your ensemble to bridge strings and brass in a harmonious rivalry duet.',
+    rewardGold: 600,
+    rewardSparks: 45,
+    rewardStars: 2,
+    completed: false,
+    requiredTheoryTier: 2
+  },
+  {
+    id: 'quest_bass_underground',
+    title: 'Subterranean Groove: The Low-End Underground',
+    chapter: 4,
+    type: 'side',
+    section: 'percussion',
+    description: 'Maya (Cello) and Rita (Drums) share a passion for deep acoustic resonance and low-frequency grooves. Unite low strings and thunderous rhythm in your ensemble.',
+    objective: 'Recruit both Maya and Rita into your ensemble to unlock the subterranean groove resonance.',
+    rewardGold: 800,
+    rewardSparks: 60,
+    rewardStars: 2,
+    completed: false,
+    requiredTheoryTier: 3
+  },
+  {
+    id: 'quest_mrs_chen_score',
+    title: "Secret Heritage: Mrs. Chen's Lullaby",
+    chapter: 1,
+    type: 'side',
+    section: 'strings',
+    description: "Mrs. Chen pushes Clara relentlessly for 40 hours of daily practice, but secretly treasures a vintage lullaby score from her youth. Speak with her in Cavatina Village to uncover the manuscript.",
+    objective: "Speak with Mrs. Chen in Cavatina Village after recruiting Clara or passing Theory Tier 1 to recover her secret lullaby score.",
+    rewardGold: 300,
+    rewardSparks: 25,
+    rewardStars: 1,
+    completed: false,
+    requiredTheoryTier: 1
+  },
+  {
+    id: 'quest_blind_conductor',
+    title: 'Timbre Discord Clinic: The Blind Conductor',
+    chapter: 3,
+    type: 'side',
+    description: "Maestro Tiresias, the legendary Blind Conductor, diagnoses orchestral timbre discord through pure acoustic resonance. Visit him to balance your ensemble's harmonic frequencies.",
+    objective: "Consult with Maestro Tiresias in the High Conservatory or wilderness and resolve the acoustic frequency discord.",
+    rewardGold: 700,
+    rewardSparks: 50,
+    rewardStars: 2,
+    completed: false,
+    requiredTheoryTier: 3
+  },
+  {
+    id: 'quest_maestro_roundtable',
+    title: "The Maestro's Roundtable: Classical Titan Jam",
+    chapter: 5,
+    type: 'gig',
+    description: "The 5 immortal masters—Mozart, Beethoven, Bach, Paganini, and Satie—gather at The Maestro's Forum & Taphouse in Central City for the ultimate post-game celebratory jam session.",
+    objective: "Meet the Maestros at the Central Taphouse forum after conquering the Solstice Symphony to ignite the celebratory roundtable jam!",
+    rewardGold: 3000,
+    rewardSparks: 200,
+    rewardStars: 5,
+    completed: false,
+    requiredTheoryTier: 5
   }
 ];
 
@@ -5566,3 +5778,109 @@ export function calculateDynamicRivalStats(baseStats: MusicianStats, progressTie
     sightReading: Math.min(100, Math.round(baseStats.sightReading * multiplier))
   };
 }
+
+/* ---------------- INITIAL DISPATCH VENUES ---------------- */
+
+export const INITIAL_DISPATCH_VENUES: DispatchVenue[] = [
+  {
+    id: 'dispatch_cavatina_gazebo',
+    name: 'Cavatina Gazebo',
+    zone: 'cavatina_village',
+    requiredTier: 'solo',
+    durationSeconds: 30,
+    rewardNotes: 100,
+    rewardSparks: 5,
+    rewardXp: 60,
+    description: 'A charming garden gazebo in Cavatina Village where townspeople gather for acoustic morning serenades.',
+    unlocked: true
+  },
+  {
+    id: 'dispatch_whispering_lounge',
+    name: 'Whispering Lounge',
+    zone: 'woodwind_woods',
+    requiredTier: 'duet',
+    durationSeconds: 60,
+    rewardNotes: 220,
+    rewardSparks: 12,
+    rewardXp: 140,
+    description: 'A tranquil forest canopy lounge where gentle woodwind harmonies soothe weary woodland travelers.',
+    unlocked: false
+  },
+  {
+    id: 'dispatch_golden_canteen',
+    name: 'Golden Canteen',
+    zone: 'brass_citadel',
+    requiredTier: 'trio',
+    durationSeconds: 120,
+    rewardNotes: 400,
+    rewardSparks: 25,
+    rewardXp: 280,
+    description: 'A bustling Citadel dining hall where triumphant brass fanfares rally the garrison and patrons.',
+    unlocked: false
+  },
+  {
+    id: 'dispatch_boulder_saloon',
+    name: 'Boulder Saloon',
+    zone: 'percussion_peaks',
+    requiredTier: 'quartet',
+    durationSeconds: 180,
+    rewardNotes: 650,
+    rewardSparks: 40,
+    rewardXp: 480,
+    description: 'A rowdy mountain cavern tavern echoing with polyrhythmic beats, stomps, and driving percussion.',
+    unlocked: false
+  },
+  {
+    id: 'dispatch_grand_rotunda',
+    name: 'Grand Rotunda',
+    zone: 'grand_hall',
+    requiredTier: 'chamber',
+    durationSeconds: 300,
+    rewardNotes: 1200,
+    rewardSparks: 80,
+    rewardXp: 900,
+    description: 'The pinnacle acoustic amphitheater of the Conservatory, demanding rich multi-instrumental resonance.',
+    unlocked: false
+  }
+];
+
+/* ---------------- PET SYNERGY UNISON ATTACKS ---------------- */
+
+export const PET_SYNERGIES: PetSynergy[] = [
+  {
+    id: 'synergy_avian_cantabile',
+    name: 'Avian Cantabile',
+    requiredPets: ['Swan', 'Finch'],
+    effectType: 'heal_harmony',
+    power: 35,
+    cost: 30,
+    description: 'Swan & Finch blend lyrical strings and airy woodwinds into a soothing resonance that restores +35% Harmony Meter!'
+  },
+  {
+    id: 'synergy_syncopated_fanfare',
+    name: 'Syncopated Fanfare',
+    requiredPets: ['Terrier', 'Raccoon'],
+    effectType: 'stun_rival',
+    power: 25,
+    cost: 40,
+    description: 'Terrier & Raccoon unleash a punchy syncopated brass blast that deals +25% resonance and stuns the rival musician!'
+  },
+  {
+    id: 'synergy_bebop_staccato',
+    name: 'Bebop Staccato',
+    requiredPets: ['Fox', 'Woodpecker'],
+    effectType: 'crit_burst',
+    power: 50,
+    cost: 45,
+    description: 'Fox & Woodpecker execute rapid syncopated bebop riffs that strike with overwhelming critical burst resonance (+50% Harmony)!'
+  },
+  {
+    id: 'synergy_thunder_quake',
+    name: 'Thunder Quake',
+    requiredPets: ['Beetle', 'Bear'],
+    effectType: 'crit_burst',
+    power: 60,
+    cost: 50,
+    description: 'Beetle & Bear combine subterranean cannon shockwaves with volcanic timpani strikes for seismic resonance (+60% Harmony)!'
+  }
+];

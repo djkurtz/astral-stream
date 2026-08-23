@@ -1,5 +1,5 @@
-import { GameState, Harmonipet, Musician, PlayerCustomization, WorldObstacle, WorldNPC } from './types';
-import { WORLD_ZONES, STARTER_OPTIONS, getBattleMovesForMusician } from './data';
+import { GameState, Harmonipet, Musician, PlayerCustomization, WorldObstacle, WorldNPC, InstrumentSection } from './types';
+import { WORLD_ZONES, STARTER_OPTIONS, getBattleMovesForMusician, ALL_INSTRUMENTS_INFO } from './data';
 
 export class HarmoniaRenderer {
   private ctx: CanvasRenderingContext2D;
@@ -62,6 +62,9 @@ export class HarmoniaRenderer {
     // Default: Exploration Mode
     this.renderWorldMap(state);
     this.renderHUD(state);
+    if (state.showQuickWheel) {
+      this.renderQuickWheel(state);
+    }
     this.renderDialogue(state);
   }
 
@@ -259,7 +262,188 @@ export class HarmoniaRenderer {
       ctx.fillStyle = session.feedbackText.includes('PERFECT') ? '#eab308' : (session.feedbackText.includes('MISS') ? '#ef4444' : '#38bdf8');
       ctx.font = 'bold 36px "Inter", sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(session.feedbackText, this.width / 2, hwY + hwH / 2);
+      ctx.fillText(session.feedbackText, hwX + hwW / 2, hwY + hwH / 2);
+    }
+
+    // Lane Solfège Labels at Hit Zone
+    const laneSolfege = ['Do (C4)', 'Mi (E4)', 'Sol (G4)', 'Do (C5)'];
+    const laneColors = ['#ef4444', '#eab308', '#06b6d4', '#ec4899'];
+    for (let i = 0; i < 4; i++) {
+      if (state.showStaffVisualizer) {
+        ctx.fillStyle = laneColors[i];
+        ctx.font = 'bold 13px "Inter", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(laneSolfege[i], hwX + i * laneW + laneW / 2, targetY + 22);
+      }
+    }
+
+    // Toggle Prompt beneath Highway
+    ctx.fillStyle = state.showStaffVisualizer ? '#38bdf8' : '#94a3b8';
+    ctx.font = '14px "Inter", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(`[V] Toggle Grand Staff & Solfège Visualizer: ${state.showStaffVisualizer ? 'ON (Active)' : 'OFF'}`, hwX + hwW / 2, hwY + hwH + 30);
+
+    // ==================== RIGHT PANEL: GRAND STAFF & SOLFÈGE VISUALIZER ====================
+    const staffX = 960;
+    const staffY = 120;
+    const staffW = 280;
+    const staffH = 480;
+
+    ctx.fillStyle = '#1e293b';
+    ctx.strokeStyle = state.showStaffVisualizer ? '#38bdf8' : 'rgba(255, 255, 255, 0.15)';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.roundRect(staffX, staffY, staffW, staffH, 16);
+    ctx.fill();
+    ctx.stroke();
+
+    if (!state.showStaffVisualizer) {
+      ctx.fillStyle = '#64748b';
+      ctx.font = 'bold 16px "Inter", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('GRAND STAFF VISUALIZER', staffX + staffW / 2, staffY + 180);
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '14px "Inter", sans-serif';
+      ctx.fillText('Press [V] to Enable', staffX + staffW / 2, staffY + 220);
+      ctx.font = '13px "Inter", sans-serif';
+      ctx.fillStyle = '#475569';
+      ctx.fillText('Real-time Treble & Bass Clef', staffX + staffW / 2, staffY + 260);
+      ctx.fillText('Solfège (Do, Re, Mi, Fa, Sol, La, Ti)', staffX + staffW / 2, staffY + 285);
+    } else {
+      // Header
+      ctx.fillStyle = '#38bdf8';
+      ctx.font = 'bold 16px "Inter", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('🎼 GRAND STAFF & SOLFÈGE', staffX + staffW / 2, staffY + 30);
+
+      // Treble Clef Staff (5 Lines: E4, G4, B4, D5, F5)
+      const staffLineStartX = staffX + 25;
+      const staffLineEndX = staffX + staffW - 25;
+      const trebleBaseY = staffY + 70;
+      const lineSpacing = 14;
+
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+      ctx.lineWidth = 1.5;
+      for (let l = 0; l < 5; l++) {
+        const y = trebleBaseY + l * lineSpacing;
+        ctx.beginPath();
+        ctx.moveTo(staffLineStartX, y);
+        ctx.lineTo(staffLineEndX, y);
+        ctx.stroke();
+      }
+
+      // Treble Clef Glyph & Label
+      ctx.fillStyle = '#f8fafc';
+      ctx.font = 'bold 22px "Inter", sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText('𝄞', staffLineStartX + 5, trebleBaseY + 38);
+      ctx.font = 'bold 11px "Inter", sans-serif';
+      ctx.fillStyle = '#94a3b8';
+      ctx.fillText('Treble (G Clef)', staffLineStartX + 30, trebleBaseY - 6);
+
+      // Middle C (C4) Ledger Line & Do
+      const midCY = trebleBaseY + 5 * lineSpacing + 10;
+      ctx.strokeStyle = '#ef4444';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(staffX + staffW / 2 - 25, midCY);
+      ctx.lineTo(staffX + staffW / 2 + 25, midCY);
+      ctx.stroke();
+      ctx.fillStyle = '#ef4444';
+      ctx.beginPath();
+      ctx.arc(staffX + staffW / 2, midCY, 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.font = 'bold 10px "Inter", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Do (C4)', staffX + staffW / 2, midCY - 10);
+
+      // Bass Clef Staff (5 Lines: G2, B2, D3, F3, A3)
+      const bassBaseY = midCY + 26;
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+      ctx.lineWidth = 1.5;
+      for (let l = 0; l < 5; l++) {
+        const y = bassBaseY + l * lineSpacing;
+        ctx.beginPath();
+        ctx.moveTo(staffLineStartX, y);
+        ctx.lineTo(staffLineEndX, y);
+        ctx.stroke();
+      }
+
+      // Bass Clef Glyph & Label
+      ctx.fillStyle = '#f8fafc';
+      ctx.font = 'bold 20px "Inter", sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText('𝄢', staffLineStartX + 5, bassBaseY + 30);
+      ctx.font = 'bold 11px "Inter", sans-serif';
+      ctx.fillStyle = '#94a3b8';
+      ctx.fillText('Bass (F Clef)', staffLineStartX + 30, bassBaseY - 6);
+
+      // Active Note Highlighting on Staff
+      const upcomingNote = session.notes.find(n => !n.hit && !n.missed && (n.targetTime - session.elapsedTime) > -0.1 && (n.targetTime - session.elapsedTime) < 1.0);
+      if (upcomingNote) {
+        let noteY = midCY;
+        if (upcomingNote.lane === 0) noteY = midCY; // C4
+        else if (upcomingNote.lane === 1) noteY = trebleBaseY + 4 * lineSpacing; // E4 (bottom line)
+        else if (upcomingNote.lane === 2) noteY = trebleBaseY + 3 * lineSpacing; // G4 (second line)
+        else if (upcomingNote.lane === 3) noteY = trebleBaseY + lineSpacing; // C5 (third space)
+
+        ctx.fillStyle = '#38bdf8';
+        ctx.beginPath();
+        ctx.arc(staffLineEndX - 40, noteY, 8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+
+      // Solfège Reference Scale Pills (Do, Re, Mi, Fa, Sol, La, Ti)
+      const solfegeItems = [
+        { syllable: 'Do', note: 'C', color: '#ef4444' },
+        { syllable: 'Re', note: 'D', color: '#f97316' },
+        { syllable: 'Mi', note: 'E', color: '#eab308' },
+        { syllable: 'Fa', note: 'F', color: '#22c55e' },
+        { syllable: 'Sol', note: 'G', color: '#06b6d4' },
+        { syllable: 'La', note: 'A', color: '#6366f1' },
+        { syllable: 'Ti', note: 'B', color: '#a855f7' }
+      ];
+
+      const pillStartY = staffY + 330;
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = 'bold 11px "Inter", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('DIATONIC SOLFÈGE SCALE', staffX + staffW / 2, pillStartY);
+
+      const pillW = 32;
+      const pillH = 38;
+      const pillGap = 5;
+      const totalPillsW = 7 * pillW + 6 * pillGap;
+      const pillStartX = staffX + (staffW - totalPillsW) / 2;
+
+      solfegeItems.forEach((item, idx) => {
+        const px = pillStartX + idx * (pillW + pillGap);
+        const py = pillStartY + 12;
+
+        ctx.fillStyle = `${item.color}22`;
+        ctx.strokeStyle = item.color;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.roundRect(px, py, pillW, pillH, 6);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = item.color;
+        ctx.font = 'bold 12px "Inter", sans-serif';
+        ctx.fillText(item.syllable, px + pillW / 2, py + 16);
+
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = '10px "Inter", sans-serif';
+        ctx.fillText(item.note, px + pillW / 2, py + 30);
+      });
+
+      // Pedagogical Tip
+      ctx.fillStyle = '#64748b';
+      ctx.font = 'italic 11px "Inter", sans-serif';
+      ctx.fillText('Fixed-Do Solfège: C is always Do', staffX + staffW / 2, staffY + 450);
     }
   }
 
@@ -376,32 +560,57 @@ export class HarmoniaRenderer {
     // Floating Tactical Hover Tooltip Box (Right above action buttons)
     if (hoveredMove) {
       const tipW = 760;
-      const tipH = 70;
+      const tipH = 50;
       const tipX = (this.width - tipW) / 2;
-      const tipY = 385;
+      const tipY = 372;
 
       ctx.fillStyle = 'rgba(15, 23, 42, 0.97)';
       ctx.strokeStyle = hoveredIdx >= 2 ? (hoveredIdx === 2 ? '#10b981' : '#f59e0b') : '#38bdf8';
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.roundRect(tipX, tipY, tipW, tipH, 12);
+      ctx.roundRect(tipX, tipY, tipW, tipH, 10);
       ctx.fill();
       ctx.stroke();
 
       ctx.fillStyle = '#38bdf8';
-      ctx.font = 'bold 13px "Inter", sans-serif';
+      ctx.font = 'bold 12px "Inter", sans-serif';
       ctx.textAlign = 'left';
-      ctx.fillText(`💡 TECHNIQUE DETAILS: ${hoveredMove.name.toUpperCase()}`, tipX + 18, tipY + 24);
+      ctx.fillText(`💡 TECHNIQUE DETAILS: ${hoveredMove.name.toUpperCase()}`, tipX + 16, tipY + 18);
 
       ctx.fillStyle = '#f8fafc';
-      ctx.font = '13px "Inter", sans-serif';
-      ctx.fillText(hoveredMove.description, tipX + 18, tipY + 48);
-    } else {
-      // Gentle hint when not hovering
+      ctx.font = '12px "Inter", sans-serif';
+      ctx.fillText(hoveredMove.description, tipX + 16, tipY + 38);
+    } else if (!battle.synergyMoves || battle.synergyMoves.length === 0) {
+      // Gentle hint when not hovering and no synergy
       ctx.fillStyle = '#64748b';
       ctx.font = 'italic 13px "Inter", sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText('💡 Hover over any technique card to inspect tactical properties and mechanics.', this.width / 2, 425);
+    }
+
+    // Pet Synergy Unison Attack Button
+    if (battle.synergyMoves && battle.synergyMoves.length > 0) {
+      const syn = battle.synergyMoves[0];
+      const synW = 540;
+      const synH = 38;
+      const synX = (this.width - synW) / 2;
+      const synY = 428;
+      const isSynHovered = this.mousePos.x >= synX && this.mousePos.x <= synX + synW &&
+                           this.mousePos.y >= synY && this.mousePos.y <= synY + synH;
+      const isSynAffordable = battle.harmonyPoints >= syn.cost;
+
+      ctx.fillStyle = isSynHovered ? 'rgba(126, 34, 206, 0.95)' : (isSynAffordable ? '#581c87' : 'rgba(88, 28, 135, 0.4)');
+      ctx.strokeStyle = isSynHovered ? '#fbbf24' : (isSynAffordable ? '#c084fc' : '#7e22ce');
+      ctx.lineWidth = isSynHovered ? 3 : 2;
+      ctx.beginPath();
+      ctx.roundRect(synX, synY, synW, synH, 10);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = isSynAffordable ? '#fef08a' : '#c084fc';
+      ctx.font = 'bold 13px "Inter", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(`🐾 [5 / U] UNISON ATTACK: ${syn.name} (${syn.cost} HP) — ${syn.description}`, this.width / 2, synY + 24);
     }
 
     // Battle Log
@@ -431,15 +640,33 @@ export class HarmoniaRenderer {
     // Concert Hall Red Velvet Backdrop & Proscenium Stage
     const bgGrad = ctx.createLinearGradient(0, 0, 0, this.height);
     bgGrad.addColorStop(0, '#1c0512');
-    bgGrad.addColorStop(1, '#3b0d23');
+    bgGrad.addColorStop(0.6, '#2a091a');
+    bgGrad.addColorStop(1, '#15030e');
     ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, this.width, this.height);
 
+    // Stage Floor Base
+    ctx.fillStyle = '#1e110c';
+    ctx.fillRect(0, 140, this.width, 175);
+    ctx.strokeStyle = '#78350f';
+    ctx.lineWidth = 1;
+    for (let lineX = 0; lineX < this.width; lineX += 60) {
+      ctx.beginPath();
+      ctx.moveTo(lineX, 140);
+      ctx.lineTo(lineX, 315);
+      ctx.stroke();
+    }
+    const stageTrim = ctx.createLinearGradient(0, 315, 0, 320);
+    stageTrim.addColorStop(0, '#d97706');
+    stageTrim.addColorStop(1, '#78350f');
+    ctx.fillStyle = stageTrim;
+    ctx.fillRect(0, 315, this.width, 5);
+
     if (state.hasPianoAccompaniment && !comp.isPianistDuel) {
       const bannerW = 480;
-      const bannerH = 24;
+      const bannerH = 22;
       const bannerX = this.width / 2 - bannerW / 2;
-      const bannerY = 8;
+      const bannerY = 6;
       ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
       ctx.beginPath();
       ctx.roundRect(bannerX, bannerY, bannerW, bannerH, 6);
@@ -449,32 +676,32 @@ export class HarmoniaRenderer {
       ctx.stroke();
 
       ctx.fillStyle = '#fbbf24';
-      ctx.font = 'bold 12px "Inter", sans-serif';
+      ctx.font = 'bold 11px "Inter", sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText('🎹 Concerto Piano Accompaniment Active (+50% Score)', this.width / 2, bannerY + 16);
+      ctx.fillText('🎹 Concerto Piano Accompaniment Active (+50% Score Boost)', this.width / 2, bannerY + 15);
     }
 
     const isPianist = comp.isPianistDuel;
     ctx.fillStyle = '#fef08a';
-    ctx.font = 'bold 28px "Cinzel", serif';
+    ctx.font = 'bold 26px "Cinzel", serif';
     ctx.textAlign = 'center';
     if (isPianist) {
       const duelNames = ['Novice Busk (120 BPM)', 'Virtuoso Etude (140 BPM)', 'Transcendental Showdown (160 BPM)'];
       const dName = duelNames[Math.min((comp.duelTier || 1) - 1, duelNames.length - 1)];
-      ctx.fillText(`🎹 PIANIST BUSKING DUEL: ${dName.toUpperCase()}`, this.width / 2, 50);
+      ctx.fillText(`🎹 PIANIST BUSKING DUEL: ${dName.toUpperCase()}`, this.width / 2, 45);
     } else {
-      ctx.fillText(`🏆 CONCERT COMPETITION: VS ${comp.rival.name.toUpperCase()}`, this.width / 2, 50);
+      ctx.fillText(`🏆 CONCERT COMPETITION: VS ${comp.rival.name.toUpperCase()}`, this.width / 2, 45);
     }
 
     ctx.fillStyle = '#fbbf24';
-    ctx.font = '16px "Inter", sans-serif';
-    ctx.fillText(`Piece: "${comp.playerPiece.title}" (${comp.playerPiece.genre} • ${comp.playerPiece.bpm || 120} BPM)`, this.width / 2, 80);
+    ctx.font = '14px "Inter", sans-serif';
+    ctx.fillText(`Piece: "${comp.playerPiece.title}" (${comp.playerPiece.genre} • ${comp.playerPiece.bpm || 120} BPM)`, this.width / 2, 70);
 
     // Audience Applause & Tug-of-War Gauge
-    const barW = 420;
+    const barW = 440;
     const barH = 14;
     const barX = this.width / 2 - barW / 2;
-    const barY = 100;
+    const barY = 86;
     ctx.fillStyle = '#0f172a';
     ctx.beginPath();
     ctx.roundRect(barX, barY, barW, barH, 7);
@@ -495,29 +722,29 @@ export class HarmoniaRenderer {
 
     ctx.fillStyle = '#f8fafc';
     ctx.font = 'bold 12px "Inter", sans-serif';
-    ctx.fillText(`Audience Favor: ${comp.audienceApplause}%  |  Measure ${comp.currentMeasure} / ${comp.totalMeasures}`, this.width / 2, 130);
+    ctx.fillText(`Audience Favor: ${Math.round(comp.audienceApplause)}%  |  Measure ${comp.currentMeasure} / ${comp.totalMeasures}`, this.width / 2, 115);
 
     // Left Stage: Player's Ensemble
     ctx.fillStyle = '#38bdf8';
-    ctx.font = 'bold 20px "Inter", sans-serif';
+    ctx.font = 'bold 18px "Inter", sans-serif';
     ctx.textAlign = 'left';
-    ctx.fillText(`Your Ensemble (Score: ${comp.playerScore})`, 100, 165);
+    ctx.fillText(`Your Ensemble (Score: ${comp.playerScore})`, 100, 155);
 
     state.ensemble.members.forEach((m, idx) => {
-      this.drawPixelMusician(ctx, 120 + idx * 75, 260, m, state.time, idx === 0 ? state.customization : undefined, 'right');
-      this.drawPixelPet(ctx, 140 + idx * 75, 300, m.pet, state.time, idx === 0 ? state.customization?.petTint : undefined, 'right');
+      this.drawPixelMusician(ctx, 120 + idx * 75, 235, m, state.time, idx === 0 ? state.customization : undefined, 'right');
+      this.drawPixelPet(ctx, 140 + idx * 75, 275, m.pet, state.time, idx === 0 ? state.customization?.petTint : undefined, 'right');
     });
 
     // Right Stage: Rival Ensemble
     ctx.fillStyle = '#f43f5e';
-    ctx.font = 'bold 20px "Inter", sans-serif';
+    ctx.font = 'bold 18px "Inter", sans-serif';
     ctx.textAlign = 'right';
-    ctx.fillText(`${comp.rival.name} (Score: ${comp.rivalScore})`, this.width - 100, 165);
+    ctx.fillText(`${comp.rival.name} (Score: ${comp.rivalScore})`, this.width - 100, 155);
 
     comp.rival.members.forEach((m, idx) => {
       if (comp.isPianistDuel) {
         const rx = this.width - 200 - idx * 75;
-        const ry = 260;
+        const ry = 235;
         ctx.save();
         ctx.font = '36px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif';
         ctx.textAlign = 'center';
@@ -526,21 +753,197 @@ export class HarmoniaRenderer {
         ctx.restore();
         this.drawPixelMusician(ctx, rx + 15, ry, m, state.time, undefined, 'left');
       } else {
-        this.drawPixelMusician(ctx, this.width - 180 - idx * 75, 260, m, state.time, undefined, 'left');
-        this.drawPixelPet(ctx, this.width - 200 - idx * 75, 300, m.pet, state.time, undefined, 'left');
+        this.drawPixelMusician(ctx, this.width - 180 - idx * 75, 235, m, state.time, undefined, 'left');
+        this.drawPixelPet(ctx, this.width - 200 - idx * 75, 275, m.pet, state.time, undefined, 'left');
       }
     });
 
-    // 🎵 DYNAMIC RHYTHMIC CADENCE METER
-    const meterW = 540;
-    const meterH = 26;
+    // ✨ MAESTRO FLOW GAUGE & PARTICLES ✨
+    const flowVal = comp.maestroFlow !== undefined ? comp.maestroFlow : 50;
+    const flowW = 540;
+    const flowH = 20;
+    const flowX = this.width / 2 - flowW / 2;
+    const flowY = 328;
+
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+    ctx.beginPath();
+    ctx.roundRect(flowX, flowY, flowW, flowH, 10);
+    ctx.fill();
+    ctx.strokeStyle = '#eab308';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    const flowFill = (flowVal / 100) * flowW;
+    const flowGrad = ctx.createLinearGradient(flowX, flowY, flowX + flowW, flowY);
+    flowGrad.addColorStop(0, '#eab308');
+    flowGrad.addColorStop(0.5, '#fde047');
+    flowGrad.addColorStop(1, '#fbbf24');
+    ctx.fillStyle = flowGrad;
+    ctx.beginPath();
+    ctx.roundRect(flowX, flowY, Math.max(8, flowFill), flowH, 10);
+    ctx.fill();
+
+    ctx.fillStyle = '#0f172a';
+    ctx.font = 'bold 11px "Inter", sans-serif';
+    ctx.textAlign = 'center';
+    const flowMult = (1.0 + (flowVal / 100) * 0.8).toFixed(2);
+    ctx.fillText(`✨ MAESTRO FLOW: ${Math.round(flowVal)}%  •  Flow Resonance: ${flowMult}x ✨`, this.width / 2, flowY + 14);
+
+    // Floating Golden Particles
+    if (flowVal > 20) {
+      const numParticles = Math.min(25, Math.floor((flowVal / 100) * 30));
+      ctx.save();
+      for (let i = 0; i < numParticles; i++) {
+        const px = this.width / 2 + Math.sin(i * 14.7 + state.time * 2.5) * (240 + (i % 6) * 50);
+        const py = 690 - ((state.time * 80 + i * 40) % 360);
+        const alpha = Math.sin((state.time * 3 + i) % Math.PI);
+        const size = 2 + (i % 3);
+        ctx.fillStyle = `rgba(250, 204, 21, ${Math.max(0, alpha * 0.8)})`;
+        ctx.beginPath();
+        ctx.arc(px, py, size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    // 🎻 SECTION CUE LANES (Conducting Control Grid)
+    const laneW = 260;
+    const laneH = 92;
+    const gap = 15;
+    const startX = (this.width - (laneW * 4 + gap * 3)) / 2;
+    const startY = 360;
+
+    const sectionConfigs: { sec: InstrumentSection; icon: string; name: string; key: string; color: string; bg: string }[] = [
+      { sec: 'strings', icon: '🎻', name: 'STRINGS', key: '[1 / D]', color: '#ec4899', bg: 'rgba(236, 72, 153, 0.15)' },
+      { sec: 'woodwinds', icon: '🪈', name: 'WOODWINDS', key: '[2 / F]', color: '#06b6d4', bg: 'rgba(6, 182, 212, 0.15)' },
+      { sec: 'brass', icon: '🎺', name: 'BRASS', key: '[3 / J]', color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.15)' },
+      { sec: 'percussion', icon: '🥁', name: 'PERCUSSION', key: '[4 / K]', color: '#a855f7', bg: 'rgba(168, 85, 247, 0.15)' }
+    ];
+
+    sectionConfigs.forEach((cfg, idx) => {
+      const lx = startX + idx * (laneW + gap);
+      const isCueActive = comp.activeSectionCue && comp.activeSectionCue.section === cfg.sec;
+      const bal = comp.sectionBalance ? (comp.sectionBalance[cfg.sec] ?? 75) : 75;
+
+      ctx.save();
+      // Lane Housing
+      ctx.fillStyle = isCueActive ? 'rgba(30, 41, 59, 0.95)' : 'rgba(15, 23, 42, 0.9)';
+      ctx.beginPath();
+      ctx.roundRect(lx, startY, laneW, laneH, 10);
+      ctx.fill();
+
+      if (isCueActive) {
+        const pulse = Math.sin(state.time * 10) * 1.5;
+        ctx.shadowColor = '#fbbf24';
+        ctx.shadowBlur = 12 + pulse * 4;
+        ctx.strokeStyle = '#fef08a';
+        ctx.lineWidth = 3 + pulse;
+      } else {
+        ctx.strokeStyle = cfg.color;
+        ctx.lineWidth = 1.5;
+      }
+      ctx.stroke();
+
+      // Top Urgency Countdown Indicator if cue active
+      if (isCueActive && comp.activeSectionCue) {
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillRect(lx + 6, startY + 4, (laneW - 12) * Math.max(0, comp.activeSectionCue.urgency), 3);
+      }
+
+      // Section Header (Emoji + Name + Key)
+      ctx.fillStyle = cfg.color;
+      ctx.font = 'bold 14px "Inter", sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText(`${cfg.icon} ${cfg.name}`, lx + 12, startY + 26);
+
+      ctx.fillStyle = isCueActive ? '#fde047' : '#94a3b8';
+      ctx.font = 'bold 12px "Inter", sans-serif';
+      ctx.textAlign = 'right';
+      ctx.fillText(cfg.key, lx + laneW - 12, startY + 26);
+
+      // Cue Prompt Label or Balance Status
+      ctx.textAlign = 'left';
+      if (isCueActive && comp.activeSectionCue) {
+        ctx.fillStyle = '#fef08a';
+        ctx.font = 'bold 11px "Inter", sans-serif';
+        ctx.fillText(`⚡ CUE: ${comp.activeSectionCue.label}!`, lx + 12, startY + 46);
+      } else {
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = '11px "Inter", sans-serif';
+        const balLabel = bal >= 60 && bal <= 90 ? '✓ Balanced' : (bal < 35 ? '⚠️ Fading' : (bal > 90 ? '⚡ Fortissimo' : 'Moderate'));
+        ctx.fillText(`Section Balance: ${Math.round(bal)}% (${balLabel})`, lx + 12, startY + 46);
+      }
+
+      // Balance Gauge Bar
+      const gaugeW = laneW - 24;
+      const gaugeH = 12;
+      const gaugeX = lx + 12;
+      const gaugeY = startY + 58;
+
+      ctx.fillStyle = '#1e293b';
+      ctx.beginPath();
+      ctx.roundRect(gaugeX, gaugeY, gaugeW, gaugeH, 6);
+      ctx.fill();
+
+      const gaugeFill = (Math.max(0, Math.min(100, bal)) / 100) * gaugeW;
+      let barColor = '#ef4444';
+      if (bal >= 60 && bal <= 90) barColor = '#10b981';
+      else if (bal >= 40) barColor = '#f59e0b';
+      else if (bal > 90) barColor = '#38bdf8';
+
+      ctx.fillStyle = barColor;
+      ctx.beginPath();
+      ctx.roundRect(gaugeX, gaugeY, Math.max(4, gaugeFill), gaugeH, 6);
+      ctx.fill();
+
+      // Optimal Zone Markers (60% to 90%)
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+      ctx.lineWidth = 1;
+      const optLeft = gaugeX + 0.6 * gaugeW;
+      const optRight = gaugeX + 0.9 * gaugeW;
+      ctx.strokeRect(optLeft, gaugeY - 1, optRight - optLeft, gaugeH + 2);
+
+      ctx.restore();
+    });
+
+    // 🎵 THE CONDUCTING PODIUM & BATON SWEEP
+    const meterW = 600;
+    const meterH = 28;
     const meterX = this.width / 2 - meterW / 2;
-    const meterY = this.height - 130;
+    const meterY = 530;
+
+    // Conductor's Podium Platform
+    const podiumW = 340;
+    const podiumH = 40;
+    const podiumX = this.width / 2 - podiumW / 2;
+    const podiumY = 640;
+    ctx.fillStyle = '#261208';
+    ctx.beginPath();
+    ctx.roundRect(podiumX, podiumY, podiumW, podiumH, 8);
+    ctx.fill();
+    ctx.strokeStyle = '#d97706';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Podium Music Stand Graphic
+    ctx.fillStyle = '#78350f';
+    ctx.fillRect(this.width / 2 - 4, podiumY - 25, 8, 25);
+    ctx.fillStyle = '#f8fafc';
+    ctx.beginPath();
+    ctx.moveTo(this.width / 2 - 25, podiumY - 45);
+    ctx.lineTo(this.width / 2 + 25, podiumY - 45);
+    ctx.lineTo(this.width / 2 + 20, podiumY - 25);
+    ctx.lineTo(this.width / 2 - 20, podiumY - 25);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = '#d97706';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
 
     // Track Housing
     ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
     ctx.beginPath();
-    ctx.roundRect(meterX - 10, meterY - 36, meterW + 20, meterH + 52, 14);
+    ctx.roundRect(meterX - 10, meterY - 32, meterW + 20, meterH + 46, 14);
     ctx.fill();
     ctx.strokeStyle = '#475569';
     ctx.lineWidth = 2;
@@ -574,34 +977,64 @@ export class HarmoniaRenderer {
     ctx.fillStyle = '#fef08a';
     ctx.font = 'bold 10px "Inter", sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('HARMONIC SWEET SPOT', sweetX + sweetW / 2, meterY + 17);
+    ctx.fillText('DOWNBEAT CADENCE SWEET SPOT', sweetX + sweetW / 2, meterY + 18);
 
-    // Sweeping Metronome Needle
+    // Sweeping Metronome Needle & Expressive Baton
     const tempoBPM = comp.playerPiece.bpm || 120;
     const sweep = Math.abs(((state.time * (tempoBPM / 60) * 0.8) % 2) - 1);
     const needleX = meterX + sweep * meterW;
 
+    // Laser needle
     ctx.strokeStyle = '#38bdf8';
-    ctx.lineWidth = 4;
+    ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.moveTo(needleX, meterY - 8);
-    ctx.lineTo(needleX, meterY + meterH + 8);
+    ctx.moveTo(needleX, meterY - 6);
+    ctx.lineTo(needleX, meterY + meterH + 6);
     ctx.stroke();
 
     // Needle Cursor Diamond
     ctx.fillStyle = '#38bdf8';
     ctx.beginPath();
-    ctx.moveTo(needleX, meterY - 12);
-    ctx.lineTo(needleX + 6, meterY - 6);
-    ctx.lineTo(needleX - 6, meterY - 6);
+    ctx.moveTo(needleX, meterY - 10);
+    ctx.lineTo(needleX + 6, meterY - 5);
+    ctx.lineTo(needleX - 6, meterY - 5);
     ctx.closePath();
     ctx.fill();
+
+    // 🪄 Expressive Conducting Baton Sweep
+    ctx.save();
+    ctx.strokeStyle = '#f8fafc';
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(this.width / 2, podiumY - 30);
+    ctx.lineTo(needleX, meterY + meterH / 2);
+    ctx.stroke();
+
+    // Baton wooden handle
+    ctx.strokeStyle = '#78350f';
+    ctx.lineWidth = 6;
+    ctx.beginPath();
+    ctx.moveTo(this.width / 2, podiumY - 30);
+    const handleEndX = this.width / 2 + (needleX - this.width / 2) * 0.2;
+    const handleEndY = (podiumY - 30) + ((meterY + meterH / 2) - (podiumY - 30)) * 0.2;
+    ctx.lineTo(handleEndX, handleEndY);
+    ctx.stroke();
+
+    // Glowing Baton Tip Spark
+    ctx.shadowColor = '#fbbf24';
+    ctx.shadowBlur = 10;
+    ctx.fillStyle = '#fde047';
+    ctx.beginPath();
+    ctx.arc(needleX, meterY + meterH / 2, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
 
     // Feedback Text & Streak
     if (comp.lastFeedbackText) {
       const isGood = comp.lastFeedback === 'PERFECT' || comp.lastFeedback === 'GREAT';
       ctx.fillStyle = isGood ? '#fef08a' : (comp.lastFeedback === 'OK' ? '#fde047' : '#fca5a5');
-      ctx.font = 'bold 16px "Inter", sans-serif';
+      ctx.font = 'bold 15px "Inter", sans-serif';
       ctx.textAlign = 'center';
       const streakStr = comp.comboStreak > 1 ? ` (Streak: ${comp.comboStreak}🔥)` : '';
       ctx.fillText(`${comp.lastFeedbackText}${streakStr}`, this.width / 2, meterY - 14);
@@ -609,14 +1042,14 @@ export class HarmoniaRenderer {
       ctx.fillStyle = '#cbd5e1';
       ctx.font = 'bold 14px "Inter", sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText('🎵 Watch the Metronome Tempo Needle!', this.width / 2, meterY - 14);
+      ctx.fillText('🎵 Conduct the Ensemble: Cue Sections & Time the Master Downbeat!', this.width / 2, meterY - 14);
     }
 
-    // Action Prompt
+    // Interactive Action Controls Prompt
     ctx.fillStyle = '#f8fafc';
-    ctx.font = 'bold 16px "Inter", sans-serif';
+    ctx.font = 'bold 13px "Inter", sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('⏱️ Press [SPACE] when the Metronome Needle enters the Golden Zone!', this.width / 2, this.height - 35);
+    ctx.fillText('🎼 Section Cues: [1/D] Strings  [2/F] Winds  [3/J] Brass  [4/K] Percussion  |  ⏱️ Master Downbeat: [SPACE / ENTER]', this.width / 2, this.height - 20);
   }
 
   /* ---------------- WORLD OVERWORLD MAP ---------------- */
@@ -811,16 +1244,18 @@ export class HarmoniaRenderer {
       ctx.fillRect(1080 - camX, 0 - camY, 6, 800);
 
     } else if (state.currentZone === 'grand_hall') {
-      // Central City Grand Velvet Cross-Concourse
+      // Central City Grand Velvet Cross-Concourse keyed with Central Square
       ctx.fillStyle = '#991b1b'; // Velvet runner
       // Vertical runner (North Gate y:0 to South Gate y:2000)
       ctx.fillRect(1120 - camX, 0 - camY, 160, 2000);
       // Horizontal runner (West Arch x:0 to East Gate x:2400)
       ctx.fillRect(0 - camX, 920 - camY, 2400, 160);
-      // Central Plaza Dais Paving
+      
+      // Central Square Plaza & Rotunda Dais Paving
       ctx.fillStyle = '#1e293b';
+      ctx.fillRect(1020 - camX, 820 - camY, 360, 360);
       ctx.beginPath();
-      ctx.arc(1200 - camX, 1140 - camY, 160, 0, Math.PI * 2);
+      ctx.arc(1200 - camX, 1000 - camY, 150, 0, Math.PI * 2);
       ctx.fill();
 
       // Gold Braided Fringe
@@ -829,6 +1264,9 @@ export class HarmoniaRenderer {
       ctx.fillRect(1280 - camX, 0 - camY, 6, 2000);
       ctx.fillRect(0 - camX, 914 - camY, 2400, 6);
       ctx.fillRect(0 - camX, 1080 - camY, 2400, 6);
+      ctx.strokeStyle = '#fbbf24';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(1020 - camX, 820 - camY, 360, 360);
 
     } else if (state.currentZone === 'west_wilderness' || state.currentZone === 'east_wilderness') {
       // Short E/W Traversal Highway (width: 800) + N/S Exploration Trails (height: 1800)
@@ -1225,13 +1663,14 @@ export class HarmoniaRenderer {
         title: npc.title,
         avatar: '👤',
         paletteColor: '#0284c7',
-        instrumentId: 'violin',
-        instrumentName: 'Acoustic Instrument',
-        section: 'strings',
+        instrumentId: 'none',
+        instrumentName: 'None',
+        section: 'none',
+        isNonMusician: true,
         stats: { technique: 10, toneQuality: 10, tempoStability: 10, sightReading: 10 },
         level: 1,
         xp: 0
-      } as any, t);
+      } as any, t, undefined, npc.dir || 'down');
       ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
       ctx.beginPath();
       ctx.roundRect(nx - 45, ny - 38, 90, 20, 4);
@@ -2374,64 +2813,66 @@ export class HarmoniaRenderer {
       ctx.fillRect(x - 10 + hatOffsetX, y - 14 + bob, 20, 3);
     }
 
-    // Handheld Instrument
-    const finish = m.isPlayer && custom ? custom.instrumentFinish : 'classic_amber';
-    let instColor = '#d97706';
-    if (finish === 'gilded_gold') instColor = '#fbbf24';
-    if (finish === 'midnight_obsidian') instColor = '#1e1b4b';
-    if (finish === 'rosewood') instColor = '#881337';
+    // Handheld Instrument - Only drawn for active musicians!
+    if (!m.isNonMusician && m.instrumentId && m.section) {
+      const finish = m.isPlayer && custom ? custom.instrumentFinish : 'classic_amber';
+      let instColor = '#d97706';
+      if (finish === 'gilded_gold') instColor = '#fbbf24';
+      if (finish === 'midnight_obsidian') instColor = '#1e1b4b';
+      if (finish === 'rosewood') instColor = '#881337';
 
-    const instX = dir === 'left' ? x - 11 : (dir === 'up' ? x - 8 : x + 11);
+      const instX = dir === 'left' ? x - 11 : (dir === 'up' ? x - 8 : x + 11);
 
-    if (m.section === 'strings') {
-      ctx.fillStyle = instColor;
-      ctx.beginPath();
-      ctx.ellipse(instX, y + 4 + bob, 6, 9, dir === 'left' ? -0.4 : 0.4, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = '#fef08a';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      if (dir === 'left') {
-        ctx.moveTo(instX - 3, y - 4 + bob);
-        ctx.lineTo(instX + 4, y + 14 + bob);
-      } else {
-        ctx.moveTo(instX + 3, y - 4 + bob);
-        ctx.lineTo(instX - 4, y + 14 + bob);
+      if (m.section === 'strings') {
+        ctx.fillStyle = instColor;
+        ctx.beginPath();
+        ctx.ellipse(instX, y + 4 + bob, 6, 9, dir === 'left' ? -0.4 : 0.4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#fef08a';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        if (dir === 'left') {
+          ctx.moveTo(instX - 3, y - 4 + bob);
+          ctx.lineTo(instX + 4, y + 14 + bob);
+        } else {
+          ctx.moveTo(instX + 3, y - 4 + bob);
+          ctx.lineTo(instX - 4, y + 14 + bob);
+        }
+        ctx.stroke();
+      } else if (m.section === 'woodwinds') {
+        ctx.fillStyle = '#e2e8f0';
+        if (dir === 'left') ctx.fillRect(x - 24, y - 2 + bob, 16, 3);
+        else if (dir === 'up') ctx.fillRect(x - 3, y - 8 + bob, 6, 18);
+        else ctx.fillRect(x + 8, y - 2 + bob, 16, 3);
+      } else if (m.section === 'brass') {
+        ctx.fillStyle = '#fbbf24';
+        if (dir === 'left') {
+          ctx.fillRect(x - 18, y + 2 + bob, 10, 4);
+          ctx.beginPath();
+          ctx.moveTo(x - 18, y + bob);
+          ctx.lineTo(x - 24, y - 3 + bob);
+          ctx.lineTo(x - 24, y + 7 + bob);
+          ctx.fill();
+        } else if (dir === 'up') {
+          ctx.fillRect(x - 6, y - 6 + bob, 4, 12);
+          ctx.beginPath();
+          ctx.moveTo(x - 8, y - 6 + bob);
+          ctx.lineTo(x - 2, y - 6 + bob);
+          ctx.lineTo(x - 5, y - 12 + bob);
+          ctx.fill();
+        } else {
+          ctx.fillRect(x + 8, y + 2 + bob, 10, 4);
+          ctx.beginPath();
+          ctx.moveTo(x + 18, y + bob);
+          ctx.lineTo(x + 24, y - 3 + bob);
+          ctx.lineTo(x + 24, y + 7 + bob);
+          ctx.fill();
+        }
+      } else if (m.section === 'percussion') {
+        ctx.fillStyle = '#fde047';
+        ctx.fillRect(instX - 4, y + 2 + bob, 8, 2);
+        ctx.fillRect(instX - 2, y + 8 + bob, 8, 2);
       }
-      ctx.stroke();
-    } else if (m.section === 'woodwinds') {
-      ctx.fillStyle = '#e2e8f0';
-      if (dir === 'left') ctx.fillRect(x - 24, y - 2 + bob, 16, 3);
-      else if (dir === 'up') ctx.fillRect(x - 3, y - 8 + bob, 6, 18);
-      else ctx.fillRect(x + 8, y - 2 + bob, 16, 3);
-    } else if (m.section === 'brass') {
-      ctx.fillStyle = '#fbbf24';
-      if (dir === 'left') {
-        ctx.fillRect(x - 18, y + 2 + bob, 10, 4);
-        ctx.beginPath();
-        ctx.moveTo(x - 18, y + bob);
-        ctx.lineTo(x - 24, y - 3 + bob);
-        ctx.lineTo(x - 24, y + 7 + bob);
-        ctx.fill();
-      } else if (dir === 'up') {
-        ctx.fillRect(x - 6, y - 6 + bob, 4, 12);
-        ctx.beginPath();
-        ctx.moveTo(x - 8, y - 6 + bob);
-        ctx.lineTo(x - 2, y - 6 + bob);
-        ctx.lineTo(x - 5, y - 12 + bob);
-        ctx.fill();
-      } else {
-        ctx.fillRect(x + 8, y + 2 + bob, 10, 4);
-        ctx.beginPath();
-        ctx.moveTo(x + 18, y + bob);
-        ctx.lineTo(x + 24, y - 3 + bob);
-        ctx.lineTo(x + 24, y + 7 + bob);
-        ctx.fill();
-      }
-    } else {
-      ctx.fillStyle = '#fde047';
-      ctx.fillRect(instX - 4, y + 2 + bob, 8, 2);
-      ctx.fillRect(instX - 2, y + 8 + bob, 8, 2);
     }
   }
 
@@ -2848,9 +3289,21 @@ export class HarmoniaRenderer {
     ctx.stroke();
 
     // Melody Sequence Call & Response Display (Adapts to variable note count & percussion vs pitch)
-    const noteNames = isPercussion 
-      ? ['Snare', 'Bass Drum', 'Marimba', 'Bell / Crash']
-      : ['C4', 'E4', 'G4', 'C5'];
+    let noteNames = ['C4', 'E4', 'G4', 'C5'];
+    if (isPercussion) {
+      const pInst = enc.pet.instrumentId;
+      if (pInst === 'typewriter') {
+        noteNames = ['Clack', 'Space', 'Return', 'Bell'];
+      } else if (pInst === 'cannon') {
+        noteNames = ['Fuse', 'Powder', 'Echo', 'Cannon'];
+      } else if (pInst === 'timpani') {
+        noteNames = ['Low D', 'Low F', 'Low A', 'High D'];
+      } else if (pInst === 'marimba') {
+        noteNames = ['C4', 'E4', 'G4', 'C5'];
+      } else {
+        noteNames = ['Hi-Hat', 'Snare', 'Kick', 'Crash'];
+      }
+    }
     
     const targetPills = enc.targetNoteIndices.map((nIdx, idx) => {
       const isRevealed = enc.revealedSteps && enc.revealedSteps[idx];
@@ -2983,17 +3436,53 @@ export class HarmoniaRenderer {
     }
 
     // Note Action Buttons (Distinct percussions vs melodic pitches)
-    const notes = isPercussion ? [
-      { label: '[1] Snare Tap', sub: 'Crisp Snare Snap 🥁' },
-      { label: '[2] Bass Drum', sub: 'Low-End Thud 🪘' },
-      { label: '[3] Marimba', sub: 'Rosewood Mallet 🪵' },
-      { label: '[4] Crash / Bell', sub: 'Resonant Chime 🔔' }
-    ] : [
-      { label: '[1] C4 (Root)', sub: 'Foundation' },
-      { label: '[2] E4 (Third)', sub: 'Harmonic Warmth' },
-      { label: '[3] G4 (Fifth)', sub: 'Consonance' },
-      { label: '[4] C5 (Octave)', sub: 'Overtone Surge' }
-    ];
+    let notes: { label: string; sub: string }[] = [];
+    if (isPercussion) {
+      const pInst = enc.pet.instrumentId;
+      if (pInst === 'typewriter') {
+        notes = [
+          { label: '[1] Key Clack', sub: 'Mechanical Strike ⌨️' },
+          { label: '[2] Space Bar', sub: 'Solid Thud 🔲' },
+          { label: '[3] Carriage Return', sub: 'Slide & Zip ⚙️' },
+          { label: '[4] Margin Bell', sub: 'Silver Chime 🔔' }
+        ];
+      } else if (pInst === 'cannon') {
+        notes = [
+          { label: '[1] Fuse Spark', sub: 'Ignition Hiss ⚡' },
+          { label: '[2] Powder Pack', sub: 'Damped Punch 💣' },
+          { label: '[3] Canyon Echo', sub: 'Low Rumble 🌋' },
+          { label: '[4] Artillery Blast', sub: 'Sub-Bass Boom 💥' }
+        ];
+      } else if (pInst === 'timpani') {
+        notes = [
+          { label: '[1] Low D (Root)', sub: 'Kettledrum Pulse 🥁' },
+          { label: '[2] Low F (Third)', sub: 'Kettledrum Tone 🪘' },
+          { label: '[3] Low A (Fifth)', sub: 'Deep Resonance 🌊' },
+          { label: '[4] High D (Octave)', sub: 'Dramatic Surge ⚡' }
+        ];
+      } else if (pInst === 'marimba') {
+        notes = [
+          { label: '[1] C4 (Low Bar)', sub: 'Rosewood Root 🪵' },
+          { label: '[2] E4 (Mid Bar)', sub: 'Warm Third 🎶' },
+          { label: '[3] G4 (High Bar)', sub: 'Fifth Consonance ✨' },
+          { label: '[4] C5 (Top Bar)', sub: 'Bright Octave 🌟' }
+        ];
+      } else {
+        notes = [
+          { label: '[1] Hi-Hat Tap', sub: 'Crisp Chick 🥁' },
+          { label: '[2] Snare Snap', sub: 'Acoustic Pop 💥' },
+          { label: '[3] Bass Kick', sub: 'Deep Thump 🪘' },
+          { label: '[4] Crash Splash', sub: 'Resonant Cymbal ✨' }
+        ];
+      }
+    } else {
+      notes = [
+        { label: '[1] C4 (Root)', sub: 'Foundation 🎵' },
+        { label: '[2] E4 (Third)', sub: 'Harmonic Warmth 🎶' },
+        { label: '[3] G4 (Fifth)', sub: 'Consonance ✨' },
+        { label: '[4] C5 (Octave)', sub: 'Overtone Surge 🌟' }
+      ];
+    }
 
     const cardW = 190;
     const cardH = 75;
@@ -3045,22 +3534,26 @@ export class HarmoniaRenderer {
     ctx.fill();
     ctx.stroke();
 
+    const hearts = '❤️ '.repeat(ch.lifelinesRemaining) + '🖤 '.repeat(Math.max(0, ch.maxLifelines - ch.lifelinesRemaining));
+    const modeTag = ch.isPracticePreview ? '📖 [STUDY PREVIEW MODE] ' : '';
+    const rewardTag = ch.isPracticePreview ? 'Practice Study (No Exam Risk)' : `Target Reward: +${ch.rewardSparks || 25} Sparks ✨, +${ch.rewardSightReading || 3} RDG 📖`;
+
     ctx.fillStyle = '#fbbf24';
     ctx.font = 'bold 15px "Cinzel", serif';
     ctx.textAlign = 'center';
-    ctx.fillText(`🎼 ${ch.title ? ch.title.toUpperCase() : 'MUSIC THEORY DRILL'}`, this.width / 2, 58);
+    ctx.fillText(`🎼 ${modeTag}${ch.title ? ch.title.toUpperCase() : 'MUSIC THEORY DRILL'}`, this.width / 2, 54);
 
     ctx.fillStyle = '#38bdf8';
     ctx.font = 'bold 24px "Inter", sans-serif';
-    ctx.fillText(q.prompt, this.width / 2, 95);
+    ctx.fillText(q.prompt, this.width / 2, 90);
 
     ctx.fillStyle = '#f8fafc';
     ctx.font = '16px "Inter", sans-serif';
-    ctx.fillText(q.subtext, this.width / 2, 135);
+    ctx.fillText(q.subtext, this.width / 2, 130);
 
     ctx.fillStyle = '#34d399';
     ctx.font = 'bold 14px "Inter", sans-serif';
-    ctx.fillText(`Question ${ch.currentQuestionIndex + 1} of ${ch.questions.length} | Score: ${ch.score} pts | Target Reward: +${ch.rewardSparks || 25} Sparks ✨, +${ch.rewardSightReading || 3} RDG 📖`, this.width / 2, 185);
+    ctx.fillText(`Lifelines: ${hearts.trim()} (${ch.lifelinesRemaining}/${ch.maxLifelines}) | Question ${ch.currentQuestionIndex + 1} of ${ch.questions.length} | Score: ${ch.score} pts | ${rewardTag}`, this.width / 2, 185);
 
     // If audio drill, show Replay Button
     if (q.notesToPlay && q.notesToPlay.length > 0) {
@@ -3102,5 +3595,123 @@ export class HarmoniaRenderer {
       ctx.font = '16px "Inter", sans-serif';
       ctx.fillText(optText, ox + 60, oy + 44);
     });
+  }
+
+  /* ---------------- IN-WORLD INSTRUMENT QUICK-WHEEL OVERLAY ---------------- */
+
+  private renderQuickWheel(state: GameState): void {
+    const ctx = this.ctx;
+    const unlocked = state.proficiency.unlockedInstruments;
+    if (!unlocked || unlocked.length === 0) return;
+
+    // Dark backdrop overlay with blur aesthetic
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.82)';
+    ctx.fillRect(0, 0, this.width, this.height);
+
+    const cx = this.width / 2;
+    const cy = this.height / 2;
+    const R = 180;
+    const currentInst = state.ensemble.members[0]?.instrumentId;
+
+    // Outer guide circle
+    ctx.strokeStyle = 'rgba(56, 189, 248, 0.25)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(cx, cy, R, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Center Hub
+    ctx.fillStyle = '#1e293b';
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 75, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#38bdf8';
+    ctx.font = 'bold 16px "Cinzel", serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('QUICK-WHEEL', cx, cy - 14);
+
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '12px "Inter", sans-serif';
+    ctx.fillText('Press [Tab] / [Q]', cx, cy + 8);
+    ctx.fillText('or click to equip', cx, cy + 26);
+
+    const N = unlocked.length;
+    let hoveredInst: any = null;
+
+    unlocked.forEach((instId, i) => {
+      const angle = (i / N) * 2 * Math.PI - Math.PI / 2;
+      const slotX = cx + Math.cos(angle) * R;
+      const slotY = cy + Math.sin(angle) * R;
+      const isCurrent = instId === currentInst;
+      const isHovered = Math.hypot(this.mousePos.x - slotX, this.mousePos.y - slotY) <= 40;
+      const info = ALL_INSTRUMENTS_INFO[instId];
+
+      if (isHovered && info) {
+        hoveredInst = { id: instId, ...info };
+      }
+
+      // Connecting spoke line
+      ctx.strokeStyle = isHovered ? '#fbbf24' : (isCurrent ? '#34d399' : 'rgba(56, 189, 248, 0.3)');
+      ctx.lineWidth = isHovered ? 2 : 1;
+      ctx.beginPath();
+      ctx.moveTo(cx + Math.cos(angle) * 75, cy + Math.sin(angle) * 75);
+      ctx.lineTo(slotX - Math.cos(angle) * 36, slotY - Math.sin(angle) * 36);
+      ctx.stroke();
+
+      // Slot Circle
+      ctx.fillStyle = isHovered ? '#0284c7' : (isCurrent ? '#065f46' : '#1e293b');
+      ctx.strokeStyle = isHovered ? '#fbbf24' : (isCurrent ? '#34d399' : '#38bdf8');
+      ctx.lineWidth = isHovered || isCurrent ? 3 : 2;
+      ctx.beginPath();
+      ctx.arc(slotX, slotY, 36, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      // Avatar
+      ctx.font = '24px "Inter", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(info?.avatar || '🎵', slotX, slotY - 2);
+
+      // Label below
+      ctx.font = isCurrent ? 'bold 12px "Inter", sans-serif' : '11px "Inter", sans-serif';
+      ctx.fillStyle = isCurrent ? '#34d399' : '#f8fafc';
+      ctx.fillText(info?.name ? (info.name.length > 14 ? info.name.substring(0, 12) + '..' : info.name) : instId, slotX, slotY + 48);
+
+      if (isCurrent) {
+        ctx.fillStyle = '#34d399';
+        ctx.font = 'bold 9px "Inter", sans-serif';
+        ctx.fillText('EQUIPPED', slotX, slotY + 60);
+      }
+    });
+
+    // Hover tooltip banner at bottom
+    if (hoveredInst) {
+      const tipW = 600;
+      const tipH = 65;
+      const tipX = (this.width - tipW) / 2;
+      const tipY = this.height - 95;
+
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.95)';
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect(tipX, tipY, tipW, tipH, 10);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#38bdf8';
+      ctx.font = 'bold 15px "Inter", sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText(`${hoveredInst.avatar} ${hoveredInst.name} (${hoveredInst.section.toUpperCase()})`, tipX + 16, tipY + 24);
+
+      ctx.fillStyle = '#cbd5e1';
+      ctx.font = '13px "Inter", sans-serif';
+      ctx.fillText(hoveredInst.description, tipX + 16, tipY + 48);
+    }
   }
 }

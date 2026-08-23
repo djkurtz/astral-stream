@@ -54,6 +54,24 @@ export class HarmoniaUI {
       });
     }
 
+    // Conservatory Dispatch Gigs Modal Toggle Button
+    const btnDispatch = document.getElementById('btn-dispatch');
+    const modalDispatch = document.getElementById('modal-dispatch');
+    const btnCloseDispatch = document.getElementById('btn-close-dispatch');
+
+    if (btnDispatch && modalDispatch) {
+      btnDispatch.addEventListener('click', () => {
+        this.renderDispatchModal();
+        modalDispatch.classList.remove('hidden');
+      });
+    }
+
+    if (btnCloseDispatch && modalDispatch) {
+      btnCloseDispatch.addEventListener('click', () => {
+        modalDispatch.classList.add('hidden');
+      });
+    }
+
     // Quests Journal Modal Toggle Button
     const btnQuests = document.getElementById('btn-quests');
     const modalQuests = document.getElementById('modal-quests');
@@ -285,7 +303,7 @@ export class HarmoniaUI {
     });
 
     // Click backdrop outside modal content to close
-    [modalRepertoire, modalEnsemble, modalQuests, modalDex, modalBadges, modalCustomization, modalMap, modalSystem, modalSandbox].forEach((modal) => {
+    [modalRepertoire, modalEnsemble, modalDispatch, modalQuests, modalDex, modalBadges, modalCustomization, modalMap, modalSystem, modalSandbox].forEach((modal) => {
       if (modal) {
         modal.addEventListener('click', (e) => {
           if (e.target === modal) {
@@ -298,7 +316,7 @@ export class HarmoniaUI {
     // Keyboard Shortcuts for Modals & Escape to Close
     window.addEventListener('keydown', (e) => {
       if (e.code === 'Escape') {
-        const allModals = [modalRepertoire, modalEnsemble, modalQuests, modalDex, modalBadges, modalCustomization, modalMap, modalCalendar, modalSystem, modalSandbox];
+        const allModals = [modalRepertoire, modalEnsemble, modalDispatch, modalQuests, modalDex, modalBadges, modalCustomization, modalMap, modalCalendar, modalSystem, modalSandbox];
         const anyOpen = allModals.some(m => m && !m.classList.contains('hidden'));
         if (anyOpen) {
           allModals.forEach(m => m?.classList.add('hidden'));
@@ -351,7 +369,13 @@ export class HarmoniaUI {
           this.renderEnsembleRoster();
         }
       }
-      if (e.code === 'KeyQ') {
+      if (e.code === 'KeyG') {
+        modalDispatch?.classList.toggle('hidden');
+        if (modalDispatch && !modalDispatch.classList.contains('hidden')) {
+          this.renderDispatchModal();
+        }
+      }
+      if (e.code === 'KeyJ') {
         modalQuests?.classList.toggle('hidden');
         if (modalQuests && !modalQuests.classList.contains('hidden')) {
           this.renderQuestsList();
@@ -743,6 +767,177 @@ export class HarmoniaUI {
       }
 
       rosterContainer.appendChild(card);
+    });
+  }
+
+  public renderDispatchModal(): void {
+    const dispatchBody = document.getElementById('dispatch-body');
+    if (!dispatchBody) return;
+
+    const state = this.engine.getState();
+    dispatchBody.innerHTML = '';
+
+    // Header info banner
+    const banner = document.createElement('div');
+    banner.style.background = 'linear-gradient(135deg, rgba(2, 132, 199, 0.2), rgba(15, 23, 42, 0.6))';
+    banner.style.border = '1px solid #38bdf8';
+    banner.style.borderRadius = '10px';
+    banner.style.padding = '12px 16px';
+    banner.style.display = 'flex';
+    banner.style.justifyContent = 'space-between';
+    banner.style.alignItems = 'center';
+    banner.innerHTML = `
+      <div>
+        <div style="font-weight:bold; color:#f8fafc; font-size:15px;">🏛️ Conservatory Gig & Dispatch Board</div>
+        <div style="font-size:12px; color:#cbd5e1;">Send benched musicians from your Conservatory Box on gigs to earn Notes ♪, Sparks ✨, and XP!</div>
+      </div>
+      <div style="text-align:right;">
+        <span style="font-size:12px; color:#94a3b8;">Benched Musicians:</span>
+        <div style="font-size:16px; font-weight:bold; color:#fbbf24;">${state.ensembleBox.length} Available</div>
+      </div>
+    `;
+    dispatchBody.appendChild(banner);
+
+    // List of Venues
+    state.dispatchVenues.forEach((venue) => {
+      const card = document.createElement('div');
+      const activeDispatch = state.activeDispatches.find(d => d.venueId === venue.id && !d.claimed);
+
+      let cardClass = 'dispatch-card';
+      if (activeDispatch) {
+        cardClass += activeDispatch.completed ? ' completed' : ' active';
+      }
+      card.className = cardClass;
+
+      const zoneName = WORLD_ZONES[venue.zone]?.name || venue.zone;
+      const tierBadge = `<span class="dispatch-tier-badge">${venue.requiredTier.toUpperCase()} TIER</span>`;
+
+      if (!venue.unlocked) {
+        card.innerHTML = `
+          <div class="dispatch-header">
+            <span class="dispatch-title" style="color:#64748b;">🔒 ${venue.name}</span>
+            ${tierBadge}
+          </div>
+          <div class="dispatch-desc" style="color:#64748b;">${venue.description}</div>
+          <div style="font-size:12px; color:#f87171; font-weight:bold;">
+            🔒 Locked — Explore ${zoneName} to unlock this gig venue.
+          </div>
+        `;
+        dispatchBody.appendChild(card);
+        return;
+      }
+
+      if (activeDispatch) {
+        const assignedMusicians = [...state.ensembleBox, ...state.recruitedMusicians, ...state.ensemble.members]
+          .filter(m => activeDispatch.assignedMusicianIds.includes(m.id));
+        const musicianNames = assignedMusicians.map(m => `${m.avatar} ${m.name}`).join(', ');
+
+        const elapsed = state.time - activeDispatch.startTime;
+        const pct = Math.min(100, Math.round((elapsed / activeDispatch.durationSeconds) * 100));
+        const remainingSec = Math.max(0, Math.ceil(activeDispatch.durationSeconds - elapsed));
+
+        card.innerHTML = `
+          <div class="dispatch-header">
+            <span class="dispatch-title">${venue.name} (${zoneName})</span>
+            ${tierBadge}
+          </div>
+          <div class="dispatch-desc">${venue.description}</div>
+          <div class="dispatch-rewards">
+            <span>💰 +${venue.rewardNotes} Notes ♪</span>
+            <span>✨ +${venue.rewardSparks} Sparks</span>
+            <span>⭐ +${venue.rewardXp} XP (each)</span>
+            <span style="margin-left:auto; color:#38bdf8;">Assigned: ${musicianNames || 'Dispatched Musicians'}</span>
+          </div>
+          <div class="dispatch-progress-bar">
+            <div class="dispatch-progress-fill" style="width: ${pct}%;"></div>
+          </div>
+          <div class="dispatch-actions">
+            <div style="font-size:12px; font-weight:bold; color:${activeDispatch.completed ? '#34d399' : '#fbbf24'};">
+              ${activeDispatch.completed ? '✅ Gig Completed! Ready to claim.' : `⏳ In Progress: ${remainingSec}s remaining (${pct}%)`}
+            </div>
+            ${activeDispatch.completed ? `<button class="btn-dispatch-claim" data-venue="${venue.id}">🎁 Claim Rewards</button>` : ''}
+          </div>
+        `;
+
+        if (activeDispatch.completed) {
+          const claimBtn = card.querySelector('.btn-dispatch-claim');
+          if (claimBtn) {
+            claimBtn.addEventListener('click', () => {
+              this.engine.claimDispatch(venue.id);
+              this.renderDispatchModal();
+            });
+          }
+        }
+
+        dispatchBody.appendChild(card);
+        return;
+      }
+
+      // Venue is unlocked and available for new dispatch
+      const availableMusicians = state.ensembleBox.filter(m => {
+        return !state.activeDispatches.some(d => !d.claimed && d.assignedMusicianIds.includes(m.id));
+      });
+
+      card.innerHTML = `
+        <div class="dispatch-header">
+          <span class="dispatch-title">${venue.name} (${zoneName})</span>
+          ${tierBadge}
+        </div>
+        <div class="dispatch-desc">${venue.description}</div>
+        <div class="dispatch-rewards">
+          <span>💰 +${venue.rewardNotes} Notes ♪</span>
+          <span>✨ +${venue.rewardSparks} Sparks</span>
+          <span>⭐ +${venue.rewardXp} XP</span>
+          <span style="margin-left:auto; color:#94a3b8;">⏱️ Duration: ${venue.durationSeconds}s</span>
+        </div>
+        <div class="dispatch-actions" style="flex-direction:column; align-items:stretch; gap:8px;">
+          ${availableMusicians.length > 0 ? `
+            <div style="font-size:12px; color:#38bdf8; font-weight:bold;">Select Musician(s) from Box to Dispatch:</div>
+            <div class="dispatch-musicians-select" style="display:flex; flex-wrap:wrap; gap:8px;">
+              ${availableMusicians.map(m => `
+                <label style="display:flex; align-items:center; gap:6px; background:#1e293b; padding:4px 8px; border-radius:6px; font-size:12px; cursor:pointer; border:1px solid #475569;">
+                  <input type="checkbox" name="dispatch_m_${venue.id}" value="${m.id}" />
+                  <span>${m.avatar} ${m.name} (Lv.${m.level})</span>
+                </label>
+              `).join('')}
+            </div>
+            <div style="display:flex; justify-content:flex-end; margin-top:4px;">
+              <button class="btn-dispatch-start" data-venue="${venue.id}">🚀 Start Dispatch Gig</button>
+            </div>
+          ` : `
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-size:12px; color:#94a3b8; font-style:italic;">No benched musicians currently resting in the Conservatory Box.</span>
+              ${state.recruitedMusicians.length > 1 ? `<button class="btn-dispatch-start" data-venue="${venue.id}" data-auto="true">🚀 Quick Dispatch (Party Member)</button>` : ''}
+            </div>
+          `}
+        </div>
+      `;
+
+      const startBtn = card.querySelector('.btn-dispatch-start');
+      if (startBtn) {
+        startBtn.addEventListener('click', () => {
+          let selectedIds: string[] = [];
+          if (startBtn.getAttribute('data-auto') === 'true') {
+            const eligible = state.recruitedMusicians.filter(m => !m.isPlayer);
+            if (eligible.length > 0) selectedIds = [eligible[0].id];
+          } else {
+            const checkboxes = card.querySelectorAll<HTMLInputElement>(`input[name="dispatch_m_${venue.id}"]:checked`);
+            checkboxes.forEach(cb => selectedIds.push(cb.value));
+          }
+
+          if (selectedIds.length === 0) {
+            alert('Please select at least one musician to dispatch on this gig!');
+            return;
+          }
+
+          const ok = this.engine.startDispatch(venue.id, selectedIds);
+          if (ok) {
+            this.renderDispatchModal();
+          }
+        });
+      }
+
+      dispatchBody.appendChild(card);
     });
   }
 

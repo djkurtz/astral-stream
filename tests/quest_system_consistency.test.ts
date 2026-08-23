@@ -13,9 +13,9 @@ describe('Harmonia: Quest System Consistency & Narrative Progression', () => {
     }
   });
 
-  it('should export INITIAL_GAME_QUESTS and alias INITIAL_QUESTS with 11 complete quests', () => {
+  it('should export INITIAL_GAME_QUESTS and alias INITIAL_QUESTS with 16 complete quests', () => {
     expect(INITIAL_QUESTS).toBe(INITIAL_GAME_QUESTS);
-    expect(INITIAL_GAME_QUESTS.length).toBe(11);
+    expect(INITIAL_GAME_QUESTS.length).toBe(16);
 
     // Verify all quest definitions have valid fields
     for (const q of INITIAL_GAME_QUESTS) {

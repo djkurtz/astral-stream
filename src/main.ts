@@ -29,7 +29,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // Keyboard events
   window.addEventListener('keydown', (e) => {
-    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) {
+    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'Tab'].includes(e.code)) {
       e.preventDefault();
     }
     soundEngine.init();
@@ -43,12 +43,21 @@ window.addEventListener('DOMContentLoaded', () => {
       if (e.code === 'Digit4') engine.chooseStarter(STARTER_OPTIONS[3].id);
     }
 
-    // Audition Battle Move Selection via keyboard 1-4 (matching active combatant's instrument)
+    // In-world Quick-Wheel toggle via Tab / Q (Exploration mode)
+    if (engine.getState().mode === 'exploration') {
+      if (e.code === 'Tab' || e.code === 'KeyQ') {
+        e.preventDefault();
+        engine.toggleQuickWheel();
+      }
+    }
+
+    // Audition Battle Move Selection via keyboard 1-4, 5 / U for Pet Synergy Unison Attack
     if (engine.getState().mode === 'audition_battle') {
       if (e.code === 'Digit1') engine.executeBattleMove(0);
       if (e.code === 'Digit2') engine.executeBattleMove(1);
       if (e.code === 'Digit3') engine.executeBattleMove(2);
       if (e.code === 'Digit4') engine.executeBattleMove(3);
+      if (e.code === 'Digit5' || e.code === 'KeyU') engine.executePetSynergy(0);
     }
 
     // Theory Challenge Answer Selection via keyboard 1-4
@@ -69,6 +78,11 @@ window.addEventListener('DOMContentLoaded', () => {
       if (e.code === 'KeyR') engine.replayHarmonizeMelody();
       if (e.code === 'Space' || e.code === 'Enter') engine.startPerformancePhase();
       if (e.code === 'KeyT') engine.startTuningPhase();
+    }
+
+    // Practice Shed toggle Grand Staff Visualizer via 'V'
+    if (engine.getState().mode === 'practice') {
+      if (e.code === 'KeyV') engine.toggleStaffVisualizer();
     }
   });
 
@@ -99,6 +113,29 @@ window.addEventListener('DOMContentLoaded', () => {
 
     const state = engine.getState();
 
+    // Quick-Wheel clicks (Exploration mode)
+    if (state.mode === 'exploration' && state.showQuickWheel) {
+      const unlocked = state.proficiency.unlockedInstruments;
+      const cx = 1280 / 2;
+      const cy = 720 / 2;
+      const R = 180;
+      const N = unlocked.length;
+
+      for (let i = 0; i < N; i++) {
+        const angle = (i / N) * 2 * Math.PI - Math.PI / 2;
+        const slotX = cx + Math.cos(angle) * R;
+        const slotY = cy + Math.sin(angle) * R;
+        if (Math.hypot(clickX - slotX, clickY - slotY) <= 38) {
+          engine.selectQuickWheelInstrument(unlocked[i]);
+          return;
+        }
+      }
+
+      // Close if clicked outside the slots
+      engine.toggleQuickWheel(false);
+      return;
+    }
+
     // Starter selection clicks
     if (state.mode === 'character_customization') {
       const cardW = 260;
@@ -115,8 +152,20 @@ window.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Battle move clicks (4 Tactical Cards matching active combatant's instrument)
+    // Battle move clicks (4 Tactical Cards + Unison Attack button)
     if (state.mode === 'audition_battle') {
+      const battle = state.auditionBattle;
+      if (battle && battle.synergyMoves && battle.synergyMoves.length > 0) {
+        const synW = 540;
+        const synH = 38;
+        const synX = (1280 - synW) / 2;
+        const synY = 428;
+        if (clickX >= synX && clickX <= synX + synW && clickY >= synY && clickY <= synY + synH) {
+          engine.executePetSynergy(0);
+          return;
+        }
+      }
+
       const moveW = 250;
       const moveH = 68;
       const moveStartX = (1280 - (moveW * 4 + 45)) / 2;
@@ -196,6 +245,33 @@ window.addEventListener('DOMContentLoaded', () => {
         }
       }
       return;
+    }
+
+    // Conducting Minigame Clicks
+    if (state.mode === 'competition' && state.competition) {
+      const laneW = 260;
+      const laneH = 95;
+      const gap = 15;
+      const startX = (1280 - (laneW * 4 + gap * 3)) / 2;
+      const startY = 395;
+
+      const sections = ['strings', 'woodwinds', 'brass', 'percussion'] as const;
+      for (let i = 0; i < 4; i++) {
+        const lx = startX + i * (laneW + gap);
+        if (clickX >= lx && clickX <= lx + laneW && clickY >= startY && clickY <= startY + laneH) {
+          engine.conductSection(sections[i]);
+          return;
+        }
+      }
+
+      // Master Downbeat click on podium / cadence track
+      const meterW = 640;
+      const meterX = 1280 / 2 - meterW / 2;
+      const meterY = 545;
+      if (clickX >= meterX - 40 && clickX <= meterX + meterW + 40 && clickY >= meterY - 30 && clickY <= meterY + 110) {
+        engine.advanceConcertPerformance();
+        return;
+      }
     }
 
     // Dialogue advance click

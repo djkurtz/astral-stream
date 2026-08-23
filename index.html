@@ -15,9 +15,10 @@
       <button id="btn-practice" class="tool-btn" data-tooltip="Practice Shed [P]">🎹</button>
       <button id="btn-repertoire" class="tool-btn" data-tooltip="Sheet Music Repertoire [R]">📜</button>
       <button id="btn-ensemble" class="tool-btn" data-tooltip="Ensemble Roster & Pets [E]">🐾</button>
+      <button id="btn-dispatch" class="tool-btn" data-tooltip="Conservatory Dispatch Gigs [G]">🎺</button>
       <button id="btn-customization" class="tool-btn" data-tooltip="Styling Studio & Colors [C]">🎨</button>
       <button id="btn-map" class="tool-btn" data-tooltip="Harmonia Overworld Atlas [M]">🗺️</button>
-      <button id="btn-quests" class="tool-btn" data-tooltip="Quest Journal & Scores [Q]">🧭</button>
+      <button id="btn-quests" class="tool-btn" data-tooltip="Quest Journal & Scores [J]">🧭</button>
       <button id="btn-calendar" class="tool-btn" data-tooltip="Festival & Concert Calendar [F]">📅</button>
       <button id="btn-dex" class="tool-btn" data-tooltip="HarmoniDex Bestiary [H]">📖</button>
       <button id="btn-badges" class="tool-btn" data-tooltip="Conservatory Clef Badges [B]">🏆</button>
@@ -49,6 +50,19 @@
           <button id="btn-close-ensemble" class="btn-close">&times;</button>
         </div>
         <div id="ensemble-roster-list" class="modal-body">
+          <!-- Populated by ui.ts -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Conservatory Dispatch Gigs Modal -->
+    <div id="modal-dispatch" class="modal-overlay hidden">
+      <div class="modal-content" style="max-width: 820px;">
+        <div class="modal-header">
+          <div class="modal-title">🎺 Conservatory Dispatch Gigs</div>
+          <button id="btn-close-dispatch" class="btn-close">&times;</button>
+        </div>
+        <div id="dispatch-body" class="modal-body">
           <!-- Populated by ui.ts -->
         </div>
       </div>

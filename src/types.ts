@@ -45,6 +45,7 @@ export interface Musician {
   name: string;
   title: string;
   isPlayer?: boolean;
+  isNonMusician?: boolean;
   avatar: string;
   paletteColor: string;
   instrumentId: InstrumentId;
@@ -149,6 +150,24 @@ export interface AuditionBattle {
   selectedMoveIndex: number;
   concluded: boolean;
   won?: boolean;
+  synergyMoves?: {
+    name: string;
+    description: string;
+    effectType: 'heal_harmony' | 'stun_rival' | 'crit_burst';
+    power: number;
+    cost: number;
+  }[];
+  opponentStunned?: boolean;
+}
+
+export interface PetSynergy {
+  id: string;
+  name: string;
+  requiredPets: [string, string];
+  effectType: 'heal_harmony' | 'stun_rival' | 'crit_burst';
+  power: number;
+  cost: number;
+  description: string;
 }
 
 export interface RivalEnsemble {
@@ -183,6 +202,18 @@ export interface ConcertCompetition {
   comboStreak: number;
   isPianistDuel?: boolean;
   duelTier?: number;
+  // Interactive Conducting Minigame
+  activeSectionCue?: {
+    section: InstrumentSection;
+    key: string;
+    label: string;
+    urgency: number;
+    sweetSpot: number;
+  };
+  sectionBalance: Record<InstrumentSection, number>;
+  maestroFlow: number; // 0 to 100
+  currentChordIndex: number;
+  currentMelodyIndex: number;
 }
 
 export type ZoneId = 
@@ -384,8 +415,9 @@ export interface WorldNPC {
   zone: ZoneId;
   musicianData?: Musician;
   isProp?: boolean;
-  propType?: 'lectern' | 'vanity' | 'music_stand' | 'signpost' | 'fountain' | 'anvil' | 'ancient_stone_stand' | 'golden_music_stand' | 'vista_monolith' | 'road_sign' | 'door_trigger' | 'treasure_chest';
-  actionType: 'talk' | 'audition_battle' | 'practice_bench' | 'competition_stage' | 'sheet_music_stand' | 'inspiration_vista' | 'luthier_shop' | 'wild_harmonipet' | 'conservatory_master' | 'theory_bench' | 'customization_mirror' | 'signpost' | 'treasure_chest' | 'celebrity_secret' | 'pianist_busking_duel';
+  propType?: 'lectern' | 'vanity' | 'music_stand' | 'signpost' | 'fountain' | 'anvil' | 'ancient_stone_stand' | 'golden_music_stand' | 'vista_monolith' | 'road_sign' | 'door_trigger' | 'treasure_chest' | 'circle_of_fifths_monolith';
+  actionType: 'talk' | 'audition_battle' | 'practice_bench' | 'competition_stage' | 'sheet_music_stand' | 'inspiration_vista' | 'luthier_shop' | 'wild_harmonipet' | 'conservatory_master' | 'theory_bench' | 'customization_mirror' | 'signpost' | 'treasure_chest' | 'celebrity_secret' | 'pianist_busking_duel' | 'circle_of_fifths_puzzle';
+  isNonMusician?: boolean;
   dialogue: string[];
   sheetMusicReward?: string; // piece ID
   vistaId?: string;
@@ -453,6 +485,31 @@ export interface TheoryChallenge {
   rewardSparks: number;
   rewardSightReading: number;
   completed: boolean;
+  lifelinesRemaining: number;
+  maxLifelines: number;
+  isPracticePreview?: boolean;
+}
+
+export interface DispatchVenue {
+  id: string;
+  name: string;
+  zone: ZoneId;
+  requiredTier: EnsembleTier;
+  durationSeconds: number;
+  rewardNotes: number;
+  rewardSparks: number;
+  rewardXp: number;
+  description: string;
+  unlocked: boolean;
+}
+
+export interface ActiveDispatch {
+  venueId: string;
+  assignedMusicianIds: string[];
+  startTime: number;
+  durationSeconds: number;
+  completed: boolean;
+  claimed: boolean;
 }
 
 export type GameMode = 
@@ -468,7 +525,8 @@ export type GameMode =
   | 'quest_menu'
   | 'harmonize_wild'
   | 'dex_menu'
-  | 'badge_menu';
+  | 'badge_menu'
+  | 'dispatch_menu';
 
 export interface GameState {
   mode: GameMode;
@@ -511,8 +569,13 @@ export interface GameState {
   competition: ConcertCompetition | null;
   calendarEvents: FestivalEvent[];
   completedEvents: string[]; // event IDs
+  activeDispatches: ActiveDispatch[];
+  dispatchVenues: DispatchVenue[];
+  showStaffVisualizer: boolean;
+  showQuickWheel: boolean;
   pianistBuskingWins: number;
   hasPianoAccompaniment: boolean;
+  unlockedAcousticGates?: string[];
   dialogue: GameDialogue | null;
   lastEvolvedPet?: {
     prevSpecies: string;
@@ -550,6 +613,7 @@ export interface HarmoniaSavePayload {
   questInventory: string[];
   openedChests: string[];
   discoveredSecrets?: string[];
+  unlockedAcousticGates?: string[];
   proficiency: PlayerProficiency;
   practiceLevel: number;
   theoryLevel: number;
@@ -557,7 +621,10 @@ export interface HarmoniaSavePayload {
   completedEvents: string[];
   pianistBuskingWins: number;
   hasPianoAccompaniment: boolean;
+  showStaffVisualizer?: boolean;
   calendarEvents?: FestivalEvent[];
+  activeDispatches?: ActiveDispatch[];
+  dispatchVenues?: DispatchVenue[];
 }
 
 export interface HarmoniaSaveExport {
