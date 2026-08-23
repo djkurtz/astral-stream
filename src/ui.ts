@@ -3,6 +3,7 @@ import { AstralGameEngine } from './game';
 export class AstralUIManager {
   private engine: AstralGameEngine;
   private renderedSpiritIdForMoves: string = '';
+  private renderedQueueKey: string = '';
   private lastDialogueIndex: number = -1;
   private lastDialogueSpeaker: string = '';
 
@@ -12,6 +13,17 @@ export class AstralUIManager {
   }
 
   private setupEventListeners(): void {
+    // Stream Queue Click (Event Delegation)
+    const queueContainer = document.getElementById('stream-queue');
+    queueContainer?.addEventListener('click', (e) => {
+      const badge = (e.target as HTMLElement).closest('.stream-badge') as HTMLElement;
+      if (badge && badge.dataset.idx !== undefined) {
+        const idx = parseInt(badge.dataset.idx, 10);
+        this.engine.switchActiveSpirit(idx);
+        this.updateUI();
+      }
+    });
+
     // Dialogue advance on click
     const dialogueBox = document.getElementById('dialogue-box');
     dialogueBox?.addEventListener('click', () => {
@@ -209,20 +221,16 @@ export class AstralUIManager {
     // 4. Stream Queue Top Bar
     const queueContainer = document.getElementById('stream-queue');
     if (queueContainer) {
-      queueContainer.innerHTML = state.streamQueue.map((s, idx) => `
-        <div class="stream-badge ${idx === state.activeSpiritIndex ? 'active' : ''}" data-idx="${idx}" style="cursor: pointer;" title="Click or press [Q] to switch active Harmonimal">
-          <span style="font-size: 1.1rem;">${s.avatar || '🐱'}</span>
-          <span style="font-size: 0.8rem; font-weight: 700;">Lv.${s.level} ${s.name} <span style="opacity: 0.7; font-size: 0.7rem;">${s.vibeTag}</span></span>
-        </div>
-      `).join('');
-      
-      queueContainer.querySelectorAll<HTMLElement>('.stream-badge').forEach(badge => {
-        badge.addEventListener('click', (e) => {
-          const idx = parseInt((e.currentTarget as HTMLElement).dataset.idx || '0', 10);
-          this.engine.switchActiveSpirit(idx);
-          this.updateUI();
-        });
-      });
+      const currentQueueKey = `${state.activeSpiritIndex}_${state.streamQueue.map(s => `${s.id}_${s.level}`).join(',')}`;
+      if (this.renderedQueueKey !== currentQueueKey) {
+        queueContainer.innerHTML = state.streamQueue.map((s, idx) => `
+          <div class="stream-badge ${idx === state.activeSpiritIndex ? 'active' : ''}" data-idx="${idx}" style="cursor: pointer; user-select: none;" title="Click or press [Q] to switch active Harmonimal">
+            <span style="font-size: 1.1rem; pointer-events: none;">${s.avatar || '🐱'}</span>
+            <span style="font-size: 0.8rem; font-weight: 700; pointer-events: none;">Lv.${s.level} ${s.name} <span style="opacity: 0.7; font-size: 0.7rem; pointer-events: none;">${s.vibeTag}</span></span>
+          </div>
+        `).join('');
+        this.renderedQueueKey = currentQueueKey;
+      }
     }
   }
 }
