@@ -35,13 +35,15 @@ export class AstralGameEngine {
       audioMatch: null,
       battle: null,
       dialogue: {
-        speaker: 'Aria & Chime-Cat',
-        avatar: '☕',
+        speaker: '⚠️ EMERGENCY BROADCAST ⚠️',
+        avatar: '📺🚨',
         text: [
-          "Welcome to Cadence Plaza! 🎶 The ultimate musical hub by the sea.",
-          "Explore town with [W, A, S, D] or Arrow Keys. There are 3 wild sound ripples to discover!",
-          "🎛️ Equalizer at the Cafe, 🎹 Melody Jam at the Fountain, and 🎯 Rhythm Beats at the Vinyl Den.",
-          "Tune in, collect your squad, and talk to Jax at the Glitch Gate to stop the static!"
+          "[CRACKLE... BZZZT...] ATTENTION ALL STREAMERS IN CADENCE PLAZA!",
+          "A catastrophic rogue anomaly known as DEAD CHANNEL 000 has hijacked the northern frequency!",
+          "Dense analog static is leaking through the Glitch Gate, threatening to mute world harmonies and erase all Harmonimals!",
+          "[Aria & Chime-Cat ☕🐱] Streamer, we need your help! We must assemble a squad of diverse Harmonimals to counter the anomaly.",
+          "First, seek out the underground rocker Jax by the northern stairs to test our battle rhythm, then breach the Glitch Gate to cleanse the rift!",
+          "Use [W, A, S, D] or Arrow Keys to explore town and tune into the world sound ripples!"
         ],
         index: 0
       },
@@ -233,13 +235,40 @@ export class AstralGameEngine {
     if ('dialogue' in target) {
       // NPC
       const npc = target as NPCEntity;
-      if (npc.actionType === 'battle_jax') {
-        this.showDialogue(npc.name, '🎸', npc.dialogue, () => {
-          this.startBattle('rival');
-        });
-      } else {
-        this.showDialogue(npc.name, npc.sprite === 'aria' ? '☕' : '💽', npc.dialogue);
+      if (npc.id === 'npc_gate') {
+        if (!this.state.activeCompanion) {
+          this.showDialogue('Glitch Gate', '⚠️👾', [
+            "⚠️ The Glitch Gate is sealed by dense static interference!",
+            "You need to duel and ally with Jax to synchronize your frequencies before attempting to breach."
+          ]);
+        } else {
+          this.showDialogue('Glitch Gate', '⚠️👾', [
+            "The static storm is howling on the other side... Dead Channel 000 awaits!",
+            "Your tag-team squad (Chime-Cat & Bass-Hound) is synced and ready.",
+            "Step through to breach the rift and initiate the Boss Battle!"
+          ], () => {
+            this.startBattle('boss');
+          });
+        }
+        return;
       }
+
+      if (npc.actionType === 'battle_jax') {
+        if (this.state.activeCompanion === 'jax') {
+          this.showDialogue('Jax & Bass-Hound', '🐶🎸', [
+            "We're linked and ready for the boss! 🐶🎸",
+            "Make sure you explore Cadence Plaza and tune into the 3 cultural sound ripples if you want to expand your squad.",
+            "When you're ready, step right up to the Glitch Gate behind me to breach the static storm!"
+          ]);
+        } else {
+          this.showDialogue(npc.name, '🎸', npc.dialogue, () => {
+            this.startBattle('rival');
+          });
+        }
+        return;
+      }
+
+      this.showDialogue(npc.name, npc.sprite === 'aria' ? '☕' : '💽', npc.dialogue);
     } else {
       // Sound Ripple
       const rip = target as SoundRipple;
@@ -557,17 +586,11 @@ export class AstralGameEngine {
 
       this.showDialogue('Jax & Bass-Hound', '🐶🎸', [
         "Whoa... okay, your timing is clean and your rhythm is sharp. I respect that!",
-        "My Bass-Hound and I are joining your active squad right now!",
-        "Look up—the Glitch Gate is cracking open! Let's breach the rift together and smash Dead Channel 000!"
-      ], () => {
-        this.showDialogue('Aria', '☕', [
-          "Jax & Bass-Hound have joined your party! 🎉",
-          "During the Boss Battle, hit [B] or tap BLEND to fuse Chime-Cat + Bass-Hound into the Cyber-Fuzz Chimera!",
-          "Entering the Glitch Gate now... good luck streamers!"
-        ], () => {
-          this.startBattle('boss');
-        });
-      });
+        "My Sub-Woofer Bass-Hound and I are officially joining your active squad! 🐶🎸",
+        "We're linked and ready, but Dead Channel 000 is a massive anomaly. Take time to explore Cadence Plaza!",
+        "Discover the 3 cultural sound stations in town to stream the Baroque Violin, Indian Sitar, and Taiko Drum.",
+        "Whenever you're ready for the final battle, step up to the Glitch Gate to breach the static storm together!"
+      ]);
     } else if (b.type === 'boss') {
       this.state.mode = 'cleansing_cinematic';
       this.state.battle = null;

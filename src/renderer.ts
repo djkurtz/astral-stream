@@ -164,11 +164,16 @@ export class AstralRenderer {
     // 9. Player Character
     this.drawDetailedPlayer(ctx, state.player.x, state.player.y, state.player.dir, state.player.isMoving, t);
 
-    // Follower Companions (Chime-Cat + others in queue)
+    // Follower Companions (Chime-Cat + Bass-Hound)
     if (state.streamQueue.length > 0) {
-      const companionX = state.player.x - 28;
-      const companionY = state.player.y + 4 + Math.sin(t * 5) * 3;
-      this.drawDetailedCat(ctx, companionX, companionY, t);
+      const catX = state.player.x - 26;
+      const catY = state.player.y + 4 + Math.sin(t * 6) * 2.5;
+      this.drawDetailedCat(ctx, catX, catY, t);
+    }
+    if (state.activeCompanion === 'jax') {
+      const houndX = state.player.x + 26;
+      const houndY = state.player.y + 4 + Math.sin(t * 6 + 1.5) * 2.5;
+      this.drawDetailedHound(ctx, houndX, houndY, t);
     }
 
     // 10. High-Legibility Interaction HUD Prompt
@@ -181,7 +186,7 @@ export class AstralRenderer {
       ctx.strokeStyle = '#06b6d4';
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.roundRect(tx - 85, ty - 18, 170, 28, 8);
+      ctx.roundRect(tx - 95, ty - 18, 190, 28, 8);
       ctx.fill();
       ctx.stroke();
 
@@ -191,12 +196,18 @@ export class AstralRenderer {
 
       let promptText = '';
       if ('name' in target) {
-        promptText = target.actionType === 'battle_jax' ? '⚔️ [SPACE] Duel Jax' : `💬 [SPACE] Talk to ${target.name}`;
+        if (target.id === 'npc_gate') {
+          promptText = state.activeCompanion === 'jax' ? '⚠️ [SPACE] Breach Glitch Gate' : '⚠️ [SPACE] Inspect Gate';
+        } else if (target.actionType === 'battle_jax') {
+          promptText = state.activeCompanion === 'jax' ? '💬 [SPACE] Talk to Jax' : '⚔️ [SPACE] Duel Jax';
+        } else {
+          promptText = `💬 [SPACE] Talk to ${target.name}`;
+        }
       } else {
         const cType = (target as any).challengeType;
-        if (cType === 'waveform_slider') promptText = '🎛️ [SPACE] Tune Waveform';
-        else if (cType === 'call_response') promptText = '🎹 [SPACE] Jam Melody';
-        else promptText = '🥁 [SPACE] Beat Sync';
+        if (cType === 'waveform_slider') promptText = '🎻 [SPACE] Baroque Violin';
+        else if (cType === 'call_response') promptText = '🪕 [SPACE] Indian Sitar';
+        else promptText = '🥁 [SPACE] Taiko Festival';
       }
       ctx.fillText(promptText, tx, ty + 2);
     }
@@ -254,25 +265,34 @@ export class AstralRenderer {
   }
 
   private drawNeonCafe(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, _t: number): void {
-    // Wooden Patio Deck
+    // 3D Wooden Patio Deck with Support Pillars
+    ctx.fillStyle = '#b45309';
+    ctx.fillRect(x - 10, y + h + 22, w + 20, 6); // 3D Deck Edge Drop
     ctx.fillStyle = '#fed7aa';
-    ctx.fillRect(x - 10, y + h - 15, w + 20, 40);
+    ctx.fillRect(x - 10, y + h - 15, w + 20, 38);
     ctx.strokeStyle = '#ca8a04';
     ctx.lineWidth = 2;
-    ctx.strokeRect(x - 10, y + h - 15, w + 20, 40);
+    ctx.strokeRect(x - 10, y + h - 15, w + 20, 38);
+
+    // Deck Railing & Posts
+    ctx.fillStyle = '#78350f';
+    ctx.fillRect(x - 10, y + h - 15, 6, 20);
+    ctx.fillRect(x + w + 4, y + h - 15, 6, 20);
 
     // Cafe Tables with Coffee Mugs
     ctx.fillStyle = '#78350f';
     ctx.beginPath();
-    ctx.arc(x + 18, y + h + 8, 10, 0, Math.PI * 2);
-    ctx.arc(x + w - 18, y + h + 8, 10, 0, Math.PI * 2);
+    ctx.ellipse(x + 22, y + h + 8, 12, 8, 0, 0, Math.PI * 2);
+    ctx.ellipse(x + w - 22, y + h + 8, 12, 8, 0, 0, Math.PI * 2);
     ctx.fill();
     // Steaming mugs
     ctx.fillStyle = '#ffffff';
-    ctx.fillRect(x + 16, y + h + 5, 4, 4);
-    ctx.fillRect(x + w - 20, y + h + 5, 4, 4);
+    ctx.fillRect(x + 20, y + h + 4, 4, 4);
+    ctx.fillRect(x + w - 24, y + h + 4, 4, 4);
 
-    // Main Cafe Building
+    // Main Cafe Building (Extruded 3D Wall)
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(x + w, y + 10, 8, h - 10); // 3D Side extrusion
     ctx.fillStyle = '#1e293b';
     ctx.fillRect(x, y, w, h);
 
@@ -306,25 +326,45 @@ export class AstralRenderer {
   }
 
   private drawVinylDen(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, t: number): void {
-    // Main Building
+    // 3D Side Wall Extrusion
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(x + w, y + 10, 8, h - 10);
+    // Main Building Face
     ctx.fillStyle = '#1e1b4b';
     ctx.fillRect(x, y, w, h);
 
-    // Giant Rotating Vinyl Record on Roof
+    // Giant 3D Tilted Rotating Golden Vinyl Record on Roof
     ctx.save();
-    ctx.translate(x + w / 2, y - 8);
-    ctx.rotate(t * 2);
+    ctx.translate(x + w / 2, y - 10);
+    // 3D Rim Drop
     ctx.fillStyle = '#0f172a';
     ctx.beginPath();
-    ctx.arc(0, 0, 22, 0, Math.PI * 2);
+    ctx.ellipse(0, 4, 28, 14, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Top Face
+    ctx.fillStyle = '#1e293b';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 28, 14, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.strokeStyle = '#fbbf24';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 2.5;
     ctx.stroke();
-    // Center label
+
+    // Golden Grooves
+    ctx.save();
+    ctx.rotate(t * 2);
+    ctx.strokeStyle = 'rgba(251, 191, 36, 0.4)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 20, 10, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+
+    // Center Gold Label
     ctx.fillStyle = '#f43f5e';
     ctx.beginPath();
-    ctx.arc(0, 0, 8, 0, Math.PI * 2);
+    ctx.ellipse(0, 0, 9, 4.5, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
 
@@ -357,9 +397,27 @@ export class AstralRenderer {
   }
 
   private drawGlitchGate(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, isGlitch: boolean, t: number): void {
-    ctx.fillStyle = isGlitch ? 'rgba(239, 68, 68, 0.25)' : 'rgba(6, 182, 212, 0.25)';
-    ctx.fillRect(x, y, w, h);
+    // Stepped 3D Stone Stairs Leading Up
+    ctx.fillStyle = '#475569';
+    ctx.fillRect(x - 12, y + h, w + 24, 7);
+    ctx.fillStyle = '#334155';
+    ctx.fillRect(x - 6, y + h + 7, w + 12, 7);
 
+    // 3D Floating Portal Void
+    const gateGrad = ctx.createLinearGradient(x, y, x, y + h);
+    gateGrad.addColorStop(0, isGlitch ? 'rgba(239, 68, 68, 0.85)' : 'rgba(6, 182, 212, 0.85)');
+    gateGrad.addColorStop(1, isGlitch ? 'rgba(168, 85, 247, 0.95)' : 'rgba(59, 130, 246, 0.95)');
+    ctx.fillStyle = gateGrad;
+    ctx.fillRect(x + 12, y, w - 24, h);
+
+    // Swirling CRT Static Scanlines
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+    for (let i = 0; i < h; i += 6) {
+      const scanY = (i + t * 40) % h;
+      ctx.fillRect(x + 12, y + scanY, w - 24, 2);
+    }
+
+    // Border Frame
     ctx.strokeStyle = isGlitch ? '#ef4444' : '#06b6d4';
     ctx.lineWidth = 3;
     ctx.strokeRect(x, y, w, h);
@@ -374,6 +432,7 @@ export class AstralRenderer {
       ctx.fillRect(x + w - 12, y + i, 12, 6);
     }
 
+    // Portal Label
     ctx.fillStyle = isGlitch ? '#ef4444' : '#06b6d4';
     ctx.font = '800 13px Fredoka, sans-serif';
     ctx.textAlign = 'center';
@@ -381,32 +440,38 @@ export class AstralRenderer {
   }
 
   private drawMusicalFountain(ctx: CanvasRenderingContext2D, x: number, y: number, t: number): void {
-    // Outer Stone Basin
-    ctx.fillStyle = '#0284c7';
+    // 3D Stepped Basin Shadow
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.35)';
     ctx.beginPath();
-    ctx.arc(x, y, 40, 0, Math.PI * 2);
+    ctx.ellipse(x, y + 20, 48, 20, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.strokeStyle = '#e2e8f0';
-    ctx.lineWidth = 5;
-    ctx.stroke();
-
-    // Center Pedestal
+    // Outer Stone Wall with 3D Depth
     ctx.fillStyle = '#64748b';
     ctx.beginPath();
-    ctx.arc(x, y, 16, 0, Math.PI * 2);
+    ctx.ellipse(x, y + 8, 44, 22, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // Spouting Water and Notes
+    // Top Water Basin (Translucent Cyan)
+    ctx.fillStyle = '#0284c7';
+    ctx.beginPath();
+    ctx.ellipse(x, y, 42, 20, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#e2e8f0';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    // Floating 3D Music Particles Rising
     const notes = ['♪', '♫', '♬'];
-    for (let i = 0; i < 3; i++) {
-      const angle = (t * 2 + (i * Math.PI * 2) / 3);
-      const nx = x + Math.cos(angle) * 24;
-      const ny = y - 10 + Math.sin(angle) * 12 - (t * 15 % 20);
-      ctx.fillStyle = '#ffffff';
-      ctx.font = '16px Fredoka, sans-serif';
+    for (let i = 0; i < 4; i++) {
+      const noteProgress = ((t * 0.8 + i * 0.25) % 1.0);
+      const noteY = y - noteProgress * 45;
+      const noteX = x + Math.sin(t * 3 + i * 1.5) * (15 + noteProgress * 15);
+      const alpha = Math.sin(noteProgress * Math.PI);
+      ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+      ctx.font = '800 16px Fredoka, sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(notes[i], nx, ny);
+      ctx.fillText(notes[i % 3], noteX, noteY);
     }
   }
 
@@ -550,6 +615,56 @@ export class AstralRenderer {
     // Golden Audio Jack
     ctx.fillStyle = '#fbbf24';
     ctx.fillRect(-14, -18, 4, 4);
+
+    ctx.restore();
+  }
+
+  private drawDetailedHound(ctx: CanvasRenderingContext2D, x: number, y: number, t: number): void {
+    ctx.save();
+    ctx.translate(x, y);
+
+    // Drop Shadow
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+    ctx.beginPath();
+    ctx.ellipse(0, 6, 12, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Body (Purple Punk Basset)
+    ctx.fillStyle = '#c084fc';
+    ctx.fillRect(-9, -10, 18, 12);
+
+    // Head
+    ctx.fillRect(-7, -18, 14, 10);
+
+    // Droopy Guitar-Strap Ears
+    const earWag = Math.sin(t * 6) * 3;
+    ctx.fillStyle = '#7e22ce';
+    ctx.fillRect(-10, -17, 3, 12 + earWag);
+    ctx.fillRect(7, -17, 3, 12 - earWag);
+
+    // 808 Sub-Woofer Chest Cone
+    ctx.fillStyle = '#0f172a';
+    ctx.beginPath();
+    ctx.arc(0, -4, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#ec4899';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(0, -4, 3 + Math.sin(t * 12) * 1.5, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Snout and Eyes
+    ctx.fillStyle = '#581c87';
+    ctx.fillRect(-3, -13, 6, 4);
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(-4, -16, 2, 2);
+    ctx.fillRect(2, -16, 2, 2);
+
+    // Spiked Collar
+    ctx.fillStyle = '#e2e8f0';
+    for (let sp = -6; sp <= 4; sp += 3) {
+      ctx.fillRect(sp, -9, 2, 2);
+    }
 
     ctx.restore();
   }

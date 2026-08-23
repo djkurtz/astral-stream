@@ -366,9 +366,23 @@ export const TOWN_NPCS: NPCEntity[] = [
     color: '#c084fc',
     actionType: 'battle_jax',
     dialogue: [
-      "Hey. Check out my Bass-Hound—his chest is an actual 808 sub-woofer speaker! 🐶🎸",
-      "Beyond this gate, a rogue Dead Channel has hijacked the feed with screeching static.",
-      "Duel us so we can sync our frequencies, and then we'll team up for the boss!"
+      "Hey! The rogue Dead Channel has completely hijacked the northern airwaves! 🐶🎸",
+      "The Glitch Gate behind me is humming with volatile static. Solo streamers get muted in seconds.",
+      "Duel my Sub-Woofer Bass-Hound so we can test your rhythm and link our audio frequencies!"
+    ]
+  },
+  {
+    id: 'npc_gate',
+    name: 'Glitch Gate',
+    title: 'The Static Anomaly Rift',
+    x: 400,
+    y: 65,
+    sprite: 'glitch_gate',
+    color: '#ef4444',
+    actionType: 'talk',
+    dialogue: [
+      "⚠️ The Glitch Gate is humming with volatile static!",
+      "Duel Jax first to synchronize frequencies before attempting to breach."
     ]
   }
 ];
