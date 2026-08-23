@@ -18,12 +18,31 @@ window.addEventListener('DOMContentLoaded', () => {
   const engine = new GameEngine(state);
   const ui = new UIManager(state, engine);
 
-  // Click on Canvas to select celestial bodies
+  // Click on Canvas to interact
   canvas.addEventListener('click', (e) => {
-    const clickedBody = renderer.getBodyAtScreenPos(e.clientX, e.clientY, state);
-    if (clickedBody) {
-      state.selectedBodyId = clickedBody.id;
-      ui.renderTabContent();
+    if (state.viewMode === 'system') {
+      const clickedBody = renderer.getBodyAtScreenPos(e.clientX, e.clientY, state);
+      if (clickedBody) {
+        state.selectedBodyId = clickedBody.id;
+        ui.renderTabContent();
+      }
+    } else {
+      const clickedPlot = renderer.getSurfacePlotAtScreenPos(e.clientX, e.clientY, state);
+      if (clickedPlot) {
+        ui.switchTab('base');
+      }
+    }
+  });
+
+  // Double click in system view to zoom into surface
+  canvas.addEventListener('dblclick', (e) => {
+    if (state.viewMode === 'system') {
+      const clickedBody = renderer.getBodyAtScreenPos(e.clientX, e.clientY, state);
+      if (clickedBody && clickedBody.colonized) {
+        state.selectedBodyId = clickedBody.id;
+        ui.setViewMode('surface');
+        ui.renderTabContent();
+      }
     }
   });
 

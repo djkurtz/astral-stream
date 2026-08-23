@@ -64,6 +64,36 @@ export class UIManager {
         saveGame(this.state);
       });
     }
+
+    // View Mode Switcher
+    const sysBtn = document.getElementById('view-system-btn');
+    const surfBtn = document.getElementById('view-surface-btn');
+    sysBtn?.addEventListener('click', () => this.setViewMode('system'));
+    surfBtn?.addEventListener('click', () => this.setViewMode('surface'));
+  }
+
+  public setViewMode(mode: 'system' | 'surface'): void {
+    this.state.viewMode = mode;
+    const sysBtn = document.getElementById('view-system-btn');
+    const surfBtn = document.getElementById('view-surface-btn');
+    const hintText = document.getElementById('hint-text');
+
+    if (mode === 'system') {
+      sysBtn?.classList.add('active');
+      surfBtn?.classList.remove('active');
+      if (hintText) hintText.textContent = 'Click a planet or station to manage • Drag to pan • Scroll to zoom';
+    } else {
+      sysBtn?.classList.remove('active');
+      surfBtn?.classList.add('active');
+      if (hintText) hintText.textContent = 'Colony Surface View • Click any plot or building to manage infrastructure';
+    }
+  }
+
+  public switchTab(tab: string): void {
+    this.activeTab = tab;
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector(`.tab-btn[data-tab="${tab}"]`)?.classList.add('active');
+    this.renderTabContent();
   }
 
   private setupModalEvents(): void {
@@ -364,6 +394,11 @@ export class UIManager {
             : (body.canColonize ? 'Rich in untapped surface minerals. Colony deployment ready.' : 'Extreme atmospheric conditions. Unsuitable for terrestrial base.')}
         </div>
         ${body.pirateThreat ? `<div style="color: #ef4444; font-size: 0.85rem; font-weight: 600;">⚠️ Pirate Threat Level: ${body.pirateThreat}%</div>` : ''}
+        ${body.colonized ? `
+          <button id="view-surface-action-btn" class="action-btn" style="margin-top: 0.75rem; background: linear-gradient(135deg, #0ea5e9, #0284c7);">
+            🪐 View Colony Surface Map
+          </button>
+        ` : ''}
       </div>
 
       ${colonizeSection}
@@ -379,6 +414,13 @@ export class UIManager {
         </div>
       `).join('')}
     `;
+
+    const viewSurfBtn = document.getElementById('view-surface-action-btn');
+    if (viewSurfBtn) {
+      viewSurfBtn.addEventListener('click', () => {
+        this.setViewMode('surface');
+      });
+    }
 
     const colBtn = document.getElementById('colonize-btn');
     if (colBtn) {

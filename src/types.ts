@@ -108,6 +108,7 @@ export interface GameState {
   buildQueue: BuildTask[];
   logs: LogMessage[];
   selectedBodyId: string;
+  viewMode: 'system' | 'surface';
   tutorial: TutorialState;
 }
 

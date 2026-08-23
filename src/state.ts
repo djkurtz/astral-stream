@@ -45,6 +45,7 @@ export function createInitialState(): GameState {
       }
     ],
     selectedBodyId: 'terra',
+    viewMode: 'system',
     tutorial: {
       stepIndex: 0,
       completed: false,
@@ -145,6 +146,9 @@ export function loadGame(): GameState | null {
           active: true,
           rewardClaimed: false
         };
+      }
+      if (!state.viewMode) {
+        state.viewMode = 'system';
       }
       return state;
     }
