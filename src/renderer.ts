@@ -37,6 +37,8 @@ export class AstralRenderer {
       this.renderBattleArena(state, w, h);
     } else if (state.mode === 'audio_match_scan' && state.audioMatch) {
       this.renderAudioMatchRadar(state, w, h);
+    } else if (state.currentInterior) {
+      this.renderBuildingInterior(state, w, h);
     } else {
       this.renderWorldMap(state, w, h);
     }
@@ -440,26 +442,29 @@ export class AstralRenderer {
   }
 
   private drawEasternPalisades(ctx: CanvasRenderingContext2D, _worldW: number, worldH: number, _t: number): void {
-    // Impassable Rocky Sea Bluffs & Bamboo Palisade (x: 3080 to 3200)
-    ctx.fillStyle = '#1e293b';
+    // Impassable Rocky Sea Bluffs & Bamboo Forest Palisade (x: 3080 to 3200)
+    ctx.fillStyle = '#064e3b';
     ctx.fillRect(3080, 0, 120, worldH);
 
-    ctx.fillStyle = '#334155';
+    // Natural Stepped Cliff Layers
+    ctx.fillStyle = '#047857';
     ctx.beginPath();
     ctx.moveTo(3100, 0);
     for (let y = 0; y <= worldH; y += 40) {
       const px = 3090 + Math.sin(y * 0.03) * 12;
       ctx.lineTo(px, y);
     }
-    ctx.lineTo(3120, worldH);
-    ctx.lineTo(3100, worldH);
+    ctx.lineTo(3200, worldH);
+    ctx.lineTo(3200, 0);
     ctx.closePath();
     ctx.fill();
 
-    // Natural Palisade Shading
-    ctx.fillStyle = '#065f46';
-    for (let y = 20; y < worldH - 40; y += 30) {
-      ctx.fillRect(3095, y, 16, 24);
+    // Continuous Dense Bamboo Culms
+    ctx.fillStyle = '#10b981';
+    for (let y = 0; y < worldH; y += 18) {
+      ctx.fillRect(3092, y, 14, 15);
+      ctx.fillRect(3110, y + 9, 12, 15);
+      ctx.fillRect(3130, y, 16, 15);
     }
   }
 
@@ -531,40 +536,45 @@ export class AstralRenderer {
     ctx.stroke();
   }
 
-  private drawCobblestonePathNetwork(ctx: CanvasRenderingContext2D, t: number): void {
-    // Winding Cobblestone Road Segments connecting all biomes to Cadence Plaza
+  private drawCobblestonePathNetwork(ctx: CanvasRenderingContext2D, _t: number): void {
+    // Organic Meandering Dirt & Stepping-Stone Trails connecting all biomes
     const paths = [
-      // South Beach to Plaza
-      { fromX: 550, fromY: 2020, toX: 1300, toY: 1760, cpX: 850, cpY: 1950 },
-      // Plaza East to Whispering Bamboo Grove
-      { fromX: 2080, fromY: 1440, toX: 2320, toY: 1440, cpX: 2200, cpY: 1440 },
-      // Plaza NE to Ancient Sound Ruins
-      { fromX: 1950, fromY: 1120, toX: 2400, toY: 880, cpX: 2250, cpY: 1020 },
-      // Plaza NW to Desolation Ridge
-      { fromX: 1300, fromY: 1120, toX: 850, toY: 860, cpX: 1050, cpY: 1000 }
+      // 1. South Beach (Port Resonata) to Cadence Plaza
+      { fromX: 550, fromY: 2040, toX: 1350, toY: 1760, cpX: 880, cpY: 1980 },
+      // 2. Beach East Trail to Whispering Bamboo Grove
+      { fromX: 1400, fromY: 2060, toX: 2350, toY: 1850, cpX: 1850, cpY: 2020 },
+      // 3. Plaza East into Whispering Bamboo Lantern Grove
+      { fromX: 2080, fromY: 1440, toX: 2850, toY: 1550, cpX: 2450, cpY: 1480 },
+      // 4. Whispering Bamboo Grove North to Ancient Sound Ruins
+      { fromX: 2650, fromY: 1350, toX: 2700, toY: 420, cpX: 2820, cpY: 880 },
+      // 5. Plaza NE to Ancient Sound Ruins Terrace
+      { fromX: 1950, fromY: 1120, toX: 2400, toY: 750, cpX: 2200, cpY: 960 },
+      // 6. Plaza NW to Desolation Ridge Gorge & Canyon
+      { fromX: 1300, fromY: 1120, toX: 700, toY: 850, cpX: 980, cpY: 1020 },
+      // 7. Desolation Ridge Gorge to Glitch Gate Plateau
+      { fromX: 700, fromY: 850, toX: 600, toY: 340, cpX: 640, cpY: 580 }
     ];
 
     ctx.save();
     for (const p of paths) {
-      // Path Shadow / Base Border
-      ctx.strokeStyle = '#0f172a';
-      ctx.lineWidth = 44;
+      // 1. Soft Earthy Dirt Bed
+      ctx.strokeStyle = '#78350f';
+      ctx.lineWidth = 22;
       ctx.lineCap = 'round';
       ctx.beginPath();
       ctx.moveTo(p.fromX, p.fromY);
       ctx.quadraticCurveTo(p.cpX, p.cpY, p.toX, p.toY);
       ctx.stroke();
 
-      // Paved Stone Surface
-      ctx.strokeStyle = '#64748b';
-      ctx.lineWidth = 38;
+      // 2. Weathered Sand & Gravel Surface
+      ctx.strokeStyle = '#d97706';
+      ctx.lineWidth = 16;
       ctx.stroke();
 
-      // Musical Gold Center Inlay
-      ctx.strokeStyle = '#fbbf24';
-      ctx.lineWidth = 3;
-      ctx.setLineDash([8, 12]);
-      ctx.lineDashOffset = -t * 15;
+      // 3. Natural Cobblestone Stepping Stones
+      ctx.strokeStyle = '#fef3c7';
+      ctx.lineWidth = 8;
+      ctx.setLineDash([6, 14]);
       ctx.stroke();
       ctx.setLineDash([]);
     }
@@ -2283,21 +2293,6 @@ export class AstralRenderer {
     }
 
     ctx.restore();
-
-    // High-Legibility Badge
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
-    ctx.strokeStyle = spirit.type === 'static' ? '#ef4444' : '#10b981';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.roundRect(-55, -38, 110, 18, 5);
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.fillStyle = spirit.type === 'static' ? '#fca5a5' : '#86efac';
-    ctx.font = '700 11px Fredoka, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(`Lv.${spirit.level} ${spirit.name}`, 0, -25);
-
     ctx.restore();
   }
 
@@ -2910,5 +2905,268 @@ export class AstralRenderer {
       ctx.fill();
     }
     ctx.globalAlpha = 1.0;
+  }
+
+  private renderBuildingInterior(state: GameState, w: number, h: number): void {
+    const ctx = this.ctx;
+    const t = state.time;
+    const isCafe = state.currentInterior === 'cafe';
+
+    // Dark atmospheric vignette background
+    ctx.fillStyle = '#090d16';
+    ctx.fillRect(0, 0, w, h);
+
+    const roomW = 640;
+    const roomH = 440;
+    const offX = (w - roomW) / 2;
+    const offY = (h - roomH) / 2;
+
+    ctx.save();
+    ctx.translate(offX, offY);
+
+    // Drop Shadow
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    ctx.beginPath();
+    ctx.roundRect(-10, -10, roomW + 20, roomH + 20, 16);
+    ctx.fill();
+
+    // Wall (Upper section)
+    ctx.fillStyle = isCafe ? '#1e293b' : '#1e1b4b';
+    ctx.beginPath();
+    ctx.roundRect(0, 0, roomW, 140, [14, 14, 0, 0]);
+    ctx.fill();
+
+    // Wall trim / molding
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 134, roomW, 6);
+
+    // Floor (Lower section)
+    ctx.fillStyle = isCafe ? '#78350f' : '#312e81';
+    ctx.fillRect(0, 140, roomW, roomH - 140);
+
+    // Floor parquet planks / grid lines
+    ctx.strokeStyle = isCafe ? 'rgba(69, 26, 3, 0.4)' : 'rgba(15, 23, 42, 0.4)';
+    ctx.lineWidth = 1.5;
+    for (let x = 0; x < roomW; x += 40) {
+      ctx.beginPath();
+      ctx.moveTo(x, 140);
+      ctx.lineTo(x, roomH);
+      ctx.stroke();
+    }
+    for (let y = 140; y < roomH; y += 40) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(roomW, y);
+      ctx.stroke();
+    }
+
+    // Warm Ambient Overhead Light Cone
+    const lightGlow = ctx.createRadialGradient(roomW / 2, 140, 20, roomW / 2, 220, 300);
+    lightGlow.addColorStop(0, isCafe ? 'rgba(254, 240, 138, 0.25)' : 'rgba(192, 132, 252, 0.25)');
+    lightGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = lightGlow;
+    ctx.fillRect(0, 0, roomW, roomH);
+
+    // Service Counter
+    ctx.fillStyle = isCafe ? '#b45309' : '#4338ca';
+    ctx.beginPath();
+    ctx.roundRect(200, 140, 240, 50, 6);
+    ctx.fill();
+    ctx.strokeStyle = isCafe ? '#f59e0b' : '#818cf8';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Counter Details
+    if (isCafe) {
+      // Espresso Machine
+      ctx.fillStyle = '#cbd5e1';
+      ctx.fillRect(215, 145, 30, 24);
+      ctx.fillStyle = '#ef4444';
+      ctx.fillRect(222, 148, 4, 4);
+      // Steaming Cups
+      ctx.fillStyle = '#f8fafc';
+      ctx.fillRect(260, 155, 12, 12);
+      ctx.fillRect(280, 155, 12, 12);
+      ctx.font = '12px sans-serif';
+      ctx.fillText('♨️', 260, 150 + Math.sin(t * 6) * 2);
+      // Pastry Case
+      ctx.fillStyle = 'rgba(56, 189, 248, 0.3)';
+      ctx.fillRect(380, 145, 50, 24);
+      ctx.strokeStyle = '#38bdf8';
+      ctx.strokeRect(380, 145, 50, 24);
+      // Menu Board on Back Wall
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(240, 25, 160, 70);
+      ctx.strokeStyle = '#f59e0b';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(240, 25, 160, 70);
+      ctx.fillStyle = '#fef08a';
+      ctx.font = '700 11px Fredoka, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('☕ NEON CAFE MENU', 320, 44);
+      ctx.font = '500 10px sans-serif';
+      ctx.fillStyle = '#94a3b8';
+      ctx.fillText('Harmonic Latte • Free', 320, 62);
+      ctx.fillText('Lo-Fi Cold Brew • Free', 320, 78);
+
+      // Customer Tables
+      // Maya's Table (Left)
+      ctx.fillStyle = '#92400e';
+      ctx.beginPath();
+      ctx.arc(180, 260, 32, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#d97706';
+      ctx.beginPath();
+      ctx.arc(180, 260, 26, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.font = '16px sans-serif';
+      ctx.fillText('📼', 180, 260);
+
+      // Leo's Table (Right)
+      ctx.fillStyle = '#92400e';
+      ctx.beginPath();
+      ctx.arc(460, 260, 32, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#d97706';
+      ctx.beginPath();
+      ctx.arc(460, 260, 26, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.font = '16px sans-serif';
+      ctx.fillText('🎹', 460, 260);
+
+    } else {
+      // Vinyl Den DJ Decks & Mixer
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(215, 145, 210, 40);
+      // Dual Turntables
+      ctx.fillStyle = '#1e293b';
+      ctx.beginPath();
+      ctx.arc(250, 165, 14, 0, Math.PI * 2);
+      ctx.arc(390, 165, 14, 0, Math.PI * 2);
+      ctx.fill();
+      // Spinning Records
+      ctx.strokeStyle = '#fbbf24';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(250, 165, 10, t * 8, t * 8 + Math.PI);
+      ctx.arc(390, 165, 10, -t * 8, -t * 8 + Math.PI);
+      ctx.stroke();
+      // LED Spectrum Meter
+      ctx.fillStyle = '#10b981';
+      for (let bar = 0; bar < 6; bar++) {
+        const barH = 6 + Math.sin(t * 12 + bar) * 5;
+        ctx.fillRect(305 + bar * 5, 175 - barH, 3, barH);
+      }
+      // Gold Records on Wall
+      ctx.fillStyle = '#fbbf24';
+      ctx.beginPath();
+      ctx.arc(200, 60, 22, 0, Math.PI * 2);
+      ctx.arc(440, 60, 22, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#0f172a';
+      ctx.beginPath();
+      ctx.arc(200, 60, 8, 0, Math.PI * 2);
+      ctx.arc(440, 60, 8, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Record Crates
+      ctx.fillStyle = '#78350f';
+      ctx.fillRect(140, 240, 80, 40);
+      ctx.fillRect(420, 240, 80, 40);
+      ctx.fillStyle = '#fbbf24';
+      ctx.font = '700 10px Fredoka, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('🎻 CLASSICAL', 180, 232);
+      ctx.fillText('🪕 RAGA & BASS', 460, 232);
+      ctx.font = '20px sans-serif';
+      ctx.fillText('📦', 180, 265);
+      ctx.fillText('📦', 460, 265);
+    }
+
+    // Exit Mat / Door Threshold
+    ctx.fillStyle = isCafe ? '#0284c7' : '#7c3aed';
+    ctx.beginPath();
+    ctx.roundRect(280, 370, 80, 20, 4);
+    ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '700 11px Fredoka, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🚪 EXIT', 320, 384);
+
+    // Render NPCs inside the interior
+    for (const npc of state.npcs) {
+      if (npc.interior === state.currentInterior) {
+        this.drawPixelNPC(ctx, npc, t, state.questStage);
+      }
+    }
+
+    // Render Player Character
+    this.drawDetailedPlayer(ctx, state.player.x, state.player.y, state.player.dir, state.player.isMoving, t);
+
+    // Render Follower Companion inside room
+    if (state.streamQueue.length > 0) {
+      const active = state.streamQueue[state.activeSpiritIndex] || state.streamQueue[0];
+      const trailPos = state.followerTrail && state.followerTrail[7] ? state.followerTrail[7] : { x: state.player.x, y: state.player.y + 24 };
+      if (active.id === 'spirit_chime_cat') this.drawDetailedCat(ctx, trailPos.x, trailPos.y, t);
+      else if (active.id === 'spirit_bass_hound') this.drawDetailedHound(ctx, trailPos.x, trailPos.y, t);
+      else if (active.id === 'spirit_allegro_owl') this.drawDetailedOwl(ctx, trailPos.x, trailPos.y, t);
+      else if (active.id === 'spirit_sitar_swan') this.drawDetailedSwan(ctx, trailPos.x, trailPos.y, t);
+      else if (active.id === 'spirit_taiko_tanuki') this.drawDetailedTanuki(ctx, trailPos.x, trailPos.y, t);
+      else this.drawGenericCompanion(ctx, trailPos.x, trailPos.y, active, t);
+    }
+
+    // Interaction Prompt Card in Interior
+    if (state.nearbyInteractable) {
+      const target = state.nearbyInteractable as any;
+      const tx = target.x;
+      const ty = target.y - 40;
+      let promptText = target.name || 'Interact';
+      let subText = target.title || '';
+      let accentColor = '#38bdf8';
+
+      if (target.actionType === 'order_coffee') {
+        promptText = '☕ [SPACE] Order Harmonic Latte';
+        subText = 'Full HP & Energy Restore';
+        accentColor = '#f59e0b';
+      } else if (target.actionType === 'browse_shop') {
+        promptText = `💽 [SPACE] Browse ${target.name}`;
+        subText = target.title || 'Rare Audio Pressings';
+        accentColor = '#fbbf24';
+      } else if (target.actionType === 'exit_building') {
+        promptText = '🚪 [SPACE] Exit to Cadence Plaza';
+        subText = 'Step outside into festival';
+        accentColor = '#38bdf8';
+      } else if (target.actionType === 'talk') {
+        promptText = `💬 [SPACE] Talk to ${target.name}`;
+        subText = target.title || 'Festival Customer';
+        accentColor = '#ec4899';
+      }
+
+      ctx.font = '700 13px Fredoka, sans-serif';
+      const mainW = ctx.measureText(promptText).width;
+      ctx.font = '500 11px Fredoka, sans-serif';
+      const subW = ctx.measureText(subText).width;
+      const pillW = Math.max(180, Math.max(mainW, subW) + 32);
+      const pillH = 36;
+
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.95)';
+      ctx.strokeStyle = accentColor;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.roundRect(tx - pillW / 2, ty - pillH / 2, pillW, pillH, 8);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = accentColor;
+      ctx.font = '700 12px Fredoka, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(promptText, tx, ty - 2);
+
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '500 10px Fredoka, sans-serif';
+      ctx.fillText(subText, tx, ty + 12);
+    }
+
+    ctx.restore();
   }
 }

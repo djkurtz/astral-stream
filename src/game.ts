@@ -49,15 +49,17 @@ export class AstralGameEngine {
         avatar: '☕',
         text: [
           "Good morning, Streamer! Welcome to Cadence Plaza for the annual Soundwave Festival!",
-          "I see you brought your partner, Chime-Cat! 🐱 You two must be excited to broadcast live and tune into the realm's legendary acoustic traditions.",
-          "Here's your fresh roast latte on the house ☕. Take a stroll around the plaza using [W, A, S, D] to test your audio feed, check out the Harmony Fountain, and visit the Vinyl Den!",
-          "Come check back with me once you've stretched your legs."
+          "I see you brought your bonded partner, Chime-Cat! 🐱 You two must be excited to tune into the realm's legendary acoustic traditions.",
+          "Step inside the Neon Cafe right behind me for a fresh Harmonic Latte and chat with our festival guests, or visit DJ Otter's Vinyl Den!",
+          "Use [W, A, S, D] to walk around, and press [SPACE] at building doors to enter."
         ],
         index: 0
       },
       time: 0,
       glitchActive: false,
-      cleansingProgress: 0
+      cleansingProgress: 0,
+      currentInterior: null,
+      visitedCafe: false
     };
   }
 
@@ -123,10 +125,10 @@ export class AstralGameEngine {
       this.updateProximity();
       soundEngine.updatePlayerPosition(this.state.player.x, this.state.player.y);
 
-      // Trigger Emergency Broadcast after basic exploration (reaching the Harmony Fountain or after 8s)
-      if (this.state.questStage === 'intro' && !this.emergencyTriggered) {
+      // Trigger Emergency Broadcast after player leaves cafe and approaches the musical fountain
+      if (this.state.questStage === 'intro' && !this.emergencyTriggered && !this.state.currentInterior && this.state.visitedCafe) {
         const distToFountain = Math.hypot(this.state.player.x - 1600, this.state.player.y - 1450);
-        if (distToFountain < 120 || this.state.time > 8) {
+        if (distToFountain < 130) {
           this.triggerEmergencyBroadcast();
         }
       }
@@ -212,6 +214,27 @@ export class AstralGameEngine {
 
     this.state.player.isMoving = (dx !== 0 || dy !== 0);
 
+    if (this.state.currentInterior) {
+      // Interior Room Movement Bounds (Neon Cafe & Vinyl Den)
+      const nextX = Math.max(90, Math.min(550, this.state.player.x + dx));
+      const nextY = Math.max(140, Math.min(380, this.state.player.y + dy));
+      const canMoveX = !this.checkInteriorCollision(nextX, this.state.player.y);
+      const canMoveY = !this.checkInteriorCollision(this.state.player.x, nextY);
+
+      if (canMoveX) this.state.player.x = nextX;
+      if (canMoveY) this.state.player.y = nextY;
+
+      if (this.state.player.isMoving && (canMoveX || canMoveY)) {
+        if (!this.state.followerTrail) this.state.followerTrail = [];
+        const last = this.state.followerTrail[0];
+        if (!last || Math.hypot(this.state.player.x - last.x, this.state.player.y - last.y) >= 5) {
+          this.state.followerTrail.unshift({ x: this.state.player.x, y: this.state.player.y });
+          if (this.state.followerTrail.length > 80) this.state.followerTrail.pop();
+        }
+      }
+      return;
+    }
+
     // Natural physical world limits (replaces artificial clamps)
     const nextX = Math.max(40, Math.min(3160, this.state.player.x + dx));
     const nextY = Math.max(40, Math.min(2360, this.state.player.y + dy));
@@ -240,6 +263,19 @@ export class AstralGameEngine {
         }
       }
     }
+  }
+
+  public checkInteriorCollision(x: number, y: number): boolean {
+    if (x < 90 || x > 550 || y < 140 || y > 380) return true; // Room boundary walls
+    if (x >= 200 && x <= 440 && y >= 140 && y <= 190) return true; // Front service counter
+    if (this.state.currentInterior === 'cafe') {
+      if (x >= 140 && x <= 220 && y >= 240 && y <= 280) return true; // Maya lo-fi table
+      if (x >= 420 && x <= 500 && y >= 240 && y <= 280) return true; // Leo synth table
+    } else if (this.state.currentInterior === 'vinyl_den') {
+      if (x >= 140 && x <= 220 && y >= 240 && y <= 280) return true; // Left vinyl crate
+      if (x >= 420 && x <= 500 && y >= 240 && y <= 280) return true; // Right vinyl crate
+    }
+    return false;
   }
 
   public checkObstacleCollision(x: number, y: number): boolean {
@@ -368,16 +404,33 @@ export class AstralGameEngine {
     let closest: NPCEntity | SoundRipple | WildGlitchEntity | CollectibleItem | null = null;
     let minDist = 65;
 
-    // Check NPCs
+    if (this.state.currentInterior) {
+      // In Interior: Only interact with NPCs inside this specific room
+      for (const npc of this.state.npcs) {
+        if (npc.interior === this.state.currentInterior) {
+          const d = Math.hypot(px - npc.x, py - npc.y);
+          if (d < minDist) {
+            minDist = d;
+            closest = npc;
+          }
+        }
+      }
+      this.state.nearbyInteractable = closest;
+      return;
+    }
+
+    // Overworld: Check overworld NPCs (doors & outdoor residents)
     for (const npc of this.state.npcs) {
-      const d = Math.hypot(px - npc.x, py - npc.y);
-      if (d < minDist) {
-        minDist = d;
-        closest = npc;
+      if (!npc.interior) {
+        const d = Math.hypot(px - npc.x, py - npc.y);
+        if (d < minDist) {
+          minDist = d;
+          closest = npc;
+        }
       }
     }
 
-    // Check Sound Ripples
+    // Check Sound Shrines
     for (const rip of this.state.soundRipples) {
       if (!rip.discovered) {
         const d = Math.hypot(px - rip.x, py - rip.y);
@@ -430,8 +483,68 @@ export class AstralGameEngine {
     }
 
     if ('dialogue' in target) {
-      // NPC
+      // NPC / Building Door
       const npc = target as NPCEntity;
+
+      // Enter Building Door
+      if (npc.actionType === 'enter_building') {
+        soundEngine.playLockChime();
+        if (npc.id === 'door_cafe') {
+          this.state.currentInterior = 'cafe';
+          this.state.player = { x: 320, y: 340, dir: 'up', isMoving: false };
+          this.state.followerTrail = [];
+        } else if (npc.id === 'door_vinyl') {
+          this.state.currentInterior = 'vinyl_den';
+          this.state.player = { x: 320, y: 340, dir: 'up', isMoving: false };
+          this.state.followerTrail = [];
+        }
+        this.updateProximity();
+        return;
+      }
+
+      // Exit Building Door
+      if (npc.actionType === 'exit_building') {
+        soundEngine.playLockChime();
+        if (this.state.currentInterior === 'cafe') {
+          this.state.currentInterior = null;
+          this.state.visitedCafe = true;
+          this.state.player = { x: 1360, y: 1380, dir: 'down', isMoving: false };
+          this.state.followerTrail = [];
+        } else if (this.state.currentInterior === 'vinyl_den') {
+          this.state.currentInterior = null;
+          this.state.player = { x: 1910, y: 1380, dir: 'down', isMoving: false };
+          this.state.followerTrail = [];
+        }
+        this.updateProximity();
+        return;
+      }
+
+      // Cafe Coffee Order
+      if (npc.actionType === 'order_coffee') {
+        soundEngine.playSuccessDing();
+        for (const s of this.state.streamQueue) {
+          s.hp = s.maxHp;
+          s.energy = 100;
+        }
+        this.showDialogue(npc.name, '☕', [
+          "Here is your steaming Harmonic Latte! ☕✨",
+          "Your squad's HP and Energy are fully restored to maximum!",
+          "Aria's partner, Latte-Chirp (Melody Songbird), chirps a cheerful flute melody beside you."
+        ]);
+        return;
+      }
+
+      // Vinyl Den Shop Browse
+      if (npc.actionType === 'browse_shop') {
+        soundEngine.playLockChime();
+        this.showDialogue(npc.name, '💽', [
+          npc.dialogue[0] || "Browsing the rare vinyl crates...",
+          "You tuned your audio receptors to the rare analog pressings! (+10 Max Energy for all Harmonimals)",
+          "DJ Otter's partner, Vinyl-Pup (Groove Terrier), wags its tail to the beat."
+        ]);
+        return;
+      }
+
       if (npc.id === 'npc_gate') {
         if (!this.state.activeCompanion) {
           this.showDialogue('Glitch Gate', '⚠️👾', [
@@ -466,23 +579,15 @@ export class AstralGameEngine {
       }
 
       let avatar = '💬';
-      if (npc.sprite === 'aria') {
-        avatar = '☕';
-        if (this.state.questStage === 'intro') {
-          this.showDialogue(npc.name, '☕', [
-            "Enjoying your morning coffee? ☕",
-            "Try walking over to the Harmony Fountain in the center of the plaza to test Chime-Cat's acoustic sensors!",
-            "Use [W, A, S, D] to navigate around the cobblestone streets."
-          ]);
-          return;
-        }
-      }
+      if (npc.sprite === 'aria') avatar = '☕';
       else if (npc.sprite === 'dj_otter') avatar = '💽';
       else if (npc.sprite === 'maestro_owl') avatar = '🦉';
       else if (npc.sprite === 'pelican') avatar = '🦢';
       else if (npc.sprite === 'spark') avatar = '⚡';
       else if (npc.sprite === 'jax') avatar = '🎸';
       else if (npc.sprite === 'lyra') avatar = '🔮';
+      else if (npc.sprite === 'maya') avatar = '🎧';
+      else if (npc.sprite === 'leo') avatar = '🎹';
       this.showDialogue(npc.name, avatar, npc.dialogue);
     } else {
       // Sound Ripple

@@ -539,85 +539,33 @@ export const BOSS_SIGNAL_OVERLORD = {
 };
 
 export const TOWN_NPCS: NPCEntity[] = [
+  // --- OVERWORLD VILLAGE & DOORS ---
   {
-    id: 'npc_aria',
-    name: 'Aria',
-    title: 'Neon Cafe Barista & Sound Mentor',
+    id: 'door_cafe',
+    name: 'Neon Cafe Entrance',
+    title: 'Aria\'s Cozy Sound Cafe',
     x: 1360,
-    y: 1370,
-    sprite: 'aria',
+    y: 1340,
+    sprite: 'door_cafe',
     color: '#38bdf8',
-    actionType: 'talk',
-    pet: {
-      name: 'Latte-Chirp',
-      species: 'Melody Songbird',
-      sprite: 'bird',
-      instrument: 'Flute / Piccolo Whistle'
-    },
+    actionType: 'enter_building',
     dialogue: [
-      "Welcome to Cadence Plaza! ☕ Notice how our Harmonimals are living, breathing instruments?",
-      "To reach Desolation Ridge in the northwest, you must overcome the impenetrable Sonic Vines blocking the mountain pass.",
-      "The vines resonate with discordant static. You'll need high-resonance global harmonies to dissolve them!",
-      "Seek out the 3 ancient Musical Tradition Shrines across the island: on the southern Tidal Sands, deep in the Bamboo Grove, and inside the Sound Ruins.",
-      "Here is how the Global Genre wheel turns:",
-      "🎻 SYMPHONIC (Violin) overpowers 🎹 SYNTH (Chiptune)!",
-      "🎹 SYNTH overpowers 🪕 GLOBAL (Sitar & Taiko)!",
-      "🪕 GLOBAL overpowers 🎷 JAZZ (Saxophone), and 🎷 JAZZ pierces 🎻 SYMPHONIC!"
+      "Stepping inside the cozy Neon Cafe...",
+      "The smell of fresh dark roast and warm lo-fi chords fills the air!"
     ]
   },
   {
-    id: 'npc_dj_otter',
-    name: 'DJ Otter',
-    title: 'World Vinyl Collector',
-    x: 1880,
-    y: 1370,
-    sprite: 'dj_otter',
+    id: 'door_vinyl',
+    name: 'Vinyl Den Entrance',
+    title: 'DJ Otter\'s Rare Wax & Gear',
+    x: 1910,
+    y: 1340,
+    sprite: 'door_vinyl',
     color: '#fbbf24',
-    actionType: 'talk',
-    pet: {
-      name: 'Vinyl-Pup',
-      species: 'Groove Terrier',
-      sprite: 'pup',
-      instrument: 'Turntable Scratch'
-    },
+    actionType: 'enter_building',
     dialogue: [
-      "Yo! Welcome to the Vinyl Den! 💽",
-      "When Dead Channel attacked, our pets' connections were severed into static... but your visiting Chime-Cat is immune!",
-      "Seek the 3 ancient Shrines across the island:",
-      "🪕 Sacred Sitar Shrine on the southern beach sandbars,",
-      "🥁 Matsuri Taiko Shrine in the Eastern Bamboo Forest,",
-      "🎻 Symphonic Violin Shrine in the Northeast Sound Ruins!",
-      "Attune at the shrines to sample their archetypes, then battle wild monsters to enrich your playlist toward Harmonic Evolution!"
-    ]
-  },
-  {
-    id: 'npc_jax',
-    name: 'Jax',
-    title: 'The Underground Punk',
-    x: 600,
-    y: 450,
-    sprite: 'jax',
-    color: '#c084fc',
-    actionType: 'battle_jax',
-    dialogue: [
-      "Halt right there. I guard Desolation Ridge, and nobody passes without proving their rhythm.",
-      "Dead Channel 000 is raging just beyond that Glitch Gate behind me. It wiped out my band's entire soundstage.",
-      "You fought your way through the Sonic Vines and gathered the world's frequencies... but can you match my raw overdrive?",
-      "Duel my Sub-Woofer Bass-Hound! If you can synchronize with my bass drops, we'll storm the Glitch Gate together!"
-    ]
-  },
-  {
-    id: 'npc_gate',
-    name: 'Glitch Gate',
-    title: 'The Static Anomaly Rift',
-    x: 600,
-    y: 320,
-    sprite: 'glitch_gate',
-    color: '#ef4444',
-    actionType: 'talk',
-    dialogue: [
-      "⚠️ The Glitch Gate is howling with volatile analog static!",
-      "Duel Jax at Desolation Ridge first to synchronize frequencies before attempting to breach."
+      "Stepping inside the Vinyl Den...",
+      "Walls of legendary vinyl masters and analog gear glow under neon lights!"
     ]
   },
   {
@@ -694,6 +642,227 @@ export const TOWN_NPCS: NPCEntity[] = [
       "The Symphonic Violin Shrine rests upon our northern stone terrace! Attune its harmonic wave slider to sample Allegro-Owl.",
       "A massive Wild Glitch-Golem roams the central altar, projecting thorny Sonic Vines that blockade the pass to Desolation Ridge.",
       "Take the Overdrive Energy Battery on the eastern terrace, sample the shrine archetype, and defeat the Glitch-Golem to dissolve the vines!"
+    ]
+  },
+  {
+    id: 'npc_jax',
+    name: 'Jax',
+    title: 'The Underground Punk',
+    x: 600,
+    y: 450,
+    sprite: 'jax',
+    color: '#c084fc',
+    actionType: 'battle_jax',
+    dialogue: [
+      "Halt right there. I guard Desolation Ridge, and nobody passes without proving their rhythm.",
+      "Dead Channel 000 is raging just beyond that Glitch Gate behind me. It wiped out my band's entire soundstage.",
+      "You fought your way through the Sonic Vines and gathered the world's frequencies... but can you match my raw overdrive?",
+      "Duel my Sub-Woofer Bass-Hound! If you can synchronize with my bass drops, we'll storm the Glitch Gate together!"
+    ]
+  },
+  {
+    id: 'npc_gate',
+    name: 'Glitch Gate',
+    title: 'The Static Anomaly Rift',
+    x: 600,
+    y: 320,
+    sprite: 'glitch_gate',
+    color: '#ef4444',
+    actionType: 'talk',
+    dialogue: [
+      "⚠️ The Glitch Gate is howling with volatile analog static!",
+      "Duel Jax at Desolation Ridge first to synchronize frequencies before attempting to breach."
+    ]
+  },
+
+  // --- SECONDARY BIOME CHALLENGES & PUZZLES ---
+  {
+    id: 'challenge_tide_shells',
+    name: 'Harmonic Sea Conches',
+    title: 'Tidal Resonance Attunement',
+    x: 1100,
+    y: 2120,
+    sprite: 'door_cafe',
+    color: '#38bdf8',
+    actionType: 'talk',
+    dialogue: [
+      "🐚 The iridescent sea conches hum with the tidal surf!",
+      "You listen closely to their three distinct harmonic resonance pitches: Major Third, Fifth, and Octave.",
+      "The harmonic chime resonates through the sand, revealing a sunken Golden Vinyl artifact nearby!"
+    ]
+  },
+  {
+    id: 'challenge_wind_chimes',
+    name: 'Bamboo Wind Chimes',
+    title: 'Ascending Pentatonic Alignment',
+    x: 2550,
+    y: 1750,
+    sprite: 'door_cafe',
+    color: '#10b981',
+    actionType: 'talk',
+    dialogue: [
+      "🎐 The hollow bamboo and bronze wind chimes sway in the mountain breeze.",
+      "You strike the chimes in ascending pentatonic order (Do - Re - Mi - Sol - La).",
+      "The forest resonates with tranquil peace, opening a secret stepping stone trail through the bamboo thickets!"
+    ]
+  },
+  {
+    id: 'challenge_echo_pillars',
+    name: 'Primordial Tuning Obelisks',
+    title: 'Echo Pillar Beam Calibration',
+    x: 2400,
+    y: 750,
+    sprite: 'door_cafe',
+    color: '#a855f7',
+    actionType: 'talk',
+    dialogue: [
+      "🏛️ Three ancient stone obelisks hum with subterranean acoustic currents.",
+      "You calibrate their quartz focus crystals until their acoustic echoes synchronize into a single pure beam.",
+      "The resonant frequency disperses the dense sonic fog shrouding the northern terrace!"
+    ]
+  },
+
+  // --- INTERIOR: NEON CAFE ---
+  {
+    id: 'npc_aria',
+    name: 'Aria',
+    title: 'Neon Cafe Barista & Sound Mentor',
+    x: 320,
+    y: 180,
+    sprite: 'aria',
+    color: '#38bdf8',
+    actionType: 'order_coffee',
+    interior: 'cafe',
+    pet: {
+      name: 'Latte-Chirp',
+      species: 'Melody Songbird',
+      sprite: 'bird',
+      instrument: 'Flute / Piccolo Whistle'
+    },
+    dialogue: [
+      "Welcome to the Neon Cafe! ☕",
+      "Here is our signature Harmonic Latte! It restores your party's energy and sharpens your rhythm timing.",
+      "Feel free to chat with Maya and Leo at the tables, then head outside to explore the Soundwave Festival in Cadence Plaza!"
+    ]
+  },
+  {
+    id: 'npc_maya',
+    name: 'Maya',
+    title: 'Lo-Fi Beatmaker Customer',
+    x: 180,
+    y: 260,
+    sprite: 'maya',
+    color: '#ec4899',
+    actionType: 'talk',
+    interior: 'cafe',
+    pet: {
+      name: 'Mellow-Moth',
+      species: 'Vinyl Dust Moth',
+      sprite: 'bird',
+      instrument: 'Tape Hiss & Chimes'
+    },
+    dialogue: [
+      "Hey there, fellow streamer! ☕ Listening to the tape-hiss rain outside is pure bliss.",
+      "Did you know each biome on the island houses an ancient musical shrine? Legend says they embody the primordial roots of Symphonic, Global, and Matsuri traditions.",
+      "Make sure you explore every corner of the island—the cultural roots are what give our pets their magic!"
+    ]
+  },
+  {
+    id: 'npc_leo',
+    name: 'Leo',
+    title: 'Modular Synth Collector Customer',
+    x: 460,
+    y: 260,
+    sprite: 'leo',
+    color: '#06b6d4',
+    actionType: 'talk',
+    interior: 'cafe',
+    dialogue: [
+      "Whoa, is that a Chime-Cat?! The analog keybed along its spine has incredible voltage response! 🎹",
+      "I came across the sea specifically for the annual Soundwave Festival. Everyone in Cadence Plaza is so welcoming.",
+      "If you're looking for audio gear, check out DJ Otter's Vinyl Den right next door—he has rare pressings that boost Harmonimal frequency!"
+    ]
+  },
+  {
+    id: 'door_cafe_exit',
+    name: 'Cafe Exit',
+    title: 'Step out into Cadence Plaza',
+    x: 320,
+    y: 370,
+    sprite: 'door_cafe',
+    color: '#38bdf8',
+    actionType: 'exit_building',
+    interior: 'cafe',
+    dialogue: [
+      "Stepping out into the sunny morning air of Cadence Plaza..."
+    ]
+  },
+
+  // --- INTERIOR: VINYL DEN ---
+  {
+    id: 'npc_dj_otter',
+    name: 'DJ Otter',
+    title: 'World Vinyl Collector & DJ',
+    x: 320,
+    y: 180,
+    sprite: 'dj_otter',
+    color: '#fbbf24',
+    actionType: 'browse_shop',
+    interior: 'vinyl_den',
+    pet: {
+      name: 'Vinyl-Pup',
+      species: 'Groove Terrier',
+      sprite: 'pup',
+      instrument: 'Turntable Scratch'
+    },
+    dialogue: [
+      "Yo! Welcome to the Vinyl Den! 💽",
+      "Feel free to flip through the record crates on the sides for rare tuning artifacts and frequency power-ups!",
+      "When the festival starts, I'm dropping a brand new global mashup set at the main stage!"
+    ]
+  },
+  {
+    id: 'npc_crate_classical',
+    name: 'Classical & Symphonic Crates',
+    title: 'Harmonic Tuning Stash',
+    x: 180,
+    y: 260,
+    sprite: 'door_vinyl',
+    color: '#a855f7',
+    actionType: 'browse_shop',
+    interior: 'vinyl_den',
+    dialogue: [
+      "📦 Flipping through rare vinyl crates...",
+      "Found pristine master recordings of Baroque violin concertos and orchestral overtures!"
+    ]
+  },
+  {
+    id: 'npc_crate_global',
+    name: 'Global Traditions & Bass Crates',
+    title: 'Frequency Crystal Stash',
+    x: 460,
+    y: 260,
+    sprite: 'door_vinyl',
+    color: '#f59e0b',
+    actionType: 'browse_shop',
+    interior: 'vinyl_den',
+    dialogue: [
+      "📦 Flipping through global tradition crates...",
+      "Found authentic Ravi Shankar sitar pressings, Japanese Taiko master tapes, and heavy 808 sub-bass vinyl!"
+    ]
+  },
+  {
+    id: 'door_vinyl_exit',
+    name: 'Vinyl Den Exit',
+    title: 'Step out into Cadence Plaza',
+    x: 320,
+    y: 370,
+    sprite: 'door_vinyl',
+    color: '#fbbf24',
+    actionType: 'exit_building',
+    interior: 'vinyl_den',
+    dialogue: [
+      "Stepping out into Cadence Plaza..."
     ]
   }
 ];

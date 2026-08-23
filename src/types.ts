@@ -61,10 +61,11 @@ export interface NPCEntity {
   title: string;
   x: number;
   y: number;
-  sprite: 'aria' | 'dj_otter' | 'jax' | 'maestro_owl' | 'glitch_gate' | 'pelican' | 'spark' | 'lyra';
+  sprite: 'aria' | 'dj_otter' | 'jax' | 'maestro_owl' | 'glitch_gate' | 'pelican' | 'spark' | 'lyra' | 'maya' | 'leo' | 'door_cafe' | 'door_vinyl';
   color: string;
   dialogue: string[];
-  actionType?: 'talk' | 'battle_jax' | 'audio_match';
+  actionType?: 'talk' | 'battle_jax' | 'audio_match' | 'enter_building' | 'exit_building' | 'order_coffee' | 'browse_shop';
+  interior?: 'cafe' | 'vinyl_den';
   pet?: {
     name: string;
     species: string;
@@ -228,4 +229,6 @@ export interface GameState {
   time: number;
   glitchActive: boolean;
   cleansingProgress: number;
+  currentInterior: 'cafe' | 'vinyl_den' | null;
+  visitedCafe: boolean;
 }

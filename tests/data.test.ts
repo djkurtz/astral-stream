@@ -80,6 +80,20 @@ describe('Harmonimals & Data Integrity', () => {
     const spark = TOWN_NPCS.find(n => n.id === 'npc_spark');
     expect(spark).toBeDefined();
     expect(spark?.name).toBe('Spark');
+
+    const maya = TOWN_NPCS.find(n => n.id === 'npc_maya');
+    expect(maya).toBeDefined();
+    expect(maya?.name).toBe('Maya');
+    expect(maya?.interior).toBe('cafe');
+
+    const leo = TOWN_NPCS.find(n => n.id === 'npc_leo');
+    expect(leo).toBeDefined();
+    expect(leo?.name).toBe('Leo');
+    expect(leo?.interior).toBe('cafe');
+
+    const cafeDoor = TOWN_NPCS.find(n => n.id === 'door_cafe');
+    expect(cafeDoor).toBeDefined();
+    expect(cafeDoor?.actionType).toBe('enter_building');
   });
 
   it('should verify roaming wild static glitch and monster encounters', () => {

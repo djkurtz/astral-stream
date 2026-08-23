@@ -141,6 +141,22 @@ describe('Story Progression & Tag-Team Fusion', () => {
     expect(freshState.mode).toBe('exploration');
     expect(freshState.dialogue).toBeNull();
     expect(freshState.questStage).toBe('intro');
+    expect(freshState.currentInterior).toBeNull();
+
+    // Player enters the Neon Cafe
+    freshState.player.x = 1360;
+    freshState.player.y = 1340;
+    freshEngine.updateProximity();
+    freshEngine.interactWithNearby();
+    expect(freshState.currentInterior).toBe('cafe');
+
+    // Player steps out the cafe exit door
+    freshState.player.x = 320;
+    freshState.player.y = 370;
+    freshEngine.updateProximity();
+    freshEngine.interactWithNearby();
+    expect(freshState.currentInterior).toBeNull();
+    expect(freshState.visitedCafe).toBe(true);
 
     // Move near Harmony Fountain (1600, 1450)
     freshState.player.x = 1600;
@@ -157,5 +173,70 @@ describe('Story Progression & Tag-Team Fusion', () => {
       freshEngine.advanceDialogue();
     }
     expect(freshState.questStage).toBe('seek_traditions');
+  });
+
+  it('should support entering cafe, ordering coffee for buffs, vinyl den browsing, and biome challenges', () => {
+    const engine = new GameEngine();
+    const state = engine.getState();
+
+    // Dismiss initial dialogue
+    while (state.dialogue) engine.advanceDialogue();
+
+    // 1. Enter Cafe
+    state.player.x = 1360;
+    state.player.y = 1340;
+    engine.updateProximity();
+    engine.interactWithNearby();
+    expect(state.currentInterior).toBe('cafe');
+
+    // Hurt active spirit
+    state.streamQueue[0].hp = 10;
+    state.streamQueue[0].energy = 20;
+
+    // Order coffee from Aria (320, 180)
+    state.player.x = 320;
+    state.player.y = 200;
+    engine.updateProximity();
+    engine.interactWithNearby();
+    expect(state.dialogue?.text[0]).toContain('Harmonic Latte');
+    expect(state.streamQueue[0].hp).toBe(state.streamQueue[0].maxHp);
+    expect(state.streamQueue[0].energy).toBe(100);
+
+    // Dismiss dialogue & exit cafe
+    while (state.dialogue) engine.advanceDialogue();
+    state.player.x = 320;
+    state.player.y = 370;
+    engine.updateProximity();
+    engine.interactWithNearby();
+    expect(state.currentInterior).toBeNull();
+
+    // 2. Enter Vinyl Den (1910, 1340)
+    state.player.x = 1910;
+    state.player.y = 1340;
+    engine.updateProximity();
+    engine.interactWithNearby();
+    expect(state.currentInterior).toBe('vinyl_den');
+
+    // Browse crates
+    state.player.x = 180;
+    state.player.y = 260;
+    engine.updateProximity();
+    engine.interactWithNearby();
+    expect(state.dialogue?.speaker).toContain('Classical');
+
+    while (state.dialogue) engine.advanceDialogue();
+    state.player.x = 320;
+    state.player.y = 370;
+    engine.updateProximity();
+    engine.interactWithNearby();
+    expect(state.currentInterior).toBeNull();
+
+    // 3. Test Secondary Biome Challenge: Tidal Sea Conches (1100, 2120)
+    state.player.x = 1100;
+    state.player.y = 2120;
+    engine.updateProximity();
+    engine.interactWithNearby();
+    expect(state.dialogue?.speaker).toBe('Harmonic Sea Conches');
+    expect(state.dialogue?.text[0]).toContain('sea conches');
   });
 });

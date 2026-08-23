@@ -61,43 +61,48 @@ $$\text{🎻 SYMPHONIC} \xrightarrow{\text{overpowers}} \text{🎹 SYNTH} \xrigh
 
 ## 4. Chapter 1: "The Silent Frequency" (Open World Exploration)
 
-### 3200×2400 Open World Diorama Architecture:
-The game world is an expansive, continuous scrolling island divided into 5 distinct biomes with rigorous physical collision (players cannot walk through water, tree trunks, lampposts, or building walls):
+### 3200×2400 Open World Architecture & Natural Trails:
+The game world is an expansive, continuous scrolling island connected by organic meandering dirt and cobblestone stepping-stone trails. All rigid "highways" have been replaced with scenic nature walks connecting all biomes:
 
 ```
                        [ Zone 5: Desolation Ridge ] 
                       (Jax's Rebel Bunker & Glitch Gate)
                                      |
 [ Zone 1: Port Resonata ] --- [ Zone 2: Cadence Plaza ] --- [ Zone 3: Bamboo Grove ]
-(Barnaby & Tidal Dunes)       (Cafe, Vinyl Den, Fountain)   (Maestro Owl & Taiko Stage)
+(Barnaby & Tidal Dunes)       (Enterable Cafe & Vinyl Den)  (Taiko Shrine & Pagodas)
                                      |
                        [ Zone 4: Ancient Sound Ruins ]
-                      (Floating Monoliths & Sonic Vines)
+                      (Primordial Shrines & Obelisks)
 ```
 
-1. **🏖️ Zone 1: Port Resonata & Tidal Dunes (South/West)**:
-   * Stepped warm sand dunes meeting the sparkling ocean surf (water collision prevents walking into the sea).
-   * Wooden pier pilings, Barnaby the Pelican (`npc_pelican`), wild Steel-Panda, and the hidden Golden Vinyl Record on the sandbar.
-2. **☕ Zone 2: Cadence Plaza (Central Hub)**:
-   * Cobblestone terrace with 3D buildings (Neon Cafe & Vinyl Den with rotating 3D golden vinyl).
-   * 3D Lampposts with warm radial lighting, Harmony Fountain, Barista Aria, DJ Otter, and Spark the Audio Tech.
-3. **🎋 Zone 3: Whispering Bamboo Forest (East)**:
-   * Dense swaying bamboo thickets (solid tree collision), glowing stone lanterns (*Tōrō*), Maestro Owl, Kora-Gazelle, and the Taiko-Tanuki festival stage.
-4. **🏛️ Zone 4: Ancient Sound Ruins & Sonic Vines (Northeast)**:
-   * Floating 3D monolith blocks, ancient acoustic ruin pillars, wild Glitch-Golem, and the Harmonic Tuning Fork.
-   * A pulsating **Sonic Vine Barrier** blocks the northern mountain pass until the player tunes into the island's frequencies.
-5. **⚡ Zone 5: Desolation Ridge & The Glitch Rift (Northwest)**:
-   * Stormy cracked purple terrain with static lightning rods, Jax's rebel outpost, and the towering Glitch Gate leading into Dead Channel 000.
+### ☕ Enterable Village Interiors & Social Mechanics:
+* **Neon Cafe**: Step through the front door to enter a cozy, warm-lit cafe with a polished parquet wood floor, espresso machines, and pastry cases. Order a **Harmonic Latte** from Aria to fully restore party HP and Energy. Chat with festival guests **Maya** (Lo-Fi Beatmaker) and **Leo** (Modular Synth Collector) and meet their musical pets before the static storm.
+* **Vinyl Den**: Step inside DJ Otter's shop glowing under neon signs, spinning dual turntables, and LED spectrum analyzers. Flip through the vintage **Classical Vinyl Crates** and **Global Raga & Bass Crates** to acquire permanent Harmonimal energy upgrades.
+
+### ⛩️ Expanded Biomes with Dual Challenges (Beyond Monsters):
+Each biome features authentic cultural traditions and **two unique interactive acoustic puzzles**:
+1. **🏖️ Zone 1: Port Resonata (South)**:
+   - *Challenge 1*: **Sacred Sitar & Raga Shrine** (3-Pitch Call-and-Response Jam to unlock Sitar-Swan).
+   - *Challenge 2*: **Harmonic Sea Conches** (Attune 3 harmonic sea-conches along the tide pools to unearth the sunken Golden Vinyl).
+   - *Discordant Monsters*: Wild Bit-Bugs & Steel-Pandas.
+2. **🎋 Zone 2: Whispering Bamboo Forest (East)**:
+   - *Challenge 1*: **Matsuri Taiko Drum Shrine** (Rhythm Pulse Lock to unlock Taiko-Tanuki).
+   - *Challenge 2*: **Bamboo Wind Chimes** (Strike 5 resonant bronze and bamboo wind chimes in ascending pentatonic order to open secret stepping stones).
+   - *Discordant Monsters*: Wild Kora-Gazelles.
+3. **🏛️ Zone 3: Ancient Sound Ruins (Northeast)**:
+   - *Challenge 1*: **Symphonic Violin Shrine** (Waveform Equalizer slider to unlock Allegro-Owl).
+   - *Challenge 2*: **Primordial Tuning Obelisks** (Align quartz echo beams to disperse the dense sonic fog shrouding the terrace).
+   - *Discordant Monsters*: Wild Glitch-Golem.
+4. **⚡ Zone 4: Desolation Ridge (Northwest)**:
+   - *Challenge 1*: **Rival Jax Overdrive Duel** (Synchronize with bass drops to recruit Bass-Hound and gain tag-team blend).
+   - *Challenge 2*: **Glitch Gate Resonance Breach** (Final Boss: Dead Channel 000 / Signal Overlord).
 
 ### Narrative Quest Flow & Environmental Discovery:
-* **Movement Lock during Dialogue**: Player movement is strictly frozen while any dialogue is active, allowing full narrative engagement.
-* **Act 1 — Emergency Broadcast**: Dead Channel 000 overrides the airwaves. Aria tasks you with restoring the island's resonance.
-* **Act 2 — Environmental Clues**:
-  * Aria tells you about the ancient tuning fork in the Northeast Ruins.
-  * Barnaby tips you on the tidal sands holding the Golden Vinyl Record.
-  * Maestro Owl in the Bamboo Grove tests your harmonic attunement once the 3 traditions (Violin, Sitar, Taiko) are unlocked.
-* **Act 3 — Piercing the Sonic Barrier**: With your squad leveled up and tuning items gathered, you dispel the northern sonic barrier to reach Desolation Ridge.
-* **Act 4 — The Rebel Stand & Glitch Breach**: Duel Jax to combine frequencies into the **Omni-Harmony Chimera** and breach the Glitch Gate to silence Dead Channel 000.
+* **Prologue Morning**: Players explore the sunny plaza and enter the Neon Cafe to talk with Aria, Maya, and Leo.
+* **Act 1 — Emergency Broadcast**: Triggered when the player leaves the cafe and approaches the **Harmony Fountain** in the center of Cadence Plaza. A massive static screech severs the islanders' pet connections.
+* **Act 2 — Seeking Cultural Traditions**: Explore the biomes, solve the dual challenges, and bond with ancient shrine archetypes shielded by Chime-Cat's uncorrupted carrier wave.
+* **Act 3 — Battle Stem Sampling & Evolution**: Battle wild monsters to sample their harmonic stems, triggering **Harmonic Evolutions** (e.g. Polyphonic Synth-Cat, Virtuoso Violin-Owl).
+* **Act 4 — The Rebel Stand & Glitch Breach**: Dissolve the sonic vines, ally with Jax, and breach the Glitch Gate to silence Dead Channel 000 and restore all lost pets!
 
 ---
 
