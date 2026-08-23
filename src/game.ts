@@ -164,4 +164,90 @@ export class GameEngine {
     const dest = this.state.bodies.find(b => b.id === destinationId);
     addLog(this.state, `${ship.name} engaged sub-light engines, heading to ${dest?.name || destinationId}.`, 'info');
   }
+
+  /* ---------------- Stage 1 Diplomacy & Hegemony ---------------- */
+  public sendDiplomaticEnvoy(factionId: string): boolean {
+    const faction = this.state.factions?.find(f => f.id === factionId);
+    if (!faction || faction.relationship === 'unified') return false;
+
+    faction.opinion = Math.min(100, faction.opinion + 15);
+    if (faction.opinion >= 70 && faction.relationship === 'neutral') {
+      faction.relationship = 'friendly';
+    }
+    if (faction.opinion >= 40 && faction.relationship === 'hostile') {
+      faction.relationship = 'neutral';
+    }
+    addLog(this.state, `Diplomatic mission sent to ${faction.name}. Relations improved (+15 Opinion).`, 'success');
+    this.updateHegemony();
+    return true;
+  }
+
+  public toggleTradeRoute(factionId: string): boolean {
+    const faction = this.state.factions?.find(f => f.id === factionId);
+    if (!faction) return false;
+
+    if (!faction.tradeActive) {
+      if (faction.opinion < 30) {
+        addLog(this.state, `${faction.name} refuses trade. (Requires Opinion >= 30).`, 'warning');
+        return false;
+      }
+      faction.tradeActive = true;
+      addLog(this.state, `Established bilateral trade route with ${faction.name}!`, 'success');
+    } else {
+      faction.tradeActive = false;
+      addLog(this.state, `Suspended trade route with ${faction.name}.`, 'info');
+    }
+    this.updateHegemony();
+    return true;
+  }
+
+  public formAlliance(factionId: string): boolean {
+    const faction = this.state.factions?.find(f => f.id === factionId);
+    if (!faction || faction.relationship === 'allied' || faction.relationship === 'unified') return false;
+
+    if (faction.opinion < 70) {
+      addLog(this.state, `${faction.name} is not ready for an alliance (Requires Opinion >= 70).`, 'warning');
+      return false;
+    }
+
+    faction.relationship = 'allied';
+    addLog(this.state, `Signed the Planetary Concordat! ${faction.name} is now your military and scientific Ally!`, 'success');
+    this.updateHegemony();
+    return true;
+  }
+
+  public unifyFaction(factionId: string): boolean {
+    const faction = this.state.factions?.find(f => f.id === factionId);
+    if (!faction || faction.relationship === 'unified') return false;
+
+    if (faction.opinion < 90) {
+      addLog(this.state, `${faction.name} requires at least 90 Opinion to ratify total integration.`, 'warning');
+      return false;
+    }
+
+    faction.relationship = 'unified';
+    faction.tradeActive = true;
+    addLog(this.state, `HISTORIC MILESTONE: ${faction.name} has signed the Planetary Unification Accord!`, 'success');
+    this.updateHegemony();
+    return true;
+  }
+
+  public updateHegemony(): void {
+    if (!this.state.factions) return;
+
+    let points = 0;
+    for (const f of this.state.factions) {
+      if (f.relationship === 'unified') points += 25;
+      else if (f.relationship === 'allied') points += 12;
+      else if (f.relationship === 'friendly') points += 6;
+      if (f.tradeActive) points += 5;
+    }
+
+    this.state.hegemonyProgress = Math.min(100, points);
+
+    if (this.state.hegemonyProgress >= 100 && this.state.era === 'planetary') {
+      this.state.era = 'interplanetary';
+      addLog(this.state, `🌟 GLOBAL HEGEMONY ACHIEVED! Nova Terra is unified under one banner! The Orbital Space Program is now ACTIVE!`, 'success');
+    }
+  }
 }

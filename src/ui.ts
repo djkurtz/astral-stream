@@ -7,11 +7,12 @@ import { BuildingType, GameState, ShipType } from './types';
 export class UIManager {
   private state: GameState;
   private engine: GameEngine;
-  private activeTab: string = 'sector';
+  private activeTab: string = 'diplomacy';
   private renderedTab: string = '';
   private renderedBodyId: string = '';
   private lastQueueSignature: string = '';
   private lastShipCount: number = -1;
+  private lastHegemony: number = -1;
   private resourcesInitialized: boolean = false;
   private renderedTutorialStep: number = -1;
   private renderedTutorialComplete: boolean = false;
@@ -19,6 +20,7 @@ export class UIManager {
   constructor(state: GameState, engine: GameEngine) {
     this.state = state;
     this.engine = engine;
+    this.activeTab = (state.era === 'planetary') ? 'diplomacy' : 'sector';
     this.setupEventListeners();
     this.setupModalEvents();
   }
@@ -129,19 +131,31 @@ export class UIManager {
     this.renderEventLog();
     this.updateTutorialHUD();
 
-    // Check if structural tab re-render is required (tab changed, body changed, or items added/removed)
+    // Update Era Badge
+    const eraBadge = document.getElementById('era-badge');
+    if (eraBadge) {
+      if (this.state.era === 'planetary') {
+        eraBadge.textContent = `STAGE 1: PLANETARY CIVILIZATION (${this.state.hegemonyProgress}% HEGEMONY)`;
+      } else if (this.state.era === 'interplanetary') {
+        eraBadge.textContent = `STAGE 2: INTERPLANETARY FEDERATION`;
+        eraBadge.style.color = '#a855f7';
+      }
+    }
+
+    // Check if structural tab re-render is required
     const currentQueueSig = this.state.buildQueue.map(q => q.id).join(',');
     const selectedBodyId = this.state.selectedBodyId || 'terra';
+    const currentHegemony = this.state.hegemonyProgress || 0;
     
     if (
       this.activeTab !== this.renderedTab ||
       selectedBodyId !== this.renderedBodyId ||
       currentQueueSig !== this.lastQueueSignature ||
-      this.state.ships.length !== this.lastShipCount
+      this.state.ships.length !== this.lastShipCount ||
+      (this.activeTab === 'diplomacy' && currentHegemony !== this.lastHegemony)
     ) {
       this.renderTabContent();
     } else {
-      // In-place updates for progress bars and button states without destroying DOM
       this.updateDynamicTabElements();
     }
   }
@@ -167,12 +181,10 @@ export class UIManager {
 
     const isStepDone = step.isComplete(this.state);
 
-    // Only rebuild HUD HTML if step or completion state changed
     if (this.renderedTutorialStep !== this.state.tutorial.stepIndex || this.renderedTutorialComplete !== isStepDone) {
       this.renderedTutorialStep = this.state.tutorial.stepIndex;
       this.renderedTutorialComplete = isStepDone;
 
-      // Update tab highlight
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('highlight'));
       if (step.highlightTab && !isStepDone && this.activeTab !== step.highlightTab) {
         const tabBtn = document.querySelector(`.tab-btn[data-tab="${step.highlightTab}"]`);
@@ -270,7 +282,6 @@ export class UIManager {
     const logElem = document.getElementById('event-log');
     if (!logElem) return;
 
-    // Only re-render if count or content changed to avoid scrolling jumps
     const html = this.state.logs.map(log => `
       <div class="log-entry ${log.type}">
         <span class="log-time">[${log.time}]</span>
@@ -293,8 +304,11 @@ export class UIManager {
     this.renderedBodyId = selectedBody.id;
     this.lastQueueSignature = this.state.buildQueue.map(q => q.id).join(',');
     this.lastShipCount = this.state.ships.length;
+    this.lastHegemony = this.state.hegemonyProgress || 0;
 
-    if (this.activeTab === 'sector') {
+    if (this.activeTab === 'diplomacy') {
+      this.renderDiplomacy(container);
+    } else if (this.activeTab === 'sector') {
       this.renderSectorOverview(container, selectedBody);
     } else if (this.activeTab === 'base') {
       this.renderBaseColony(container, selectedBody);
@@ -303,6 +317,145 @@ export class UIManager {
     } else if (this.activeTab === 'fleet') {
       this.renderFleets(container);
     }
+  }
+
+  private renderDiplomacy(container: HTMLElement): void {
+    if (!this.state.factions) return;
+
+    const progress = this.state.hegemonyProgress || 0;
+    const eraTitle = this.state.era === 'planetary' ? 'Stage 1: Planetary Hegemony' : 'Stage 2: Interplanetary Federation';
+
+    const factionCards = this.state.factions.map(f => {
+      const relationshipColors: Record<string, string> = {
+        hostile: '#ef4444',
+        neutral: '#94a3b8',
+        friendly: '#10b981',
+        allied: '#3b82f6',
+        unified: '#a855f7'
+      };
+
+      const canAlliance = f.opinion >= 70 && f.relationship !== 'allied' && f.relationship !== 'unified';
+      const canUnify = f.opinion >= 90 && f.relationship !== 'unified';
+
+      return `
+        <div class="card" style="border-left: 4px solid ${f.color};">
+          <div class="card-header">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span style="font-size: 1.5rem;">${f.avatar}</span>
+              <div>
+                <div class="card-title">${f.name}</div>
+                <div style="font-size: 0.75rem; color: #94a3b8;">${f.race} • Leader: <em>${f.leader}</em></div>
+              </div>
+            </div>
+            <span style="color: ${relationshipColors[f.relationship]}; font-size: 0.85rem; font-weight: 700; text-transform: uppercase;">
+              ● ${f.relationship}
+            </span>
+          </div>
+
+          <div class="card-desc">${f.description}</div>
+
+          <!-- Opinion Bar -->
+          <div style="margin-bottom: 0.75rem;">
+            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 600; margin-bottom: 3px;">
+              <span>Diplomatic Opinion</span>
+              <span style="color: ${f.opinion > 60 ? '#10b981' : (f.opinion > 30 ? '#f59e0b' : '#ef4444')};">${f.opinion}/100</span>
+            </div>
+            <div style="width: 100%; height: 6px; background: #1e293b; border-radius: 3px; overflow: hidden;">
+              <div style="width: ${f.opinion}%; height: 100%; background: ${f.opinion > 60 ? '#10b981' : (f.opinion > 30 ? '#f59e0b' : '#ef4444')};"></div>
+            </div>
+          </div>
+
+          <!-- Trade Deal -->
+          <div style="background: rgba(15, 23, 42, 0.6); padding: 0.6rem; border-radius: 4px; border: 1px solid var(--border-color); margin-bottom: 0.75rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div style="font-size: 0.8rem;">
+                <strong>Trade Deal:</strong> Give <span style="color: var(--accent-gold);">${f.tradeDeal.giveAmount} ${f.tradeDeal.giveResource}</span>/s ➔ Get <span style="color: var(--accent-green);">${f.tradeDeal.getAmount} ${f.tradeDeal.getResource}</span>/s
+              </div>
+              <button class="ctrl-btn toggle-trade-btn" data-id="${f.id}" style="font-size: 0.75rem; padding: 3px 8px; ${f.tradeActive ? 'background: #059669; border-color: #10b981;' : ''}">
+                ${f.tradeActive ? '✅ Active' : 'Establish'}
+              </button>
+            </div>
+          </div>
+
+          <!-- Diplomatic Action Buttons -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem;">
+            <button class="ctrl-btn envoy-btn" data-id="${f.id}" ${f.relationship === 'unified' ? 'disabled' : ''} style="font-size: 0.78rem;">
+              🕊️ Cultural Envoy (+15)
+            </button>
+            ${f.relationship === 'allied' ? `
+              <button class="action-btn unify-btn" data-id="${f.id}" ${canUnify ? '' : 'disabled'} style="font-size: 0.78rem; background: linear-gradient(135deg, #a855f7, #7e22ce);">
+                👑 Unify Accord
+              </button>
+            ` : (f.relationship === 'unified' ? `
+              <div style="text-align: center; color: var(--accent-cyan); font-weight: 700; font-size: 0.85rem; padding: 4px;">
+                ⭐ UNIFIED TERRA
+              </div>
+            ` : `
+              <button class="action-btn alliance-btn" data-id="${f.id}" ${canAlliance ? '' : 'disabled'} style="font-size: 0.78rem;">
+                🤝 Sign Alliance
+              </button>
+            `)}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    container.innerHTML = `
+      <div class="section-title">
+        <span>${eraTitle}</span>
+        <span style="font-size: 0.85rem; color: var(--accent-cyan);">Hegemony: ${progress}%</span>
+      </div>
+
+      <div class="card" style="border-color: var(--accent-cyan); background: rgba(6, 182, 212, 0.06);">
+        <div class="card-header">
+          <span class="card-title">Global Hegemony Progress</span>
+          <span style="font-weight: 800; font-family: var(--font-display); color: var(--accent-cyan);">${progress}%</span>
+        </div>
+        <div class="card-desc">
+          ${this.state.era === 'planetary' 
+            ? 'Forge trade networks, sign alliances, and integrate all native races on Nova Terra to achieve Planetary Unification and unlock the Orbital Space Program.' 
+            : '🌟 Nova Terra is fully unified! The planetary federation has unlocked interplanetary space flight.'}
+        </div>
+        <div style="width: 100%; height: 8px; background: #1e293b; border-radius: 4px; overflow: hidden; margin-top: 4px;">
+          <div style="width: ${progress}%; height: 100%; background: linear-gradient(90deg, #06b6d4, #a855f7); transition: width 0.3s ease;"></div>
+        </div>
+      </div>
+
+      <div class="section-title">Planetary Civilizations (${this.state.factions.length})</div>
+      ${factionCards}
+    `;
+
+    container.querySelectorAll('.toggle-trade-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = (e.currentTarget as HTMLElement).dataset.id!;
+        this.engine.toggleTradeRoute(id);
+        this.renderTabContent();
+      });
+    });
+
+    container.querySelectorAll('.envoy-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = (e.currentTarget as HTMLElement).dataset.id!;
+        this.engine.sendDiplomaticEnvoy(id);
+        this.renderTabContent();
+      });
+    });
+
+    container.querySelectorAll('.alliance-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = (e.currentTarget as HTMLElement).dataset.id!;
+        this.engine.formAlliance(id);
+        this.renderTabContent();
+      });
+    });
+
+    container.querySelectorAll('.unify-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = (e.currentTarget as HTMLElement).dataset.id!;
+        this.engine.unifyFaction(id);
+        this.renderTabContent();
+      });
+    });
   }
 
   private updateDynamicTabElements(): void {
@@ -595,7 +748,6 @@ export class UIManager {
       const loc = this.state.bodies.find(b => b.id === ship.locationId);
       const dest = ship.destinationId ? this.state.bodies.find(b => b.id === ship.destinationId) : null;
 
-      // Targets to travel to
       const targetOptions = this.state.bodies
         .filter(b => b.id !== ship.locationId && b.type !== 'star')
         .map(b => `<option value="${b.id}">${b.name}</option>`)

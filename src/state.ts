@@ -1,4 +1,5 @@
 import { BUILDING_DEFS, INITIAL_BODIES } from './data';
+import { INITIAL_FACTIONS } from './factions';
 import { BuildingType, GameState, LogMessage, Resources } from './types';
 
 const STORAGE_KEY = 'astra_imperium_save_v1';
@@ -8,11 +9,14 @@ export function createInitialState(): GameState {
     time: 0,
     speed: 1,
     paused: false,
+    era: 'planetary',
+    hegemonyProgress: 0,
+    factions: JSON.parse(JSON.stringify(INITIAL_FACTIONS)),
     resources: {
-      energy: 100,
+      energy: 120,
       minerals: 250,
       alloys: 80,
-      science: 20
+      science: 30
     },
     resourceRates: {
       energy: 0,
@@ -39,13 +43,13 @@ export function createInitialState(): GameState {
     logs: [
       {
         id: '1',
-        text: 'Colony Command Online. Solar arrays and mining operations active on Nova Terra.',
+        text: 'Planetary Command Established. Nova Terra is shared by 4 sovereign races. Build trade and alliances to unite the world.',
         type: 'info',
         time: '00:00'
       }
     ],
     selectedBodyId: 'terra',
-    viewMode: 'system',
+    viewMode: 'surface',
     tutorial: {
       stepIndex: 0,
       completed: false,
@@ -116,6 +120,16 @@ export function calculateRates(state: GameState): Resources {
   const miningDrones = state.ships.filter(s => s.type === 'mining_drone' && s.state === 'mining');
   rates.minerals += miningDrones.length * 4;
 
+  // Active Faction Trade Deals
+  if (state.factions) {
+    for (const faction of state.factions) {
+      if (faction.tradeActive && faction.tradeDeal) {
+        rates[faction.tradeDeal.giveResource] -= faction.tradeDeal.giveAmount;
+        rates[faction.tradeDeal.getResource] += faction.tradeDeal.getAmount;
+      }
+    }
+  }
+
   return rates;
 }
 
@@ -148,7 +162,16 @@ export function loadGame(): GameState | null {
         };
       }
       if (!state.viewMode) {
-        state.viewMode = 'system';
+        state.viewMode = 'surface';
+      }
+      if (!state.era) {
+        state.era = 'planetary';
+      }
+      if (!state.factions) {
+        state.factions = JSON.parse(JSON.stringify(INITIAL_FACTIONS));
+      }
+      if (state.hegemonyProgress === undefined) {
+        state.hegemonyProgress = 0;
       }
       return state;
     }

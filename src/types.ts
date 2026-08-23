@@ -97,10 +97,39 @@ export interface TutorialState {
   rewardClaimed: boolean;
 }
 
+export type Era = 'planetary' | 'interplanetary' | 'interstellar';
+
+export type FactionRelationship = 'hostile' | 'neutral' | 'friendly' | 'allied' | 'unified';
+
+export interface TradeDeal {
+  giveResource: keyof Resources;
+  giveAmount: number; // per second
+  getResource: keyof Resources;
+  getAmount: number; // per second
+}
+
+export interface PlanetaryFaction {
+  id: string;
+  name: string;
+  race: string;
+  leader: string;
+  avatar: string;
+  color: string;
+  description: string;
+  opinion: number; // 0 to 100
+  relationship: FactionRelationship;
+  influence: number; // 0 to 100% towards unification
+  tradeActive: boolean;
+  tradeDeal: TradeDeal;
+}
+
 export interface GameState {
   time: number;
   speed: number;
   paused: boolean;
+  era: Era;
+  hegemonyProgress: number; // 0 to 100
+  factions: PlanetaryFaction[];
   resources: Resources;
   resourceRates: Resources;
   bodies: CelestialBody[];
@@ -111,4 +140,5 @@ export interface GameState {
   viewMode: 'system' | 'surface';
   tutorial: TutorialState;
 }
+
 
