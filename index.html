@@ -21,6 +21,7 @@
         <!-- Dynamically injected via UI -->
       </div>
       <div class="controls">
+        <button id="help-btn" class="ctrl-btn" style="border-color: var(--accent-cyan); color: var(--accent-cyan);">📋 Guide & Goals</button>
         <button id="speed-btn" class="ctrl-btn">Speed: 1x</button>
         <button id="pause-btn" class="ctrl-btn">⏸ Pause</button>
         <button id="save-btn" class="ctrl-btn">💾 Save</button>
@@ -32,6 +33,12 @@
       <!-- Solar System Viewport -->
       <div id="canvas-container">
         <canvas id="game-canvas"></canvas>
+        
+        <!-- Floating Interactive Tutorial HUD -->
+        <div id="tutorial-hud" class="tutorial-card">
+          <!-- Dynamically populated by tutorial manager -->
+        </div>
+
         <div id="canvas-overlay-hints">
           <span>Click a planet or station to manage • Drag to pan • Scroll to zoom</span>
         </div>
@@ -56,6 +63,49 @@
         </div>
       </aside>
     </main>
+
+    <!-- Modal for Help / Field Manual -->
+    <div id="guide-modal" class="modal-backdrop hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>IMPERIAL FIELD MANUAL & OBJECTIVES</h2>
+          <button id="close-guide-btn" class="close-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="manual-section">
+            <h3>🌟 Empire Goals</h3>
+            <p>Your objective is to expand from your home world (<strong>Nova Terra</strong>) into a thriving interplanetary civilization. Extract raw minerals from planets and asteroids, smelt them into resilient alloys, research advanced astrophysics, build starfleets, and defend against lawless pirate havens.</p>
+          </div>
+          <div class="manual-section">
+            <h3>⚡ Resource Economy</h3>
+            <ul class="manual-list">
+              <li><strong>⚡ Energy:</strong> Powers your planetary buildings and shields. If energy is negative, mining and smelting efficiency drops.</li>
+              <li><strong>⛏️ Minerals:</strong> Basic building block mined from planetary crust and harvested from asteroid belts.</li>
+              <li><strong>⚙️ Alloys:</strong> High-grade space alloys refined by Foundries. Essential for constructing starships and new colony bases.</li>
+              <li><strong>🔬 Science:</strong> Knowledge produced by Astro-Physics Labs to discover advanced blueprints and technologies.</li>
+            </ul>
+          </div>
+          <div class="manual-section">
+            <h3>🚀 Fleet Classes</h3>
+            <ul class="manual-list">
+              <li><strong>Vanguard Scout:</strong> Fast reconnaissance ship to explore hostile sectors.</li>
+              <li><strong>Prospector Harvester:</strong> Automated mining drone. Deploy to the <em>Cerberus Asteroid Belt</em> for constant mineral extraction.</li>
+              <li><strong>Aegis Corvette & Titan Frigate:</strong> Combat warships equipped with plasma cannons and point-defense systems.</li>
+            </ul>
+          </div>
+          <div class="manual-section">
+            <h3>🎮 Navigation & Controls</h3>
+            <p><strong>Pan:</strong> Click and drag anywhere in the space viewport.<br>
+            <strong>Zoom:</strong> Scroll your mouse wheel or pinch trackpad.<br>
+            <strong>Select:</strong> Click directly on any star, planet, moon, or station to inspect it in the right command panel.</p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="restart-tutorial-btn" class="ctrl-btn" style="color: var(--accent-cyan);">🔄 Restart Tutorial</button>
+          <button id="dismiss-guide-btn" class="action-btn" style="width: auto; padding: 0.5rem 1.5rem;">Return to Command</button>
+        </div>
+      </div>
+    </div>
   </div>
   <script type="module" src="./src/main.ts"></script>
 </body>

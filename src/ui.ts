@@ -1,6 +1,7 @@
 import { BUILDING_DEFS, SHIP_DEFS } from './data';
 import { GameEngine } from './game';
-import { calculateBuildingCost, canAfford, saveGame } from './state';
+import { addLog, calculateBuildingCost, canAfford, grantResources, saveGame } from './state';
+import { TUTORIAL_STEPS } from './tutorial';
 import { BuildingType, GameState, ShipType } from './types';
 
 export class UIManager {
@@ -12,11 +13,14 @@ export class UIManager {
   private lastQueueSignature: string = '';
   private lastShipCount: number = -1;
   private resourcesInitialized: boolean = false;
+  private renderedTutorialStep: number = -1;
+  private renderedTutorialComplete: boolean = false;
 
   constructor(state: GameState, engine: GameEngine) {
     this.state = state;
     this.engine = engine;
     this.setupEventListeners();
+    this.setupModalEvents();
   }
 
   private setupEventListeners(): void {
@@ -62,9 +66,38 @@ export class UIManager {
     }
   }
 
+  private setupModalEvents(): void {
+    const helpBtn = document.getElementById('help-btn');
+    const modal = document.getElementById('guide-modal');
+    const closeBtn = document.getElementById('close-guide-btn');
+    const dismissBtn = document.getElementById('dismiss-guide-btn');
+    const restartTutorialBtn = document.getElementById('restart-tutorial-btn');
+
+    const openModal = () => modal?.classList.remove('hidden');
+    const closeModal = () => modal?.classList.add('hidden');
+
+    helpBtn?.addEventListener('click', openModal);
+    closeBtn?.addEventListener('click', closeModal);
+    dismissBtn?.addEventListener('click', closeModal);
+
+    modal?.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+
+    restartTutorialBtn?.addEventListener('click', () => {
+      this.state.tutorial.stepIndex = 0;
+      this.state.tutorial.completed = false;
+      this.state.tutorial.active = true;
+      this.renderedTutorialStep = -1;
+      closeModal();
+      this.updateUI();
+    });
+  }
+
   public updateUI(): void {
     this.updateTopResources();
     this.renderEventLog();
+    this.updateTutorialHUD();
 
     // Check if structural tab re-render is required (tab changed, body changed, or items added/removed)
     const currentQueueSig = this.state.buildQueue.map(q => q.id).join(',');
@@ -80,6 +113,87 @@ export class UIManager {
     } else {
       // In-place updates for progress bars and button states without destroying DOM
       this.updateDynamicTabElements();
+    }
+  }
+
+  private updateTutorialHUD(): void {
+    const hud = document.getElementById('tutorial-hud');
+    if (!hud) return;
+
+    if (!this.state.tutorial.active || this.state.tutorial.completed) {
+      hud.style.display = 'none';
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('highlight'));
+      return;
+    }
+    hud.style.display = 'block';
+
+    const step = TUTORIAL_STEPS[this.state.tutorial.stepIndex];
+    if (!step) {
+      this.state.tutorial.completed = true;
+      hud.style.display = 'none';
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('highlight'));
+      return;
+    }
+
+    const isStepDone = step.isComplete(this.state);
+
+    // Only rebuild HUD HTML if step or completion state changed
+    if (this.renderedTutorialStep !== this.state.tutorial.stepIndex || this.renderedTutorialComplete !== isStepDone) {
+      this.renderedTutorialStep = this.state.tutorial.stepIndex;
+      this.renderedTutorialComplete = isStepDone;
+
+      // Update tab highlight
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('highlight'));
+      if (step.highlightTab && !isStepDone && this.activeTab !== step.highlightTab) {
+        const tabBtn = document.querySelector(`.tab-btn[data-tab="${step.highlightTab}"]`);
+        if (tabBtn) tabBtn.classList.add('highlight');
+      }
+
+      const rewardParts: string[] = [];
+      if (step.reward.energy) rewardParts.push(`+${step.reward.energy} ⚡ Energy`);
+      if (step.reward.minerals) rewardParts.push(`+${step.reward.minerals} ⛏️ Minerals`);
+      if (step.reward.alloys) rewardParts.push(`+${step.reward.alloys} ⚙️ Alloys`);
+      if (step.reward.science) rewardParts.push(`+${step.reward.science} 🔬 Science`);
+
+      hud.innerHTML = `
+        <div class="tutorial-header">
+          <span class="tutorial-badge">${step.badge}</span>
+          <button id="hide-tutorial-btn" class="close-btn" style="font-size: 1.1rem; line-height: 1;" title="Dismiss">&times;</button>
+        </div>
+        <div class="tutorial-title">${step.title}</div>
+        <div class="tutorial-desc">${step.description}</div>
+        <div class="tutorial-instruction">${isStepDone ? '✅ Objective Completed!' : `👉 ${step.instruction}`}</div>
+        <div style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 0.6rem;"><em>💡 Hint: ${step.hint}</em></div>
+        <div class="tutorial-reward">🎁 Reward: ${rewardParts.join(' • ')}</div>
+        ${isStepDone ? `
+          <button id="claim-tutorial-btn" class="action-btn" style="background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 0 12px rgba(16, 185, 129, 0.5);">
+            🎉 Claim Reward & Next Mission
+          </button>
+        ` : ''}
+      `;
+
+      const claimBtn = document.getElementById('claim-tutorial-btn');
+      if (claimBtn) {
+        claimBtn.addEventListener('click', () => {
+          grantResources(this.state.resources, step.reward);
+          addLog(this.state, `Tutorial Objective [${step.title}] Completed! Resources received.`, 'success');
+          if (this.state.tutorial.stepIndex + 1 < TUTORIAL_STEPS.length) {
+            this.state.tutorial.stepIndex++;
+          } else {
+            this.state.tutorial.completed = true;
+            addLog(this.state, `All Imperial Academy missions completed! You are now sovereign commander of the sector.`, 'success');
+          }
+          this.updateUI();
+        });
+      }
+
+      const hideBtn = document.getElementById('hide-tutorial-btn');
+      if (hideBtn) {
+        hideBtn.addEventListener('click', () => {
+          this.state.tutorial.active = false;
+          this.updateUI();
+        });
+      }
     }
   }
 

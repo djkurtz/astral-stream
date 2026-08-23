@@ -44,7 +44,13 @@ export function createInitialState(): GameState {
         time: '00:00'
       }
     ],
-    selectedBodyId: 'terra'
+    selectedBodyId: 'terra',
+    tutorial: {
+      stepIndex: 0,
+      completed: false,
+      active: true,
+      rewardClaimed: false
+    }
   };
 }
 
@@ -112,6 +118,12 @@ export function calculateRates(state: GameState): Resources {
   return rates;
 }
 
+export function grantResources(resources: Resources, reward: Partial<Resources>): void {
+  for (const [res, val] of Object.entries(reward)) {
+    resources[res as keyof Resources] = (resources[res as keyof Resources] || 0) + (val || 0);
+  }
+}
+
 export function saveGame(state: GameState): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -125,7 +137,16 @@ export function loadGame(): GameState | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
-      return JSON.parse(raw);
+      const state = JSON.parse(raw);
+      if (!state.tutorial) {
+        state.tutorial = {
+          stepIndex: 0,
+          completed: false,
+          active: true,
+          rewardClaimed: false
+        };
+      }
+      return state;
     }
   } catch (e) {
     console.error('Failed to load save', e);

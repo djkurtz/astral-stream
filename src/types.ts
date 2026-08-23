@@ -90,6 +90,13 @@ export interface LogMessage {
   time: string;
 }
 
+export interface TutorialState {
+  stepIndex: number;
+  completed: boolean;
+  active: boolean;
+  rewardClaimed: boolean;
+}
+
 export interface GameState {
   time: number;
   speed: number;
@@ -101,4 +108,6 @@ export interface GameState {
   buildQueue: BuildTask[];
   logs: LogMessage[];
   selectedBodyId: string;
+  tutorial: TutorialState;
 }
+
