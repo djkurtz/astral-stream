@@ -562,13 +562,6 @@ export class AstralGameEngine {
       this.state.activeSpiritIndex = index;
       const active = this.state.streamQueue[index];
       soundEngine.playCreatureMotif(active.id);
-      if (this.state.mode === 'exploration') {
-        this.showDialogue(active.name, active.avatar, [
-          `Active Lead Harmonimal switched to: ${active.name} [${active.vibeTag}]!`,
-          `Instrument: ${active.instrument} (${active.originTradition}).`,
-          `Type: ${active.type.toUpperCase()} • Ready for battle!`
-        ]);
-      }
     }
   }
 

@@ -220,6 +220,12 @@ export class AstralRenderer {
         this.drawDetailedCat(ctx, leadX, leadY, t);
       } else if (active.id === 'spirit_bass_hound') {
         this.drawDetailedHound(ctx, leadX, leadY, t);
+      } else if (active.id === 'spirit_allegro_owl') {
+        this.drawDetailedOwl(ctx, leadX, leadY, t);
+      } else if (active.id === 'spirit_sitar_swan') {
+        this.drawDetailedSwan(ctx, leadX, leadY, t);
+      } else if (active.id === 'spirit_taiko_tanuki') {
+        this.drawDetailedTanuki(ctx, leadX, leadY, t);
       } else {
         this.drawGenericCompanion(ctx, leadX, leadY, active, t);
       }
@@ -235,18 +241,6 @@ export class AstralRenderer {
       const target = state.nearbyInteractable;
       const tx = target.x;
       const ty = 'name' in target ? target.y - 48 : target.y - 38;
-
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.95)';
-      ctx.strokeStyle = '#06b6d4';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.roundRect(tx - 95, ty - 18, 190, 28, 8);
-      ctx.fill();
-      ctx.stroke();
-
-      ctx.fillStyle = '#ffffff';
-      ctx.font = '700 13px Fredoka, sans-serif';
-      ctx.textAlign = 'center';
 
       let promptText = '';
       if ('spirit' in target && 'defeated' in target) {
@@ -267,6 +261,21 @@ export class AstralRenderer {
         else if (cType === 'call_response') promptText = '🪕 [SPACE] Indian Sitar';
         else promptText = '🥁 [SPACE] Taiko Festival';
       }
+
+      ctx.font = '700 13px Fredoka, sans-serif';
+      const textW = ctx.measureText(promptText).width;
+      const pillW = Math.max(160, textW + 36);
+
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.95)';
+      ctx.strokeStyle = '#06b6d4';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect(tx - pillW / 2, ty - 18, pillW, 28, 8);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.textAlign = 'center';
       ctx.fillText(promptText, tx, ty + 2);
     }
 
@@ -1498,6 +1507,148 @@ export class AstralRenderer {
     for (let sp = -6; sp <= 4; sp += 3) {
       ctx.fillRect(sp, -9, 2, 2);
     }
+
+    ctx.restore();
+  }
+
+  private drawDetailedOwl(ctx: CanvasRenderingContext2D, x: number, y: number, t: number): void {
+    ctx.save();
+    ctx.translate(x, y);
+
+    // Drop Shadow
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+    ctx.beginPath();
+    ctx.ellipse(0, 6, 12, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    const flap = Math.sin(t * 8) * 3;
+
+    // Body (Mahogany Stradivarius Violin Wood)
+    ctx.fillStyle = '#78350f';
+    ctx.fillRect(-8, -16 + flap * 0.5, 16, 16);
+    ctx.fillStyle = '#92400e';
+    ctx.fillRect(-6, -14 + flap * 0.5, 12, 12);
+
+    // Horsehair Bow Wings
+    ctx.fillStyle = '#f59e0b';
+    ctx.fillRect(-12, -14 + flap, 4, 10);
+    ctx.fillRect(8, -14 - flap, 4, 10);
+
+    // Violin F-Holes on Chest
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(-4, -10 + flap * 0.5, 2, 4);
+    ctx.fillRect(2, -10 + flap * 0.5, 2, 4);
+
+    // Big Amber Owl Eyes
+    ctx.fillStyle = '#fbbf24';
+    ctx.beginPath();
+    ctx.arc(-3, -13 + flap * 0.5, 3.5, 0, Math.PI * 2);
+    ctx.arc(3, -13 + flap * 0.5, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(-4, -14 + flap * 0.5, 2, 2);
+    ctx.fillRect(2, -14 + flap * 0.5, 2, 2);
+
+    // Golden Beak
+    ctx.fillStyle = '#f97316';
+    ctx.beginPath();
+    ctx.moveTo(0, -11 + flap * 0.5);
+    ctx.lineTo(-2, -9 + flap * 0.5);
+    ctx.lineTo(2, -9 + flap * 0.5);
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  private drawDetailedSwan(ctx: CanvasRenderingContext2D, x: number, y: number, t: number): void {
+    ctx.save();
+    ctx.translate(x, y);
+
+    // Drop Shadow
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+    ctx.beginPath();
+    ctx.ellipse(0, 6, 14, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    const glide = Math.sin(t * 5) * 2;
+
+    // Resonant Gourd Body (Warm Amber Base)
+    ctx.fillStyle = '#d97706';
+    ctx.fillRect(-9, -10 + glide, 18, 12);
+    ctx.fillStyle = '#f59e0b';
+    ctx.fillRect(-7, -8 + glide, 14, 8);
+
+    // Fretted Sitar Neck (Curving Upward)
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillRect(2, -22 + glide, 4, 14);
+    // Silver Frets along neck
+    ctx.fillStyle = '#f1f5f9';
+    for (let f = -20; f <= -10; f += 3) {
+      ctx.fillRect(1, f + glide, 6, 1);
+    }
+
+    // Elegant Swan Head
+    ctx.fillStyle = '#f8fafc';
+    ctx.fillRect(2, -26 + glide, 6, 6);
+    // Black Mask & Eye
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(5, -25 + glide, 2, 2);
+    // Slender Golden Beak
+    ctx.fillStyle = '#f59e0b';
+    ctx.fillRect(8, -24 + glide, 4, 2);
+
+    // Sitar Tuning Pegs on Crown
+    ctx.fillStyle = '#fbbf24';
+    ctx.fillRect(0, -26 + glide, 2, 2);
+    ctx.fillRect(0, -23 + glide, 2, 2);
+
+    ctx.restore();
+  }
+
+  private drawDetailedTanuki(ctx: CanvasRenderingContext2D, x: number, y: number, t: number): void {
+    ctx.save();
+    ctx.translate(x, y);
+
+    // Drop Shadow
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+    ctx.beginPath();
+    ctx.ellipse(0, 6, 13, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    const hop = Math.sin(t * 7) * 2.5;
+
+    // Tanuki Body (Warm Fur)
+    ctx.fillStyle = '#854d0e';
+    ctx.fillRect(-8, -14 + hop, 16, 14);
+
+    // Taiko Drum Belly (Red Wood Hoop)
+    ctx.fillStyle = '#dc2626';
+    ctx.beginPath();
+    ctx.arc(0, -6 + hop, 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#fef08a';
+    ctx.beginPath();
+    ctx.arc(0, -6 + hop, 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Mask & Eyes
+    ctx.fillStyle = '#451a03';
+    ctx.fillRect(-6, -13 + hop, 4, 3);
+    ctx.fillRect(2, -13 + hop, 4, 3);
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(-4, -12 + hop, 1.5, 1.5);
+    ctx.fillRect(3, -12 + hop, 1.5, 1.5);
+
+    // Fluffy Striped Tail (Holding Bachi Sticks)
+    const tailWag = Math.sin(t * 10) * 3;
+    ctx.fillStyle = '#854d0e';
+    ctx.fillRect(-13, -10 + hop + tailWag, 5, 8);
+    ctx.fillStyle = '#451a03';
+    ctx.fillRect(-13, -8 + hop + tailWag, 5, 2);
+
+    // Wooden Bachi Drumsticks
+    ctx.fillStyle = '#fef08a';
+    ctx.fillRect(5, -9 + hop, 6, 2);
 
     ctx.restore();
   }
