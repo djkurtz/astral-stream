@@ -74,6 +74,18 @@ window.addEventListener('DOMContentLoaded', () => {
     engine.handleKeyUp(e.code);
   });
 
+  // Mouse Move tracking for tooltips & hover cards
+  canvas.addEventListener('mousemove', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    renderer.setMousePos((e.clientX - rect.left) * scaleX, (e.clientY - rect.top) * scaleY);
+  });
+
+  canvas.addEventListener('mouseleave', () => {
+    renderer.setMousePos(-1, -1);
+  });
+
   // Canvas Click interactions
   canvas.addEventListener('click', (e) => {
     soundEngine.init();

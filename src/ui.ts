@@ -109,20 +109,24 @@ export class HarmoniaUI {
       });
     }
 
-    // Fullscreen Toggle Button
-    const btnFullscreen = document.getElementById('btn-fullscreen');
-    if (btnFullscreen) {
-      btnFullscreen.addEventListener('click', () => {
-        if (!document.fullscreenElement) {
-          document.documentElement.requestFullscreen().catch(() => {});
-        } else {
-          document.exitFullscreen().catch(() => {});
-        }
-      });
-    }
+    // Click backdrop outside modal content to close
+    [modalRepertoire, modalEnsemble, modalQuests, modalDex, modalBadges].forEach((modal) => {
+      if (modal) {
+        modal.addEventListener('click', (e) => {
+          if (e.target === modal) {
+            modal.classList.add('hidden');
+          }
+        });
+      }
+    });
 
-    // Keyboard Shortcuts for Modals
+    // Keyboard Shortcuts for Modals & Escape to Close
     window.addEventListener('keydown', (e) => {
+      if (e.code === 'Escape') {
+        [modalRepertoire, modalEnsemble, modalQuests, modalDex, modalBadges].forEach(m => m?.classList.add('hidden'));
+        return;
+      }
+
       const mode = this.engine.getState().mode;
       if (mode !== 'exploration') return;
 

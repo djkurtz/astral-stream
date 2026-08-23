@@ -7,6 +7,7 @@ export class HarmoniaRenderer {
   private ctx: CanvasRenderingContext2D;
   private width: number = 1280;
   private height: number = 720;
+  private mousePos: { x: number; y: number } = { x: -1, y: -1 };
 
   constructor(ctx: CanvasRenderingContext2D) {
     this.ctx = ctx;
@@ -15,6 +16,10 @@ export class HarmoniaRenderer {
   public setSize(w: number, h: number): void {
     this.width = w;
     this.height = h;
+  }
+
+  public setMousePos(x: number, y: number): void {
+    this.mousePos = { x, y };
   }
 
   public render(state: GameState): void {
@@ -330,17 +335,27 @@ export class HarmoniaRenderer {
       BATTLE_MOVES.pianissimo_shield,
       BATTLE_MOVES.fortissimo_surge
     ];
-    const moveW = 240;
-    const moveH = 80;
+    const moveW = 250;
+    const moveH = 68;
     const moveStartX = (this.width - (moveW * 4 + 45)) / 2;
-    const moveY = 460;
+    const moveY = 475;
+
+    let hoveredMove: any = null;
+    let hoveredIdx = -1;
 
     moves.forEach((m, idx) => {
       const mx = moveStartX + idx * (moveW + 15);
+      const isHovered = this.mousePos.x >= mx && this.mousePos.x <= mx + moveW &&
+                        this.mousePos.y >= moveY && this.mousePos.y <= moveY + moveH;
+      if (isHovered) {
+        hoveredMove = m;
+        hoveredIdx = idx;
+      }
+
       const isAffordable = battle.harmonyPoints >= m.harmonyCost;
-      ctx.fillStyle = isAffordable ? '#1e293b' : 'rgba(30, 41, 59, 0.4)';
-      ctx.strokeStyle = idx >= 2 ? (idx === 2 ? '#10b981' : '#f59e0b') : (isAffordable ? '#38bdf8' : '#64748b');
-      ctx.lineWidth = 2;
+      ctx.fillStyle = isHovered ? 'rgba(30, 58, 138, 0.95)' : (isAffordable ? '#1e293b' : 'rgba(30, 41, 59, 0.4)');
+      ctx.strokeStyle = isHovered ? '#fef08a' : (idx >= 2 ? (idx === 2 ? '#10b981' : '#f59e0b') : (isAffordable ? '#38bdf8' : '#64748b'));
+      ctx.lineWidth = isHovered ? 3 : 2;
       ctx.beginPath();
       ctx.roundRect(mx, moveY, moveW, moveH, 12);
       ctx.fill();
@@ -349,23 +364,54 @@ export class HarmoniaRenderer {
       ctx.fillStyle = isAffordable ? '#f8fafc' : '#64748b';
       ctx.font = 'bold 15px "Inter", sans-serif';
       ctx.textAlign = 'left';
-      ctx.fillText(`[${idx + 1}] ${m.name}`, mx + 12, moveY + 28);
+      ctx.fillText(`[${idx + 1}] ${m.name}`, mx + 14, moveY + 28);
 
+      // Clean, uncrowded stat badge
       ctx.fillStyle = '#fbbf24';
-      ctx.font = '12px "Inter", sans-serif';
-      ctx.fillText(`Cost: ${m.harmonyCost} HP`, mx + 12, moveY + 48);
-
-      ctx.fillStyle = '#94a3b8';
-      ctx.font = '11px "Inter", sans-serif';
-      this.wrapText(ctx, m.description, mx + 12, moveY + 64, moveW - 24, 14);
+      ctx.font = 'bold 12px "Inter", sans-serif';
+      let tag = `Cost: ${m.harmonyCost} HP | Power: +${m.power}%`;
+      if (m.effect === 'pianissimo_shield') tag = `Cost: ${m.harmonyCost} HP | +25 HP / 50% Guard`;
+      if (m.effect === 'fortissimo_surge') tag = `Cost: ${m.harmonyCost} HP | 2x Power Surge`;
+      ctx.fillText(tag, mx + 14, moveY + 50);
     });
+
+    // Floating Tactical Hover Tooltip Box (Right above action buttons)
+    if (hoveredMove) {
+      const tipW = 760;
+      const tipH = 70;
+      const tipX = (this.width - tipW) / 2;
+      const tipY = 385;
+
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.97)';
+      ctx.strokeStyle = hoveredIdx >= 2 ? (hoveredIdx === 2 ? '#10b981' : '#f59e0b') : '#38bdf8';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect(tipX, tipY, tipW, tipH, 12);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#38bdf8';
+      ctx.font = 'bold 13px "Inter", sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText(`💡 TECHNIQUE DETAILS: ${hoveredMove.name.toUpperCase()}`, tipX + 18, tipY + 24);
+
+      ctx.fillStyle = '#f8fafc';
+      ctx.font = '13px "Inter", sans-serif';
+      ctx.fillText(hoveredMove.description, tipX + 18, tipY + 48);
+    } else {
+      // Gentle hint when not hovering
+      ctx.fillStyle = '#64748b';
+      ctx.font = 'italic 13px "Inter", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('💡 Hover over any technique card to inspect tactical properties and mechanics.', this.width / 2, 425);
+    }
 
     // Battle Log
     ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
     ctx.strokeStyle = '#334155';
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.roundRect(100, 560, this.width - 200, 130, 10);
+    ctx.roundRect(100, 560, this.width - 200, 135, 10);
     ctx.fill();
     ctx.stroke();
 
@@ -373,7 +419,7 @@ export class HarmoniaRenderer {
     ctx.font = '14px "Inter", sans-serif';
     ctx.textAlign = 'left';
     battle.log.slice(-4).forEach((logText, lIdx) => {
-      ctx.fillText(`• ${logText}`, 120, 590 + lIdx * 25);
+      ctx.fillText(`• ${logText}`, 120, 590 + lIdx * 26);
     });
   }
 
