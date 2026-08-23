@@ -2,6 +2,10 @@ import { AstralGameEngine } from './game';
 
 export class AstralUIManager {
   private engine: AstralGameEngine;
+  private renderedSpiritIdForMoves: string = '';
+  private renderedQueueLength: number = -1;
+  private lastDialogueIndex: number = -1;
+  private lastDialogueSpeaker: string = '';
 
   constructor(engine: AstralGameEngine) {
     this.engine = engine;
@@ -51,11 +55,16 @@ export class AstralUIManager {
       if (state.dialogue) {
         dialogueBox.classList.remove('hidden');
         const d = state.dialogue;
-        document.getElementById('dialogue-speaker')!.textContent = d.speaker;
-        document.getElementById('dialogue-avatar')!.textContent = d.avatar;
-        document.getElementById('dialogue-text')!.textContent = d.text[d.index] || '';
+        if (this.lastDialogueSpeaker !== d.speaker || this.lastDialogueIndex !== d.index) {
+          document.getElementById('dialogue-speaker')!.textContent = d.speaker;
+          document.getElementById('dialogue-avatar')!.textContent = d.avatar;
+          document.getElementById('dialogue-text')!.textContent = d.text[d.index] || '';
+          this.lastDialogueSpeaker = d.speaker;
+          this.lastDialogueIndex = d.index;
+        }
       } else {
         dialogueBox.classList.add('hidden');
+        this.lastDialogueIndex = -1;
       }
     }
 
@@ -103,25 +112,36 @@ export class AstralUIManager {
         document.getElementById('enemy-hp-bar')!.style.width = `${ePct}%`;
         document.getElementById('enemy-hp-text')!.textContent = `${eHp}/${eMaxHp} HP`;
 
-        // Stem Pad Buttons
+        // Only rebuild move buttons if spirit moves changed (e.g. initial load or after fusion)
         const movesContainer = document.getElementById('battle-moves');
         if (movesContainer) {
-          movesContainer.innerHTML = b.playerSpirit.moves.map((m, idx) => `
-            <button class="stem-pad-btn" data-idx="${idx}" ${b.turn !== 'player' ? 'disabled' : ''}>
-              <div class="pad-light"></div>
-              <div class="pad-content">
-                <div style="font-weight: 700; font-size: 0.95rem;">${m.name}</div>
-                <div style="font-size: 0.75rem; opacity: 0.8;">${m.type.toUpperCase()} STEM • PWR: ${m.power}</div>
-              </div>
-            </button>
-          `).join('');
+          const currentSpiritKey = `${b.playerSpirit.id}_${b.playerSpirit.moves.length}`;
+          if (this.renderedSpiritIdForMoves !== currentSpiritKey) {
+            movesContainer.innerHTML = b.playerSpirit.moves.map((m, idx) => `
+              <button class="stem-pad-btn" data-idx="${idx}">
+                <div class="pad-light"></div>
+                <div class="pad-content">
+                  <div style="font-weight: 700; font-size: 0.95rem;">${m.name}</div>
+                  <div style="font-size: 0.75rem; opacity: 0.8;">${m.type.toUpperCase()} STEM • PWR: ${m.power}</div>
+                </div>
+              </button>
+            `).join('');
 
-          movesContainer.querySelectorAll('.stem-pad-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-              const idx = parseInt((e.currentTarget as HTMLElement).dataset.idx || '0', 10);
-              this.engine.executePlayerMove(idx);
-              this.updateUI();
+            movesContainer.querySelectorAll<HTMLButtonElement>('.stem-pad-btn').forEach(btn => {
+              btn.addEventListener('click', (e) => {
+                const idx = parseInt((e.currentTarget as HTMLElement).dataset.idx || '0', 10);
+                this.engine.executePlayerMove(idx);
+                this.updateUI();
+              });
             });
+
+            this.renderedSpiritIdForMoves = currentSpiritKey;
+          }
+
+          // Simply toggle disabled state without destroying DOM
+          const isPlayerTurn = b.turn === 'player';
+          movesContainer.querySelectorAll<HTMLButtonElement>('.stem-pad-btn').forEach(btn => {
+            btn.disabled = !isPlayerTurn;
           });
         }
 
@@ -136,18 +156,20 @@ export class AstralUIManager {
         }
       } else {
         battlePanel.classList.add('hidden');
+        this.renderedSpiritIdForMoves = '';
       }
     }
 
-    // 4. Stream Queue Top Bar
+    // 4. Stream Queue Top Bar (Only rebuild when items are added)
     const queueContainer = document.getElementById('stream-queue');
-    if (queueContainer) {
+    if (queueContainer && this.renderedQueueLength !== state.streamQueue.length) {
       queueContainer.innerHTML = state.streamQueue.map((s, idx) => `
         <div class="stream-badge ${idx === state.activeSpiritIndex ? 'active' : ''}">
           <span>${s.avatar}</span>
           <span style="font-size: 0.8rem; font-weight: 700;">${s.name} <span style="opacity: 0.7; font-size: 0.7rem;">${s.vibeTag}</span></span>
         </div>
       `).join('');
+      this.renderedQueueLength = state.streamQueue.length;
     }
   }
 }
