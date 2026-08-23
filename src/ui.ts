@@ -3,7 +3,7 @@
 import { HarmoniaGameEngine } from './game';
 import { ZoneId } from './types';
 import { soundEngine } from './audio';
-import { REPERTOIRE_DATABASE } from './data';
+import { REPERTOIRE_DATABASE, ALL_INSTRUMENTS_INFO, calculateEffectiveSkill } from './data';
 
 export class HarmoniaUI {
   private engine: HarmoniaGameEngine;
@@ -164,6 +164,21 @@ export class HarmoniaUI {
         modalCustomization.classList.remove('hidden');
       }
     });
+
+    // Master Luthier Forge Modal
+    const modalLuthier = document.getElementById('modal-luthier');
+    const btnCloseLuthier = document.getElementById('btn-close-luthier');
+
+    window.addEventListener('open-luthier-shop', () => {
+      this.renderLuthierForge();
+      modalLuthier?.classList.remove('hidden');
+    });
+
+    if (btnCloseLuthier && modalLuthier) {
+      btnCloseLuthier.addEventListener('click', () => {
+        modalLuthier.classList.add('hidden');
+      });
+    }
 
     // Practice Shed Launcher Button
     const btnPractice = document.getElementById('btn-practice');
@@ -454,6 +469,89 @@ export class HarmoniaUI {
     const state = this.engine.getState();
     rosterContainer.innerHTML = '';
 
+    const player = state.ensemble.members[0];
+    if (player) {
+      const loadoutPanel = document.createElement('div');
+      loadoutPanel.className = 'loadout-panel';
+
+      const currentSkill = calculateEffectiveSkill(player, state.proficiency, player.instrumentId);
+      const general = Math.round((player.stats.technique + player.stats.toneQuality + player.stats.tempoStability + player.stats.sightReading) / 4);
+      const sectionScore = state.proficiency.sections[player.section] || 20;
+      const mastery = state.proficiency.instruments[player.instrumentId] || { level: 1, xp: 0 };
+
+      loadoutPanel.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #38bdf8; padding-bottom:8px; margin-bottom:12px;">
+          <div>
+            <span style="font-size:16px; font-weight:bold; color:#f8fafc;">🎼 Maestro's Active Musical Loadout</span>
+            <div style="font-size:12px; color:#94a3b8;">Switch instruments & Harmonipet companions to adapt your ensemble!</div>
+          </div>
+          <div style="text-align:right;">
+            <span style="font-size:11px; color:#94a3b8; text-transform:uppercase;">Effective Skill</span>
+            <div style="font-size:22px; font-weight:bold; color:#fbbf24; font-family:'Cinzel', serif;">${currentSkill} / 100</div>
+          </div>
+        </div>
+
+        <div style="background:rgba(15,23,42,0.6); padding:8px 12px; border-radius:6px; font-size:12px; color:#cbd5e1; margin-bottom:12px;">
+          📊 <strong>Skill Formula:</strong> General Musicianship (${general} × 50%) + Section Proficiency (${sectionScore} × 30%) + Instrument Mastery (Lv.${mastery.level} × 20%) = <strong>${currentSkill}</strong>
+        </div>
+
+        <div style="margin-bottom:12px;">
+          <div style="font-size:13px; font-weight:bold; color:#38bdf8; margin-bottom:6px;">🎺 Mastered Instruments (Click to Play):</div>
+          <div class="loadout-options-grid" id="instrument-loadout-grid"></div>
+        </div>
+
+        <div>
+          <div style="font-size:13px; font-weight:bold; color:#ec4899; margin-bottom:6px;">🐾 Bonded Harmonipets (Click to Equip Familiar):</div>
+          <div class="loadout-options-grid" id="pet-loadout-grid"></div>
+        </div>
+      `;
+
+      rosterContainer.appendChild(loadoutPanel);
+
+      // Populate Instruments
+      const instGrid = loadoutPanel.querySelector('#instrument-loadout-grid');
+      if (instGrid) {
+        state.proficiency.unlockedInstruments.forEach(instId => {
+          const info = ALL_INSTRUMENTS_INFO[instId];
+          if (!info) return;
+          const isCurrent = player.instrumentId === instId;
+          const instSkill = calculateEffectiveSkill(player, state.proficiency, instId);
+          const btn = document.createElement('button');
+          btn.className = `loadout-btn ${isCurrent ? 'active' : ''}`;
+          btn.innerHTML = `<span>${info.avatar}</span> <span>${info.name}</span> <span style="margin-left:auto; color:#fbbf24; font-size:11px;">★${instSkill}</span>`;
+          btn.addEventListener('click', () => {
+            this.engine.switchPlayerInstrument(instId);
+            this.renderEnsembleRoster();
+          });
+          instGrid.appendChild(btn);
+        });
+      }
+
+      // Populate Pets
+      const petGrid = loadoutPanel.querySelector('#pet-loadout-grid');
+      if (petGrid) {
+        const bondedPets = state.harmoniDex.filter(d => d.bonded);
+        bondedPets.forEach(p => {
+          const isCurrent = player.pet.name === p.name || player.pet.species === p.species;
+          const btn = document.createElement('button');
+          btn.className = `loadout-btn ${isCurrent ? 'active' : ''}`;
+          btn.innerHTML = `<span>${p.sprite}</span> <span>${p.name} (${p.species})</span>`;
+          btn.addEventListener('click', () => {
+            this.engine.switchPlayerPet(p.id);
+            this.renderEnsembleRoster();
+          });
+          petGrid.appendChild(btn);
+        });
+      }
+    }
+
+    const sectionTitle = document.createElement('div');
+    sectionTitle.style.color = '#38bdf8';
+    sectionTitle.style.fontWeight = 'bold';
+    sectionTitle.style.margin = '14px 0 10px 0';
+    sectionTitle.innerText = `👥 Active Ensemble Members (${state.ensemble.members.length} Musicians • ${state.ensemble.tier.toUpperCase()} Tier):`;
+    rosterContainer.appendChild(sectionTitle);
+
     state.ensemble.members.forEach((musician) => {
       const card = document.createElement('div');
       card.className = 'musician-card';
@@ -477,6 +575,133 @@ export class HarmoniaUI {
       `;
 
       rosterContainer.appendChild(card);
+    });
+  }
+
+  public renderLuthierForge(): void {
+    const luthierBody = document.getElementById('luthier-body');
+    if (!luthierBody) return;
+
+    const state = this.engine.getState();
+    luthierBody.innerHTML = '';
+
+    // Header bar with currencies
+    const header = document.createElement('div');
+    header.className = 'luthier-header-bar';
+    header.innerHTML = `
+      <div style="font-weight:bold; color:#f8fafc; font-size:16px;">🔨 Master Luthier Marco's Workbench</div>
+      <div style="display:flex; gap:16px; font-weight:bold; font-size:14px;">
+        <span style="color:#fbbf24;">💰 Notes: ${state.wallet.gold} ♪</span>
+        <span style="color:#38bdf8;">✨ Sparks: ${state.wallet.inspirationSparks} ✨</span>
+      </div>
+    `;
+    luthierBody.appendChild(header);
+
+    // Quest Commission: Elder Timothy's Music Box
+    const musicQuest = state.quests.find(q => q.id === 'quest_side_musicbox');
+    const hasPins = state.questInventory.includes('brass_music_box_pins');
+
+    const questSection = document.createElement('div');
+    questSection.className = 'artifact-card';
+    questSection.style.borderColor = hasPins || (musicQuest && musicQuest.completed) ? '#10b981' : '#f59e0b';
+    questSection.style.background = 'rgba(30, 41, 59, 0.9)';
+
+    if (musicQuest && musicQuest.completed) {
+      questSection.innerHTML = `
+        <div style="font-weight:bold; color:#10b981; font-size:15px;">✓ Commission Complete: Elder Timothy's Music Box Pins</div>
+        <div style="font-size:13px; color:#cbd5e1;">The custom brass cylinder pins have been delivered. Timothy's heirloom plays beautifully!</div>
+      `;
+    } else if (hasPins) {
+      questSection.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div style="font-weight:bold; color:#10b981; font-size:15px;">⚙️ Brass Cylinder Pins (Ready in Inventory)</div>
+          <span style="font-size:12px; font-weight:bold; color:#10b981; background:rgba(16,185,129,0.2); padding:4px 8px; border-radius:4px;">MACHINED ✓</span>
+        </div>
+        <div style="font-size:13px; color:#cbd5e1;">Return to Elder Timothy in Cavatina Village plaza to repair his antique music box and claim your reward!</div>
+      `;
+    } else {
+      questSection.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div style="font-weight:bold; color:#f8fafc; font-size:15px;">⚙️ Special Commission: Brass Cylinder Pins (For Elder Timothy)</div>
+          <span style="color:#fbbf24; font-weight:bold; font-size:14px;">30 Notes (♪)</span>
+        </div>
+        <div style="font-size:13px; color:#94a3b8;">Precision-turned brass pins designed to replace the worn cylinders of vintage music boxes.</div>
+        <div style="display:flex; justify-content:flex-end; margin-top:6px;">
+          <button id="btn-craft-pins" class="btn-forge" ${state.wallet.gold < 30 ? 'disabled' : ''}>
+            🔨 Machine Brass Pins (30 ♪)
+          </button>
+        </div>
+      `;
+    }
+    luthierBody.appendChild(questSection);
+
+    const btnCraft = questSection.querySelector('#btn-craft-pins');
+    if (btnCraft) {
+      btnCraft.addEventListener('click', () => {
+        if (this.engine.craftQuestPins()) {
+          this.renderLuthierForge();
+        }
+      });
+    }
+
+    // Artifacts Catalog Header
+    const catalogHeader = document.createElement('div');
+    catalogHeader.style.color = '#38bdf8';
+    catalogHeader.style.fontWeight = 'bold';
+    catalogHeader.style.margin = '16px 0 8px 0';
+    catalogHeader.innerText = '🛡️ Signature Instrument Artifacts (Permanent Ensemble Stat & Trait Ascensions):';
+    luthierBody.appendChild(catalogHeader);
+
+    // Artifacts List
+    state.artifacts.forEach(artifact => {
+      const card = document.createElement('div');
+      card.className = `artifact-card ${artifact.equipped ? 'equipped' : ''}`;
+      
+      const canAfford = state.wallet.gold >= artifact.costGold && state.wallet.inspirationSparks >= artifact.costSparks;
+      const sectionIcons: Record<string, string> = { strings: '🎻 Strings', woodwinds: '🪈 Woodwinds', brass: '🎺 Brass', percussion: '🥁 Percussion' };
+
+      card.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <span style="font-weight:bold; color:#f8fafc; font-size:15px;">${artifact.name}</span>
+            <span style="font-size:12px; color:#38bdf8; margin-left:8px;">[${sectionIcons[artifact.section] || artifact.section}]</span>
+          </div>
+          <div>
+            ${artifact.equipped 
+              ? '<span style="color:#10b981; font-weight:bold; font-size:13px;">EQUIPPED ✓</span>' 
+              : `<span style="color:#fbbf24; font-weight:bold; font-size:13px;">${artifact.costGold} ♪  +  ${artifact.costSparks} ✨</span>`}
+          </div>
+        </div>
+
+        <div style="display:flex; gap:16px; font-size:12px; color:#10b981; font-weight:600;">
+          <span>+${artifact.bonusTechnique} Technique (TEC)</span>
+          <span>+${artifact.bonusTone} Tone Quality (TON)</span>
+          <span>+${artifact.bonusTempo} Tempo Stability (TEM)</span>
+        </div>
+
+        <div style="font-size:13px; color:#94a3b8; background:rgba(15,23,42,0.5); padding:8px 10px; border-radius:6px; border-left:3px solid #f59e0b;">
+          ✨ <strong>Trait: [${artifact.traitName}]</strong> - ${artifact.traitDescription}
+        </div>
+
+        ${!artifact.equipped ? `
+          <div style="display:flex; justify-content:flex-end; margin-top:4px;">
+            <button class="btn-forge btn-forge-art" data-id="${artifact.id}" ${!canAfford ? 'disabled' : ''}>
+              🔨 Forge & Equip Artifact
+            </button>
+          </div>
+        ` : ''}
+      `;
+
+      luthierBody.appendChild(card);
+    });
+
+    luthierBody.querySelectorAll('.btn-forge-art').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = (e.target as HTMLElement).getAttribute('data-id');
+        if (id && this.engine.forgeArtifact(id)) {
+          this.renderLuthierForge();
+        }
+      });
     });
   }
 
@@ -516,6 +741,28 @@ export class HarmoniaUI {
       `;
       questsContainer.appendChild(card);
     });
+
+    // Key Items Satchel
+    if (state.questInventory.length > 0) {
+      const invHeader = document.createElement('div');
+      invHeader.style.color = '#fbbf24';
+      invHeader.style.fontWeight = 'bold';
+      invHeader.style.margin = '14px 0 8px 0';
+      invHeader.innerText = '🎒 Quest Satchel Key Items:';
+      questsContainer.appendChild(invHeader);
+
+      state.questInventory.forEach(item => {
+        const itemCard = document.createElement('div');
+        itemCard.className = 'repertoire-card';
+        itemCard.style.borderColor = '#fbbf24';
+        itemCard.style.padding = '10px 14px';
+        itemCard.innerHTML = `
+          <div style="font-weight:bold; color:#fbbf24; font-size:14px;">⚙️ ${item === 'brass_music_box_pins' ? 'Brass Cylinder Pins (Machined by Master Marco)' : item}</div>
+          <div style="font-size:12px; color:#cbd5e1; margin-top:2px;">Deliver this key item to Elder Timothy in Cavatina Village to complete his restoration commission.</div>
+        `;
+        questsContainer.appendChild(itemCard);
+      });
+    }
 
     // Lost Scores Section
     const scoreHeader = document.createElement('div');

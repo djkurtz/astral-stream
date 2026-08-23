@@ -283,9 +283,14 @@ export class HarmoniaRenderer {
 
     // Title
     ctx.fillStyle = '#f8fafc';
-    ctx.font = 'bold 28px "Cinzel", serif';
+    ctx.font = 'bold 26px "Cinzel", serif';
     ctx.textAlign = 'center';
-    ctx.fillText('⚔️ AUDITION DUEL: HARMONIC JAM SESSION 🎻', this.width / 2, 50);
+    ctx.fillText('⚔️ AUDITION DUEL: HARMONIC JAM SESSION 🎻', this.width / 2, 45);
+
+    // Subtitle / Mechanics Hint
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '13px "Inter", sans-serif';
+    ctx.fillText('Duel Objective: Build your Harmony Composure to 100% with tactical phrases before opponent overwhelms the acoustic space!', this.width / 2, 72);
 
     // Left: Player & Familiar
     const player = state.ensemble.members[0];
@@ -296,10 +301,10 @@ export class HarmoniaRenderer {
     this.drawPixelMusician(ctx, 180, 260, player, state.time, state.customization, 'right');
     this.drawPixelPet(ctx, 280, 280, player.pet, state.time, state.customization?.petTint, 'right');
 
-    // Player Harmony Meter
-    this.drawBar(ctx, 100, 140, 300, 24, battle.playerHarmonyMeter, 100, '#38bdf8', 'Harmony: ' + battle.playerHarmonyMeter + '%');
-    // Harmony Points
-    this.drawBar(ctx, 100, 175, 300, 16, battle.harmonyPoints, battle.maxHarmonyPoints, '#fbbf24', 'HP Points: ' + battle.harmonyPoints);
+    // Player Harmony Meter (Health/Composure to 100% win)
+    this.drawBar(ctx, 100, 140, 300, 24, battle.playerHarmonyMeter, 100, '#38bdf8', '🎵 Harmony Composure: ' + battle.playerHarmonyMeter + '%');
+    // Harmony Action Points (AP)
+    this.drawBar(ctx, 100, 175, 300, 16, battle.harmonyPoints, battle.maxHarmonyPoints, '#fbbf24', '⚡ Energy (AP): ' + battle.harmonyPoints + ' / ' + battle.maxHarmonyPoints);
 
     // Stance Badges
     if (battle.playerStance !== 'normal') {
@@ -317,8 +322,8 @@ export class HarmoniaRenderer {
     this.drawPixelMusician(ctx, this.width - 240, 260, opp, state.time, undefined, 'left');
     this.drawPixelPet(ctx, this.width - 340, 280, opp.pet, state.time, undefined, 'left');
 
-    // Opponent Resonance Meter
-    this.drawBar(ctx, this.width - 400, 140, 300, 24, battle.opponentHarmonyMeter, 100, opp.paletteColor, 'Resonance: ' + battle.opponentHarmonyMeter + '%');
+    // Opponent Resonance Meter (Their Composure to 100% loss)
+    this.drawBar(ctx, this.width - 400, 140, 300, 24, battle.opponentHarmonyMeter, 100, opp.paletteColor, '🎻 Rival Resonance: ' + battle.opponentHarmonyMeter + '%');
 
     if (battle.opponentStance !== 'normal') {
       ctx.fillStyle = '#ef4444';

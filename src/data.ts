@@ -1,7 +1,8 @@
 import {
   Harmonipet, Musician, RepertoirePiece, RivalEnsemble, WorldZone, WorldNPC, BattleMove, InstrumentId,
   InstrumentArtifact, LostScore, InspirationVista, PerformanceVenue, GameQuest,
-  HarmoniDexEntry, ClefBadge, PlayerCustomization, TheoryChallengeType, TheoryQuestion
+  HarmoniDexEntry, ClefBadge, PlayerCustomization, TheoryChallengeType, TheoryQuestion,
+  InstrumentSection, PlayerProficiency
 } from './types';
 
 export const DEFAULT_CUSTOMIZATION: PlayerCustomization = {
@@ -98,6 +99,38 @@ export const STARTER_OPTIONS: StarterOption[] = [
     baseStats: { technique: 20, toneQuality: 18, tempoStability: 30, sightReading: 18 }
   }
 ];
+
+export const ALL_INSTRUMENTS_INFO: Record<InstrumentId, { name: string; section: InstrumentSection; avatar: string; description: string }> = {
+  violin: { name: 'Aria Violin', section: 'strings', avatar: '🎻', description: 'Expressive lyrical leads and agile counterpoint.' },
+  acoustic_guitar: { name: 'Acoustic Guitar', section: 'strings', avatar: '🎸', description: 'Rhythmic rasgueado strums and rich acoustic chord beds.' },
+  cello: { name: 'Resonant Cello', section: 'strings', avatar: '🎻', description: 'Deep grounding basslines and warm melancholic resonance.' },
+  harp: { name: 'Concert Harp', section: 'strings', avatar: '🪕', description: 'Shimmering arpeggios and ethereal angelic flourishes.' },
+  silver_flute: { name: 'Silver Concert Flute', section: 'woodwinds', avatar: '🪈', description: 'Airy overtones, brisk staccato runs, and birdsong cantilenas.' },
+  soprano_sax: { name: 'Soprano Saxophone', section: 'woodwinds', avatar: '🎷', description: 'Vibrant reed brilliance and soaring improvisational jazz phrasing.' },
+  clarinet: { name: 'Bb Clarinet', section: 'woodwinds', avatar: '🪈', description: 'Liquid chalumeau low register and bright clarion leaps.' },
+  oboe: { name: 'Cantabile Oboe', section: 'woodwinds', avatar: '🪈', description: 'Piercingly sweet double-reed timbre with profound emotional depth.' },
+  pocket_trumpet: { name: 'Pocket Trumpet', section: 'brass', avatar: '🎺', description: 'Crisp heroic fanfares, bold dynamic attacks, and regal projection.' },
+  french_horn: { name: 'French Horn', section: 'brass', avatar: '📯', description: 'Noble alpine calls, velvety warm mid-range, and distant echoes.' },
+  trombone: { name: 'Tenor Trombone', section: 'brass', avatar: '🎺', description: 'Thunderous slide glissandos and punchy harmonic brass walls.' },
+  tuba: { name: 'Bass Tuba', section: 'brass', avatar: '🎺', description: 'Earth-shaking acoustic pedal notes that anchor the brass choir.' },
+  snare_kit: { name: 'Snare & Hi-Hat Kit', section: 'percussion', avatar: '🥁', description: 'Crisp metronomic precision, tight rolls, and groove propulsion.' },
+  marimba: { name: 'Rosewood Marimba', section: 'percussion', avatar: '🪵', description: 'Warm wooden resonance and dancing polyrhythmic ostinatos.' },
+  timpani: { name: 'Orchestral Timpani', section: 'percussion', avatar: '🥁', description: 'Resonant kettle drums providing thunderous dramatic crescendos.' },
+  glockenspiel: { name: 'Silver Glockenspiel', section: 'percussion', avatar: '🔔', description: 'Bright crystalline metallic chimes that sparkle above the ensemble.' }
+};
+
+export function calculateEffectiveSkill(
+  lead: Musician,
+  proficiency: PlayerProficiency,
+  instrumentId: InstrumentId = lead.instrumentId
+): number {
+  const info = ALL_INSTRUMENTS_INFO[instrumentId] || ALL_INSTRUMENTS_INFO.violin;
+  const general = Math.round((lead.stats.technique + lead.stats.toneQuality + lead.stats.tempoStability + lead.stats.sightReading) / 4);
+  const sectionScore = proficiency.sections[info.section] || 20;
+  const masteryObj = proficiency.instruments[instrumentId] || { level: 1, xp: 0 };
+  const masteryScore = Math.min(100, masteryObj.level * 10);
+  return Math.round((general * 0.5) + (sectionScore * 0.3) + (masteryScore * 0.2));
+}
 
 /* ---------------- BATTLE MOVES ---------------- */
 

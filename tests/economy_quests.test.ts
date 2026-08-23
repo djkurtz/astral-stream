@@ -51,11 +51,45 @@ describe('Harmonia: Economy, Artifacts, and Quest Systems', () => {
     state.player.y = luthierNpc.y;
     engine.updateProximity();
     engine.interactWithNearby();
+    expect(state.dialogue?.speaker).toBe('Master Luthier Marco');
 
+    const success = engine.forgeArtifact('artifact_rosin_swan');
+    expect(success).toBe(true);
     expect(state.wallet.gold).toBe(200); // 500 - 300
     expect(state.wallet.inspirationSparks).toBe(15); // 30 - 15
     expect(player.stats.technique).toBe(initialTec + 15);
-    expect(state.dialogue?.speaker).toBe('Master Luthier Marco');
-    expect(state.dialogue?.text[0]).toContain('Bow Rosin of the Swan');
+  });
+
+  it('should craft brass cylinder pins at Luthier Marco and complete Elder Timothy music box quest', () => {
+    const state = engine.getState();
+    const timothyNpc = state.npcs.find(n => n.id === 'npc_side_musicbox')!;
+    const quest = state.quests.find(q => q.id === 'quest_side_musicbox')!;
+    expect(quest.completed).toBe(false);
+
+    // Initial talk with Timothy
+    state.player.x = timothyNpc.x;
+    state.player.y = timothyNpc.y;
+    engine.updateProximity();
+    engine.interactWithNearby();
+    expect(state.dialogue?.speaker).toBe('Elder Timothy');
+    expect(state.questInventory.includes('brass_music_box_pins')).toBe(false);
+
+    // Craft pins (costs 30♪)
+    state.wallet.gold = 100;
+    const craftOk = engine.craftQuestPins();
+    expect(craftOk).toBe(true);
+    expect(state.wallet.gold).toBe(70);
+    expect(state.questInventory.includes('brass_music_box_pins')).toBe(true);
+
+    // Deliver pins to Timothy
+    const initialGold = state.wallet.gold;
+    const initialSparks = state.wallet.inspirationSparks;
+    engine.interactWithNearby();
+
+    expect(quest.completed).toBe(true);
+    expect(state.questInventory.includes('brass_music_box_pins')).toBe(false);
+    expect(state.wallet.gold).toBe(initialGold + 150);
+    expect(state.wallet.inspirationSparks).toBe(initialSparks + 10);
+    expect(state.dialogue?.text[0]).toContain('By the Great Clef');
   });
 });

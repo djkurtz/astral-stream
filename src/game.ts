@@ -9,7 +9,7 @@ import {
   RIVAL_ENSEMBLES, WORLD_ZONES, INITIAL_WORLD_NPCS, BATTLE_MOVES,
   INSTRUMENT_ARTIFACTS, INITIAL_LOST_SCORES, INITIAL_INSPIRATION_VISTAS, INITIAL_GAME_QUESTS,
   INITIAL_HARMONIDEX, CLEF_BADGES, DEFAULT_CUSTOMIZATION, THEORY_CURRICULUM,
-  getBattleMovesForMusician
+  getBattleMovesForMusician, ALL_INSTRUMENTS_INFO
 } from './data';
 import { BattleMove } from './types';
 import { soundEngine } from './audio';
@@ -72,6 +72,29 @@ export class HarmoniaGameEngine {
       vistas: JSON.parse(JSON.stringify(INITIAL_INSPIRATION_VISTAS)),
       quests: JSON.parse(JSON.stringify(INITIAL_GAME_QUESTS)),
       activeQuestId: 'quest_ch1',
+      questInventory: [],
+      proficiency: {
+        sections: { strings: 25, woodwinds: 20, brass: 20, percussion: 20 },
+        instruments: {
+          violin: { level: 1, xp: 0 },
+          acoustic_guitar: { level: 1, xp: 0 },
+          cello: { level: 1, xp: 0 },
+          harp: { level: 1, xp: 0 },
+          silver_flute: { level: 1, xp: 0 },
+          soprano_sax: { level: 1, xp: 0 },
+          clarinet: { level: 1, xp: 0 },
+          oboe: { level: 1, xp: 0 },
+          pocket_trumpet: { level: 1, xp: 0 },
+          french_horn: { level: 1, xp: 0 },
+          trombone: { level: 1, xp: 0 },
+          tuba: { level: 1, xp: 0 },
+          snare_kit: { level: 1, xp: 0 },
+          marimba: { level: 1, xp: 0 },
+          timpani: { level: 1, xp: 0 },
+          glockenspiel: { level: 1, xp: 0 }
+        },
+        unlockedInstruments: ['violin']
+      },
       practiceLevel: 1,
       theoryLevel: 1,
       completedTheoryDrills: [],
@@ -116,6 +139,11 @@ export class HarmoniaGameEngine {
       dexEntry.discovered = true;
       dexEntry.bonded = true;
     }
+
+    // Initialize player proficiency with chosen starter
+    this.state.proficiency.unlockedInstruments = [starterOpt.id];
+    this.state.proficiency.sections[starterOpt.section] = 40;
+    this.state.proficiency.instruments[starterOpt.id] = { level: 1, xp: 0 };
 
     // Start zone ambient music
     soundEngine.startBGM('cavatina_village', [starterOpt.section]);
@@ -433,6 +461,15 @@ export class HarmoniaGameEngine {
       // Currency rewards for recruiting
       this.state.wallet.gold += 100;
       this.state.wallet.inspirationSparks += 15;
+
+      // Unlock recruited musician's instrument and boost section proficiency
+      if (!this.state.proficiency.unlockedInstruments.includes(recruited.instrumentId)) {
+        this.state.proficiency.unlockedInstruments.push(recruited.instrumentId);
+      }
+      this.state.proficiency.sections[recruited.section] = Math.min(100, (this.state.proficiency.sections[recruited.section] || 20) + 15);
+      if (!this.state.proficiency.instruments[recruited.instrumentId]) {
+        this.state.proficiency.instruments[recruited.instrumentId] = { level: 1, xp: 0 };
+      }
     }
 
     soundEngine.playFanfare();
@@ -542,6 +579,15 @@ export class HarmoniaGameEngine {
         level: 1,
         xp: 0
       };
+
+      // Unlock instrument for player
+      if (!this.state.proficiency.unlockedInstruments.includes(enc.instrumentId)) {
+        this.state.proficiency.unlockedInstruments.push(enc.instrumentId);
+      }
+      this.state.proficiency.sections[enc.pet.section] = Math.min(100, (this.state.proficiency.sections[enc.pet.section] || 20) + 10);
+      if (!this.state.proficiency.instruments[enc.instrumentId]) {
+        this.state.proficiency.instruments[enc.instrumentId] = { level: 1, xp: 0 };
+      }
 
       if (this.state.ensemble.members.length < 8) {
         this.state.ensemble.members.push(newMusician);
@@ -924,26 +970,40 @@ export class HarmoniaGameEngine {
       return;
     }
 
-    if (target.actionType === 'luthier_shop') {
-      const lead = this.state.ensemble.members[0];
-      const availArtifact = this.state.artifacts.find(a => a.section === lead.section && !a.equipped);
-      if (availArtifact && this.state.wallet.gold >= availArtifact.costGold && this.state.wallet.inspirationSparks >= availArtifact.costSparks) {
-        this.state.wallet.gold -= availArtifact.costGold;
-        this.state.wallet.inspirationSparks -= availArtifact.costSparks;
-        availArtifact.equipped = true;
-        lead.stats.technique = Math.min(100, lead.stats.technique + availArtifact.bonusTechnique);
-        lead.stats.toneQuality = Math.min(100, lead.stats.toneQuality + availArtifact.bonusTone);
-        lead.stats.tempoStability = Math.min(100, lead.stats.tempoStability + availArtifact.bonusTempo);
-        soundEngine.playFanfare();
-        this.showDialogue('Master Luthier Marco', '🔨', [
-          `Splendid! I have forged the [${availArtifact.name}] for your ${lead.instrumentName}!`,
-          `Bonus: +${availArtifact.bonusTechnique} TEC, +${availArtifact.bonusTone} TON, +${availArtifact.bonusTempo} TEM!`,
-          `Special Trait Awakened: [${availArtifact.traitName}] - ${availArtifact.traitDescription}`
+    if (target.id === 'npc_side_musicbox') {
+      const musicBoxQuest = this.state.quests.find(q => q.id === 'quest_side_musicbox');
+      if (musicBoxQuest && musicBoxQuest.completed) {
+        this.showDialogue('Elder Timothy', '👴', [
+          "Listen to that glorious, sweet chime! My grandfather's music box is singing once more thanks to you, Maestro!"
         ]);
         return;
       }
+      if (this.state.questInventory.includes('brass_music_box_pins')) {
+        // Player has the pins! Complete the quest!
+        if (musicBoxQuest) musicBoxQuest.completed = true;
+        this.state.questInventory = this.state.questInventory.filter(item => item !== 'brass_music_box_pins');
+        this.state.wallet.gold += 150;
+        this.state.wallet.inspirationSparks += 10;
+        soundEngine.playFanfare();
+        this.showDialogue('Elder Timothy', '👴', [
+          "By the Great Clef! You brought the custom brass cylinder pins from Master Marco!",
+          "*Click... whirr... 🎶 (The music box plays an enchanting, crystal chime!)*",
+          "It's working perfectly! Take this handsome reward: +150 Notes (♪) and +10 Inspiration Sparks (✨)!"
+        ]);
+        return;
+      }
+      // Quest not complete and no pins
+      this.showDialogue('Elder Timothy', '👴', [
+        "Oh my! My grandfather's antique music box lost its delicate cylinder pins.",
+        "Could you visit Master Luthier Marco at the Forge to the west and ask him to forge replacement Brass Pins? I'll reward you with 150 Notes (♪)!"
+      ]);
+      return;
+    }
+
+    if (target.actionType === 'luthier_shop') {
+      window.dispatchEvent(new CustomEvent('open-luthier-shop'));
       this.showDialogue('Master Luthier Marco', '🔨', [
-        "Welcome to the Forge! Bring me Notes (♪) and Inspiration Sparks (✨) to craft signature instrument artifacts and ascend your tone!"
+        "Welcome to the Forge! Browse my signature artifacts and custom commissions to ascend your ensemble's tone!"
       ]);
       return;
     }
@@ -1165,6 +1225,8 @@ export class HarmoniaGameEngine {
         vistas: this.state.vistas,
         quests: this.state.quests,
         activeQuestId: this.state.activeQuestId,
+        questInventory: this.state.questInventory,
+        proficiency: this.state.proficiency,
         practiceLevel: this.state.practiceLevel,
         theoryLevel: this.state.theoryLevel,
         completedTheoryDrills: this.state.completedTheoryDrills,
@@ -1199,6 +1261,8 @@ export class HarmoniaGameEngine {
       this.state.vistas = data.vistas || this.state.vistas;
       this.state.quests = data.quests || this.state.quests;
       this.state.activeQuestId = data.activeQuestId || 'quest_ch1';
+      this.state.questInventory = data.questInventory || [];
+      this.state.proficiency = data.proficiency || this.state.proficiency;
       this.state.practiceLevel = data.practiceLevel || 1;
       this.state.theoryLevel = data.theoryLevel || 1;
       this.state.completedTheoryDrills = data.completedTheoryDrills || [];
@@ -1211,6 +1275,77 @@ export class HarmoniaGameEngine {
       console.error('Load failed', e);
       return false;
     }
+  }
+
+  public switchPlayerInstrument(newInstrumentId: InstrumentId): void {
+    if (!this.state.proficiency.unlockedInstruments.includes(newInstrumentId)) return;
+    const player = this.state.ensemble.members[0];
+    if (!player) return;
+    const info = ALL_INSTRUMENTS_INFO[newInstrumentId];
+    if (!info) return;
+
+    player.instrumentId = newInstrumentId;
+    player.instrumentName = info.name;
+    player.section = info.section;
+    player.avatar = info.avatar;
+    soundEngine.playInstrumentNote(newInstrumentId, 440, 0.4, 0.8);
+  }
+
+  public switchPlayerPet(newPetId: string): void {
+    const player = this.state.ensemble.members[0];
+    if (!player) return;
+    const dexEntry = this.state.harmoniDex.find(d => (d.id === newPetId || d.species === newPetId) && d.bonded);
+    if (!dexEntry) return;
+
+    player.pet = {
+      id: dexEntry.id,
+      name: dexEntry.name,
+      species: dexEntry.species,
+      sprite: dexEntry.sprite,
+      section: dexEntry.section,
+      instrumentName: dexEntry.instrumentName,
+      leitmotifSound: 'violin_pure',
+      color: player.paletteColor
+    };
+    soundEngine.playFanfare();
+  }
+
+  public forgeArtifact(artifactId: string): boolean {
+    const artifact = this.state.artifacts.find(a => a.id === artifactId);
+    if (!artifact || artifact.equipped) return false;
+    if (this.state.wallet.gold < artifact.costGold || this.state.wallet.inspirationSparks < artifact.costSparks) {
+      return false;
+    }
+
+    this.state.wallet.gold -= artifact.costGold;
+    this.state.wallet.inspirationSparks -= artifact.costSparks;
+    artifact.equipped = true;
+
+    // Apply bonuses to all matching section members or leader
+    const matchingMusicians = this.state.ensemble.members.filter(m => m.section === artifact.section);
+    const targets = matchingMusicians.length > 0 ? matchingMusicians : [this.state.ensemble.members[0]];
+    for (const m of targets) {
+      m.stats.technique = Math.min(100, m.stats.technique + artifact.bonusTechnique);
+      m.stats.toneQuality = Math.min(100, m.stats.toneQuality + artifact.bonusTone);
+      m.stats.tempoStability = Math.min(100, m.stats.tempoStability + artifact.bonusTempo);
+    }
+    soundEngine.playFanfare();
+    return true;
+  }
+
+  public craftQuestPins(): boolean {
+    if (this.state.questInventory.includes('brass_music_box_pins')) return false;
+    const cost = 30;
+    if (this.state.wallet.gold < cost) return false;
+    this.state.wallet.gold -= cost;
+    this.state.questInventory.push('brass_music_box_pins');
+    
+    const musicQuest = this.state.quests.find(q => q.id === 'quest_side_musicbox');
+    if (musicQuest) {
+      musicQuest.objective = 'Deliver the machined Brass Cylinder Pins back to Elder Timothy.';
+    }
+    soundEngine.playFanfare();
+    return true;
   }
 
   public restartGame(): void {

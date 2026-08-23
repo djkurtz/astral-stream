@@ -26,6 +26,17 @@ export interface MusicianStats {
   sightReading: number;  // Speed of learning new sheet music (1-100)
 }
 
+export interface InstrumentMastery {
+  level: number; // 1 to 10
+  xp: number;
+}
+
+export interface PlayerProficiency {
+  sections: Record<InstrumentSection, number>; // 0 to 100
+  instruments: Record<InstrumentId, InstrumentMastery>;
+  unlockedInstruments: InstrumentId[];
+}
+
 export interface Musician {
   id: string;
   name: string;
@@ -429,6 +440,8 @@ export interface GameState {
   vistas: InspirationVista[];
   quests: GameQuest[];
   activeQuestId: string | null;
+  questInventory: string[]; // e.g. 'brass_music_box_pins'
+  proficiency: PlayerProficiency;
   practiceLevel: number;
   theoryLevel: number;
   completedTheoryDrills: string[];
