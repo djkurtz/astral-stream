@@ -97,10 +97,10 @@ describe('World Collision & Camera Tracking System', () => {
 
   it('should accurately calculate camera tracking coordinates across 3200x2400 world', () => {
     const state = engine.getState();
-
-    // Initial spawn at Cadence Plaza (1500, 1400)
-    expect(state.player.x).toBe(1500);
-    expect(state.player.y).toBe(1400);
+    state.currentZone = 'plaza';
+    state.currentInterior = null;
+    state.player.x = 1500;
+    state.player.y = 1400;
 
     engine.update(1000);
     engine.update(1016);

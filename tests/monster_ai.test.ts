@@ -11,6 +11,8 @@ describe('Wild Monster AI & Algorithmic Spawning', () => {
     while (state.dialogue) {
       engine.advanceDialogue();
     }
+    state.currentZone = 'beach';
+    state.currentInterior = null;
     expect(state.mode).toBe('exploration');
   });
 
@@ -25,9 +27,9 @@ describe('Wild Monster AI & Algorithmic Spawning', () => {
 
   it('should wander or patrol when player is far away (>220px)', () => {
     const state = engine.getState();
-    // Position player at center plaza (1500, 1400)
-    state.player.x = 1500;
-    state.player.y = 1400;
+    // Position player far away on beach
+    state.player.x = 100;
+    state.player.y = 100;
 
     const bug = state.wildGlitches.find(g => g.id === 'glitch_beach_1')!;
     expect(bug).toBeDefined();
@@ -37,6 +39,19 @@ describe('Wild Monster AI & Algorithmic Spawning', () => {
     // Run AI tick
     (engine as any).updateWildMonsters(0.1);
     expect(bug.isAlerted).toBe(false);
+  });
+
+  it('should not update or pursue monsters when player is in the village or indoors', () => {
+    const state = engine.getState();
+    state.currentZone = 'plaza';
+    state.currentInterior = null;
+    const bug = state.wildGlitches.find(g => g.id === 'glitch_beach_1')!;
+    state.player.x = bug.x + 20;
+    state.player.y = bug.y;
+
+    (engine as any).updateWildMonsters(0.1);
+    expect(bug.isAlerted).toBe(false);
+    expect(state.mode).toBe('exploration');
   });
 
   it('should alert and pursue player when within detection radius (<220px)', () => {

@@ -7,10 +7,12 @@ describe('Collectible Items & Exploration Mechanics', () => {
 
   beforeEach(() => {
     engine = new GameEngine();
-    // Dismiss intro emergency dialogue
-    while (engine.getState().dialogue) {
+    const state = engine.getState();
+    while (state.dialogue) {
       engine.advanceDialogue();
     }
+    state.currentInterior = null;
+    state.currentZone = 'plaza';
   });
 
   it('should initialize with 4 scattered items and an empty inventory', () => {

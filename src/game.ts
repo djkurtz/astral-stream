@@ -21,7 +21,7 @@ export class AstralGameEngine {
     return {
       mode: 'intro',
       questStage: 'intro',
-      currentZone: 'plaza',
+      currentZone: 'cafe',
       transition: null,
       discoveredZones: {
         plaza: true,
@@ -30,18 +30,18 @@ export class AstralGameEngine {
         bamboo: false,
         ruins: false,
         ridge: false,
-        cafe: false,
+        cafe: true,
         vinyl_den: false
       },
       zoneChallenges: {},
       camera: {
-        x: 860,
-        y: 1040
+        x: 0,
+        y: 0
       },
       zoneClean: true,
       player: {
-        x: 1500,
-        y: 1400,
+        x: 320,
+        y: 300,
         dir: 'up',
         isMoving: false
       },
@@ -70,7 +70,7 @@ export class AstralGameEngine {
       items: JSON.parse(JSON.stringify(TOWN_ITEMS)),
       inventory: [],
       activeCompanion: null,
-      followerTrail: [{ x: 1500, y: 1420 }, { x: 1500, y: 1440 }, { x: 1500, y: 1460 }],
+      followerTrail: [{ x: 320, y: 324 }],
       streamQueue: [JSON.parse(JSON.stringify(STARTER_SPIRIT))],
       activeSpiritIndex: 0,
       nearbyInteractable: null,
@@ -80,18 +80,19 @@ export class AstralGameEngine {
         speaker: 'Aria ☕',
         avatar: '☕',
         text: [
-          "Good morning, Streamer! Welcome to Cadence Plaza for the annual Soundwave Festival!",
-          "I see you brought your bonded partner, Chime-Cat! 🐱 You two must be excited to tune into the realm's legendary acoustic traditions.",
-          "Step inside the Neon Cafe right behind me for a fresh Harmonic Latte and chat with our festival guests, or visit DJ Otter's Vinyl Den!",
-          "Use [W, A, S, D] to walk around, and press [SPACE] at building doors to enter."
+          "Good morning, Streamer! Welcome to the Neon Cafe for the annual Soundwave Festival! ☕✨",
+          "I see you brought your bonded partner, Chime-Cat! 🐱 That crisp chiptune wave from Metro Sound City is always refreshing to hear.",
+          "Latte-Chirp and I are getting the morning espresso dialed in. Order a Harmonic Latte anytime to top off your squad's HP and energy!",
+          "Chat with Maya and Leo at the lounge tables, or test your look in the Streamer Mirror [C] before heading outside to the plaza.",
+          "When you're ready, head out through the front door [SPACE] to explore Cadence Plaza and celebrate the Soundwave Festival!"
         ],
         index: 0
       },
       time: 0,
       glitchActive: false,
       cleansingProgress: 0,
-      currentInterior: null,
-      visitedCafe: false
+      currentInterior: 'cafe',
+      visitedCafe: true
     };
   }
 
@@ -524,10 +525,20 @@ export class AstralGameEngine {
   }
 
   private updateWildMonsters(dt: number): void {
+    const inVillage = this.state.currentZone === 'plaza' || this.state.currentInterior !== null;
     const px = this.state.player.x;
     const py = this.state.player.y;
 
     for (const g of this.state.wildGlitches) {
+      // Monsters never spawn or exist in the village (Plaza or interiors)
+      if (g.zone === 'plaza' || g.zone === 'cafe' || g.zone === 'vinyl_den') continue;
+
+      // When player is exploring in the village, skip monster pursuit
+      if (inVillage && this.state.currentZone !== g.zone) {
+        g.isAlerted = false;
+        continue;
+      }
+
       if (g.defeated) {
         g.respawnTimer = (g.respawnTimer || 0) + dt;
         if (g.respawnTimer > 20) {
@@ -693,15 +704,10 @@ export class AstralGameEngine {
       if (npc.actionType === 'enter_building') {
         soundEngine.playLockChime();
         if (npc.id === 'door_cafe') {
-          this.state.currentInterior = 'cafe';
-          this.state.player = { x: 320, y: 340, dir: 'up', isMoving: false };
-          this.state.followerTrail = [];
+          this.startZoneTransition('cafe', { x: 320, y: 340, dir: 'up' });
         } else if (npc.id === 'door_vinyl') {
-          this.state.currentInterior = 'vinyl_den';
-          this.state.player = { x: 320, y: 340, dir: 'up', isMoving: false };
-          this.state.followerTrail = [];
+          this.startZoneTransition('vinyl_den', { x: 320, y: 340, dir: 'up' });
         }
-        this.updateProximity();
         return;
       }
 
@@ -709,16 +715,10 @@ export class AstralGameEngine {
       if (npc.actionType === 'exit_building') {
         soundEngine.playLockChime();
         if (this.state.currentInterior === 'cafe') {
-          this.state.currentInterior = null;
-          this.state.visitedCafe = true;
-          this.state.player = { x: 1360, y: 1380, dir: 'down', isMoving: false };
-          this.state.followerTrail = [];
+          this.startZoneTransition('plaza', { x: 1360, y: 1380, dir: 'down' });
         } else if (this.state.currentInterior === 'vinyl_den') {
-          this.state.currentInterior = null;
-          this.state.player = { x: 1910, y: 1380, dir: 'down', isMoving: false };
-          this.state.followerTrail = [];
+          this.startZoneTransition('plaza', { x: 1910, y: 1380, dir: 'down' });
         }
-        this.updateProximity();
         return;
       }
 
@@ -729,21 +729,32 @@ export class AstralGameEngine {
           s.hp = s.maxHp;
           s.energy = 100;
         }
-        this.showDialogue(npc.name, '☕', [
-          "Here is your steaming Harmonic Latte! ☕✨",
-          "Your squad's HP and Energy are fully restored to maximum!",
-          "Aria's partner, Latte-Chirp (Melody Songbird), chirps a cheerful flute melody beside you."
-        ]);
+        if (this.state.questStage === 'intro') {
+          this.showDialogue(npc.name, '☕', [
+            "Here is your steaming Harmonic Latte! ☕✨",
+            "Your squad's HP and Energy are fully restored to maximum!",
+            "Aria's partner, Latte-Chirp (Melody Songbird), chirps a cheerful flute melody beside you."
+          ]);
+        } else {
+          this.showDialogue(npc.name, '☕', [
+            "Here is your steaming Harmonic Latte! ☕✨",
+            "Your squad's HP and Energy are fully restored to maximum!",
+            "Stay safe out there in the static storm, Streamer. Please bring Latte-Chirp back!"
+          ]);
+        }
         return;
       }
 
       // Vinyl Den Shop Browse
       if (npc.actionType === 'browse_shop') {
         soundEngine.playLockChime();
+        const introMsg = this.state.questStage === 'intro'
+          ? "DJ Otter's partner, Vinyl-Pup (Groove Terrier), wags its tail to the beat."
+          : "Stay tuned into the rhythm, Streamer. We're counting on you to break the static!";
         this.showDialogue(npc.name, '💽', [
           npc.dialogue[0] || "Browsing the rare vinyl crates...",
           "You tuned your audio receptors to the rare analog pressings! (+10 Max Energy for all Harmonimals)",
-          "DJ Otter's partner, Vinyl-Pup (Groove Terrier), wags its tail to the beat."
+          introMsg
         ]);
         return;
       }
@@ -817,7 +828,12 @@ export class AstralGameEngine {
       else if (npc.sprite === 'lyra') avatar = '🔮';
       else if (npc.sprite === 'maya') avatar = '🎧';
       else if (npc.sprite === 'leo') avatar = '🎹';
-      this.showDialogue(npc.name, avatar, npc.dialogue);
+
+      let dialogueLines = npc.dialogue;
+      if (this.state.questStage !== 'intro' && npc.dialoguePostAlert) {
+        dialogueLines = npc.dialoguePostAlert;
+      }
+      this.showDialogue(npc.name, avatar, dialogueLines);
     } else {
       // Sound Ripple
       const rip = target as SoundRipple;
@@ -888,7 +904,8 @@ export class AstralGameEngine {
         onComplete();
       } else if (this.state.mode === 'intro') {
         this.state.mode = 'exploration';
-        soundEngine.switchTrack('town');
+        const currentZoneConfig = ZONE_CONFIGS[this.state.currentZone];
+        soundEngine.switchTrack(currentZoneConfig ? currentZoneConfig.ambientTrack : 'cafe');
       }
     }
   }

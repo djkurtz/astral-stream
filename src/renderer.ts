@@ -210,10 +210,12 @@ export class AstralRenderer {
       }
     }
 
-    // 16. Wild Static Glitches & Roaming Monsters
-    for (const g of state.wildGlitches) {
-      if (!g.defeated) {
-        this.drawWildGlitch(ctx, g.x, g.y, g.spirit, t, !!g.isAlerted);
+    // 16. Wild Static Glitches & Roaming Monsters (Never in village or indoors)
+    if (state.currentZone !== 'plaza' && !state.currentInterior) {
+      for (const g of state.wildGlitches) {
+        if (!g.defeated && g.zone === state.currentZone) {
+          this.drawWildGlitch(ctx, g.x, g.y, g.spirit, t, !!g.isAlerted);
+        }
       }
     }
 

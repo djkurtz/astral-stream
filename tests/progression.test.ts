@@ -141,28 +141,26 @@ describe('Story Progression & Tag-Team Fusion', () => {
     expect(freshState.mode).toBe('exploration');
     expect(freshState.dialogue).toBeNull();
     expect(freshState.questStage).toBe('intro');
-    expect(freshState.currentInterior).toBeNull();
-
-    // Player enters the Neon Cafe
-    freshState.player.x = 1360;
-    freshState.player.y = 1340;
-    freshEngine.updateProximity();
-    freshEngine.interactWithNearby();
     expect(freshState.currentInterior).toBe('cafe');
 
-    // Player steps out the cafe exit door
+    // Player steps out the cafe exit door (320, 370)
     freshState.player.x = 320;
     freshState.player.y = 370;
     freshEngine.updateProximity();
     freshEngine.interactWithNearby();
+    if (freshState.transition) {
+      freshEngine.update(1000);
+      freshEngine.update(1600);
+    }
     expect(freshState.currentInterior).toBeNull();
+    expect(freshState.currentZone).toBe('plaza');
     expect(freshState.visitedCafe).toBe(true);
 
     // Move near Harmony Fountain (1600, 1450)
     freshState.player.x = 1600;
     freshState.player.y = 1450;
-    freshEngine.update(1000);
-    freshEngine.update(1016);
+    freshEngine.update(2000);
+    freshEngine.update(2016);
 
     // Emergency broadcast is triggered!
     expect(freshState.dialogue?.speaker).toContain('EMERGENCY BROADCAST');
@@ -181,19 +179,13 @@ describe('Story Progression & Tag-Team Fusion', () => {
 
     // Dismiss initial dialogue
     while (state.dialogue) engine.advanceDialogue();
-
-    // 1. Enter Cafe
-    state.player.x = 1360;
-    state.player.y = 1340;
-    engine.updateProximity();
-    engine.interactWithNearby();
     expect(state.currentInterior).toBe('cafe');
 
     // Hurt active spirit
     state.streamQueue[0].hp = 10;
     state.streamQueue[0].energy = 20;
 
-    // Order coffee from Aria (320, 180)
+    // 1. Order coffee from Aria (320, 180) inside cafe
     state.player.x = 320;
     state.player.y = 200;
     engine.updateProximity();
@@ -208,13 +200,22 @@ describe('Story Progression & Tag-Team Fusion', () => {
     state.player.y = 370;
     engine.updateProximity();
     engine.interactWithNearby();
+    if (state.transition) {
+      engine.update(1000);
+      engine.update(1600);
+    }
     expect(state.currentInterior).toBeNull();
+    expect(state.currentZone).toBe('plaza');
 
     // 2. Enter Vinyl Den (1910, 1340)
     state.player.x = 1910;
     state.player.y = 1340;
     engine.updateProximity();
     engine.interactWithNearby();
+    if (state.transition) {
+      engine.update(2000);
+      engine.update(2600);
+    }
     expect(state.currentInterior).toBe('vinyl_den');
 
     // Browse crates
@@ -229,6 +230,10 @@ describe('Story Progression & Tag-Team Fusion', () => {
     state.player.y = 370;
     engine.updateProximity();
     engine.interactWithNearby();
+    if (state.transition) {
+      engine.update(3000);
+      engine.update(3600);
+    }
     expect(state.currentInterior).toBeNull();
 
     // 3. Test Secondary Biome Challenge: Tidal Sea Conches (1100, 2120)

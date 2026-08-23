@@ -28,7 +28,7 @@ describe('Zone Transitions & Customization Studio', () => {
 
     it('should start a zone transition and warp player to new zone', () => {
       const state = engine.getState();
-      expect(state.currentZone).toBe('plaza');
+      expect(state.currentZone).toBe('cafe');
 
       // Start transition to Sangeet Lotus Sanctuary
       engine.startZoneTransition('sangeet', { x: 120, y: 280, dir: 'right' });

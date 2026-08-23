@@ -647,19 +647,19 @@ export const ZONE_CONFIGS: Record<import('./types').ZoneId, import('./types').Zo
     defaultSpawn: { x: 1500, y: 1400, dir: 'up' },
     transitions: [
       // South -> Beach
-      { id: 'tr_plaza_to_beach', targetZone: 'beach', targetSpawn: { x: 1080, y: 120, dir: 'down' }, bounds: { x: 200, y: 2200, w: 1200, h: 200 }, promptText: 'To Port Resonata Dunes' },
+      { id: 'tr_plaza_to_beach', targetZone: 'beach', targetSpawn: { x: 1080, y: 120, dir: 'down' }, bounds: { x: 1540, y: 2200, w: 120, h: 80 }, promptText: 'To Port Resonata Dunes' },
       // Southeast -> Sangeet
-      { id: 'tr_plaza_to_sangeet', targetZone: 'sangeet', targetSpawn: { x: 120, y: 280, dir: 'right' }, bounds: { x: 2600, y: 1800, w: 600, h: 600 }, promptText: 'To Sangeet Lotus Sanctuary' },
+      { id: 'tr_plaza_to_sangeet', targetZone: 'sangeet', targetSpawn: { x: 120, y: 280, dir: 'right' }, bounds: { x: 3080, y: 1900, w: 100, h: 120 }, promptText: 'To Sangeet Lotus Sanctuary' },
       // East -> Bamboo
-      { id: 'tr_plaza_to_bamboo', targetZone: 'bamboo', targetSpawn: { x: 120, y: 720, dir: 'right' }, bounds: { x: 2800, y: 1000, w: 400, h: 800 }, promptText: 'To Whispering Bamboo Forest' },
+      { id: 'tr_plaza_to_bamboo', targetZone: 'bamboo', targetSpawn: { x: 120, y: 720, dir: 'right' }, bounds: { x: 3080, y: 1380, w: 100, h: 120 }, promptText: 'To Whispering Bamboo Forest' },
       // Northeast -> Ruins
-      { id: 'tr_plaza_to_ruins', targetZone: 'ruins', targetSpawn: { x: 120, y: 1420, dir: 'right' }, bounds: { x: 2200, y: 0, w: 1000, h: 600 }, promptText: 'To Ancient Sound Ruins' },
+      { id: 'tr_plaza_to_ruins', targetZone: 'ruins', targetSpawn: { x: 120, y: 1420, dir: 'right' }, bounds: { x: 3080, y: 200, w: 100, h: 120 }, promptText: 'To Ancient Sound Ruins' },
       // Northwest -> Ridge
-      { id: 'tr_plaza_to_ridge', targetZone: 'ridge', targetSpawn: { x: 1850, y: 1220, dir: 'left' }, bounds: { x: 0, y: 0, w: 1000, h: 600 }, promptText: 'To Desolation Ridge' },
+      { id: 'tr_plaza_to_ridge', targetZone: 'ridge', targetSpawn: { x: 1850, y: 1220, dir: 'left' }, bounds: { x: 20, y: 200, w: 100, h: 120 }, promptText: 'To Desolation Ridge' },
       // Cafe Doorway
-      { id: 'tr_plaza_to_cafe', targetZone: 'cafe', targetSpawn: { x: 320, y: 340, dir: 'up' }, bounds: { x: 1330, y: 1320, w: 60, h: 40 }, promptText: 'Enter Neon Cafe' },
+      { id: 'tr_plaza_to_cafe', targetZone: 'cafe', targetSpawn: { x: 320, y: 340, dir: 'up' }, bounds: { x: 1340, y: 1320, w: 40, h: 30 }, promptText: 'Enter Neon Cafe' },
       // Vinyl Den Doorway
-      { id: 'tr_plaza_to_vinyl', targetZone: 'vinyl_den', targetSpawn: { x: 320, y: 340, dir: 'up' }, bounds: { x: 1880, y: 1320, w: 60, h: 40 }, promptText: 'Enter Vinyl Den' }
+      { id: 'tr_plaza_to_vinyl', targetZone: 'vinyl_den', targetSpawn: { x: 320, y: 340, dir: 'up' }, bounds: { x: 1890, y: 1320, w: 40, h: 30 }, promptText: 'Enter Vinyl Den' }
     ],
     obstacles: [
       { type: 'box', x: 0, y: 0, w: 3200, h: 100, name: 'Northern Mountain Ridge' },
@@ -815,7 +815,7 @@ export const ZONE_CONFIGS: Record<import('./types').ZoneId, import('./types').Zo
     themeColor: '#38bdf8',
     defaultSpawn: { x: 320, y: 340, dir: 'up' },
     transitions: [
-      { id: 'tr_cafe_exit', targetZone: 'plaza', targetSpawn: { x: 630, y: 580, dir: 'down' }, bounds: { x: 280, y: 380, w: 80, h: 50 }, promptText: 'Exit to Cadence Plaza' }
+      { id: 'tr_cafe_exit', targetZone: 'plaza', targetSpawn: { x: 1360, y: 1380, dir: 'down' }, bounds: { x: 280, y: 370, w: 80, h: 50 }, promptText: 'Exit to Cadence Plaza' }
     ],
     obstacles: [
       { type: 'box', x: 180, y: 130, w: 280, h: 50, name: 'Espresso Bar Counter' },
@@ -834,7 +834,7 @@ export const ZONE_CONFIGS: Record<import('./types').ZoneId, import('./types').Zo
     themeColor: '#fbbf24',
     defaultSpawn: { x: 320, y: 340, dir: 'up' },
     transitions: [
-      { id: 'tr_vinyl_exit', targetZone: 'plaza', targetSpawn: { x: 1280, y: 580, dir: 'down' }, bounds: { x: 280, y: 380, w: 80, h: 50 }, promptText: 'Exit to Cadence Plaza' }
+      { id: 'tr_vinyl_exit', targetZone: 'plaza', targetSpawn: { x: 1910, y: 1380, dir: 'down' }, bounds: { x: 280, y: 370, w: 80, h: 50 }, promptText: 'Exit to Cadence Plaza' }
     ],
     obstacles: [
       { type: 'box', x: 180, y: 130, w: 280, h: 50, name: 'Turntable Desk Counter' },
@@ -1183,11 +1183,15 @@ export const TOWN_NPCS: NPCEntity[] = [
       instrument: 'Flute / Piccolo Whistle'
     },
     dialogue: [
-      "Welcome to the Neon Cafe, fellow streamer... I wish we were meeting under better circumstances! ☕",
-      "When Dead Channel hijacked the festival stage, its static snow crashed our local broadcast crystal. My poor Latte-Chirp was instantly knocked offline...",
-      "Seeing your Chime-Cat glowing with crisp chiptune synth brings tears to my eyes. That Metro Sound City digital wave is a true lifesaver.",
-      "Jax—that stubborn punk bassist who took the same mainland ferry as you—is holed up at Desolation Ridge using his 808 Bass-Hound to barricade the glitch rift.",
-      "Drink this Harmonic Latte to keep your rhythm sharp. Gather the island's ancient frequencies and help Jax breach the gate before our music is lost forever!"
+      "Good morning, Streamer! What can I brew for you on this glorious festival morning? ☕",
+      "Latte-Chirp and I are getting the morning espresso dialed in. Order a Harmonic Latte anytime to top off your squad's HP and energy!",
+      "Chat with Maya and Leo at the lounge tables, or test your look in the Streamer Mirror [C] before heading outside to the plaza."
+    ],
+    dialoguePostAlert: [
+      "Oh Streamer... I'm still in shock! When that static snow crashed the broadcast towers, my poor Latte-Chirp was instantly knocked offline... 😭",
+      "Your Chime-Cat's direct digital carrier wave from Metro Sound City is the only signal standing strong against Dead Channel 000.",
+      "Jax ran toward Desolation Ridge to barricade the glitch rift with his 808 Bass-Hound.",
+      "Drink this Harmonic Latte to restore your squad's HP. Seek the ancient shrines across the biomes and help Jax breach the gate before our music is lost forever!"
     ]
   },
   {
@@ -1208,9 +1212,14 @@ export const TOWN_NPCS: NPCEntity[] = [
       instrument: 'Tape Hiss & Chimes'
     },
     dialogue: [
-      "Hey there, fellow streamer! ☕ Listening to the tape-hiss rain outside is pure bliss.",
-      "Did you hear the emergency alert? The island's analog towers went dark, but your Chime-Cat is still shining! That direct digital wave from Metro Sound City is incredible.",
-      "Legend says the island's ancient musical shrines embody the primordial roots of Symphonic, Sangeet, and Matsuri traditions. If you sample them, you might just break Dead Channel's hold!"
+      "Hey there, fellow streamer! ☕ Listening to the warm tape-hiss beats in here is pure bliss.",
+      "My partner Mellow-Moth loves resting by the warm tube amp, fluttering its wings in time with the rhythm.",
+      "Are you performing in the Soundwave Festival showcase later? I can't wait to hear your Chime-Cat's chiptune lead on the main stage!"
+    ],
+    dialoguePostAlert: [
+      "Mellow-Moth... where did you go?! The connection just dissolved into white noise when that emergency alert buzzed... 😭",
+      "The island's analog towers are completely scrambled! But your Chime-Cat's digital carrier wave from Metro Sound City is still glowing bright!",
+      "Legend says the ancient musical shrines embody the primordial roots of Symphonic, Sangeet, and Matsuri traditions. If you sample them, you might just break Dead Channel's hold and bring our pets back!"
     ]
   },
   {
@@ -1224,10 +1233,22 @@ export const TOWN_NPCS: NPCEntity[] = [
     color: '#06b6d4',
     actionType: 'talk',
     interior: 'cafe',
+    pet: {
+      name: 'Volt-Fawn',
+      species: 'Voltage Resonance Fawn',
+      sprite: 'fawn',
+      instrument: 'Resonant Filter Sweeps'
+    },
     dialogue: [
       "Whoa, is that a Chime-Cat?! The analog keybed along its spine has incredible voltage response! 🎹",
-      "I took the same ferry from the Synthwave Coast for the festival. When the static burst hit, Jax ran straight toward Desolation Ridge with his 808 Bass-Hound.",
-      "If you're looking for audio gear to boost your frequency bandwidth, check out DJ Otter's Vinyl Den right next door!"
+      "My Volt-Fawn is humming along with the cafe's synth bassline. We took the midnight ferry from the Synthwave Coast for the festival.",
+      "Jax and his 808 Bass-Hound were on the same boat—he was playing loud punk bass riffs on the deck the entire crossing!",
+      "If you want to check out rare records, DJ Otter's Vinyl Den is right next door in the plaza."
+    ],
+    dialoguePostAlert: [
+      "Volt-Fawn vanished! The whole frequency grid collapsed into distorted static! ⚡😱",
+      "Jax grabbed his bass and sprinted toward Desolation Ridge to hold off the glitch rift. Since you two are from the mainland, your pets seem immune to this local analog interference!",
+      "You've got to team up with Jax and gather the island's harmony archetypes to purge Dead Channel 000!"
     ]
   },
   {
@@ -1266,8 +1287,14 @@ export const TOWN_NPCS: NPCEntity[] = [
     },
     dialogue: [
       "Yo! Welcome to the Vinyl Den! 💽",
+      "Vinyl-Pup and I are prepping the crates for today's opening festival set.",
       "Feel free to flip through the record crates on the sides for rare tuning artifacts and frequency power-ups!",
       "When the festival starts, I'm dropping a brand new global mashup set at the main stage!"
+    ],
+    dialoguePostAlert: [
+      "Vinyl-Pup got sucked into the static wave! My turntables are just spitting out white noise! 💽💥",
+      "Dead Channel 000 is jamming every frequency on the island. Only your Chime-Cat can cut through that noise!",
+      "Take whatever tuning gear you need from the shop crates to power up your moves!"
     ]
   },
   {

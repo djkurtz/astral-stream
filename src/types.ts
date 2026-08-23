@@ -74,6 +74,7 @@ export interface NPCEntity {
   sprite: 'aria' | 'dj_otter' | 'jax' | 'maestro_owl' | 'glitch_gate' | 'pelican' | 'spark' | 'lyra' | 'maya' | 'leo' | 'ravi' | 'door_cafe' | 'door_vinyl' | 'puzzle_beacon' | 'puzzle_torii' | 'puzzle_obelisk' | 'puzzle_switch' | 'prop_mirror';
   color: string;
   dialogue: string[];
+  dialoguePostAlert?: string[];
   actionType?: 'talk' | 'battle_jax' | 'audio_match' | 'enter_building' | 'exit_building' | 'order_coffee' | 'browse_shop' | 'customize' | 'challenge_linear1' | 'challenge_linear2' | 'challenge_side';
   zone?: ZoneId;
   interior?: 'cafe' | 'vinyl_den';
