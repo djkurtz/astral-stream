@@ -8,6 +8,7 @@ export type GameMode =
   | 'victory';
 
 export type GenreType = 'synth' | 'bass' | 'brass' | 'static' | 'cosmic';
+export type AudioChallengeType = 'waveform_slider' | 'call_response' | 'rhythm_pulse';
 
 export interface Move {
   id: string;
@@ -56,6 +57,7 @@ export interface SoundRipple {
   id: string;
   x: number;
   y: number;
+  challengeType: AudioChallengeType;
   spirit: StreamSpirit;
   discovered: boolean;
 }
@@ -89,25 +91,25 @@ export interface BattleState {
 }
 
 export interface AudioMatchState {
-  stage: 1 | 2 | 3;
+  challengeType: AudioChallengeType;
   spiritToUnlock: StreamSpirit;
   isComplete: boolean;
 
-  // Stage 1: Waveform Alignment
-  targetFreq: number; // 0 to 100
-  playerFreq: number; // 0 to 100
-  holdTime: number; // seconds held aligned (needs 1.5s)
+  // Challenge 1: Waveform Alignment
+  targetFreq: number;
+  playerFreq: number;
+  holdTime: number;
 
-  // Stage 2: Call & Response Melody Mimic
-  melodySequence: number[]; // e.g. [0, 2, 1, 2] (Pads: 0=Low, 1=Mid, 2=High)
+  // Challenge 2: Call & Response Melody Mimic
+  melodySequence: number[];
   playerSequence: number[];
-  activeDemoNote: number | null; // index of currently sounding note during demo
+  activeDemoNote: number | null;
   isListeningToPlayer: boolean;
 
-  // Stage 3: Rhythm Pulse Ring
-  pulseRadius: number; // 0 to 140
-  targetRadius: number; // 110
-  combo: number; // Needs 3
+  // Challenge 3: Rhythm Pulse Ring
+  pulseRadius: number;
+  targetRadius: number;
+  combo: number;
   feedback: string | null;
 }
 

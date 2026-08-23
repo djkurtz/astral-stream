@@ -7,6 +7,7 @@ export const STARTER_SPIRIT: StreamSpirit = {
   vibeTag: '#ChiptunePop',
   species: 'Chime Feline',
   instrument: 'Chiptune Synthesizer',
+  avatar: '🐱',
   type: 'synth',
   color: '#38bdf8',
   hp: 70,
@@ -39,6 +40,46 @@ export const STARTER_SPIRIT: StreamSpirit = {
   ]
 };
 
+export const CLOUD_SLOTH_SPIRIT: StreamSpirit = {
+  id: 'spirit_cloud_sloth',
+  name: 'Cloud-Sloth',
+  title: 'Sleepy Lo-Fi Sloth',
+  vibeTag: '#LoFiAcoustic',
+  species: 'Rainstick Sloth',
+  instrument: 'Acoustic Rainstick',
+  avatar: '🦥',
+  type: 'synth',
+  color: '#a7f3d0',
+  hp: 80,
+  maxHp: 80,
+  energy: 100,
+  attack: 16,
+  defense: 20,
+  speed: 8,
+  moves: [
+    {
+      id: 'm_rain_strum',
+      name: 'Cozy Rain Strum',
+      type: 'synth',
+      power: 22,
+      cost: 15,
+      description: 'Plays gentle rain acoustic chords that soothe the spirit. [Strong vs BASS]',
+      effectiveness: 'Strong vs BASS',
+      soundType: 'arpeggio'
+    },
+    {
+      id: 'm_lofi_nap',
+      name: 'Lo-Fi Chill',
+      type: 'synth',
+      power: 32,
+      cost: 30,
+      description: 'Emits relaxing ambient frequencies that bypass defenses.',
+      effectiveness: 'Strong vs BASS',
+      soundType: 'arpeggio'
+    }
+  ]
+};
+
 export const BRASS_BUNNY_SPIRIT: StreamSpirit = {
   id: 'spirit_brass_bunny',
   name: 'Brass-Bunny',
@@ -46,10 +87,11 @@ export const BRASS_BUNNY_SPIRIT: StreamSpirit = {
   vibeTag: '#ElectroBrass',
   species: 'Horn Leporid',
   instrument: 'Golden Saxophone',
+  avatar: '🐰🎷',
   type: 'brass',
   color: '#fbbf24',
-  hp: 60,
-  maxHp: 60,
+  hp: 65,
+  maxHp: 65,
   energy: 100,
   attack: 24,
   defense: 10,
@@ -67,13 +109,53 @@ export const BRASS_BUNNY_SPIRIT: StreamSpirit = {
     },
     {
       id: 'm_tempo_hop',
-      name: 'Tempo Hop',
+      name: 'Tempo Hop Crescendo',
       type: 'brass',
-      power: 32,
+      power: 34,
       cost: 30,
-      description: 'High-energy brass crescendo that deafens digital synths.',
+      description: 'High-energy brass crescendo that pierces digital synths.',
       effectiveness: 'Strong vs SYNTH',
       soundType: 'brass_riff'
+    }
+  ]
+};
+
+export const BEAT_PUP_SPIRIT: StreamSpirit = {
+  id: 'spirit_beat_pup',
+  name: 'Beat-Pup',
+  title: 'Snappy Snare Terrier',
+  vibeTag: '#ElectroBeats',
+  species: 'Drummer Canine',
+  instrument: 'Snare Drum & Claps',
+  avatar: '🐶🥁',
+  type: 'bass',
+  color: '#f43f5e',
+  hp: 75,
+  maxHp: 75,
+  energy: 100,
+  attack: 20,
+  defense: 16,
+  speed: 16,
+  moves: [
+    {
+      id: 'm_snare_kick',
+      name: 'Snare Clap Attack',
+      type: 'bass',
+      power: 24,
+      cost: 15,
+      description: 'Hits a snappy pop-punk snare drum rimshot. [Strong vs BRASS]',
+      effectiveness: 'Strong vs BRASS',
+      soundType: 'bass_drop'
+    },
+    {
+      id: 'm_beat_slam',
+      name: '4-on-the-Floor Drop',
+      type: 'bass',
+      power: 32,
+      cost: 30,
+      description: 'Drives the bass rhythm with heavy dance kicks.',
+      effectiveness: 'Strong vs BRASS',
+      soundType: 'bass_drop'
     }
   ]
 };
@@ -85,6 +167,7 @@ export const JAX_SPIRIT: StreamSpirit = {
   vibeTag: '#SpikedBass',
   species: 'Sub-Woofer Canine',
   instrument: 'Overdrive Bass',
+  avatar: '🐶',
   type: 'bass',
   color: '#c084fc',
   hp: 85,
@@ -124,6 +207,7 @@ export const FUSED_CHIMERA: StreamSpirit = {
   vibeTag: '#CosmicMashup',
   species: 'Ascended Harmonimal',
   instrument: 'Chiptune-Metal Mashup',
+  avatar: '🐯⚡',
   type: 'cosmic',
   color: '#f43f5e',
   hp: 150,
@@ -203,7 +287,7 @@ export const TOWN_NPCS: NPCEntity[] = [
       "Welcome to the Neon Cafe! ☕ Grab a chair and listen to the ocean waves.",
       "Are you new to battling with Harmonimals? Here's the secret to genre matchups:",
       "🎹 SYNTH overclocks 🎸 BASS, but 🎷 BRASS pierces right through SYNTH!",
-      "Match your sound against their weakness and time your hits to the beat for massive critical damage!"
+      "Check out the 3 musical ripples around the plaza to discover new sounds!"
     ]
   },
   {
@@ -217,8 +301,9 @@ export const TOWN_NPCS: NPCEntity[] = [
     actionType: 'talk',
     dialogue: [
       "Yo! Welcome to the Vinyl Den. 💽 Music flows through everything on Cadence Island.",
-      "See that glowing musical ripple near the fountain? That's an uncataloged sound frequency!",
-      "Walk up to it and tap your Sonic Radar to Audio-Match and stream a new companion!"
+      "There are 3 unique sound ripples scattered across town:",
+      "🎛️ Equalizer Slider near the cafe, 🎹 Melody Repeat at the fountain, and 🎯 Rhythm Beats by my shop!",
+      "Collect them all to build an unstoppable festival playlist!"
     ]
   },
   {
@@ -248,12 +333,30 @@ export const RIVAL_JAX = {
   ]
 };
 
+// 3 Distinct Sound Ripples across the Town Plaza
 export const TOWN_SOUND_RIPPLES: SoundRipple[] = [
   {
+    id: 'ripple_cafe',
+    x: 180,
+    y: 360,
+    challengeType: 'waveform_slider',
+    spirit: CLOUD_SLOTH_SPIRIT,
+    discovered: false
+  },
+  {
     id: 'ripple_fountain',
-    x: 500,
-    y: 350,
+    x: 400,
+    y: 400,
+    challengeType: 'call_response',
     spirit: BRASS_BUNNY_SPIRIT,
+    discovered: false
+  },
+  {
+    id: 'ripple_vinyl',
+    x: 620,
+    y: 360,
+    challengeType: 'rhythm_pulse',
+    spirit: BEAT_PUP_SPIRIT,
     discovered: false
   }
 ];

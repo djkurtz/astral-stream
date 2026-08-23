@@ -52,85 +52,386 @@ export class AstralRenderer {
     }
   }
 
-  /* ---------------- TOP-DOWN WORLD MAP ---------------- */
+  /* ---------------- COMPELLING TOP-DOWN WORLD MAP ---------------- */
   private renderWorldMap(state: GameState, w: number, h: number): void {
     const ctx = this.ctx;
     const t = state.time;
 
-    // 1. Base Grass & Cobblestone Plaza
-    ctx.fillStyle = state.zoneClean ? '#15803d' : '#334155';
+    // 1. Lush Green Grass Foundation
+    ctx.fillStyle = '#166534';
     ctx.fillRect(0, 0, w, h);
 
-    // Cobblestone Town Square (Center)
-    ctx.fillStyle = state.zoneClean ? '#e2e8f0' : '#475569';
-    ctx.fillRect(100, 80, w - 200, h - 160);
-
-    // Decorative Plaza Border
-    ctx.strokeStyle = state.zoneClean ? '#06b6d4' : '#64748b';
-    ctx.lineWidth = 4;
-    ctx.strokeRect(100, 80, w - 200, h - 160);
-
-    // 2. Buildings & Stalls
-    // Neon Cafe (Top Left)
-    this.drawBuilding(ctx, 110, 90, 160, 110, '☕ NEON CAFE', '#ec4899', state.zoneClean);
-    // Vinyl Record Den (Top Right)
-    this.drawBuilding(ctx, w - 270, 90, 160, 110, '💽 VINYL DEN', '#fbbf24', state.zoneClean);
-
-    // Glitch Gate (Top Center - Leads to Boss)
-    this.drawGlitchGate(ctx, w / 2 - 60, 40, 120, 50, state.glitchActive, t);
-
-    // Musical Fountain (Center Plaza)
-    this.drawFountain(ctx, w / 2, h / 2 + 30, t, state.zoneClean);
-
-    // 3. Sound Ripples (Wild Encounters)
-    for (const rip of state.soundRipples) {
-      if (!rip.discovered) {
-        this.drawSoundRipple(ctx, rip.x, rip.y, t);
+    // Decorative grass patches
+    ctx.fillStyle = '#15803d';
+    for (let x = 20; x < w; x += 60) {
+      for (let y = 20; y < h - 80; y += 60) {
+        if ((x + y) % 40 === 0) {
+          ctx.fillRect(x, y, 8, 4);
+          ctx.fillRect(x + 4, y - 4, 4, 8);
+        }
       }
     }
 
-    // 4. NPCs
+    // 2. Sandy Beach & Ocean Shoreline (Bottom)
+    // Sand
+    ctx.fillStyle = '#fde68a';
+    ctx.fillRect(0, 520, w, 25);
+    // Ocean
+    const oceanGrad = ctx.createLinearGradient(0, 545, 0, h);
+    oceanGrad.addColorStop(0, '#0284c7');
+    oceanGrad.addColorStop(1, '#0369a1');
+    ctx.fillStyle = oceanGrad;
+    ctx.fillRect(0, 545, w, h - 545);
+
+    // Animated Ocean Foam Waves
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    for (let x = 0; x <= w; x += 10) {
+      const wy = 545 + Math.sin(x * 0.05 + t * 4) * 4;
+      if (x === 0) ctx.moveTo(x, wy);
+      else ctx.lineTo(x, wy);
+    }
+    ctx.stroke();
+
+    // 3. Central Cobblestone Plaza
+    const plazaX = 80;
+    const plazaY = 70;
+    const plazaW = w - 160;
+    const plazaH = 440;
+
+    // Cobblestone Base
+    ctx.fillStyle = '#cbd5e1';
+    ctx.fillRect(plazaX, plazaY, plazaW, plazaH);
+
+    // Paved Stone Grid Pattern
+    ctx.strokeStyle = '#94a3b8';
+    ctx.lineWidth = 1;
+    for (let x = plazaX; x <= plazaX + plazaW; x += 32) {
+      ctx.beginPath();
+      ctx.moveTo(x, plazaY);
+      ctx.lineTo(x, plazaY + plazaH);
+      ctx.stroke();
+    }
+    for (let y = plazaY; y <= plazaY + plazaH; y += 32) {
+      ctx.beginPath();
+      ctx.moveTo(plazaX, y);
+      ctx.lineTo(plazaX + plazaW, y);
+      ctx.stroke();
+    }
+
+    // Decorative Plaza Border Curbs
+    ctx.strokeStyle = '#64748b';
+    ctx.lineWidth = 6;
+    ctx.strokeRect(plazaX, plazaY, plazaW, plazaH);
+
+    // 4. Scenery: Lush Pixel Trees & Streetlamps
+    this.drawTree(ctx, 40, 140);
+    this.drawTree(ctx, 40, 280);
+    this.drawTree(ctx, 40, 420);
+    this.drawTree(ctx, w - 40, 140);
+    this.drawTree(ctx, w - 40, 280);
+    this.drawTree(ctx, w - 40, 420);
+
+    this.drawStreetLamp(ctx, 100, 240, t);
+    this.drawStreetLamp(ctx, w - 100, 240, t);
+    this.drawStreetLamp(ctx, 100, 460, t);
+    this.drawStreetLamp(ctx, w - 100, 460, t);
+
+    // 5. Buildings with Crystal-Clear Signs
+    // Neon Cafe (Top Left)
+    this.drawNeonCafe(ctx, 90, 80, 170, 110, t);
+    // Vinyl Record Den (Top Right)
+    this.drawVinylDen(ctx, w - 260, 80, 170, 110, t);
+    // Glitch Gate (Top Center)
+    this.drawGlitchGate(ctx, w / 2 - 70, 30, 140, 50, state.glitchActive, t);
+
+    // 6. Musical Centerpiece Fountain
+    this.drawMusicalFountain(ctx, w / 2, 290, t);
+
+    // 7. Sound Ripples (The 3 Discovery Stations)
+    for (const rip of state.soundRipples) {
+      if (!rip.discovered) {
+        this.drawSoundRipple(ctx, rip.x, rip.y, rip.challengeType, t);
+      }
+    }
+
+    // 8. NPCs
     for (const npc of state.npcs) {
       this.drawPixelNPC(ctx, npc.x, npc.y, npc.sprite, t, npc.name);
     }
 
-    // 5. Player Character
+    // 9. Player Character
     this.drawDetailedPlayer(ctx, state.player.x, state.player.y, state.player.dir, state.player.isMoving, t);
 
-    // Companion Following (Chime-Cat)
+    // Follower Companions (Chime-Cat + others in queue)
     if (state.streamQueue.length > 0) {
       const companionX = state.player.x - 28;
       const companionY = state.player.y + 4 + Math.sin(t * 5) * 3;
       this.drawDetailedCat(ctx, companionX, companionY, t);
     }
 
-    // 6. Interaction Prompt HUD
+    // 10. High-Legibility Interaction HUD Prompt
     if (state.nearbyInteractable) {
       const target = state.nearbyInteractable;
       const tx = 'name' in target ? target.x : target.x;
-      const ty = 'name' in target ? target.y - 45 : target.y - 30;
+      const ty = 'name' in target ? target.y - 48 : target.y - 38;
 
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.95)';
       ctx.strokeStyle = '#06b6d4';
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.roundRect(tx - 65, ty - 18, 130, 26, 6);
+      ctx.roundRect(tx - 85, ty - 18, 170, 28, 8);
       ctx.fill();
       ctx.stroke();
 
-      ctx.fillStyle = '#f8fafc';
-      ctx.font = '700 12px Rajdhani';
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '700 13px Fredoka, sans-serif';
       ctx.textAlign = 'center';
-      const promptText = 'name' in target 
-        ? (target.actionType === 'battle_jax' ? '⚔️ [SPACE] Duel Jax' : `💬 [SPACE] Talk to ${target.name}`)
-        : '🔍 [SPACE] Audio-Match';
-      ctx.fillText(promptText, tx, ty);
+
+      let promptText = '';
+      if ('name' in target) {
+        promptText = target.actionType === 'battle_jax' ? '⚔️ [SPACE] Duel Jax' : `💬 [SPACE] Talk to ${target.name}`;
+      } else {
+        const cType = (target as any).challengeType;
+        if (cType === 'waveform_slider') promptText = '🎛️ [SPACE] Tune Waveform';
+        else if (cType === 'call_response') promptText = '🎹 [SPACE] Jam Melody';
+        else promptText = '🥁 [SPACE] Beat Sync';
+      }
+      ctx.fillText(promptText, tx, ty + 2);
     }
 
     // Celebration particles if clean
-    if (state.zoneClean) {
+    if (state.zoneClean && state.mode === 'victory') {
       this.renderCelebrationParticles(ctx, w, h);
     }
+  }
+
+  /* ---------------- DETAILED SCENERY ---------------- */
+  private drawTree(ctx: CanvasRenderingContext2D, x: number, y: number): void {
+    // Shadow
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+    ctx.beginPath();
+    ctx.ellipse(x, y + 10, 20, 8, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Trunk
+    ctx.fillStyle = '#78350f';
+    ctx.fillRect(x - 5, y - 10, 10, 20);
+
+    // Foliage (Layered Lush Circles)
+    ctx.fillStyle = '#15803d';
+    ctx.beginPath();
+    ctx.arc(x, y - 24, 22, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#22c55e';
+    ctx.beginPath();
+    ctx.arc(x - 5, y - 30, 14, 0, Math.PI * 2);
+    ctx.arc(x + 6, y - 26, 12, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  private drawStreetLamp(ctx: CanvasRenderingContext2D, x: number, y: number, _t: number): void {
+    // Warm Light Glow on Ground
+    const glow = ctx.createRadialGradient(x, y + 10, 0, x, y + 10, 35);
+    glow.addColorStop(0, 'rgba(253, 224, 71, 0.25)');
+    glow.addColorStop(1, 'rgba(253, 224, 71, 0)');
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(x, y + 10, 35, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Pole
+    ctx.fillStyle = '#334155';
+    ctx.fillRect(x - 2, y - 30, 4, 35);
+
+    // Lantern Head
+    ctx.fillStyle = '#fde047';
+    ctx.fillRect(x - 5, y - 35, 10, 8);
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(x - 6, y - 38, 12, 3);
+  }
+
+  private drawNeonCafe(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, _t: number): void {
+    // Wooden Patio Deck
+    ctx.fillStyle = '#fed7aa';
+    ctx.fillRect(x - 10, y + h - 15, w + 20, 40);
+    ctx.strokeStyle = '#ca8a04';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x - 10, y + h - 15, w + 20, 40);
+
+    // Cafe Tables with Coffee Mugs
+    ctx.fillStyle = '#78350f';
+    ctx.beginPath();
+    ctx.arc(x + 18, y + h + 8, 10, 0, Math.PI * 2);
+    ctx.arc(x + w - 18, y + h + 8, 10, 0, Math.PI * 2);
+    ctx.fill();
+    // Steaming mugs
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(x + 16, y + h + 5, 4, 4);
+    ctx.fillRect(x + w - 20, y + h + 5, 4, 4);
+
+    // Main Cafe Building
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(x, y, w, h);
+
+    // Striped Awning (Pink & White)
+    const stripes = 6;
+    const stripeW = w / stripes;
+    for (let i = 0; i < stripes; i++) {
+      ctx.fillStyle = i % 2 === 0 ? '#ec4899' : '#ffffff';
+      ctx.fillRect(x + i * stripeW, y + 25, stripeW, 16);
+    }
+
+    // High-Legibility Signboard
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(x + 10, y + 2, w - 20, 24);
+    ctx.strokeStyle = '#ec4899';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x + 10, y + 2, w - 20, 24);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '800 14px Fredoka, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('☕ NEON CAFE', x + w / 2, y + 19);
+
+    // Windows with Warm Glow
+    ctx.fillStyle = '#fef08a';
+    ctx.fillRect(x + 15, y + 50, 40, 35);
+    ctx.fillRect(x + w - 55, y + 50, 40, 35);
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(x + 33, y + 50, 4, 35);
+    ctx.fillRect(x + w - 37, y + 50, 4, 35);
+  }
+
+  private drawVinylDen(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, t: number): void {
+    // Main Building
+    ctx.fillStyle = '#1e1b4b';
+    ctx.fillRect(x, y, w, h);
+
+    // Giant Rotating Vinyl Record on Roof
+    ctx.save();
+    ctx.translate(x + w / 2, y - 8);
+    ctx.rotate(t * 2);
+    ctx.fillStyle = '#0f172a';
+    ctx.beginPath();
+    ctx.arc(0, 0, 22, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#fbbf24';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    // Center label
+    ctx.fillStyle = '#f43f5e';
+    ctx.beginPath();
+    ctx.arc(0, 0, 8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // Striped Awning (Gold & Black)
+    const stripes = 6;
+    const stripeW = w / stripes;
+    for (let i = 0; i < stripes; i++) {
+      ctx.fillStyle = i % 2 === 0 ? '#fbbf24' : '#0f172a';
+      ctx.fillRect(x + i * stripeW, y + 25, stripeW, 16);
+    }
+
+    // High-Legibility Signboard
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(x + 10, y + 2, w - 20, 24);
+    ctx.strokeStyle = '#fbbf24';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x + 10, y + 2, w - 20, 24);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '800 14px Fredoka, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('💽 VINYL DEN', x + w / 2, y + 19);
+
+    // Neon Glass Display Window
+    ctx.fillStyle = '#06b6d4';
+    ctx.fillRect(x + 15, y + 50, w - 30, 35);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '14px sans-serif';
+    ctx.fillText('🎵  LP  📻', x + w / 2, y + 73);
+  }
+
+  private drawGlitchGate(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, isGlitch: boolean, t: number): void {
+    ctx.fillStyle = isGlitch ? 'rgba(239, 68, 68, 0.25)' : 'rgba(6, 182, 212, 0.25)';
+    ctx.fillRect(x, y, w, h);
+
+    ctx.strokeStyle = isGlitch ? '#ef4444' : '#06b6d4';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(x, y, w, h);
+
+    // Hazard Stripes on Pillars
+    ctx.fillStyle = '#fbbf24';
+    ctx.fillRect(x, y, 12, h);
+    ctx.fillRect(x + w - 12, y, 12, h);
+    ctx.fillStyle = '#0f172a';
+    for (let i = 0; i < h; i += 12) {
+      ctx.fillRect(x, y + i, 12, 6);
+      ctx.fillRect(x + w - 12, y + i, 12, 6);
+    }
+
+    ctx.fillStyle = isGlitch ? '#ef4444' : '#06b6d4';
+    ctx.font = '800 13px Fredoka, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(isGlitch ? '⚠️ GLITCH GATE' : '✨ SOUND PORTAL', x + w / 2, y + 30 + Math.sin(t * 6) * 2);
+  }
+
+  private drawMusicalFountain(ctx: CanvasRenderingContext2D, x: number, y: number, t: number): void {
+    // Outer Stone Basin
+    ctx.fillStyle = '#0284c7';
+    ctx.beginPath();
+    ctx.arc(x, y, 40, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = '#e2e8f0';
+    ctx.lineWidth = 5;
+    ctx.stroke();
+
+    // Center Pedestal
+    ctx.fillStyle = '#64748b';
+    ctx.beginPath();
+    ctx.arc(x, y, 16, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Spouting Water and Notes
+    const notes = ['♪', '♫', '♬'];
+    for (let i = 0; i < 3; i++) {
+      const angle = (t * 2 + (i * Math.PI * 2) / 3);
+      const nx = x + Math.cos(angle) * 24;
+      const ny = y - 10 + Math.sin(angle) * 12 - (t * 15 % 20);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '16px Fredoka, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(notes[i], nx, ny);
+    }
+  }
+
+  private drawSoundRipple(ctx: CanvasRenderingContext2D, x: number, y: number, challengeType: string, t: number): void {
+    const pulse = (t * 40) % 32;
+    ctx.strokeStyle = `rgba(251, 191, 36, ${1 - pulse / 32})`;
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.arc(x, y, pulse + 12, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Ripple Icon
+    let icon = '🎷';
+    let label = 'Melody Jam';
+    if (challengeType === 'waveform_slider') { icon = '🎛️'; label = 'Equalizer'; }
+    else if (challengeType === 'rhythm_pulse') { icon = '🥁'; label = 'Beat Sync'; }
+
+    ctx.font = '22px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(icon, x, y + 7);
+
+    // Crisp Label Above
+    ctx.fillStyle = '#fbbf24';
+    ctx.font = '700 12px Fredoka, sans-serif';
+    ctx.fillText(label, x, y - 22);
   }
 
   /* ---------------- DETAILED PIXEL SPRITES ---------------- */
@@ -165,7 +466,7 @@ export class AstralRenderer {
     ctx.fillStyle = '#fde047';
     ctx.fillRect(-6, -34 + bob, 12, 13);
 
-    // Anime Eyes
+    // Eyes
     ctx.fillStyle = '#0f172a';
     ctx.fillRect(-4, -30 + bob, 3, 4);
     ctx.fillRect(1, -30 + bob, 3, 4);
@@ -175,9 +476,9 @@ export class AstralRenderer {
 
     // Cyan Headphones
     ctx.fillStyle = '#06b6d4';
-    ctx.fillRect(-9, -36 + bob, 18, 5); // Headband
-    ctx.fillRect(-10, -32 + bob, 3, 8); // Ear cup L
-    ctx.fillRect(7, -32 + bob, 3, 8);  // Ear cup R
+    ctx.fillRect(-9, -36 + bob, 18, 5);
+    ctx.fillRect(-10, -32 + bob, 3, 8);
+    ctx.fillRect(7, -32 + bob, 3, 8);
 
     // Glowing Vibe-Phone in hand
     ctx.fillStyle = '#06b6d4';
@@ -209,7 +510,7 @@ export class AstralRenderer {
     ctx.fillRect(-6, -18, 12, 10);
 
     // Ears
-    ctx.fillStyle = '#ec4899'; // Pink inner ear
+    ctx.fillStyle = '#ec4899';
     ctx.beginPath();
     ctx.moveTo(-6, -18);
     ctx.lineTo(-4, -24);
@@ -235,7 +536,7 @@ export class AstralRenderer {
     ctx.quadraticCurveTo(-14, -10 + tailWag, -12, -16);
     ctx.stroke();
 
-    // Audio Jack at tip of tail
+    // Golden Audio Jack
     ctx.fillStyle = '#fbbf24';
     ctx.fillRect(-14, -18, 4, 4);
 
@@ -255,133 +556,45 @@ export class AstralRenderer {
     ctx.fill();
 
     if (sprite === 'aria') {
-      // Aria (Barista)
       ctx.fillStyle = '#38bdf8';
-      ctx.fillRect(-7, -22 + bob, 14, 18); // Apron
+      ctx.fillRect(-7, -22 + bob, 14, 18);
       ctx.fillStyle = '#fde047';
-      ctx.fillRect(-6, -34 + bob, 12, 13); // Face
+      ctx.fillRect(-6, -34 + bob, 12, 13);
       ctx.fillStyle = '#818cf8';
-      ctx.fillRect(-8, -37 + bob, 16, 6); // Purple hair
+      ctx.fillRect(-8, -37 + bob, 16, 6);
       ctx.fillStyle = '#0f172a';
       ctx.fillRect(-4, -30 + bob, 2, 3);
       ctx.fillRect(2, -30 + bob, 2, 3);
-
     } else if (sprite === 'dj_otter') {
-      // DJ Otter
       ctx.fillStyle = '#b45309';
-      ctx.fillRect(-9, -20 + bob, 18, 16); // Brown fur
+      ctx.fillRect(-9, -20 + bob, 18, 16);
       ctx.fillStyle = '#fed7aa';
-      ctx.fillRect(-6, -30 + bob, 12, 11); // Muzzle
+      ctx.fillRect(-6, -30 + bob, 12, 11);
       ctx.fillStyle = '#0f172a';
       ctx.fillRect(-4, -27 + bob, 2, 2);
       ctx.fillRect(2, -27 + bob, 2, 2);
-      // Giant gold chain
       ctx.fillStyle = '#fbbf24';
       ctx.fillRect(-6, -14 + bob, 12, 4);
-
     } else if (sprite === 'jax') {
-      // Jax (Punk)
       ctx.fillStyle = '#1e1b4b';
-      ctx.fillRect(-8, -24 + bob, 16, 19); // Leather jacket
+      ctx.fillRect(-8, -24 + bob, 16, 19);
       ctx.fillStyle = '#cbd5e1';
-      ctx.fillRect(-6, -35 + bob, 12, 12); // Face
+      ctx.fillRect(-6, -35 + bob, 12, 12);
       ctx.fillStyle = '#c084fc';
-      ctx.fillRect(-8, -40 + bob, 16, 7); // Spiked hair
-      // Spiked bass guitar
+      ctx.fillRect(-8, -40 + bob, 16, 7);
       ctx.fillStyle = '#ec4899';
       ctx.fillRect(8, -22 + bob, 6, 18);
       ctx.fillStyle = '#94a3b8';
       ctx.fillRect(10, -32 + bob, 2, 10);
     }
 
-    // Name Label
+    // High-Legibility Name Label
     ctx.fillStyle = '#ffffff';
-    ctx.font = '700 11px Rajdhani';
+    ctx.font = '700 13px Fredoka, sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText(name, 0, -42 + bob);
 
     ctx.restore();
-  }
-
-  private drawBuilding(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, title: string, color: string, isClean: boolean): void {
-    // Body
-    ctx.fillStyle = isClean ? '#1e293b' : '#334155';
-    ctx.fillRect(x, y, w, h);
-
-    // Striped Awning
-    const stripeW = w / 6;
-    for (let i = 0; i < 6; i++) {
-      ctx.fillStyle = i % 2 === 0 ? color : '#ffffff';
-      ctx.fillRect(x + i * stripeW, y - 10, stripeW, 14);
-    }
-
-    // Sign
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
-    ctx.fillRect(x + 10, y + 10, w - 20, 26);
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 2;
-    ctx.strokeRect(x + 10, y + 10, w - 20, 26);
-
-    ctx.fillStyle = isClean ? '#ffffff' : '#94a3b8';
-    ctx.font = '700 12px Rajdhani';
-    ctx.textAlign = 'center';
-    ctx.fillText(title, x + w / 2, y + 27);
-  }
-
-  private drawGlitchGate(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, isGlitch: boolean, t: number): void {
-    ctx.fillStyle = isGlitch ? 'rgba(239, 68, 68, 0.2)' : 'rgba(6, 182, 212, 0.2)';
-    ctx.fillRect(x, y, w, h);
-
-    ctx.strokeStyle = isGlitch ? '#ef4444' : '#06b6d4';
-    ctx.lineWidth = 3;
-    ctx.strokeRect(x, y, w, h);
-
-    if (isGlitch) {
-      // Jittery Static Portal in Gate
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
-      for (let i = 0; i < 5; i++) {
-        ctx.fillRect(x + Math.random() * w, y + Math.random() * h, Math.random() * 20, 2);
-      }
-      ctx.fillStyle = '#ef4444';
-      ctx.font = '700 11px Rajdhani';
-      ctx.textAlign = 'center';
-      ctx.fillText('⚠️ DEAD CHANNEL RIFT', x + w / 2, y + 30 + Math.sin(t * 6) * 2);
-    }
-  }
-
-  private drawFountain(ctx: CanvasRenderingContext2D, x: number, y: number, t: number, isClean: boolean): void {
-    // Basin
-    ctx.fillStyle = isClean ? '#0284c7' : '#475569';
-    ctx.beginPath();
-    ctx.arc(x, y, 36, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.strokeStyle = isClean ? '#38bdf8' : '#64748b';
-    ctx.lineWidth = 4;
-    ctx.stroke();
-
-    // Spouting Water Notes
-    if (isClean) {
-      ctx.fillStyle = '#ffffff';
-      ctx.font = '16px sans-serif';
-      ctx.textAlign = 'center';
-      const noteY = Math.sin(t * 4) * 8;
-      ctx.fillText('♪', x, y - 8 + noteY);
-    }
-  }
-
-  private drawSoundRipple(ctx: CanvasRenderingContext2D, x: number, y: number, t: number): void {
-    const pulse = (t * 40) % 30;
-    ctx.strokeStyle = `rgba(251, 191, 36, ${1 - pulse / 30})`;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(x, y, pulse + 10, 0, Math.PI * 2);
-    ctx.stroke();
-
-    ctx.fillStyle = '#fbbf24';
-    ctx.font = '18px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('🎷', x, y + 6);
   }
 
   /* ---------------- BATTLE ARENA & RHYTHM BAR ---------------- */
@@ -395,8 +608,8 @@ export class AstralRenderer {
     ctx.fillRect(0, 0, w, h);
 
     // Neon Battle Grid
-    ctx.strokeStyle = state.zoneClean ? 'rgba(236, 72, 153, 0.2)' : 'rgba(239, 68, 68, 0.2)';
-    ctx.lineWidth = 1;
+    ctx.strokeStyle = state.zoneClean ? 'rgba(236, 72, 153, 0.25)' : 'rgba(239, 68, 68, 0.25)';
+    ctx.lineWidth = 1.5;
     for (let x = 0; x < w; x += 40) {
       ctx.beginPath();
       ctx.moveTo(x, h * 0.35);
@@ -440,24 +653,24 @@ export class AstralRenderer {
       this.renderRhythmBar(ctx, w, h, battle);
     }
 
-    // Floating Battle Log
+    // Floating Battle Log with High-Legibility Font
     if (battle.log) {
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
-      ctx.fillRect(w * 0.15, h * 0.04, w * 0.7, 42);
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+      ctx.fillRect(w * 0.12, h * 0.04, w * 0.76, 44);
       ctx.strokeStyle = '#38bdf8';
       ctx.lineWidth = 2;
-      ctx.strokeRect(w * 0.15, h * 0.04, w * 0.7, 42);
+      ctx.strokeRect(w * 0.12, h * 0.04, w * 0.76, 44);
 
-      ctx.fillStyle = '#f8fafc';
-      ctx.font = '600 15px Rajdhani';
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '700 15px Fredoka, sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(battle.log, w / 2, h * 0.04 + 26);
+      ctx.fillText(battle.log, w / 2, h * 0.04 + 28);
     }
   }
 
   private renderRhythmBar(ctx: CanvasRenderingContext2D, w: number, h: number, battle: any): void {
     const barW = Math.min(500, w * 0.8);
-    const barH = 34;
+    const barH = 36;
     const barX = (w - barW) / 2;
     const barY = h * 0.78;
 
@@ -471,26 +684,26 @@ export class AstralRenderer {
     // Target Window (Green / Cyan Perfect Zone)
     const winX = barX + battle.targetWindowStart * barW;
     const winW = (battle.targetWindowEnd - battle.targetWindowStart) * barW;
-    ctx.fillStyle = 'rgba(16, 185, 129, 0.6)';
+    ctx.fillStyle = 'rgba(16, 185, 129, 0.65)';
     ctx.fillRect(winX, barY + 2, winW, barH - 4);
 
     // Beat Cursor
     const curX = barX + battle.rhythmCursor * barW;
     ctx.fillStyle = '#ffffff';
     ctx.shadowColor = '#ffffff';
-    ctx.shadowBlur = 10;
+    ctx.shadowBlur = 12;
     ctx.fillRect(curX - 4, barY - 4, 8, barH + 8);
     ctx.shadowBlur = 0;
 
     // Instruction Banner
     ctx.fillStyle = '#fbbf24';
-    ctx.font = '700 15px Rajdhani';
+    ctx.font = '800 16px Fredoka, sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText('⚡ HIT [SPACE] OR CLICK WHEN CURSOR IS IN THE GREEN ZONE! ⚡', w / 2, barY - 12);
 
     // Rhythm Result Popup
     if (battle.rhythmResult) {
-      ctx.font = '800 24px Rajdhani';
+      ctx.font = '800 24px Fredoka, sans-serif';
       ctx.fillStyle = battle.rhythmResult === 'PERFECT' ? '#10b981' : (battle.rhythmResult === 'GREAT' ? '#38bdf8' : '#ef4444');
       ctx.fillText(`✨ ${battle.rhythmResult}! ✨`, w / 2, barY + barH + 28);
     }
@@ -502,15 +715,15 @@ export class AstralRenderer {
 
     ctx.shadowColor = spirit.color;
     ctx.shadowBlur = 16;
-    ctx.font = `${Math.floor(40 * scale)}px sans-serif`;
+    ctx.font = `${Math.floor(42 * scale)}px sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(spirit.avatar || (spirit.type === 'synth' ? '🐱' : (spirit.type === 'bass' ? '🐶' : '🎷')), 0, 0);
+    ctx.fillText(spirit.avatar || '🐱', 0, 0);
 
     ctx.shadowBlur = 0;
     ctx.fillStyle = '#ffffff';
-    ctx.font = '700 13px Rajdhani';
-    ctx.fillText(`${spirit.name} [${spirit.type.toUpperCase()}]`, 0, 32 * scale);
+    ctx.font = '800 15px Fredoka, sans-serif';
+    ctx.fillText(`${spirit.name} [${spirit.type.toUpperCase()}]`, 0, 34 * scale);
     ctx.restore();
   }
 
@@ -520,19 +733,19 @@ export class AstralRenderer {
 
     ctx.shadowColor = '#ef4444';
     ctx.shadowBlur = 20;
-    ctx.font = `${Math.floor(42 * scale)}px sans-serif`;
+    ctx.font = `${Math.floor(44 * scale)}px sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(avatar, 0, 0);
 
     ctx.shadowBlur = 0;
     ctx.fillStyle = '#ef4444';
-    ctx.font = '800 14px Rajdhani';
-    ctx.fillText(name, 0, 34 * scale);
+    ctx.font = '800 16px Fredoka, sans-serif';
+    ctx.fillText(name, 0, 36 * scale);
     ctx.restore();
   }
 
-  /* ---------------- 3-STAGE AUDIO MATCH RADAR ---------------- */
+  /* ---------------- INDIVIDUAL AUDIO MATCH RADARS ---------------- */
   private renderAudioMatchRadar(state: GameState, w: number, h: number): void {
     const ctx = this.ctx;
     const t = state.time;
@@ -543,19 +756,23 @@ export class AstralRenderer {
     ctx.fillStyle = '#090d16';
     ctx.fillRect(0, 0, w, h);
 
-    // Header Badge
-    ctx.fillStyle = '#fde047';
-    ctx.font = '800 16px Rajdhani';
-    ctx.textAlign = 'center';
-    ctx.fillText(`STAGE ${match.stage} OF 3: ${match.stage === 1 ? '🎛️ WAVEFORM ALIGNMENT' : (match.stage === 2 ? '🎹 CALL & RESPONSE JAM' : '🎯 RHYTHM PULSE LOCK')}`, centerX, 45);
+    // Title Header
+    let challengeTitle = '🎛️ WAVEFORM EQUALIZER CHALLENGE';
+    if (match.challengeType === 'call_response') challengeTitle = '🎹 CALL & RESPONSE MELODY JAM';
+    else if (match.challengeType === 'rhythm_pulse') challengeTitle = '🥁 RHYTHM PULSE BEAT SYNC';
 
-    if (match.stage === 1) {
-      // ---------------- STAGE 1: WAVEFORM ALIGN ----------------
+    ctx.fillStyle = '#fde047';
+    ctx.font = '800 18px Fredoka, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(challengeTitle, centerX, 45);
+
+    if (match.challengeType === 'waveform_slider') {
+      // ---------------- WAVEFORM ALIGNMENT ----------------
       const isAligned = Math.abs(match.playerFreq - match.targetFreq) < 7;
       
       // Target Waveform (Cyan / Green)
       ctx.strokeStyle = isAligned ? '#10b981' : 'rgba(6, 182, 212, 0.4)';
-      ctx.lineWidth = isAligned ? 4 : 2;
+      ctx.lineWidth = isAligned ? 5 : 2;
       ctx.beginPath();
       for (let x = 60; x < w - 60; x += 4) {
         const y = centerY + Math.sin(x * 0.04 + t * 5) * 45;
@@ -566,7 +783,7 @@ export class AstralRenderer {
 
       // Player Waveform (Magenta / Green)
       ctx.strokeStyle = isAligned ? '#10b981' : '#ec4899';
-      ctx.lineWidth = isAligned ? 4 : 3;
+      ctx.lineWidth = isAligned ? 5 : 3;
       ctx.beginPath();
       const pScale = 0.015 + (match.playerFreq / 100) * 0.05;
       for (let x = 60; x < w - 60; x += 4) {
@@ -580,7 +797,7 @@ export class AstralRenderer {
       if (isAligned) {
         const holdPct = Math.min(1.0, match.holdTime / 1.2);
         ctx.fillStyle = '#10b981';
-        ctx.font = '700 16px Rajdhani';
+        ctx.font = '800 16px Fredoka, sans-serif';
         ctx.fillText(`✨ HOLDING FREQUENCY... (${Math.floor(holdPct * 100)}%) ✨`, centerX, centerY - 80);
         
         ctx.fillStyle = '#1e293b';
@@ -588,15 +805,15 @@ export class AstralRenderer {
         ctx.fillStyle = '#10b981';
         ctx.fillRect(centerX - 100, centerY - 65, 200 * holdPct, 10);
       } else {
-        ctx.fillStyle = '#94a3b8';
-        ctx.font = '600 14px Rajdhani';
+        ctx.fillStyle = '#e2e8f0';
+        ctx.font = '700 15px Fredoka, sans-serif';
         ctx.fillText('👉 Drag the slider below until the waveforms overlap and turn GREEN!', centerX, centerY - 80);
       }
 
-    } else if (match.stage === 2) {
-      // ---------------- STAGE 2: CALL & RESPONSE ----------------
+    } else if (match.challengeType === 'call_response') {
+      // ---------------- CALL & RESPONSE ----------------
       ctx.fillStyle = match.isListeningToPlayer ? '#38bdf8' : '#fbbf24';
-      ctx.font = '700 16px Rajdhani';
+      ctx.font = '800 17px Fredoka, sans-serif';
       ctx.fillText(match.isListeningToPlayer ? `🎵 YOUR TURN: Repeat the tune on the pads! (${match.playerSequence.length}/4)` : '👂 LISTEN CAREFULLY TO THE CREATURE...', centerX, centerY - 90);
 
       // Render 3 Visual Launchpads
@@ -624,20 +841,18 @@ export class AstralRenderer {
         ctx.shadowBlur = 0;
 
         ctx.fillStyle = isActive ? '#0f172a' : '#ffffff';
-        ctx.font = '700 13px Rajdhani';
+        ctx.font = '800 14px Fredoka, sans-serif';
         ctx.fillText(padLabels[i], px + padW / 2, py + padH / 2 + 5);
       }
 
-    } else if (match.stage === 3) {
-      // ---------------- STAGE 3: RHYTHM PULSE RING ----------------
-      // Target Ring (Cyan / Green)
+    } else if (match.challengeType === 'rhythm_pulse') {
+      // ---------------- RHYTHM PULSE RING ----------------
       ctx.strokeStyle = '#06b6d4';
       ctx.lineWidth = 4;
       ctx.beginPath();
       ctx.arc(centerX, centerY, match.targetRadius, 0, Math.PI * 2);
       ctx.stroke();
 
-      // Expanding Pulse Ring
       const diff = Math.abs(match.pulseRadius - match.targetRadius);
       ctx.strokeStyle = diff < 18 ? '#10b981' : 'rgba(236, 72, 153, 0.7)';
       ctx.lineWidth = diff < 18 ? 6 : 3;
@@ -645,14 +860,13 @@ export class AstralRenderer {
       ctx.arc(centerX, centerY, match.pulseRadius, 0, Math.PI * 2);
       ctx.stroke();
 
-      // Combo & Feedback
       ctx.fillStyle = '#fbbf24';
-      ctx.font = '800 22px Rajdhani';
+      ctx.font = '800 22px Fredoka, sans-serif';
       ctx.fillText(`🔥 COMBO: ${match.combo} / 3 🔥`, centerX, centerY - 130);
 
       if (match.feedback) {
         ctx.fillStyle = match.feedback.includes('ON BEAT') ? '#10b981' : '#ef4444';
-        ctx.font = '700 16px Rajdhani';
+        ctx.font = '800 17px Fredoka, sans-serif';
         ctx.fillText(match.feedback, centerX, centerY + match.targetRadius + 30);
       }
     }
@@ -660,11 +874,11 @@ export class AstralRenderer {
     // Creature Badge (Bottom)
     const spirit = match.spiritToUnlock;
     ctx.fillStyle = '#ffffff';
-    ctx.font = '700 18px Rajdhani';
+    ctx.font = '800 20px Fredoka, sans-serif';
     ctx.fillText(`${spirit.name} • ${spirit.vibeTag}`, centerX, h * 0.86);
 
-    ctx.font = '40px sans-serif';
-    ctx.fillText(spirit.avatar || '🎷', centerX, centerY + (match.stage === 2 ? 80 : 0));
+    ctx.font = '42px sans-serif';
+    ctx.fillText(spirit.avatar || '🎷', centerX, centerY + (match.challengeType === 'call_response' ? 80 : 0));
   }
 
   private renderGlitchOverlay(w: number, h: number): void {

@@ -38,9 +38,10 @@ export class AstralGameEngine {
         speaker: 'Aria & Chime-Cat',
         avatar: '☕',
         text: [
-          "Welcome to Cadence Plaza! 🎶 Music streams through every corner of our town.",
-          "Use [W, A, S, D] or Arrow Keys to walk around and explore the plaza.",
-          "Talk to locals, scan mysterious sound ripples, and visit the Glitch Gate when you're ready to duel!"
+          "Welcome to Cadence Plaza! 🎶 The ultimate musical hub by the sea.",
+          "Explore town with [W, A, S, D] or Arrow Keys. There are 3 wild sound ripples to discover!",
+          "🎛️ Equalizer at the Cafe, 🎹 Melody Jam at the Fountain, and 🎯 Rhythm Beats at the Vinyl Den.",
+          "Tune in, collect your squad, and talk to Jax at the Glitch Gate to stop the static!"
         ],
         index: 0
       },
@@ -60,6 +61,8 @@ export class AstralGameEngine {
           this.advanceDialogue();
         } else if (this.state.mode === 'battle' && this.state.battle?.turn === 'rhythm_timing') {
           this.resolveRhythmHit();
+        } else if (this.state.mode === 'audio_match_scan' && this.state.audioMatch?.challengeType === 'rhythm_pulse') {
+          this.hitRhythmPulse();
         } else if (this.state.mode === 'exploration' && this.state.nearbyInteractable) {
           this.interactWithNearby();
         }
@@ -87,7 +90,7 @@ export class AstralGameEngine {
       this.updateProximity();
     }
 
-    // Rhythm Timing Bar Animation
+    // Rhythm Timing Bar Animation in Battle
     if (this.state.mode === 'battle' && this.state.battle?.turn === 'rhythm_timing') {
       const b = this.state.battle;
       b.rhythmCursor += b.rhythmSpeed * dt;
@@ -96,22 +99,19 @@ export class AstralGameEngine {
       }
     }
 
-    // 3-Stage Audio Match Update
+    // Individual Audio Match Updates
     if (this.state.mode === 'audio_match_scan' && this.state.audioMatch) {
       const match = this.state.audioMatch;
-      if (match.stage === 1) {
+      if (match.challengeType === 'waveform_slider') {
         if (Math.abs(match.playerFreq - match.targetFreq) < 7) {
           match.holdTime += dt;
-          if (match.holdTime >= 1.2) {
-            soundEngine.playSuccessDing();
-            match.stage = 2;
-            match.holdTime = 0;
-            this.playMelodyDemo();
+          if (match.holdTime >= 1.2 && !match.isComplete) {
+            this.completeAudioMatch();
           }
         } else {
           match.holdTime = Math.max(0, match.holdTime - dt * 2);
         }
-      } else if (match.stage === 3 && !match.isComplete) {
+      } else if (match.challengeType === 'rhythm_pulse' && !match.isComplete) {
         match.pulseRadius += dt * 140;
         if (match.pulseRadius > 150) {
           match.pulseRadius = 0;
@@ -131,8 +131,8 @@ export class AstralGameEngine {
         soundEngine.playCleansingBloom();
         this.showDialogue('Jax & Aria', '🎉', [
           "WE DID IT! Look at Cadence Plaza... the entire static rift has dissolved!",
-          "High-definition stereo melodies and vibrant colors have completely restored the shoreline!",
-          "Thank you for exploring and rocking the Astral Stream demo!"
+          "High-definition stereo melodies and vibrant neon colors have completely restored the shoreline!",
+          "Thank you for rocking the Astral Stream demo!"
         ]);
       }
     }
@@ -140,7 +140,7 @@ export class AstralGameEngine {
 
   /* ---------------- EXPLORATION & MOVEMENT ---------------- */
   private updatePlayerMovement(dt: number): void {
-    const speed = 160 * dt;
+    const speed = 170 * dt;
     let dx = 0;
     let dy = 0;
 
@@ -152,7 +152,7 @@ export class AstralGameEngine {
     this.state.player.isMoving = (dx !== 0 || dy !== 0);
 
     // Bounding Box (Canvas area clamp)
-    const newX = Math.max(110, Math.min(690, this.state.player.x + dx));
+    const newX = Math.max(90, Math.min(710, this.state.player.x + dx));
     const newY = Math.max(90, Math.min(520, this.state.player.y + dy));
 
     // Collision with Buildings & Fountain
@@ -163,13 +163,13 @@ export class AstralGameEngine {
   }
 
   private checkBuildingCollision(x: number, y: number): boolean {
-    // Cafe (110, 90, 160, 110)
-    if (x > 90 && x < 280 && y > 70 && y < 210) return true;
-    // Vinyl Den (530, 90, 160, 110)
-    if (x > 510 && x < 700 && y > 70 && y < 210) return true;
-    // Fountain (400, 330, radius 38)
-    const distToFountain = Math.hypot(x - 400, y - 330);
-    if (distToFountain < 42) return true;
+    // Cafe (80, 80, 180, 120)
+    if (x > 70 && x < 270 && y > 60 && y < 210) return true;
+    // Vinyl Den (520, 80, 180, 120)
+    if (x > 510 && x < 710 && y > 60 && y < 210) return true;
+    // Fountain (400, 310, radius 40)
+    const distToFountain = Math.hypot(x - 400, y - 310);
+    if (distToFountain < 46) return true;
 
     return false;
   }
@@ -247,11 +247,11 @@ export class AstralGameEngine {
     this.state.dialogue = { speaker, avatar, text, index: 0, onComplete };
   }
 
-  /* ---------------- 3-STAGE AUDIO MATCH SCANNER ---------------- */
+  /* ---------------- DISTINCT AUDIO MATCH CHALLENGES ---------------- */
   public startAudioMatchScan(ripple: SoundRipple): void {
     this.state.mode = 'audio_match_scan';
     this.state.audioMatch = {
-      stage: 1,
+      challengeType: ripple.challengeType,
       spiritToUnlock: JSON.parse(JSON.stringify(ripple.spirit)),
       isComplete: false,
       targetFreq: 65,
@@ -266,25 +266,29 @@ export class AstralGameEngine {
       combo: 0,
       feedback: null
     };
+
+    if (ripple.challengeType === 'call_response') {
+      setTimeout(() => this.playMelodyDemo(), 400);
+    }
   }
 
   public setPlayerFrequency(val: number): void {
     const match = this.state.audioMatch;
-    if (!match || match.stage !== 1) return;
+    if (!match || match.challengeType !== 'waveform_slider') return;
     match.playerFreq = val;
     soundEngine.playTone(200 + val * 5, 'sine', 0.04, 0.04);
   }
 
   public playMelodyDemo(): void {
     const match = this.state.audioMatch;
-    if (!match || match.stage !== 2) return;
+    if (!match || match.challengeType !== 'call_response') return;
 
     match.playerSequence = [];
     match.isListeningToPlayer = false;
 
     match.melodySequence.forEach((note, idx) => {
       setTimeout(() => {
-        if (this.state.audioMatch?.stage === 2) {
+        if (this.state.audioMatch?.challengeType === 'call_response') {
           this.state.audioMatch.activeDemoNote = note;
           soundEngine.playPadTone(note);
           setTimeout(() => {
@@ -295,7 +299,7 @@ export class AstralGameEngine {
     });
 
     setTimeout(() => {
-      if (this.state.audioMatch?.stage === 2) {
+      if (this.state.audioMatch?.challengeType === 'call_response') {
         this.state.audioMatch.isListeningToPlayer = true;
       }
     }, match.melodySequence.length * 500 + 600);
@@ -303,7 +307,7 @@ export class AstralGameEngine {
 
   public inputMelodyPad(padIndex: number): void {
     const match = this.state.audioMatch;
-    if (!match || match.stage !== 2 || !match.isListeningToPlayer) return;
+    if (!match || match.challengeType !== 'call_response' || !match.isListeningToPlayer) return;
 
     soundEngine.playPadTone(padIndex);
     match.playerSequence.push(padIndex);
@@ -317,17 +321,13 @@ export class AstralGameEngine {
     }
 
     if (match.playerSequence.length === match.melodySequence.length) {
-      soundEngine.playSuccessDing();
-      match.stage = 3;
-      match.combo = 0;
-      match.pulseRadius = 0;
-      match.feedback = "Stage 2 Cleared! Hit on the beat!";
+      this.completeAudioMatch();
     }
   }
 
   public hitRhythmPulse(): void {
     const match = this.state.audioMatch;
-    if (!match || match.stage !== 3 || match.isComplete) return;
+    if (!match || match.challengeType !== 'rhythm_pulse' || match.isComplete) return;
 
     const diff = Math.abs(match.pulseRadius - match.targetRadius);
     if (diff < 18) {
@@ -350,6 +350,7 @@ export class AstralGameEngine {
     if (!match || match.isComplete) return;
 
     match.isComplete = true;
+    soundEngine.playSuccessDing();
     soundEngine.playLockChime();
 
     setTimeout(() => {
@@ -360,11 +361,11 @@ export class AstralGameEngine {
 
       this.state.audioMatch = null;
       this.state.mode = 'exploration';
-      this.showDialogue(unlocked.name, '🎷', [
-        `🎉 100% AUDIO MATCH VERIFIED! Streamed: ${unlocked.name} [${unlocked.vibeTag}]!`,
-        "Its golden saxophone riffs have joined your active playlist!"
+      this.showDialogue(unlocked.name, unlocked.avatar || '🎷', [
+        `🎉 AUDIO MATCH VERIFIED! Streamed: ${unlocked.name} [${unlocked.vibeTag}]!`,
+        `Instrument: ${unlocked.instrument}. Added to your living playlist queue!`
       ]);
-    }, 1200);
+    }, 1000);
   }
 
   /* ---------------- BATTLE & RHYTHM TIMING SYSTEM ---------------- */
@@ -428,7 +429,6 @@ export class AstralGameEngine {
     let multiplier = 0.5;
 
     if (cur >= b.targetWindowStart && cur <= b.targetWindowEnd) {
-      // Target Center is (start + end)/2
       const center = (b.targetWindowStart + b.targetWindowEnd) / 2;
       if (Math.abs(cur - center) < 0.06) {
         grade = 'PERFECT';

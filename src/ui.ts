@@ -27,7 +27,7 @@ export class AstralUIManager {
       if (state.mode === 'battle' && state.battle?.turn === 'rhythm_timing') {
         this.engine.resolveRhythmHit();
         this.updateUI();
-      } else if (state.mode === 'audio_match_scan' && state.audioMatch?.stage === 3) {
+      } else if (state.mode === 'audio_match_scan' && state.audioMatch?.challengeType === 'rhythm_pulse') {
         this.engine.hitRhythmPulse();
         this.updateUI();
       } else if (state.mode === 'exploration' && state.nearbyInteractable) {
@@ -88,28 +88,32 @@ export class AstralUIManager {
       }
     }
 
-    // 2. Audio Match Radar Panel (3 Stages)
+    // 2. Audio Match Radar Panel (Discrete Challenges)
     const scanPanel = document.getElementById('audio-scan-panel');
     if (scanPanel) {
       if (state.mode === 'audio_match_scan' && state.audioMatch) {
         scanPanel.classList.remove('hidden');
         const m = state.audioMatch;
-        document.getElementById('scan-stage-title')!.textContent = `🔍 STAGE ${m.stage} OF 3: ${m.stage === 1 ? 'WAVEFORM ALIGN' : (m.stage === 2 ? 'CALL & RESPONSE' : 'RHYTHM LOCK')}`;
+        let title = '🔍 EQUALIZER WAVEFORM SCAN';
+        if (m.challengeType === 'call_response') title = '🎹 CALL & RESPONSE MELODY JAM';
+        else if (m.challengeType === 'rhythm_pulse') title = '🥁 RHYTHM PULSE BEAT SYNC';
+        
+        document.getElementById('scan-stage-title')!.textContent = title;
 
-        // Toggle Stage Controls
+        // Toggle Challenge Controls
         const s1 = document.getElementById('stage-1-controls');
         const s2 = document.getElementById('stage-2-controls');
         const s3 = document.getElementById('stage-3-controls');
         
-        if (m.stage === 1) {
+        if (m.challengeType === 'waveform_slider') {
           s1?.classList.remove('hidden');
           s2?.classList.add('hidden');
           s3?.classList.add('hidden');
-        } else if (m.stage === 2) {
+        } else if (m.challengeType === 'call_response') {
           s1?.classList.add('hidden');
           s2?.classList.remove('hidden');
           s3?.classList.add('hidden');
-        } else if (m.stage === 3) {
+        } else if (m.challengeType === 'rhythm_pulse') {
           s1?.classList.add('hidden');
           s2?.classList.add('hidden');
           s3?.classList.remove('hidden');
