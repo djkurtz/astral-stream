@@ -370,7 +370,7 @@ export interface WorldNPC {
   musicianData?: Musician;
   isProp?: boolean;
   propType?: 'lectern' | 'vanity' | 'music_stand' | 'signpost' | 'fountain' | 'anvil' | 'ancient_stone_stand' | 'golden_music_stand' | 'vista_monolith' | 'road_sign' | 'door_trigger' | 'treasure_chest';
-  actionType: 'talk' | 'audition_battle' | 'practice_bench' | 'competition_stage' | 'sheet_music_stand' | 'inspiration_vista' | 'luthier_shop' | 'wild_harmonipet' | 'conservatory_master' | 'theory_bench' | 'customization_mirror' | 'signpost' | 'treasure_chest';
+  actionType: 'talk' | 'audition_battle' | 'practice_bench' | 'competition_stage' | 'sheet_music_stand' | 'inspiration_vista' | 'luthier_shop' | 'wild_harmonipet' | 'conservatory_master' | 'theory_bench' | 'customization_mirror' | 'signpost' | 'treasure_chest' | 'celebrity_secret';
   dialogue: string[];
   sheetMusicReward?: string; // piece ID
   vistaId?: string;
@@ -388,6 +388,9 @@ export interface WorldNPC {
   dir?: 'up' | 'down' | 'left' | 'right';
   chatBubble?: { text: string; timer: number };
   treasureReward?: { notes: number; sparks: number };
+  isSecret?: boolean;
+  celebrityMotif?: string;
+  celebrityReward?: { notes: number; sparks: number };
 }
 
 export interface GameDialogue {
@@ -481,6 +484,7 @@ export interface GameState {
   activeQuestId: string | null;
   questInventory: string[]; // e.g. 'brass_music_box_pins'
   openedChests: string[];
+  discoveredSecrets?: string[];
   proficiency: PlayerProficiency;
   practiceLevel: number;
   theoryLevel: number;

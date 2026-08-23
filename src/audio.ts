@@ -326,6 +326,152 @@ export class HarmoniaSoundEngine {
     });
   }
 
+  /**
+   * Synthesize iconic classical celebrity motifs using procedural Web Audio
+   */
+  public playCelebrityMotif(celebrityId: string): void {
+    if (this.isMuted || !this.ensureContext() || !this.ctx || !this.masterGain) return;
+    const id = celebrityId.toLowerCase();
+
+    if (id.includes('mozart')) {
+      // 🎭 Wolfgang Amadeus Mozart: 'Eine kleine Nachtmusik' Allegro motif + Starling chirps
+      const motif = [
+        { freq: 392.00, dur: 0.22, delay: 0 },    // G4
+        { freq: 293.66, dur: 0.22, delay: 240 },  // D4
+        { freq: 392.00, dur: 0.16, delay: 480 },  // G4
+        { freq: 293.66, dur: 0.16, delay: 640 },  // D4
+        { freq: 392.00, dur: 0.20, delay: 800 },  // G4
+        { freq: 493.88, dur: 0.20, delay: 1000 }, // B4
+        { freq: 587.33, dur: 0.45, delay: 1200 }, // D5
+        { freq: 523.25, dur: 0.22, delay: 1700 }, // C5
+        { freq: 440.00, dur: 0.22, delay: 1940 }, // A4
+        { freq: 523.25, dur: 0.16, delay: 2180 }, // C5
+        { freq: 440.00, dur: 0.16, delay: 2340 }, // A4
+        { freq: 523.25, dur: 0.20, delay: 2500 }, // C5
+        { freq: 369.99, dur: 0.20, delay: 2700 }, // F#4
+        { freq: 293.66, dur: 0.50, delay: 2900 }, // D4
+      ];
+      motif.forEach(n => {
+        setTimeout(() => {
+          this.playInstrumentNote('violin', n.freq, n.dur, 0.9);
+          if (n.freq > 400) {
+            this.playInstrumentNote('silver_flute', n.freq * 2, n.dur * 0.5, 0.4);
+          }
+        }, n.delay);
+      });
+
+    } else if (id.includes('beethoven')) {
+      // ⚡ Ludwig van Beethoven: Symphony No. 5 Fate Motif (Da-Da-Da-DUM!)
+      const fate1 = [
+        { freq: 392.00, dur: 0.15, delay: 0 },    // G4
+        { freq: 392.00, dur: 0.15, delay: 160 },  // G4
+        { freq: 392.00, dur: 0.15, delay: 320 },  // G4
+        { freq: 311.13, dur: 0.90, delay: 500 },  // Eb4
+      ];
+      const fate2 = [
+        { freq: 349.23, dur: 0.15, delay: 1500 }, // F4
+        { freq: 349.23, dur: 0.15, delay: 1660 }, // F4
+        { freq: 349.23, dur: 0.15, delay: 1820 }, // F4
+        { freq: 293.66, dur: 1.10, delay: 2000 }, // D4
+      ];
+      [...fate1, ...fate2].forEach(n => {
+        setTimeout(() => {
+          this.playInstrumentNote('french_horn', n.freq, n.dur, 0.95);
+          this.playInstrumentNote('pocket_trumpet', n.freq < 400 ? n.freq * 2 : n.freq, n.dur, 0.85);
+          this.playInstrumentNote('cello', n.freq * 0.5, n.dur, 0.9);
+          if (n.dur > 0.5) {
+            this.playInstrumentNote('timpani', n.freq * 0.5, n.dur, 1.0);
+          }
+        }, n.delay);
+      });
+
+    } else if (id.includes('bach')) {
+      // 📜 Johann Sebastian Bach: Toccata & Fugue in D minor Organ Arpeggio
+      const toccata = [
+        { freq: 440.00, dur: 0.12, delay: 0 },    // A4
+        { freq: 392.00, dur: 0.12, delay: 110 },  // G4
+        { freq: 440.00, dur: 0.70, delay: 220 },  // A4
+        { freq: 392.00, dur: 0.12, delay: 1000 }, // G4
+        { freq: 349.23, dur: 0.12, delay: 1120 }, // F4
+        { freq: 329.63, dur: 0.12, delay: 1240 }, // E4
+        { freq: 293.66, dur: 0.12, delay: 1360 }, // D4
+        { freq: 277.18, dur: 0.15, delay: 1480 }, // C#4
+        { freq: 293.66, dur: 0.80, delay: 1620 }, // D4
+      ];
+      toccata.forEach(n => {
+        setTimeout(() => {
+          this.playInstrumentNote('oboe', n.freq, n.dur, 0.85);
+          this.playInstrumentNote('silver_flute', n.freq * 2, n.dur, 0.6);
+          this.playInstrumentNote('cello', n.freq * 0.5, n.dur, 0.8);
+        }, n.delay);
+      });
+      setTimeout(() => {
+        [146.83, 220.00, 293.66, 349.23, 440.00].forEach(f => {
+          this.playInstrumentNote('oboe', f, 1.2, 0.9);
+          this.playInstrumentNote('cello', f * 0.5, 1.2, 0.85);
+        });
+      }, 2500);
+
+    } else if (id.includes('paganini')) {
+      // 🎻 Niccolò Paganini: Caprice No. 24 Virtuoso Violin Shredding
+      const caprice = [
+        { freq: 440.00, dur: 0.08, delay: 0 },    // A4
+        { freq: 440.00, dur: 0.08, delay: 90 },   // A4
+        { freq: 523.25, dur: 0.08, delay: 180 },  // C5
+        { freq: 493.88, dur: 0.08, delay: 260 },  // B4
+        { freq: 440.00, dur: 0.10, delay: 340 },  // A4
+        { freq: 659.25, dur: 0.08, delay: 480 },  // E5
+        { freq: 659.25, dur: 0.08, delay: 570 },  // E5
+        { freq: 783.99, dur: 0.08, delay: 660 },  // G5
+        { freq: 698.46, dur: 0.08, delay: 740 },  // F5
+        { freq: 659.25, dur: 0.10, delay: 820 },  // E5
+        { freq: 493.88, dur: 0.08, delay: 960 },  // B4
+        { freq: 587.33, dur: 0.08, delay: 1040 }, // D5
+        { freq: 523.25, dur: 0.08, delay: 1120 }, // C5
+        { freq: 493.88, dur: 0.08, delay: 1200 }, // B4
+        { freq: 440.00, dur: 0.10, delay: 1280 }, // A4
+        { freq: 329.63, dur: 0.12, delay: 1400 }, // E4
+        { freq: 440.00, dur: 0.60, delay: 1540 }, // A4
+      ];
+      caprice.forEach(n => {
+        setTimeout(() => {
+          this.playInstrumentNote('violin', n.freq, n.dur, 0.95);
+        }, n.delay);
+      });
+
+    } else if (id.includes('satie')) {
+      // ☂️ Erik Satie: Gymnopédie No. 1 Lilting Velvet Waltz
+      setTimeout(() => this.playInstrumentNote('acoustic_guitar', 196.00, 0.8, 0.7), 0); // G3
+      setTimeout(() => {
+        this.playInstrumentNote('harp', 493.88, 0.6, 0.6); // B4
+        this.playInstrumentNote('harp', 587.33, 0.6, 0.6); // D5
+        this.playInstrumentNote('harp', 739.99, 0.6, 0.6); // F#5
+      }, 400);
+      setTimeout(() => this.playInstrumentNote('acoustic_guitar', 146.83, 0.8, 0.7), 1000); // D3
+      setTimeout(() => {
+        this.playInstrumentNote('harp', 440.00, 0.6, 0.6); // A4
+        this.playInstrumentNote('harp', 554.37, 0.6, 0.6); // C#5
+        this.playInstrumentNote('harp', 739.99, 0.6, 0.6); // F#5
+      }, 1400);
+      const melody = [
+        { freq: 739.99, dur: 0.7, delay: 1800 }, // F#5
+        { freq: 659.25, dur: 0.5, delay: 2400 }, // E5
+        { freq: 587.33, dur: 0.5, delay: 2900 }, // D5
+        { freq: 493.88, dur: 0.5, delay: 3400 }, // B4
+        { freq: 554.37, dur: 0.5, delay: 3900 }, // C#5
+        { freq: 587.33, dur: 1.0, delay: 4400 }, // D5
+      ];
+      melody.forEach(n => {
+        setTimeout(() => {
+          this.playInstrumentNote('silver_flute', n.freq, n.dur, 0.75);
+          this.playInstrumentNote('harp', n.freq, n.dur, 0.5);
+        }, n.delay);
+      });
+    } else {
+      this.playFanfare();
+    }
+  }
+
     /* ---------------- DYNAMIC BIOME SOUNDSCAPES & WILDLIFE FX ---------------- */
 
   public playWildlifeCall(species: string): void {

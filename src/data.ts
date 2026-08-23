@@ -1023,7 +1023,7 @@ export const REPERTOIRE_DATABASE: RepertoirePiece[] = [
   },
   {
     id: 'piece_bossa_trio',
-    title: 'Sonora Sunset Serenade',
+    title: 'Harmonia Sunset Serenade',
     composer: 'Antonio Gilberto',
     genre: 'Bossa Nova Trio',
     difficulty: 3,
@@ -1097,7 +1097,7 @@ export const REPERTOIRE_DATABASE: RepertoirePiece[] = [
       { strings: [261, 329, 392, 523], winds: [659, 783, 1046], brass: [130, 261, 392], percussion: 'glockenspiel' }
     ],
     melody: [659, 659, 698, 783, 783, 698, 659, 587, 523, 523, 587, 659, 659, 587, 587],
-    description: 'The legendary masterwork of Sonora. Unites all 4 sections in glorious, transcendental polyphony.',
+    description: 'The legendary masterwork of Harmonia. Unites all 4 sections in glorious, transcendental polyphony.',
     masteryXp: 1000,
     isMastered: false
   }
@@ -1382,7 +1382,7 @@ export const RECRUITABLE_MUSICIANS: Musician[] = [
     level: 4,
     xp: 350,
     dialogue: [
-      "Jax thinks he's the loudest horn in Sonora? Hilarious! My trombone slide reaches low pedal tones that shake the whole canyon!",
+      "Jax thinks he's the loudest horn in Harmonia? Hilarious! My trombone slide reaches low pedal tones that shake the whole canyon!",
       "Echo Canyon is my personal practice amphitheater. Want to see whose sound waves carry further?"
     ],
     auditionDialogue: ["Incoming glissando! Catch this sonic wave if you can!"],
@@ -1669,7 +1669,7 @@ export const RIVAL_ENSEMBLES: RivalEnsemble[] = [
   },
   {
     id: 'rival_grand_orchestra',
-    name: 'The Sonora Youth Symphony',
+    name: 'The Harmonia Youth Symphony',
     tier: 'orchestra',
     conductorName: 'Aurelius (Age 21)',
     members: [
@@ -1704,7 +1704,7 @@ export const RIVAL_ENSEMBLES: RivalEnsemble[] = [
     piece: REPERTOIRE_DATABASE[5], // Ode to Harmony
     reputationRequired: 7,
     rewardStars: 5,
-    description: 'The premier conservatory youth orchestra of Sonora, uniting all four instrument families in transcendent polyphony.'
+    description: 'The premier conservatory youth orchestra of Harmonia, uniting all four instrument families in transcendent polyphony.'
   }
 ];
 
@@ -1966,12 +1966,11 @@ export const WORLD_ZONES: Record<string, WorldZone> = {
       { type: 'building', buildingType: 'wall', x: 2340, y: 0, w: 60, h: 920, name: 'East Colonnade Wall Top' },
       { type: 'building', buildingType: 'wall', x: 2340, y: 1080, w: 60, h: 920, name: 'East Colonnade Wall Bottom' },
       // Central City Iconic Buildings
-      { type: 'building', buildingType: 'academy', x: 950, y: 640, w: 500, h: 320, name: 'The Grand Symphony Hall', signIcon: '🏛️', roofColor: '#831843' },
+      { type: 'building', buildingType: 'academy', x: 950, y: 600, w: 500, h: 320, name: 'The Grand Symphony Hall', signIcon: '🏛️', roofColor: '#831843' },
       { type: 'building', buildingType: 'academy', x: 240, y: 260, w: 420, h: 240, name: 'High Conservatory of Maestros', signIcon: '🎼', roofColor: '#1e3a8a' },
       { type: 'building', buildingType: 'library', x: 1740, y: 260, w: 420, h: 240, name: 'Royal Archives & Grand Library', signIcon: '📖', roofColor: '#065f46' },
       { type: 'building', buildingType: 'tavern', x: 240, y: 1360, w: 420, h: 240, name: "The Maestro's Forum & Taphouse", signIcon: '🍷', roofColor: '#991b1b' },
-      { type: 'building', buildingType: 'clocktower', x: 1740, y: 1360, w: 420, h: 240, name: 'Solstice Clocktower & Council Hall', signIcon: '⏰', roofColor: '#4c1d95' },
-      { type: 'circle', x: 1200, y: 1140, radius: 75, name: 'The Eternal Rotunda Dais' }
+      { type: 'building', buildingType: 'clocktower', x: 1740, y: 1360, w: 420, h: 240, name: 'Solstice Clocktower & Council Hall', signIcon: '⏰', roofColor: '#4c1d95' }
     ]
   }
 };
@@ -2003,7 +2002,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     propType: 'lectern',
     actionType: 'theory_bench',
     theoryType: 'pitch_recognition_1',
-    dialogue: ["Welcome to the Sonora Music Conservatory! Test your knowledge across progressive curriculum tiers."]
+    dialogue: ["Welcome to the Cavatina Music Academy! Test your knowledge across progressive curriculum tiers."]
   },
   {
     id: 'npc_theory_professor',
@@ -2029,7 +2028,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     actionType: 'talk',
     dialogue: [
       "Greetings, young maestro! Study the Theory Lectern to advance through our 8-tier curriculum. Every drill permanently elevates your Sight-Reading!",
-      "When you feel ready to explore Sonora, the East Gate leads out into Lyre Valley, the wild path toward the Grand Symphony Hall."
+      "When you feel ready to explore Harmonia, the East Gate leads out into Lyre Valley, the wild path toward the Grand Symphony Hall."
     ]
   },
   {
@@ -2120,6 +2119,46 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     propType: 'door_trigger',
     actionType: 'talk',
     dialogue: ["You push open the warm oak door of The Melodic Rose Tavern & Inn. The cozy aroma of roasted apples and mulled cider fills the air!"]
+  },
+  {
+    id: 'npc_secret_mozart',
+    name: 'Wolfgang Amadeus Mozart',
+    title: 'The Prankster Virtuoso [SPACE]',
+    x: 240,
+    y: 1100,
+    zone: 'cavatina_village',
+    isSecret: true,
+    actionType: 'celebrity_secret',
+    celebrityMotif: 'mozart',
+    celebrityReward: { notes: 350, sparks: 25 },
+    musicianData: {
+      id: 'mozart',
+      name: 'Wolfgang Amadeus Mozart',
+      title: 'The Prankster Virtuoso',
+      avatar: '🎭',
+      paletteColor: '#e11d48',
+      instrumentId: 'violin',
+      instrumentName: 'Imperial Violin & Clavier',
+      section: 'strings',
+      pet: {
+        id: 'pet_mozart_starling',
+        name: 'Vogel',
+        species: 'Virtuoso Starling',
+        sprite: 'finch',
+        section: 'strings',
+        instrumentName: 'Imperial Violin',
+        leitmotifSound: 'flute_chirp',
+        color: '#f43f5e'
+      },
+      stats: { technique: 98, toneQuality: 95, tempoStability: 92, sightReading: 99 },
+      level: 20,
+      xp: 5000
+    },
+    dialogue: [
+      "Hahaha! *pffft* 💨 Pardon my acoustics! You found my secret garden hideaway behind the Melodic Rose Tavern!",
+      "Meet my feathered prodigy, Vogel the Starling! I whistled the opening of 'Eine kleine Nachtmusik' to him once, and now he won't stop singing it!",
+      "People think classical music must be grim and serious. Nonsense! A well-timed whoopee cushion is just syncopated percussion! Keep laughing and keep playing!"
+    ]
   },
   {
     id: 'npc_door_forge',
@@ -2682,6 +2721,37 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     ]
   },
   {
+    id: 'npc_secret_bach',
+    name: 'Johann Sebastian Bach',
+    title: 'The Counterpoint Patriarch [SPACE]',
+    x: 1750,
+    y: 700,
+    zone: 'woodwind_woods',
+    isSecret: true,
+    actionType: 'celebrity_secret',
+    celebrityMotif: 'bach',
+    celebrityReward: { notes: 400, sparks: 30 },
+    musicianData: {
+      id: 'bach',
+      name: 'Johann Sebastian Bach',
+      title: 'The Counterpoint Patriarch',
+      avatar: '📜',
+      paletteColor: '#15803d',
+      instrumentId: 'oboe',
+      instrumentName: 'Cathedral Organ Pipes & Well-Tempered Reed',
+      section: 'woodwinds',
+      pet: { id: 'pet_bach', name: 'Fugue', species: 'Piccolo Finch', sprite: 'finch', section: 'woodwinds', instrumentName: 'Well-Tempered Reed', leitmotifSound: 'flute_chirp', color: '#15803d' },
+      stats: { technique: 100, toneQuality: 98, tempoStability: 100, sightReading: 100 },
+      level: 20,
+      xp: 5000
+    },
+    dialogue: [
+      "Halt! Shhh! Watch your step in this tree hollow—Wilhelm, Carl, and Johann Jr. are practicing their 6-part fugue on the higher boughs!",
+      "Directing twenty musical children while improvising organ toccatas before morning chapel is simply an exercise in harmonic parenting!",
+      "Remember: Counterpoint is not math, it is a conversation between souls where everyone speaks at once, yet perfect harmony prevails!"
+    ]
+  },
+  {
     id: 'npc_sylvan_grove',
     name: 'Leo & The Canopy Trio',
     title: 'Teen Bossa Trio (Ages 14-16) [SPACE to Compete]',
@@ -2832,12 +2902,12 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     id: 'npc_parent_penny',
     name: "Dr. Thorne (Penny's Dad)",
     title: 'Resigned Parent [SPACE to Talk]',
-    x: 1450,
-    y: 1000,
+    x: 1050,
+    y: 950,
     zone: 'woodwind_woods',
     wander: true,
-    anchorX: 1450,
-    anchorY: 1000,
+    anchorX: 1050,
+    anchorY: 950,
     actionType: 'talk',
     dialogue: [
       "Penny originally wanted to play drums. I bought her an oboe thinking it would be quiet and refined.",
@@ -2876,6 +2946,37 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     musicianData: RECRUITABLE_MUSICIANS[6],
     actionType: 'audition_battle',
     dialogue: RECRUITABLE_MUSICIANS[6].dialogue || []
+  },
+  {
+    id: 'npc_secret_satie',
+    name: 'Erik Satie',
+    title: 'The Velvet Eccentric [SPACE]',
+    x: 240,
+    y: 250,
+    zone: 'east_wilderness',
+    isSecret: true,
+    actionType: 'celebrity_secret',
+    celebrityMotif: 'satie',
+    celebrityReward: { notes: 350, sparks: 25 },
+    musicianData: {
+      id: 'satie',
+      name: 'Erik Satie',
+      title: 'The Velvet Eccentric',
+      avatar: '☂️',
+      paletteColor: '#64748b',
+      instrumentId: 'harp',
+      instrumentName: 'Velvet Gymnopedie Chimes',
+      section: 'strings',
+      pet: { id: 'pet_satie', name: 'Velours', species: 'Allegro Swan', sprite: 'swan', section: 'strings', instrumentName: 'Velvet Gymnopedie Chimes', leitmotifSound: 'violin_pure', color: '#64748b' },
+      stats: { technique: 90, toneQuality: 98, tempoStability: 95, sightReading: 92 },
+      level: 20,
+      xp: 5000
+    },
+    dialogue: [
+      "*Softly humming Gymnopédie No. 1...* Ah, bonjour. Please, mind the umbrella. I must protect my complexion from yellow and red wavelengths.",
+      "My doctor insists on a strict regimen: I eat exclusively white foods. Hard-boiled egg whites, powdered sugar, grated coconut, and occasionally finely shredded parchment paper.",
+      "Why play twenty notes when one quiet, melancholy cadence can stop time itself? Take these sparks and listen to the velvet spaces between sounds."
+    ]
   },
   {
     id: 'npc_vista_zephyr_falls',
@@ -3127,7 +3228,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     isProp: true,
     propType: 'door_trigger',
     actionType: 'talk',
-    dialogue: ["You explore the Fanfare Archives. Illuminated bronze plates document the historic fanfare signals of Sonora's defense corps."]
+    dialogue: ["You explore the Fanfare Archives. Illuminated bronze plates document the historic fanfare signals of Harmonia's defense corps."]
   },
   {
     id: 'npc_door_citadel_townhall',
@@ -3404,6 +3505,37 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     dialogue: ["Standing atop Resonance Peak, every sound bounces back with pristine clarity, honing your technique!"]
   },
   {
+    id: 'npc_secret_beethoven',
+    name: 'Ludwig van Beethoven',
+    title: 'The Deafening Titan [SPACE]',
+    x: 1560,
+    y: 320,
+    zone: 'north_wilderness',
+    isSecret: true,
+    actionType: 'celebrity_secret',
+    celebrityMotif: 'beethoven',
+    celebrityReward: { notes: 400, sparks: 30 },
+    musicianData: {
+      id: 'beethoven',
+      name: 'Ludwig van Beethoven',
+      title: 'The Deafening Titan',
+      avatar: '⚡',
+      paletteColor: '#475569',
+      instrumentId: 'french_horn',
+      instrumentName: 'Great Brass Ear Trumpet of Fate',
+      section: 'brass',
+      pet: { id: 'pet_beethoven', name: 'Titan', species: 'Fanfare Terrier', sprite: 'terrier', section: 'brass', instrumentName: 'Great Brass Ear Trumpet of Fate', leitmotifSound: 'trumpet_blare', color: '#475569' },
+      stats: { technique: 96, toneQuality: 99, tempoStability: 98, sightReading: 95 },
+      level: 20,
+      xp: 5000
+    },
+    dialogue: [
+      "WHAT?! SPEAK LOUDER! PROJECT DIRECTLY INTO MY EAR TRUMPET! 📢",
+      "I AM CURRENTLY ENGAGED IN A FORTISSIMO SCREAMING CONTEST WITH THAT THUNDERSTORM CLOUD! DA-DA-DA-DUM! FATE KNOCKS AT THE DOOR!",
+      "Never let mere mortal quietude hold back your symphony! If the world does not hear you, play so fiercely that the mountains tremble!"
+    ]
+  },
+  {
     id: 'npc_wild_badger',
     name: 'Wild Fanfare Badger',
     title: 'Wild Harmonipet (French Horn) [SPACE to Harmonize]',
@@ -3642,11 +3774,11 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     name: 'Chieftain Ronin',
     title: 'Street Percussion Leader (Age 18) [SPACE to Compete]',
     x: 1500,
-    y: 1150,
+    y: 600,
     zone: 'percussion_peaks',
     wander: true,
     anchorX: 1500,
-    anchorY: 1150,
+    anchorY: 600,
     actionType: 'competition_stage',
     rivalId: 'rival_thunder_chamber',
     dialogue: ["Yo! I'm Ronin. We run the Mountbeat street drum crew. In Percussion Peaks, timing isn't a suggestion—it's law. Let's see your pulse!"]
@@ -3760,12 +3892,12 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     id: 'npc_miner_percussion',
     name: 'Basalt Miner Dave',
     title: 'Quarry Supervisor [SPACE to Talk]',
-    x: 1350,
-    y: 1000,
+    x: 1100,
+    y: 920,
     zone: 'percussion_peaks',
     wander: true,
-    anchorX: 1350,
-    anchorY: 1000,
+    anchorX: 1100,
+    anchorY: 920,
     actionType: 'talk',
     dialogue: [
       "The kids think they're playing cool street taiko. I think they're accidentally triggering miniature rockslides on ridge four.",
@@ -3868,6 +4000,37 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     dialogue: ["The steady subterranean heartbeat of the caldera grounds your internal metronome!"]
   },
   {
+    id: 'npc_secret_paganini',
+    name: 'Niccolò Paganini',
+    title: 'The Fiendish Virtuoso [SPACE]',
+    x: 180,
+    y: 220,
+    zone: 'south_wilderness',
+    isSecret: true,
+    actionType: 'celebrity_secret',
+    celebrityMotif: 'paganini',
+    celebrityReward: { notes: 450, sparks: 35 },
+    musicianData: {
+      id: 'paganini',
+      name: 'Niccolò Paganini',
+      title: 'The Fiendish Virtuoso',
+      avatar: '🎻',
+      paletteColor: '#581c87',
+      instrumentId: 'violin',
+      instrumentName: 'Il Cannone Guarnieri (Smoky Demonic Violin)',
+      section: 'strings',
+      pet: { id: 'pet_paganini', name: 'Cannone', species: 'Allegro Swan', sprite: 'swan', section: 'strings', instrumentName: 'Il Cannone Guarnieri', leitmotifSound: 'violin_pure', color: '#581c87' },
+      stats: { technique: 100, toneQuality: 96, tempoStability: 99, sightReading: 97 },
+      level: 20,
+      xp: 5000
+    },
+    dialogue: [
+      "Shhh... Lower your voice! The superstitious villagers in the gorge think my Caprice No. 24 is fueled by brimstone and dark pacts!",
+      "I did NOT sell my soul to any demon for violin shredding! It's just extreme left-hand pizzicato, ricochet bowing, and fifteen hours of daily scales!",
+      "Though... having spooky volcanic steam billowing behind you does add phenomenal stage presence! Take these fiery notes and practice your arpeggios!"
+    ]
+  },
+  {
     id: 'npc_wild_armadillo',
     name: 'Wild Rhythm Armadillo',
     title: 'Wild Harmonipet (Snare Kit) [SPACE to Harmonize]',
@@ -3898,7 +4061,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     name: 'The Grand Symphony Hall Entrance',
     title: '🏛️ Enter The Grand Symphony Hall [SPACE to Compete]',
     x: 1200,
-    y: 960,
+    y: 920,
     zone: 'grand_hall',
     isProp: true,
     propType: 'door_trigger',
@@ -3930,7 +4093,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     propType: 'door_trigger',
     actionType: 'sheet_music_stand',
     sheetMusicReward: 'piece_ode_to_harmony',
-    dialogue: ["You enter the Royal Archives. Shelves towering four stories high hold every score ever composed across Sonora! Discovered the 'Ode to Harmonic Resonance'!"]
+    dialogue: ["You enter the Royal Archives. Shelves towering four stories high hold every score ever composed across Harmonia! Discovered the 'Ode to Harmonic Resonance'!"]
   },
   {
     id: 'npc_door_grand_forum',
@@ -3981,7 +4144,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     actionType: 'talk',
     dialogue: [
       "Welcome to The Central City, young maestro! I am Vane. Here at the Forum, masters of Strings, Woodwinds, Brass, and Percussion share table and tune.",
-      "The Solstice Symphony Tournament in the Grand Hall is the crowning glory of all Sonora. Assemble an 8-piece chamber ensemble to claim your title!"
+      "The Solstice Symphony Tournament in the Grand Hall is the crowning glory of all Harmonia. Assemble an 8-piece chamber ensemble to claim your title!"
     ]
   },
   {
@@ -4008,7 +4171,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     actionType: 'talk',
     dialogue: [
       "Greetings, scholar! If you seek lost sheet music manuscripts, search the deep wilderness corridors flanking the four cardinal highways.",
-      "The ancient masters hid masterpieces in the glens and canyons of Sonora."
+      "The ancient masters hid masterpieces in the glens and canyons of Harmonia."
     ]
   },
   {
@@ -4043,8 +4206,8 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     id: 'npc_theory_grand_hall',
     name: 'Grand High Lectern',
     title: 'Master Theory Exam (Acoustics & Orchestration) [SPACE]',
-    x: 450,
-    y: 450,
+    x: 460,
+    y: 540,
     zone: 'grand_hall',
     isProp: true,
     propType: 'lectern',
@@ -4360,11 +4523,11 @@ export const PERFORMANCE_VENUES: PerformanceVenue[] = [
 export const INITIAL_GAME_QUESTS: GameQuest[] = [
   {
     id: 'quest_ch1',
-    title: 'Chapter 1: The Street Soloist',
+    title: 'Chapter 1: The Western Strings Soloist',
     chapter: 1,
     type: 'main',
-    description: 'Begin your journey in Cavatina Village. Hone your technique in the Practice Shed and recruit your first Duet partner.',
-    objective: 'Recruit Clara or Oliver and defeat Busker Tim at the Gazebo.',
+    description: 'Begin your musical odyssey in Cavatina Village, the cradle of Strings in the West. Hone your technique in the Practice Shed, consult Clara’s Mom or Timmy’s Dad in the village square, and recruit your first Duet partner to triumph at the Village Gazebo.',
+    objective: 'Recruit Clara or Maya in Cavatina Village and defeat Busker Timmy at the Village Gazebo.',
     rewardGold: 200,
     rewardSparks: 20,
     rewardStars: 1,
@@ -4372,37 +4535,49 @@ export const INITIAL_GAME_QUESTS: GameQuest[] = [
   },
   {
     id: 'quest_ch2',
-    title: 'Chapter 2: The Bossa Trio',
+    title: 'Chapter 2: The Sylvan Woodwind Trio',
     chapter: 2,
     type: 'main',
-    description: 'Travel beyond the village to assemble a 3-piece rhythm section and win the Coastal Showdown.',
-    objective: 'Recruit Rhythm Rita and master the Bossa Nova Serenade.',
-    rewardGold: 400,
+    description: 'Traverse the eastern wilderness of Breeze Glade into the sylvan canopies of Woodwind Woods. Recruit a nimble woodwind prodigy, chat with local parents at the Whispering Willow Lounge, and master your 3-piece syncopation at the Canopy Stage.',
+    objective: 'Recruit Oliver or Chloe in the East and defeat Leo’s Whispering Canopy Trio in Woodwind Woods.',
+    rewardGold: 450,
     rewardSparks: 35,
     rewardStars: 2,
     completed: false
   },
   {
     id: 'quest_ch3',
-    title: 'Chapter 3: The Starlight Quartet',
+    title: 'Chapter 3: The Gilded Citadel Quartet',
     chapter: 3,
     type: 'main',
-    description: 'Enter the competitive Citadel, recruit Baron Von Brass, and perform the Starlight Quartet.',
-    objective: 'Recruit Baron Von Brass and achieve 4-piece ensemble synergy.',
-    rewardGold: 700,
+    description: 'March north through the red-rock steppes of Echo Canyon into the fortified ramparts of The Brass Citadel. Recruit a heroic brass lead, face the high expectations of Citadel parents, and prove your dynamic projection against Baroness Vesta.',
+    objective: 'Recruit Jax or Sam and defeat Baroness Vesta’s Gilded Citadel Fanfare in a 4-piece quartet showcase.',
+    rewardGold: 750,
     rewardSparks: 50,
     rewardStars: 3,
     completed: false
   },
   {
+    id: 'quest_ch4',
+    title: 'Chapter 4: The Mountain Thunder Chamber',
+    chapter: 4,
+    type: 'main',
+    description: 'Descend south into the volcanic caldera of Rumble Gorge and the stepped ghats of Percussion Peaks. Form an unbreakable pocket with a rhythm prodigy, chat with Rita’s Mom outside the saloon, and conquer Chieftain Ronin’s polyrhythmic challenge.',
+    objective: 'Recruit Rita or Ren and defeat Chieftain Ronin’s Mountain Thunder Corps at the Mountbeat Caldera Stage.',
+    rewardGold: 1200,
+    rewardSparks: 75,
+    rewardStars: 4,
+    completed: false
+  },
+  {
     id: 'quest_ch5',
-    title: 'Chapter 5: The Grand Symphony',
+    title: 'Chapter 5: The Solstice Symphony Finale',
     chapter: 5,
     type: 'main',
-    description: 'Unite all 4 acoustic families and perform the Ode to Harmony at the Grand Symphony Hall.',
-    objective: 'Defeat Maestro Valerius in the Grand Philharmonic Showdown.',
+    description: 'Enter The Central City (The Grand Symphony Hub) where all four cardinal paths converge. Meet Conservatory Arranger Nico at The Maestro’s Forum, assemble an 8-piece orchestra uniting all 4 instrument families, and perform the Ode to Harmony for the Solstice Council.',
+    objective: 'Recruit Nico in Central City and defeat Aurelius & The Harmonia Youth Symphony at The Grand Symphony Hall.',
     rewardGold: 2500,
-    rewardSparks: 100,
+    rewardSparks: 150,
     rewardStars: 5,
     completed: false
   },
@@ -4411,14 +4586,76 @@ export const INITIAL_GAME_QUESTS: GameQuest[] = [
     title: 'Side Quest: The Antique Music Box',
     chapter: 1,
     type: 'restoration',
-    description: 'Elder Timothy needs help replacing the brass cylinder pins of his family heirloom.',
-    objective: 'Speak with Master Luthier Marco and return to Elder Timothy.',
+    description: 'Elder Timothy in Cavatina Village needs help replacing the delicate brass cylinder pins of his grandfather’s heirloom.',
+    objective: 'Speak with Master Luthier Marco at the Forge, craft replacement Brass Pins, and return to Elder Timothy.',
     rewardGold: 150,
     rewardSparks: 10,
     rewardStars: 0,
     completed: false
+  },
+  {
+    id: 'quest_rescue_harmonidex',
+    title: 'Familiar Rescue: Melodic Wildlife Bonding',
+    chapter: 2,
+    type: 'rescue',
+    description: 'Wild Harmonipets in the wilderness biomes (Lyre Valley, Breeze Glade, Echo Canyon, Rumble Gorge) respond to pure pitch intervals. Bond with a wild creature using your instrument to register them in your HarmoniDex.',
+    objective: 'Successfully harmonize with and bond any wild Harmonipet in the wilderness corridors.',
+    rewardGold: 300,
+    rewardSparks: 25,
+    rewardStars: 1,
+    completed: false
+  },
+  {
+    id: 'quest_side_theory_scholar',
+    title: 'Academic Favor: Conservatory Theory Scholar',
+    chapter: 2,
+    type: 'side',
+    description: 'Professor Lyra at the Cavatina Music Academy and regional deans encourage musicians to train their ears and score-reading at village theory lecterns.',
+    objective: 'Pass 3 music theory drills at the academic lecterns across Harmonia’s regional academies.',
+    rewardGold: 350,
+    rewardSparks: 30,
+    rewardStars: 1,
+    completed: false
+  },
+  {
+    id: 'quest_side_luthier_artisan',
+    title: 'Artisan Commission: The Luthier’s Craft',
+    chapter: 3,
+    type: 'side',
+    description: 'Master Luthier Marco in Cavatina, Master Reed in Woodwinds, and Master Vulcan in the Citadel forge signature instrument artifacts that enhance technique, tone, and tempo.',
+    objective: 'Gather Notes and Inspiration Sparks to forge an Instrument Artifact at any regional luthier forge.',
+    rewardGold: 500,
+    rewardSparks: 40,
+    rewardStars: 2,
+    completed: false
+  },
+  {
+    id: 'quest_restoration_vistas',
+    title: 'Shrine Restoration: Whispers of the Four Biomes',
+    chapter: 4,
+    type: 'restoration',
+    description: 'Harmonia’s ancient masters encoded harmonic power into natural Inspiration Vistas across Lyre Valley, Breeze Glade, Echo Canyon, and Rumble Gorge.',
+    objective: 'Attune to at least 4 Inspiration Vistas across Harmonia’s connector wilderness biomes.',
+    rewardGold: 600,
+    rewardSparks: 50,
+    rewardStars: 2,
+    completed: false
+  },
+  {
+    id: 'quest_gig_festival_circuit',
+    title: 'Festival Tour: Solstice Seasonal Circuit',
+    chapter: 5,
+    type: 'gig',
+    description: 'The Solstice Clocktower Council in Central City oversees seasonal tournament concerts across the realm. Pay the entry fee and compete to win prestigious Conservatory Clef Badges.',
+    objective: 'Win any seasonal Grand Concert festival competition from the Solstice Council calendar.',
+    rewardGold: 1000,
+    rewardSparks: 80,
+    rewardStars: 3,
+    completed: false
   }
 ];
+
+export const INITIAL_QUESTS = INITIAL_GAME_QUESTS;
 
 /* ---------------- THE HARMONIDEX (16 CREATURE BESTIARY) ---------------- */
 
@@ -4714,7 +4951,7 @@ export const CLEF_BADGES: ClefBadge[] = [
     name: 'Nocturne Clef',
     icon: '𝄭',
     section: 'woodwinds',
-    conservatory: 'Starlight Conservatory of Sonora',
+    conservatory: 'Starlight Conservatory of Harmonia',
     maestroName: 'Lady Selene',
     obtained: false
   },
@@ -4901,7 +5138,7 @@ export const FESTIVAL_CALENDAR: FestivalEvent[] = [
   },
   {
     id: 'event_grand_solstice_symphony',
-    name: 'Sonora Grand Solstice Symphony',
+    name: 'Harmonia Grand Solstice Symphony',
     seasonDay: 'Grand Finale Festival',
     zone: 'grand_hall',
     venueName: 'The Eternal Sanctuary Stage',
@@ -4915,7 +5152,7 @@ export const FESTIVAL_CALENDAR: FestivalEvent[] = [
     rewardSparks: 150,
     rewardStars: 5,
     rewardBadgeId: 'badge_overture',
-    description: 'The legendary climax where Sonora\'s supreme 8-piece orchestra performs the Ode to Harmony for the High Council.',
+    description: 'The legendary climax where Harmonia\'s supreme 8-piece orchestra performs the Ode to Harmony for the High Council.',
     rivalMusician: {
       id: 'rival_aurelius',
       name: 'High Maestro Aurelius',

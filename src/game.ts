@@ -78,6 +78,7 @@ export class HarmoniaGameEngine {
       activeQuestId: 'quest_ch1',
       questInventory: [],
       openedChests: [],
+      discoveredSecrets: [],
       proficiency: {
         sections: { strings: 25, woodwinds: 20, brass: 20, percussion: 20 },
         instruments: {
@@ -175,8 +176,8 @@ export class HarmoniaGameEngine {
     // Start zone ambient music
     soundEngine.startBGM(startZone, [starterOpt.section]);
 
-    this.showDialogue('Sonora Musical Heritage', '🎼', [
-      `Welcome to Sonora, ${playerName}! Your bond with ${starterOpt.pet.name} the ${starterOpt.pet.species} shines bright.`,
+    this.showDialogue('Harmonia Musical Heritage', '🎼', [
+      `Welcome to Harmonia, ${playerName}! Your bond with ${starterOpt.pet.name} the ${starterOpt.pet.species} shines bright.`,
       `As an aspiring master of the ${starterOpt.name} (${starterOpt.sectionName}), you begin your journey in ${startName}!`,
       "Hone your craft, explore the wilderness trails connecting each cardinal realm to the central Grand Symphony Hall, and join regional Festival Competitions to ascend your fame!"
     ]);
@@ -497,6 +498,24 @@ export class HarmoniaGameEngine {
       if (!this.state.proficiency.instruments[recruited.instrumentId]) {
         this.state.proficiency.instruments[recruited.instrumentId] = { level: 1, xp: 0 };
       }
+
+      // Update chapter quest objectives if matching prodigy recruited
+      if (recruited.name === 'Clara' || recruited.name === 'Maya') {
+        const q1 = this.state.quests.find(q => q.id === 'quest_ch1');
+        if (q1 && !q1.completed) q1.objective = `Defeat Busker Timmy at the Cavatina Village Gazebo with your new Duet partner (${recruited.name})!`;
+      } else if (recruited.name === 'Oliver' || recruited.name === 'Chloe' || recruited.name === 'Devon') {
+        const q2 = this.state.quests.find(q => q.id === 'quest_ch2');
+        if (q2 && !q2.completed) q2.objective = `Defeat Leo’s Whispering Canopy Trio in Woodwind Woods with ${recruited.name}!`;
+      } else if (recruited.name.includes('Jax') || recruited.name === 'Sam') {
+        const q3 = this.state.quests.find(q => q.id === 'quest_ch3');
+        if (q3 && !q3.completed) q3.objective = `Defeat Baroness Vesta’s Gilded Citadel Fanfare with ${recruited.name}!`;
+      } else if (recruited.name === 'Rita' || recruited.name === 'Ren') {
+        const q4 = this.state.quests.find(q => q.id === 'quest_ch4');
+        if (q4 && !q4.completed) q4.objective = `Defeat Chieftain Ronin’s Mountain Thunder Corps at the Caldera Stage with ${recruited.name}!`;
+      } else if (recruited.name === 'Nico') {
+        const q5 = this.state.quests.find(q => q.id === 'quest_ch5');
+        if (q5 && !q5.completed) q5.objective = `Defeat Aurelius & The Harmonia Youth Symphony in the Grand Solstice Finale!`;
+      }
     }
 
     soundEngine.playFanfare();
@@ -629,6 +648,8 @@ export class HarmoniaGameEngine {
         dex.discovered = true;
         dex.bonded = true;
       }
+      const qRescue = this.state.quests.find(q => q.id === 'quest_rescue_harmonidex');
+      if (qRescue) qRescue.completed = true;
 
       // Create new musician partner
       const newMusician: Musician = {
@@ -863,6 +884,38 @@ export class HarmoniaGameEngine {
         this.state.wallet.reputationStars += comp.rival.rewardStars;
         this.state.ensemble.reputationStars = this.state.wallet.reputationStars;
         this.state.ensemble.fameLevel = 1 + Math.floor(this.state.ensemble.reputationStars / 2);
+
+        // Record festival event completion & quest
+        if (comp.rival.id.startsWith('rival_event_')) {
+          const eventId = comp.rival.id.replace('rival_event_', '');
+          if (!this.state.completedEvents.includes(eventId)) {
+            this.state.completedEvents.push(eventId);
+          }
+          const qFest = this.state.quests.find(q => q.id === 'quest_gig_festival_circuit');
+          if (qFest) qFest.completed = true;
+        }
+
+        // Check main story chapter quest completions
+        if (comp.rival.id === 'rival_novice_buskers') {
+          const q1 = this.state.quests.find(q => q.id === 'quest_ch1');
+          if (q1) q1.completed = true;
+          this.state.activeQuestId = 'quest_ch2';
+        } else if (comp.rival.id === 'rival_woodwind_trio') {
+          const q2 = this.state.quests.find(q => q.id === 'quest_ch2');
+          if (q2) q2.completed = true;
+          this.state.activeQuestId = 'quest_ch3';
+        } else if (comp.rival.id === 'rival_brass_quartet') {
+          const q3 = this.state.quests.find(q => q.id === 'quest_ch3');
+          if (q3) q3.completed = true;
+          this.state.activeQuestId = 'quest_ch4';
+        } else if (comp.rival.id === 'rival_thunder_chamber') {
+          const q4 = this.state.quests.find(q => q.id === 'quest_ch4');
+          if (q4) q4.completed = true;
+          this.state.activeQuestId = 'quest_ch5';
+        } else if (comp.rival.id === 'rival_grand_orchestra') {
+          const q5 = this.state.quests.find(q => q.id === 'quest_ch5');
+          if (q5) q5.completed = true;
+        }
 
         // Award Conservatory Badge
         const badgeIndex = Math.min(this.state.badges.length - 1, this.state.ensemble.reputationStars - 1);
@@ -1166,6 +1219,33 @@ export class HarmoniaGameEngine {
     const target = this.state.nearbyInteractable;
     if (!target) return;
 
+    if (target.actionType === 'celebrity_secret') {
+      if (!this.state.discoveredSecrets) this.state.discoveredSecrets = [];
+      const isFirstDiscovery = !this.state.discoveredSecrets.includes(target.id);
+      
+      soundEngine.playCelebrityMotif(target.celebrityMotif || target.id);
+      
+      const avatar = target.musicianData?.avatar || '🌟';
+      
+      if (isFirstDiscovery) {
+        this.state.discoveredSecrets.push(target.id);
+        const reward = target.celebrityReward || target.treasureReward || { notes: 350, sparks: 25 };
+        this.state.wallet.gold += reward.notes;
+        this.state.wallet.inspirationSparks += reward.sparks;
+        soundEngine.playFanfare();
+        
+        const cleanTitle = target.title.replace(/\s*\[SPACE[^\]]*\]/g, '');
+        const discoveryNotice = `🌟 SECRET CELEBRITY DISCOVERED! 🌟\nYou found ${target.name} (${cleanTitle})!\nReward: +${reward.notes} Notes (♪) & +${reward.sparks} Inspiration Sparks (✨)!`;
+        this.showDialogue(target.name, avatar, [
+          discoveryNotice,
+          ...target.dialogue
+        ]);
+      } else {
+        this.showDialogue(target.name, avatar, target.dialogue);
+      }
+      return;
+    }
+
     if (target.actionType === 'practice_bench') {
       this.startPracticeSession('metronome');
       return;
@@ -1204,6 +1284,13 @@ export class HarmoniaGameEngine {
         const player = this.state.ensemble.members[0];
         player.stats[vista.statReward] = Math.min(100, player.stats[vista.statReward] + vista.statAmount);
         this.state.wallet.inspirationSparks += 10;
+
+        const visitedCount = this.state.vistas.filter(v => v.visited).length;
+        if (visitedCount >= 4) {
+          const qVistas = this.state.quests.find(q => q.id === 'quest_restoration_vistas');
+          if (qVistas) qVistas.completed = true;
+        }
+
         soundEngine.playFanfare();
         this.showDialogue(vista.name, '✨', [
           vista.description,
@@ -1423,6 +1510,10 @@ export class HarmoniaGameEngine {
           this.state.completedTheoryDrills.push(ch.type);
         }
         this.state.theoryLevel = Math.min(8, this.state.completedTheoryDrills.length + 1);
+        if (this.state.completedTheoryDrills.length >= 3) {
+          const qTheory = this.state.quests.find(q => q.id === 'quest_side_theory_scholar');
+          if (qTheory) qTheory.completed = true;
+        }
 
         const player = this.state.ensemble.members[0];
         const accuracyRatio = ch.score / (ch.questions.length * 100);
@@ -1530,6 +1621,8 @@ export class HarmoniaGameEngine {
         quests: this.state.quests,
         activeQuestId: this.state.activeQuestId,
         questInventory: this.state.questInventory,
+        openedChests: this.state.openedChests,
+        discoveredSecrets: this.state.discoveredSecrets,
         proficiency: this.state.proficiency,
         practiceLevel: this.state.practiceLevel,
         theoryLevel: this.state.theoryLevel,
@@ -1567,6 +1660,8 @@ export class HarmoniaGameEngine {
       this.state.quests = data.quests || this.state.quests;
       this.state.activeQuestId = data.activeQuestId || 'quest_ch1';
       this.state.questInventory = data.questInventory || [];
+      this.state.openedChests = data.openedChests || [];
+      this.state.discoveredSecrets = data.discoveredSecrets || [];
       this.state.proficiency = data.proficiency || this.state.proficiency;
       this.state.practiceLevel = data.practiceLevel || 1;
       this.state.theoryLevel = data.theoryLevel || 1;
@@ -1636,6 +1731,9 @@ export class HarmoniaGameEngine {
       m.stats.toneQuality = Math.min(100, m.stats.toneQuality + artifact.bonusTone);
       m.stats.tempoStability = Math.min(100, m.stats.tempoStability + artifact.bonusTempo);
     }
+    const qLuthier = this.state.quests.find(q => q.id === 'quest_side_luthier_artisan');
+    if (qLuthier) qLuthier.completed = true;
+
     soundEngine.playFanfare();
     return true;
   }

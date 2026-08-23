@@ -821,7 +821,7 @@ export class HarmoniaUI {
           <span style="font-size:13px; font-weight:bold; color:${s.unlocked ? '#10b981' : '#fbbf24'};">${s.unlocked ? 'UNLOCKED ✓' : 'FRAGMENTS: ' + s.fragmentsFound + '/' + s.totalFragments}</span>
         </div>
         <div class="piece-composer">Composer: ${s.composer}</div>
-        <div class="piece-desc">Collect all manuscript fragments scattered across Sonora's shrines and vistas to reconstruct this masterwork.</div>
+        <div class="piece-desc">Collect all manuscript fragments scattered across Harmonia's shrines and vistas to reconstruct this masterwork.</div>
       `;
       questsContainer.appendChild(card);
     });
@@ -1108,7 +1108,7 @@ export class HarmoniaUI {
     }
   }
 
-    /* ---------------- SONORA OVERWORLD ATLAS (RADIAL GEOGRAPHY) ---------------- */
+    /* ---------------- HARMONIA OVERWORLD ATLAS (RADIAL GEOGRAPHY) ---------------- */
 
   public renderWorldMapModal(): void {
     const container = document.getElementById('map-body');
@@ -1121,7 +1121,7 @@ export class HarmoniaUI {
         icon: '🏛️',
         cardinal: 'Central Hub',
         section: 'Sanctuary of Maestros',
-        desc: 'The beating cultural heart of Sonora where the four musical disciplines unite in grand orchestral glory.',
+        desc: 'The beating cultural heart of Harmonia where the four musical disciplines unite in grand orchestral glory.',
         secrets: 'The Grand Symphony Hall, High Conservatory of Maestros, Royal Archives, and Maestro\'s Forum.'
       },
       cavatina_village: {
@@ -1415,7 +1415,7 @@ export class HarmoniaUI {
     const header = document.createElement('div');
     header.style.marginBottom = '16px';
     header.innerHTML = `
-      <div style="font-size: 16px; font-weight: 800; color: #f8fafc;">🎪 Sonora Seasonal Grand Concert Series</div>
+      <div style="font-size: 16px; font-weight: 800; color: #f8fafc;">🎪 Harmonia Seasonal Grand Concert Series</div>
       <div style="font-size: 13px; color: #94a3b8;">Meet the ensemble tier, proficiency, and entry requirements to compete in prestigious regional tournaments!</div>
     `;
     container.appendChild(header);
@@ -1550,7 +1550,7 @@ export class HarmoniaUI {
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 13px; color: #cbd5e1;">
             <div><strong style="color: #38bdf8;">[W A S D] / [Arrows]</strong> : Move Maestro</div>
             <div><strong style="color: #38bdf8;">[SPACE]</strong> : Interact / Audition</div>
-            <div><strong style="color: #38bdf8;">[M]</strong> : Sonora Overworld Atlas</div>
+            <div><strong style="color: #38bdf8;">[M]</strong> : Harmonia Overworld Atlas</div>
             <div><strong style="color: #38bdf8;">[P]</strong> : Metronome Practice Shed</div>
             <div><strong style="color: #38bdf8;">[R]</strong> : Sheet Music Repertoire</div>
             <div><strong style="color: #38bdf8;">[E]</strong> : Ensemble Roster & Pets</div>

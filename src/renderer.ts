@@ -856,7 +856,7 @@ export class HarmoniaRenderer {
       if (npc.zone === state.currentZone) {
         sceneQueue.push({
           depthY: npc.y,
-          draw: () => this.drawNPCEntity(ctx, npc, camX, camY, state.time)
+          draw: () => this.drawNPCEntity(ctx, npc, camX, camY, state.time, state)
         });
       }
     }
@@ -878,15 +878,16 @@ export class HarmoniaRenderer {
     // 7. Proximity Action Prompt
     if (state.nearbyInteractable) {
       const target = state.nearbyInteractable;
+      const isSecret = !!target.isSecret;
       ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
-      ctx.strokeStyle = '#38bdf8';
-      ctx.lineWidth = 2;
+      ctx.strokeStyle = isSecret ? '#fbbf24' : '#38bdf8';
+      ctx.lineWidth = isSecret ? 2.5 : 2;
       ctx.beginPath();
       ctx.roundRect(this.width / 2 - 220, this.height - 85, 440, 44, 12);
       ctx.fill();
       ctx.stroke();
 
-      ctx.fillStyle = '#38bdf8';
+      ctx.fillStyle = isSecret ? '#fbbf24' : '#38bdf8';
       ctx.font = 'bold 15px "Inter", sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText(target.title, this.width / 2, this.height - 58);
@@ -1033,9 +1034,77 @@ export class HarmoniaRenderer {
     }
   }
 
-  private drawNPCEntity(ctx: CanvasRenderingContext2D, npc: WorldNPC, camX: number, camY: number, t: number): void {
+  private drawNPCEntity(ctx: CanvasRenderingContext2D, npc: WorldNPC, camX: number, camY: number, t: number, state?: GameState): void {
     const nx = npc.x - camX;
     const ny = npc.y - camY;
+
+    const isSecret = !!npc.isSecret;
+    const playerDist = state ? Math.hypot(npc.x - state.player.x, npc.y - state.player.y) : 999;
+    const isDiscovered = state?.discoveredSecrets?.includes(npc.id);
+    const isApproached = isDiscovered || playerDist < 120;
+
+    // Draw subtle sparkling shimmer aura for secret celebrity NPCs
+    if (isSecret) {
+      ctx.save();
+      const shimmerAlpha = 0.35 + 0.25 * Math.sin(t * 4);
+      const radGrad = ctx.createRadialGradient(nx, ny - 6, 4, nx, ny - 6, 36);
+      radGrad.addColorStop(0, `rgba(251, 191, 36, ${shimmerAlpha * 0.6})`);
+      radGrad.addColorStop(0.5, `rgba(245, 158, 11, ${shimmerAlpha * 0.25})`);
+      radGrad.addColorStop(1, 'rgba(245, 158, 11, 0)');
+      ctx.fillStyle = radGrad;
+      ctx.beginPath();
+      ctx.arc(nx, ny - 6, 36, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Floating sparkles around secret NPC
+      for (let i = 0; i < 3; i++) {
+        const angle = t * 2.5 + i * (Math.PI * 2 / 3);
+        const dist = 22 + Math.sin(t * 3 + i * 2) * 6;
+        const sx = nx + Math.cos(angle) * dist;
+        const sy = ny - 6 + Math.sin(angle) * dist;
+        ctx.fillStyle = '#fde047';
+        ctx.font = '10px "Inter", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('✨', sx, sy);
+      }
+      ctx.restore();
+    }
+
+    if (isSecret && !isApproached) {
+      // Mystery Silhouette until player approaches!
+      ctx.save();
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+      ctx.beginPath();
+      ctx.ellipse(nx, ny + 24, 14, 6, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Shadow silhouette
+      ctx.fillStyle = '#1e293b';
+      ctx.beginPath();
+      ctx.roundRect(nx - 10, ny, 20, 16, 4);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(nx, ny - 10, 10, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Glowing question mark
+      ctx.fillStyle = '#fbbf24';
+      ctx.font = 'bold 15px "Cinzel", serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('?', nx, ny - 4);
+      ctx.restore();
+
+      // Mystery label plate
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+      ctx.beginPath();
+      ctx.roundRect(nx - 45, ny - 38, 90, 20, 4);
+      ctx.fill();
+      ctx.fillStyle = '#fbbf24';
+      ctx.font = 'bold 11px "Inter", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('✨ ??? ✨', nx, ny - 24);
+      return;
+    }
 
     if (npc.musicianData) {
       this.drawPixelMusician(ctx, nx, ny, npc.musicianData, t, undefined, npc.dir || 'down');
@@ -1044,12 +1113,13 @@ export class HarmoniaRenderer {
       }
       ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
       ctx.beginPath();
-      ctx.roundRect(nx - 45, ny - 38, 90, 20, 4);
+      const labelW = isSecret ? Math.max(90, ctx.measureText(`🌟 ${npc.name} 🌟`).width + 20) : 90;
+      ctx.roundRect(nx - labelW / 2, ny - 38, labelW, 20, 4);
       ctx.fill();
-      ctx.fillStyle = '#f8fafc';
+      ctx.fillStyle = isSecret ? '#fbbf24' : '#f8fafc';
       ctx.font = 'bold 12px "Inter", sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(npc.name, nx, ny - 24);
+      ctx.fillText(isSecret ? `🌟 ${npc.name} 🌟` : npc.name, nx, ny - 24);
 
     } else if (npc.actionType === 'wild_harmonipet' && npc.wildPetData) {
       this.drawPixelPet(ctx, nx, ny, npc.wildPetData, t, undefined, npc.dir || 'down');
@@ -1162,7 +1232,7 @@ export class HarmoniaRenderer {
     ctx.fillStyle = '#f8fafc';
     ctx.font = 'bold 16px "Inter", sans-serif';
     ctx.textAlign = 'left';
-    ctx.fillText(`📍 ${zone ? zone.name : 'Sonora'}`, 24, 34);
+    ctx.fillText(`📍 ${zone ? zone.name : 'Harmonia'}`, 24, 34);
 
     // Player Skill & Level Pill
     const player = state.ensemble.members[0];
@@ -2270,8 +2340,8 @@ export class HarmoniaRenderer {
     const hop = Math.abs(Math.sin(t * 6)) * 4;
     const bodyColor = tint || pet.color;
 
-    ctx.save();
-    ctx.translate(x, y);
+    if (ctx.save) ctx.save();
+    if (ctx.translate) ctx.translate(x, y);
 
     // Soft Ground Shadow
     ctx.fillStyle = 'rgba(0, 0, 0, 0.22)';
@@ -2281,7 +2351,7 @@ export class HarmoniaRenderer {
 
     const spriteType = pet.sprite ? pet.sprite.toLowerCase() : '';
 
-    if (dir === 'left') {
+    if (dir === 'left' && ctx.scale) {
       ctx.scale(-1, 1);
     }
 
@@ -2530,7 +2600,7 @@ export class HarmoniaRenderer {
       ctx.fillText('♪', 8, -hop - 10);
     }
 
-    ctx.restore();
+    if (ctx.restore) ctx.restore();
   }
 
   private drawBar(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, val: number, max: number, color: string, label: string): void {
