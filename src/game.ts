@@ -1,12 +1,12 @@
 // Harmonia: Opus of the Ensemble - Game Engine
 
 import {
-  GameState, Musician, WorldNPC,
+  GameState, Musician, WorldNPC, RivalEnsemble,
   AuditionBattle, InstrumentId, EnsembleTier, ZoneId, TheoryChallengeType, PlayerCustomization
 } from './types';
 import {
   STARTER_OPTIONS, REPERTOIRE_DATABASE,
-  RIVAL_ENSEMBLES, WORLD_ZONES, INITIAL_WORLD_NPCS, BATTLE_MOVES,
+  RIVAL_ENSEMBLES, WORLD_ZONES, INITIAL_WORLD_NPCS, BATTLE_MOVES, FESTIVAL_CALENDAR, calculateDynamicRivalStats,
   INSTRUMENT_ARTIFACTS, INITIAL_LOST_SCORES, INITIAL_INSPIRATION_VISTAS, INITIAL_GAME_QUESTS,
   INITIAL_HARMONIDEX, CLEF_BADGES, DEFAULT_CUSTOMIZATION, THEORY_CURRICULUM,
   getBattleMovesForMusician, ALL_INSTRUMENTS_INFO
@@ -58,7 +58,11 @@ export class HarmoniaGameEngine {
         woodwind_woods: false,
         brass_citadel: false,
         percussion_peaks: false,
-        grand_hall: false
+        grand_hall: false,
+        west_wilderness: false,
+        east_wilderness: false,
+        north_wilderness: false,
+        south_wilderness: false
       },
       npcs: JSON.parse(JSON.stringify(INITIAL_WORLD_NPCS)),
       nearbyInteractable: null,
@@ -103,6 +107,8 @@ export class HarmoniaGameEngine {
       auditionBattle: null,
       harmonizeEncounter: null,
       competition: null,
+      calendarEvents: JSON.parse(JSON.stringify(FESTIVAL_CALENDAR)),
+      completedEvents: [],
       dialogue: null,
       time: 0
     };
@@ -145,13 +151,33 @@ export class HarmoniaGameEngine {
     this.state.proficiency.sections[starterOpt.section] = 40;
     this.state.proficiency.instruments[starterOpt.id] = { level: 1, xp: 0 };
 
-    // Start zone ambient music
-    soundEngine.startBGM('cavatina_village', [starterOpt.section]);
+    // Determine starting zone based on instrument section
+    let startZone: ZoneId = 'cavatina_village';
+    let startName = 'Cavatina Village';
+    if (starterOpt.section === 'woodwinds') {
+      startZone = 'woodwind_woods';
+      startName = 'Woodwind Woods';
+    } else if (starterOpt.section === 'brass') {
+      startZone = 'brass_citadel';
+      startName = 'The Brass Citadel';
+    } else if (starterOpt.section === 'percussion') {
+      startZone = 'percussion_peaks';
+      startName = 'Percussion Peaks';
+    }
 
-    this.showDialogue('Sonora Academy', '🎼', [
+    this.state.currentZone = startZone;
+    this.state.discoveredZones[startZone] = true;
+    this.state.player.x = 1000;
+    this.state.player.y = 920;
+    this.state.followerTrail = [{ x: 1000, y: 940 }];
+
+    // Start zone ambient music
+    soundEngine.startBGM(startZone, [starterOpt.section]);
+
+    this.showDialogue('Sonora Musical Heritage', '🎼', [
       `Welcome to Sonora, ${playerName}! Your bond with ${starterOpt.pet.name} the ${starterOpt.pet.species} shines bright.`,
-      `You hold the ${starterOpt.name} (${starterOpt.sectionName}). Practice your instrument at the Practice Shed to the west to hone your Technique and Tone!`,
-      "Explore Cavatina Village, discover new Sheet Music, and challenge fellow musicians to Audition Duels to expand your ensemble!"
+      `As an aspiring master of the ${starterOpt.name} (${starterOpt.sectionName}), you begin your journey in ${startName}!`,
+      "Hone your craft, explore the wilderness trails connecting each cardinal realm to the central Grand Symphony Hall, and join regional Festival Competitions to ascend your fame!"
     ]);
   }
 
@@ -630,10 +656,77 @@ export class HarmoniaGameEngine {
     }
   }
 
+  /* ---------------- DYNAMIC DIFFICULTY & FESTIVAL CALENDAR ---------------- */
+
+  public getProgressionTier(): number {
+    const memberCount = this.state.ensemble.members.length;
+    const badgeCount = this.state.badges.filter(b => b.obtained).length;
+    if (memberCount >= 8 || badgeCount >= 4) return 5;
+    if (memberCount >= 6 || badgeCount >= 3) return 4;
+    if (memberCount >= 4 || badgeCount >= 2) return 3;
+    if (memberCount >= 3 || badgeCount >= 1) return 2;
+    return 1;
+  }
+
+  public enterFestivalCompetition(eventId: string): boolean {
+    const event = this.state.calendarEvents.find(e => e.id === eventId);
+    if (!event) return false;
+
+    if (this.state.wallet.gold < event.entryFeeGold) return false;
+    this.state.wallet.gold -= event.entryFeeGold;
+
+    const tier = this.getProgressionTier();
+    const rivalMember = {
+      ...event.rivalMusician,
+      stats: calculateDynamicRivalStats(event.rivalMusician.stats, tier),
+      level: Math.max(1, tier * 2)
+    };
+
+    const rivalEnsemble: RivalEnsemble = {
+      id: `rival_event_${event.id}`,
+      name: event.rivalMusician.name,
+      tier: event.tierRequirement,
+      conductorName: event.rivalMusician.name,
+      members: [rivalMember],
+      piece: REPERTOIRE_DATABASE[0],
+      reputationRequired: 0,
+      rewardStars: event.rewardStars,
+      description: event.description
+    };
+
+    const piece = this.state.ensemble.activePiece || REPERTOIRE_DATABASE[0];
+
+    this.state.competition = {
+      rival: rivalEnsemble,
+      playerPiece: piece,
+      playerScore: 0,
+      rivalScore: 0,
+      audienceApplause: 50,
+      currentMeasure: 0,
+      totalMeasures: 8,
+      isPlaying: true,
+      concluded: false,
+      sweetSpotCenter: 0.35 + Math.random() * 0.3,
+      sweetSpotWidth: 0.16,
+      comboStreak: 0
+    };
+
+    soundEngine.stopBGM();
+    this.state.mode = 'competition';
+    return true;
+  }
+
   /* ---------------- CONCERT COMPETITION SYSTEM ---------------- */
 
   public startConcertCompetition(rivalId?: string): void {
-    const rival = RIVAL_ENSEMBLES.find(r => r.id === rivalId) || RIVAL_ENSEMBLES[0];
+    const baseRival = RIVAL_ENSEMBLES.find(r => r.id === rivalId) || RIVAL_ENSEMBLES[0];
+    const tier = this.getProgressionTier();
+    const scaledMembers = baseRival.members.map(m => ({
+      ...m,
+      stats: calculateDynamicRivalStats(m.stats, tier),
+      level: Math.max(1, tier * 2)
+    }));
+    const rival = { ...baseRival, members: scaledMembers };
     const piece = this.state.ensemble.activePiece || REPERTOIRE_DATABASE[0];
 
     this.state.competition = {
@@ -1260,6 +1353,7 @@ export class HarmoniaGameEngine {
         practiceLevel: this.state.practiceLevel,
         theoryLevel: this.state.theoryLevel,
         completedTheoryDrills: this.state.completedTheoryDrills,
+        completedEvents: this.state.completedEvents,
         savedAt: new Date().toLocaleTimeString()
       };
       localStorage.setItem('harmonia_saved_game', JSON.stringify(saveData));
@@ -1296,6 +1390,8 @@ export class HarmoniaGameEngine {
       this.state.practiceLevel = data.practiceLevel || 1;
       this.state.theoryLevel = data.theoryLevel || 1;
       this.state.completedTheoryDrills = data.completedTheoryDrills || [];
+      this.state.completedEvents = data.completedEvents || [];
+      this.state.calendarEvents = data.calendarEvents || JSON.parse(JSON.stringify(FESTIVAL_CALENDAR));
       this.state.mode = 'exploration';
       this.state.followerTrail = [{ x: this.state.player.x, y: this.state.player.y }];
       const activeSections = Array.from(new Set(this.state.ensemble.members.map(m => m.section)));

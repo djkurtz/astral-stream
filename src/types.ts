@@ -84,7 +84,7 @@ export interface RepertoirePiece {
   isMastered: boolean;
 }
 
-export type EnsembleTier = 'solo' | 'duet' | 'trio' | 'quartet' | 'chamber' | 'orchestra';
+export type EnsembleTier = 'solo' | 'duet' | 'trio' | 'quartet' | 'chamber' | 'orchestra' | 'symphony';
 
 export interface Ensemble {
   name: string;
@@ -185,7 +185,34 @@ export type ZoneId =
   | 'woodwind_woods' 
   | 'brass_citadel' 
   | 'percussion_peaks' 
-  | 'grand_hall';
+  | 'grand_hall'
+  | 'west_wilderness'
+  | 'east_wilderness'
+  | 'north_wilderness'
+  | 'south_wilderness';
+
+export interface FestivalEvent {
+  id: string;
+  name: string;
+  seasonDay: string;
+  zone: ZoneId;
+  venueName: string;
+  tierRequirement: EnsembleTier;
+  statRequirements: {
+    minEffectiveSkill?: number;
+    requiredSection?: InstrumentSection;
+    minTempoStability?: number;
+    minSightReading?: number;
+    requiredBadges?: number;
+  };
+  entryFeeGold: number;
+  rewardGold: number;
+  rewardSparks: number;
+  rewardStars: number;
+  rewardBadgeId?: string;
+  description: string;
+  rivalMusician: Musician;
+}
 
 export interface PlayerWallet {
   gold: number;             // Notes / Acoustic Gold (♪)
@@ -450,6 +477,8 @@ export interface GameState {
   auditionBattle: AuditionBattle | null;
   harmonizeEncounter: HarmonizeEncounter | null;
   competition: ConcertCompetition | null;
+  calendarEvents: FestivalEvent[];
+  completedEvents: string[]; // event IDs
   dialogue: GameDialogue | null;
   time: number;
 }

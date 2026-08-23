@@ -1,5 +1,5 @@
 import {
-  Harmonipet, Musician, RepertoirePiece, RivalEnsemble, WorldZone, WorldNPC, BattleMove, InstrumentId,
+  Harmonipet, Musician, MusicianStats, RepertoirePiece, RivalEnsemble, WorldZone, WorldNPC, BattleMove, InstrumentId, FestivalEvent,
   InstrumentArtifact, LostScore, InspirationVista, PerformanceVenue, GameQuest,
   HarmoniDexEntry, ClefBadge, PlayerCustomization, TheoryChallengeType, TheoryQuestion,
   InstrumentSection, PlayerProficiency
@@ -1506,64 +1506,74 @@ export const RIVAL_ENSEMBLES: RivalEnsemble[] = [
 /* ---------------- WORLD ZONES CONFIGS ---------------- */
 
 export const WORLD_ZONES: Record<string, WorldZone> = {
+  // 🎻 WEST CARDINAL VILLAGE: Cavatina Village (Strings)
   cavatina_village: {
     id: 'cavatina_village',
     name: 'Cavatina Village',
-    subtitle: 'The Cradle of Melodies & Academy Plaza',
+    subtitle: 'Cradle of Strings & Harmonic Heritage',
     width: 2000,
     height: 1600,
     ambientBgm: 'cavatina_village',
     themeColor: '#38bdf8',
     defaultSpawn: { x: 1000, y: 920, dir: 'down' },
     transitions: [
-      { id: 'tr_to_woods', targetZone: 'woodwind_woods', targetSpawn: { x: 120, y: 720, dir: 'right' }, bounds: { x: 1920, y: 640, w: 80, h: 160 }, promptText: '➡️ East Gate: To Woodwind Woods' },
-      { id: 'tr_to_citadel', targetZone: 'brass_citadel', targetSpawn: { x: 1000, y: 1460, dir: 'up' }, bounds: { x: 920, y: 0, w: 160, h: 80 }, promptText: '⬆️ North Gate: To Brass Citadel & Metro Cadenza' },
-      { id: 'tr_to_peaks', targetZone: 'percussion_peaks', targetSpawn: { x: 1000, y: 140, dir: 'down' }, bounds: { x: 920, y: 1520, w: 160, h: 80 }, promptText: '⬇️ South Bridge: To Percussion Peaks' },
-      { id: 'tr_to_grand_hall', targetZone: 'grand_hall', targetSpawn: { x: 1000, y: 1440, dir: 'up' }, bounds: { x: 0, y: 640, w: 80, h: 160 }, promptText: '⬅️ West Arch: To Grand Symphony Hall' }
+      { id: 'tr_cavatina_to_west_wilds', targetZone: 'west_wilderness', targetSpawn: { x: 120, y: 720, dir: 'right' }, bounds: { x: 1920, y: 640, w: 80, h: 160 }, promptText: '➡️ East Gate: To Lyre Valley (West Wilderness)' }
     ],
     obstacles: [
-      // North Boundary (Walls with opening at x: 920-1080 for North Gate to Brass Citadel)
-      { type: 'building', buildingType: 'wall', x: 0, y: 0, w: 920, h: 60, name: 'North Village Wall' },
-      { type: 'building', buildingType: 'wall', x: 1080, y: 0, w: 920, h: 60, name: 'North Village Wall' },
-      { type: 'gate', buildingType: 'gate', x: 920, y: 0, w: 160, h: 60, name: 'North Grand Gate (To Brass Citadel)', signIcon: '⬆️' },
-
-      // South Boundary (River with stone bridge at x: 920-1080 for South Gate to Percussion Peaks)
-      { type: 'building', buildingType: 'wall', x: 0, y: 1540, w: 920, h: 60, name: 'South Melodic River' },
-      { type: 'building', buildingType: 'wall', x: 1080, y: 1540, w: 920, h: 60, name: 'South Melodic River' },
-      { type: 'gate', buildingType: 'bridge', x: 920, y: 1540, w: 160, h: 60, name: 'South River Bridge (To Percussion Peaks)', signIcon: '⬇️' },
-
-      // East Boundary (Woods with opening at y: 640-800 for East Forest Road to Woodwind Woods)
+      { type: 'building', buildingType: 'wall', x: 0, y: 0, w: 2000, h: 60, name: 'North Village Wall' },
+      { type: 'building', buildingType: 'wall', x: 0, y: 1540, w: 2000, h: 60, name: 'South Melodic River' },
+      { type: 'building', buildingType: 'wall', x: 0, y: 0, w: 60, h: 1600, name: 'West Colonnade Cliff' },
       { type: 'building', buildingType: 'wall', x: 1940, y: 0, w: 60, h: 640, name: 'East Boundary Woods' },
       { type: 'building', buildingType: 'wall', x: 1940, y: 800, w: 60, h: 800, name: 'East Boundary Woods' },
-      { type: 'gate', buildingType: 'gate', x: 1940, y: 640, w: 60, h: 160, name: 'East Forest Gate (To Woodwind Woods)', signIcon: '➡️' },
-
-      // West Boundary (Grand Stone Colonnade with opening at y: 640-800 to Grand Symphony Hall)
-      { type: 'building', buildingType: 'wall', x: 0, y: 0, w: 60, h: 640, name: 'West Citadel Colonnade' },
-      { type: 'building', buildingType: 'wall', x: 0, y: 800, w: 60, h: 800, name: 'West Citadel Colonnade' },
-      { type: 'gate', buildingType: 'arch', x: 0, y: 640, w: 60, h: 160, name: 'West Symphony Arch (To Grand Hall)', signIcon: '⬅️' },
-
+      { type: 'gate', buildingType: 'gate', x: 1940, y: 640, w: 60, h: 160, name: 'East Forest Gate', signIcon: '➡️' },
       // Village Buildings
       { type: 'building', buildingType: 'academy', x: 220, y: 280, w: 320, h: 220, name: 'Cavatina Music Academy', signIcon: '🎼', roofColor: '#1e3a8a' },
       { type: 'building', buildingType: 'forge', x: 600, y: 280, w: 260, h: 220, name: "Master Luthier's Forge", signIcon: '🎻', roofColor: '#b45309' },
       { type: 'building', buildingType: 'library', x: 1200, y: 280, w: 340, h: 220, name: 'Conservatory Library & Archives', signIcon: '📖', roofColor: '#065f46' },
       { type: 'building', buildingType: 'tavern', x: 380, y: 960, w: 320, h: 220, name: 'The Melodic Rose Tavern & Inn', signIcon: '🍺', roofColor: '#991b1b' },
       { type: 'building', buildingType: 'clocktower', x: 1240, y: 960, w: 320, h: 220, name: 'Cavatina Town Hall & Clocktower', signIcon: '⏰', roofColor: '#4c1d95' },
-
-      // Central Plaza Feature
       { type: 'circle', x: 1000, y: 720, radius: 64, name: 'Clef Fountain' }
     ]
   },
+
+  // 🌲 WEST WILDERNESS: Lyre Valley & Whispering Meadow
+  west_wilderness: {
+    id: 'west_wilderness',
+    name: 'Lyre Valley',
+    subtitle: 'Whispering Wilds & Silver Bow Glen',
+    width: 2000,
+    height: 1600,
+    ambientBgm: 'cavatina_village',
+    themeColor: '#0ea5e9',
+    defaultSpawn: { x: 120, y: 720, dir: 'right' },
+    transitions: [
+      { id: 'tr_ww_to_cavatina', targetZone: 'cavatina_village', targetSpawn: { x: 1860, y: 720, dir: 'left' }, bounds: { x: 0, y: 640, w: 80, h: 160 }, promptText: '⬅️ West Trail: Back to Cavatina Village' },
+      { id: 'tr_ww_to_grand_hall', targetZone: 'grand_hall', targetSpawn: { x: 140, y: 1000, dir: 'right' }, bounds: { x: 1920, y: 640, w: 80, h: 160 }, promptText: '➡️ East Highway: To The Grand Symphony Hub' }
+    ],
+    obstacles: [
+      { type: 'box', x: 0, y: 0, w: 2000, h: 60, name: 'Northern Valley Ridge' },
+      { type: 'box', x: 0, y: 1540, w: 2000, h: 60, name: 'Southern Valley Stream' },
+      { type: 'box', x: 0, y: 0, w: 60, h: 640, name: 'West Valley Thicket' },
+      { type: 'box', x: 0, y: 800, w: 60, h: 800, name: 'West Valley Thicket' },
+      { type: 'box', x: 1940, y: 0, w: 60, h: 640, name: 'East Grand Archwoods' },
+      { type: 'box', x: 1940, y: 800, w: 60, h: 800, name: 'East Grand Archwoods' },
+      { type: 'circle', x: 600, y: 500, radius: 48, name: 'Acoustic Willow Copse' },
+      { type: 'circle', x: 1400, y: 1100, radius: 56, name: 'Resonant Rock Boulder' }
+    ]
+  },
+
+  // 🪈 EAST CARDINAL VILLAGE: Woodwind Woods (Woodwinds)
   woodwind_woods: {
     id: 'woodwind_woods',
     name: 'Woodwind Woods',
-    subtitle: 'Whispering Canopies & Reed Riverbeds',
+    subtitle: 'Whispering Canopies & Sylvan Glade',
     width: 2000,
     height: 1600,
     ambientBgm: 'woodwind_woods',
     themeColor: '#10b981',
-    defaultSpawn: { x: 120, y: 720, dir: 'right' },
+    defaultSpawn: { x: 1000, y: 920, dir: 'down' },
     transitions: [
-      { id: 'tr_to_cavatina_from_woods', targetZone: 'cavatina_village', targetSpawn: { x: 1860, y: 720, dir: 'left' }, bounds: { x: 0, y: 640, w: 80, h: 160 }, promptText: '⬅️ West Trail: Back to Cavatina Village' }
+      { id: 'tr_woods_to_east_wilds', targetZone: 'east_wilderness', targetSpawn: { x: 1860, y: 720, dir: 'left' }, bounds: { x: 0, y: 640, w: 80, h: 160 }, promptText: '⬅️ West Trail: To Breeze Glade (East Wilderness)' }
     ],
     obstacles: [
       { type: 'box', x: 0, y: 0, w: 2000, h: 60, name: 'Northern Thicket' },
@@ -1576,17 +1586,45 @@ export const WORLD_ZONES: Record<string, WorldZone> = {
       { type: 'circle', x: 900, y: 1000, radius: 48, name: 'Piccolo Grove' }
     ]
   },
+
+  // 🍃 EAST WILDERNESS: Breeze Glade & Reedmarsh
+  east_wilderness: {
+    id: 'east_wilderness',
+    name: 'Breeze Glade',
+    subtitle: 'Reedmarsh Wilds & Zephyr Falls',
+    width: 2000,
+    height: 1600,
+    ambientBgm: 'woodwind_woods',
+    themeColor: '#059669',
+    defaultSpawn: { x: 1860, y: 720, dir: 'left' },
+    transitions: [
+      { id: 'tr_ew_to_woods', targetZone: 'woodwind_woods', targetSpawn: { x: 120, y: 720, dir: 'right' }, bounds: { x: 1920, y: 640, w: 80, h: 160 }, promptText: '➡️ East Trail: Into Woodwind Woods' },
+      { id: 'tr_ew_to_grand_hall', targetZone: 'grand_hall', targetSpawn: { x: 2260, y: 1000, dir: 'left' }, bounds: { x: 0, y: 640, w: 80, h: 160 }, promptText: '⬅️ West Highway: To The Grand Symphony Hub' }
+    ],
+    obstacles: [
+      { type: 'box', x: 0, y: 0, w: 2000, h: 60, name: 'Northern Reed Marsh' },
+      { type: 'box', x: 0, y: 1540, w: 2000, h: 60, name: 'Southern Bamboo Clump' },
+      { type: 'box', x: 0, y: 0, w: 60, h: 640, name: 'West Marsh Edge' },
+      { type: 'box', x: 0, y: 800, w: 60, h: 800, name: 'West Marsh Edge' },
+      { type: 'box', x: 1940, y: 0, w: 60, h: 640, name: 'East Wood Edge' },
+      { type: 'box', x: 1940, y: 800, w: 60, h: 800, name: 'East Wood Edge' },
+      { type: 'circle', x: 700, y: 600, radius: 44, name: 'Flute Reed Pool' },
+      { type: 'circle', x: 1300, y: 900, radius: 52, name: 'Zephyr Hollow' }
+    ]
+  },
+
+  // 🎺 NORTH CARDINAL VILLAGE: The Brass Citadel (Brass)
   brass_citadel: {
     id: 'brass_citadel',
     name: 'The Brass Citadel',
-    subtitle: 'Gilded Ramparts & The Echo Amphitheater',
+    subtitle: 'Gilded Ramparts & Metro Cadenza',
     width: 2000,
     height: 1600,
     ambientBgm: 'brass_citadel',
     themeColor: '#eab308',
-    defaultSpawn: { x: 1000, y: 1460, dir: 'up' },
+    defaultSpawn: { x: 1000, y: 920, dir: 'down' },
     transitions: [
-      { id: 'tr_to_cavatina_from_citadel', targetZone: 'cavatina_village', targetSpawn: { x: 1000, y: 120, dir: 'down' }, bounds: { x: 920, y: 1520, w: 160, h: 80 }, promptText: '⬇️ South Bastion Gate: Back to Cavatina Village' }
+      { id: 'tr_citadel_to_north_wilds', targetZone: 'north_wilderness', targetSpawn: { x: 1000, y: 140, dir: 'down' }, bounds: { x: 920, y: 1520, w: 160, h: 80 }, promptText: '⬇️ South Bastion Gate: To Echo Canyon (North Wilderness)' }
     ],
     obstacles: [
       { type: 'box', x: 0, y: 0, w: 2000, h: 100, name: 'Citadel Golden Wall' },
@@ -1598,17 +1636,45 @@ export const WORLD_ZONES: Record<string, WorldZone> = {
       { type: 'circle', x: 1400, y: 600, radius: 40, name: 'Herald Pillar East' }
     ]
   },
+
+  // 🏜️ NORTH WILDERNESS: Echo Canyon & Brass Ridge
+  north_wilderness: {
+    id: 'north_wilderness',
+    name: 'Echo Canyon',
+    subtitle: 'Golden Steppes & Resonance Peak',
+    width: 2000,
+    height: 1600,
+    ambientBgm: 'brass_citadel',
+    themeColor: '#d97706',
+    defaultSpawn: { x: 1000, y: 140, dir: 'down' },
+    transitions: [
+      { id: 'tr_nw_to_citadel', targetZone: 'brass_citadel', targetSpawn: { x: 1000, y: 1460, dir: 'up' }, bounds: { x: 920, y: 0, w: 160, h: 80 }, promptText: '⬆️ North Pass: Into The Brass Citadel' },
+      { id: 'tr_nw_to_grand_hall', targetZone: 'grand_hall', targetSpawn: { x: 1200, y: 140, dir: 'down' }, bounds: { x: 920, y: 1520, w: 160, h: 80 }, promptText: '⬇️ South Descent: To The Grand Symphony Hub' }
+    ],
+    obstacles: [
+      { type: 'box', x: 0, y: 0, w: 920, h: 60, name: 'North Mesa Wall Left' },
+      { type: 'box', x: 1080, y: 0, w: 920, h: 60, name: 'North Mesa Wall Right' },
+      { type: 'box', x: 0, y: 1540, w: 920, h: 60, name: 'South Canyon Gate Left' },
+      { type: 'box', x: 1080, y: 1540, w: 920, h: 60, name: 'South Canyon Gate Right' },
+      { type: 'box', x: 0, y: 0, w: 60, h: 1600, name: 'West Canyon Escarpment' },
+      { type: 'box', x: 1940, y: 0, w: 60, h: 1600, name: 'East Canyon Escarpment' },
+      { type: 'circle', x: 500, y: 800, radius: 50, name: 'Acoustic Monolith' },
+      { type: 'circle', x: 1500, y: 800, radius: 50, name: 'Fanfare Ridge Spire' }
+    ]
+  },
+
+  // 🥁 SOUTH CARDINAL VILLAGE: Percussion Peaks (Percussion)
   percussion_peaks: {
     id: 'percussion_peaks',
     name: 'Percussion Peaks',
-    subtitle: 'Stepped Ghats & Resonant Stone Bells',
+    subtitle: 'Stepped Ghats & Mountbeat Monastery',
     width: 2000,
     height: 1600,
     ambientBgm: 'percussion_peaks',
     themeColor: '#8b5cf6',
-    defaultSpawn: { x: 1000, y: 140, dir: 'down' },
+    defaultSpawn: { x: 1000, y: 920, dir: 'down' },
     transitions: [
-      { id: 'tr_to_cavatina_from_peaks', targetZone: 'cavatina_village', targetSpawn: { x: 1000, y: 1440, dir: 'up' }, bounds: { x: 920, y: 0, w: 160, h: 80 }, promptText: '⬆️ North Summit Pass: Back to Cavatina Village' }
+      { id: 'tr_peaks_to_south_wilds', targetZone: 'south_wilderness', targetSpawn: { x: 1000, y: 1460, dir: 'up' }, bounds: { x: 920, y: 0, w: 160, h: 80 }, promptText: '⬆️ North Summit Pass: To Rumble Gorge (South Wilderness)' }
     ],
     obstacles: [
       { type: 'box', x: 0, y: 0, w: 920, h: 60, name: 'North Cliff Left' },
@@ -1618,23 +1684,65 @@ export const WORLD_ZONES: Record<string, WorldZone> = {
       { type: 'circle', x: 1500, y: 800, radius: 50, name: 'Snare Monolith' }
     ]
   },
-  grand_hall: {
-    id: 'grand_hall',
-    name: 'The Grand Symphony Hall',
-    subtitle: 'Sanctuary of Maestros & The Eternal Stage',
+
+  // 🌋 SOUTH WILDERNESS: Rumble Gorge & Rhythm Caverns
+  south_wilderness: {
+    id: 'south_wilderness',
+    name: 'Rumble Gorge',
+    subtitle: 'Rhythm Caverns & Echoing Caldera',
     width: 2000,
     height: 1600,
-    ambientBgm: 'grand_hall',
-    themeColor: '#ec4899',
-    defaultSpawn: { x: 1000, y: 1440, dir: 'up' },
+    ambientBgm: 'percussion_peaks',
+    themeColor: '#7c3aed',
+    defaultSpawn: { x: 1000, y: 1460, dir: 'up' },
     transitions: [
-      { id: 'tr_to_cavatina_from_grand_hall', targetZone: 'cavatina_village', targetSpawn: { x: 140, y: 720, dir: 'right' }, bounds: { x: 920, y: 1520, w: 160, h: 80 }, promptText: '⬇️ South Grand Foyer: Back to Cavatina Village' }
+      { id: 'tr_sw_to_peaks', targetZone: 'percussion_peaks', targetSpawn: { x: 1000, y: 140, dir: 'down' }, bounds: { x: 920, y: 1520, w: 160, h: 80 }, promptText: '⬇️ South Pass: Into Percussion Peaks' },
+      { id: 'tr_sw_to_grand_hall', targetZone: 'grand_hall', targetSpawn: { x: 1200, y: 1860, dir: 'up' }, bounds: { x: 920, y: 0, w: 160, h: 80 }, promptText: '⬆️ North Ascent: To The Grand Symphony Hub' }
     ],
     obstacles: [
-      { type: 'box', x: 0, y: 0, w: 2000, h: 120, name: 'Grand Stage Back Wall' },
-      { type: 'box', x: 0, y: 1540, w: 920, h: 60, name: 'Foyer Wall Left' },
-      { type: 'box', x: 1080, y: 1540, w: 920, h: 60, name: 'Foyer Wall Right' },
-      { type: 'box', x: 300, y: 400, w: 1400, h: 200, name: 'Grand Stage Platform' }
+      { type: 'box', x: 0, y: 0, w: 920, h: 60, name: 'North Gorge Ridge Left' },
+      { type: 'box', x: 1080, y: 0, w: 920, h: 60, name: 'North Gorge Ridge Right' },
+      { type: 'box', x: 0, y: 1540, w: 920, h: 60, name: 'South Chasm Left' },
+      { type: 'box', x: 1080, y: 1540, w: 920, h: 60, name: 'South Chasm Right' },
+      { type: 'box', x: 0, y: 0, w: 60, h: 1600, name: 'West Basalt Wall' },
+      { type: 'box', x: 1940, y: 0, w: 60, h: 1600, name: 'East Basalt Wall' },
+      { type: 'circle', x: 600, y: 700, radius: 48, name: 'Stone Drum Circle' },
+      { type: 'circle', x: 1400, y: 900, radius: 54, name: 'Resonant Caldera Vent' }
+    ]
+  },
+
+  // 🏛️ CENTRAL HUB: The Grand Symphony Hall & Central Conservatory Hub
+  grand_hall: {
+    id: 'grand_hall',
+    name: 'The Grand Symphony Hub',
+    subtitle: 'Sanctuary of Maestros & The Eternal Stage',
+    width: 2400,
+    height: 2000,
+    ambientBgm: 'grand_hall',
+    themeColor: '#ec4899',
+    defaultSpawn: { x: 1200, y: 1400, dir: 'up' },
+    transitions: [
+      { id: 'tr_gh_to_north_wilds', targetZone: 'north_wilderness', targetSpawn: { x: 1000, y: 1460, dir: 'up' }, bounds: { x: 1120, y: 0, w: 160, h: 80 }, promptText: '⬆️ North Colonnade: To Echo Canyon (North Wilderness)' },
+      { id: 'tr_gh_to_east_wilds', targetZone: 'east_wilderness', targetSpawn: { x: 120, y: 720, dir: 'right' }, bounds: { x: 2320, y: 920, w: 80, h: 160 }, promptText: '➡️ East Gate: To Breeze Glade (East Wilderness)' },
+      { id: 'tr_gh_to_south_wilds', targetZone: 'south_wilderness', targetSpawn: { x: 1000, y: 140, dir: 'down' }, bounds: { x: 1120, y: 1920, w: 160, h: 80 }, promptText: '⬇️ South Grand Bridge: To Rumble Gorge (South Wilderness)' },
+      { id: 'tr_gh_to_west_wilds', targetZone: 'west_wilderness', targetSpawn: { x: 1860, y: 720, dir: 'left' }, bounds: { x: 0, y: 920, w: 80, h: 160 }, promptText: '⬅️ West Symphony Arch: To Lyre Valley (West Wilderness)' }
+    ],
+    obstacles: [
+      // Outer Boundary Walls
+      { type: 'building', buildingType: 'wall', x: 0, y: 0, w: 1120, h: 60, name: 'North Hub Wall Left' },
+      { type: 'building', buildingType: 'wall', x: 1280, y: 0, w: 1120, h: 60, name: 'North Hub Wall Right' },
+      { type: 'building', buildingType: 'wall', x: 0, y: 1940, w: 1120, h: 60, name: 'South Hub Wall Left' },
+      { type: 'building', buildingType: 'wall', x: 1280, y: 1940, w: 1120, h: 60, name: 'South Hub Wall Right' },
+      { type: 'building', buildingType: 'wall', x: 0, y: 0, w: 60, h: 920, name: 'West Hub Wall Top' },
+      { type: 'building', buildingType: 'wall', x: 0, y: 1080, w: 60, h: 920, name: 'West Hub Wall Bottom' },
+      { type: 'building', buildingType: 'wall', x: 2340, y: 0, w: 60, h: 920, name: 'East Hub Wall Top' },
+      { type: 'building', buildingType: 'wall', x: 2340, y: 1080, w: 60, h: 920, name: 'East Hub Wall Bottom' },
+
+      // Central Hub Buildings
+      { type: 'building', buildingType: 'academy', x: 800, y: 220, w: 800, h: 300, name: 'The Grand Symphony Hall', signIcon: '🏛️', roofColor: '#831843' },
+      { type: 'building', buildingType: 'library', x: 200, y: 650, w: 400, h: 260, name: 'High Conservatory of Maestros', signIcon: '📜', roofColor: '#065f46' },
+      { type: 'building', buildingType: 'forge', x: 1800, y: 650, w: 400, h: 260, name: 'Festival Arena & Grand Stage', signIcon: '🎭', roofColor: '#b45309' },
+      { type: 'circle', x: 1200, y: 1100, radius: 75, name: 'Grand Clef Monument & Fountain' }
     ]
   }
 };
@@ -2568,6 +2676,186 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       "A wild Vivace Hare is strumming harmonic rhythms on its acoustic guitar! Match its cadence to bond with it!"
     ]
   }
+,
+  // 🌲 West Wilderness (Lyre Valley) Exploration
+  {
+    id: 'npc_sign_west_wilds',
+    name: 'Lyre Valley Trail Marker',
+    title: 'Read Guidepost [SPACE]',
+    x: 300,
+    y: 720,
+    zone: 'west_wilderness',
+    isProp: true,
+    propType: 'road_sign',
+    actionType: 'signpost',
+    dialogue: [
+      "🌲 LYRE VALLEY (WEST WILDERNESS):",
+      "• ⬅️ WEST: Back to Cavatina Village (Strings).",
+      "• ➡️ EAST: Highway to The Grand Symphony Hub & Central Conservatory.",
+      "• ✨ VISTA: Seek the Silver Bow Glen to the south for tone inspiration."
+    ]
+  },
+  {
+    id: 'npc_vista_silver_bow',
+    name: 'Silver Bow Glen Vista',
+    title: 'Attune to Acoustic Vista [SPACE]',
+    x: 1000,
+    y: 1300,
+    zone: 'west_wilderness',
+    isProp: true,
+    propType: 'vista_monolith',
+    actionType: 'inspiration_vista',
+    vistaId: 'vista_silver_bow',
+    dialogue: ["You stand within the Silver Bow Glen. The soft breeze plays the willow leaves like delicate violin strings!"]
+  },
+  {
+    id: 'npc_score_bach_minuet',
+    name: 'Mossy Stone Stand',
+    title: 'Inspect Ancient Manuscript [SPACE]',
+    x: 1500,
+    y: 400,
+    zone: 'west_wilderness',
+    isProp: true,
+    propType: 'ancient_stone_stand',
+    actionType: 'sheet_music_stand',
+    sheetMusicReward: 'piece_bach_minuet',
+    dialogue: ["You discovered the ancient lost folio for 'Minuet in G Major' (Baroque Duet)!"]
+  },
+
+  // 🍃 East Wilderness (Breeze Glade) Exploration
+  {
+    id: 'npc_sign_east_wilds',
+    name: 'Breeze Glade Trail Marker',
+    title: 'Read Guidepost [SPACE]',
+    x: 1700,
+    y: 720,
+    zone: 'east_wilderness',
+    isProp: true,
+    propType: 'road_sign',
+    actionType: 'signpost',
+    dialogue: [
+      "🍃 BREEZE GLADE (EAST WILDERNESS):",
+      "• ➡️ EAST: Into Woodwind Woods (Woodwinds).",
+      "• ⬅️ WEST: Highway to The Grand Symphony Hub.",
+      "• ✨ VISTA: Discover Zephyr Falls to the north for sight-reading mastery."
+    ]
+  },
+  {
+    id: 'npc_vista_zephyr_falls',
+    name: 'Zephyr Falls Vista',
+    title: 'Attune to Acoustic Vista [SPACE]',
+    x: 1000,
+    y: 350,
+    zone: 'east_wilderness',
+    isProp: true,
+    propType: 'vista_monolith',
+    actionType: 'inspiration_vista',
+    vistaId: 'vista_zephyr_falls',
+    dialogue: ["The crystalline spray of Zephyr Falls sings in harmonious fifths, clearing your musical mind!"]
+  },
+  {
+    id: 'npc_score_debussy_reverie',
+    name: 'Bamboo Altar Stand',
+    title: 'Inspect Ancient Manuscript [SPACE]',
+    x: 500,
+    y: 1200,
+    zone: 'east_wilderness',
+    isProp: true,
+    propType: 'ancient_stone_stand',
+    actionType: 'sheet_music_stand',
+    sheetMusicReward: 'piece_debussy_reverie',
+    dialogue: ["You unearthed the impressionist masterpiece 'Rêverie for Woodwind Trio'!"]
+  },
+
+  // 🏜️ North Wilderness (Echo Canyon) Exploration
+  {
+    id: 'npc_sign_north_wilds',
+    name: 'Echo Canyon Trail Marker',
+    title: 'Read Guidepost [SPACE]',
+    x: 1000,
+    y: 300,
+    zone: 'north_wilderness',
+    isProp: true,
+    propType: 'road_sign',
+    actionType: 'signpost',
+    dialogue: [
+      "🏜️ ECHO CANYON (NORTH WILDERNESS):",
+      "• ⬆️ NORTH: Ascend to The Brass Citadel (Brass).",
+      "• ⬇️ SOUTH: Descent to The Grand Symphony Hub.",
+      "• ✨ VISTA: Scale Resonance Peak in the eastern cliffs for technique training."
+    ]
+  },
+  {
+    id: 'npc_vista_resonance_peak',
+    name: 'Resonance Peak Vista',
+    title: 'Attune to Acoustic Vista [SPACE]',
+    x: 1600,
+    y: 600,
+    zone: 'north_wilderness',
+    isProp: true,
+    propType: 'vista_monolith',
+    actionType: 'inspiration_vista',
+    vistaId: 'vista_resonance_peak',
+    dialogue: ["Standing atop Resonance Peak, every sound bounces back with pristine clarity, honing your technique!"]
+  },
+  {
+    id: 'npc_score_vivaldi_spring',
+    name: 'Gilded Steppe Stand',
+    title: 'Inspect Ancient Manuscript [SPACE]',
+    x: 400,
+    y: 1100,
+    zone: 'north_wilderness',
+    isProp: true,
+    propType: 'golden_music_stand',
+    actionType: 'sheet_music_stand',
+    sheetMusicReward: 'piece_vivaldi_spring',
+    dialogue: ["You recovered the energetic score of 'Spring Allegro for Brass Quartet'!"]
+  },
+
+  // 🌋 South Wilderness (Rumble Gorge) Exploration
+  {
+    id: 'npc_sign_south_wilds',
+    name: 'Rumble Gorge Trail Marker',
+    title: 'Read Guidepost [SPACE]',
+    x: 1000,
+    y: 1300,
+    zone: 'south_wilderness',
+    isProp: true,
+    propType: 'road_sign',
+    actionType: 'signpost',
+    dialogue: [
+      "🌋 RUMBLE GORGE (SOUTH WILDERNESS):",
+      "• ⬇️ SOUTH: Enter Percussion Peaks (Percussion).",
+      "• ⬆️ NORTH: Ascent to The Grand Symphony Hub.",
+      "• ✨ VISTA: Echoing Caldera in the west builds unflinching tempo stability."
+    ]
+  },
+  {
+    id: 'npc_vista_echoing_caldera',
+    name: 'Echoing Caldera Vista',
+    title: 'Attune to Acoustic Vista [SPACE]',
+    x: 450,
+    y: 800,
+    zone: 'south_wilderness',
+    isProp: true,
+    propType: 'vista_monolith',
+    actionType: 'inspiration_vista',
+    vistaId: 'vista_echoing_caldera',
+    dialogue: ["The steady subterranean heartbeat of the caldera grounds your internal metronome!"]
+  },
+  {
+    id: 'npc_score_tchaikovsky_dance',
+    name: 'Basalt Pedestal Stand',
+    title: 'Inspect Ancient Manuscript [SPACE]',
+    x: 1500,
+    y: 500,
+    zone: 'south_wilderness',
+    isProp: true,
+    propType: 'ancient_stone_stand',
+    actionType: 'sheet_music_stand',
+    sheetMusicReward: 'piece_tchaikovsky_dance',
+    dialogue: ["You discovered the thrilling score 'Dance of the Tumblers for Percussion Chamber'!"]
+  }
 ];
 
 /* ---------------- INSTRUMENT ARTIFACTS (LUTHIER FORGE) ---------------- */
@@ -2748,6 +3036,50 @@ export const INITIAL_INSPIRATION_VISTAS: InspirationVista[] = [
     x: 1600,
     y: 1100,
     description: 'Deep subterranean bass rumbles instill unflinching tempo stability and pocket.',
+    statReward: 'tempoStability',
+    statAmount: 5,
+    visited: false
+  },
+  {
+    id: 'vista_silver_bow',
+    name: 'Silver Bow Glen',
+    zone: 'west_wilderness',
+    x: 1000,
+    y: 1300,
+    description: 'Willow trees whistle delicate string harmonics, imbuing warm lyrical tone.',
+    statReward: 'toneQuality',
+    statAmount: 5,
+    visited: false
+  },
+  {
+    id: 'vista_zephyr_falls',
+    name: 'Zephyr Falls',
+    zone: 'east_wilderness',
+    x: 1000,
+    y: 350,
+    description: 'The misting cascade rings with pure woodwind intervals, sharpening sight-reading.',
+    statReward: 'sightReading',
+    statAmount: 5,
+    visited: false
+  },
+  {
+    id: 'vista_resonance_peak',
+    name: 'Resonance Peak',
+    zone: 'north_wilderness',
+    x: 1600,
+    y: 600,
+    description: 'Acoustic canyon echoes reflect crisp brass attacks, elevating technical dexterity.',
+    statReward: 'technique',
+    statAmount: 5,
+    visited: false
+  },
+  {
+    id: 'vista_echoing_caldera',
+    name: 'Echoing Caldera',
+    zone: 'south_wilderness',
+    x: 450,
+    y: 800,
+    description: 'Deep volcanic pulses lock in absolute rhythmic tempo stability.',
     statReward: 'tempoStability',
     statAmount: 5,
     visited: false
@@ -3168,3 +3500,229 @@ export const CLEF_BADGES: ClefBadge[] = [
     obtained: false
   }
 ];
+
+/* ---------------- FESTIVAL COMPETITION CALENDAR ---------------- */
+
+export const FESTIVAL_CALENDAR: FestivalEvent[] = [
+  {
+    id: 'event_spring_cavatina',
+    name: 'Cavatina Meadow Serenade',
+    seasonDay: 'Spring 4th (Primavera)',
+    zone: 'cavatina_village',
+    venueName: 'Village Plaza Gazebo',
+    tierRequirement: 'duet',
+    statRequirements: {
+      minEffectiveSkill: 25,
+      requiredSection: 'strings'
+    },
+    entryFeeGold: 20,
+    rewardGold: 150,
+    rewardSparks: 15,
+    rewardStars: 1,
+    rewardBadgeId: 'badge_prelude',
+    description: 'A gentle spring festival where emerging duets weave lyrical counterpoint under the blooming cherry willows.',
+    rivalMusician: {
+      id: 'rival_clara',
+      name: 'Duet Master Clara',
+      title: 'Meadow Virtuoso',
+      avatar: '🎻',
+      paletteColor: '#ec4899',
+      instrumentId: 'violin',
+      instrumentName: 'Aria Violin',
+      section: 'strings',
+      pet: {
+        id: 'pet_clara_swan',
+        name: 'Grace',
+        species: 'Cantabile Swan',
+        sprite: 'swan',
+        section: 'strings',
+        instrumentName: 'Aria Violin',
+        leitmotifSound: 'violin_pure',
+        color: '#ec4899'
+      },
+      stats: { technique: 30, toneQuality: 35, tempoStability: 30, sightReading: 30 },
+      level: 3,
+      xp: 300
+    }
+  },
+  {
+    id: 'event_summer_woodwind',
+    name: 'Sylvan Bossa Jamboree',
+    seasonDay: 'Summer 12th (Solstice)',
+    zone: 'woodwind_woods',
+    venueName: 'Sylvan Glade Canopy Stage',
+    tierRequirement: 'trio',
+    statRequirements: {
+      minEffectiveSkill: 40,
+      requiredSection: 'woodwinds',
+      minSightReading: 35
+    },
+    entryFeeGold: 40,
+    rewardGold: 300,
+    rewardSparks: 25,
+    rewardStars: 1,
+    rewardBadgeId: 'badge_pastorale',
+    description: 'An infectious jazz & bossa nova carnival reverberating through the sunlit canopies of Woodwind Woods.',
+    rivalMusician: {
+      id: 'rival_sylvan',
+      name: 'Bandleader Sylvan',
+      title: 'Groove Arch-Druid',
+      avatar: '🎷',
+      paletteColor: '#10b981',
+      instrumentId: 'silver_flute',
+      instrumentName: 'Bamboo Tenor Sax',
+      section: 'woodwinds',
+      pet: {
+        id: 'pet_sylvan_frog',
+        name: 'Syncopate',
+        species: 'Flute Frog',
+        sprite: 'frog',
+        section: 'woodwinds',
+        instrumentName: 'Silver Flute',
+        leitmotifSound: 'flute_chirp',
+        color: '#10b981'
+      },
+      stats: { technique: 45, toneQuality: 50, tempoStability: 45, sightReading: 45 },
+      level: 5,
+      xp: 600
+    }
+  },
+  {
+    id: 'event_autumn_brass',
+    name: 'Brass Bastion Fanfare Derby',
+    seasonDay: 'Autumn 8th (Equinox)',
+    zone: 'brass_citadel',
+    venueName: 'The Echo Amphitheater',
+    tierRequirement: 'quartet',
+    statRequirements: {
+      minEffectiveSkill: 55,
+      requiredSection: 'brass',
+      minTempoStability: 50
+    },
+    entryFeeGold: 60,
+    rewardGold: 500,
+    rewardSparks: 40,
+    rewardStars: 2,
+    rewardBadgeId: 'badge_cadenza',
+    description: 'A thunderous tournament of dynamic projection and heroic fanfares echoing from gilded ramparts.',
+    rivalMusician: {
+      id: 'rival_vesta',
+      name: 'Baroness Vesta',
+      title: 'High Herald of Cadenza',
+      avatar: '🎺',
+      paletteColor: '#f59e0b',
+      instrumentId: 'pocket_trumpet',
+      instrumentName: 'Golden Valved Trumpet',
+      section: 'brass',
+      pet: {
+        id: 'pet_vesta_badger',
+        name: 'Crescendo',
+        species: 'Fanfare Badger',
+        sprite: 'badger',
+        section: 'brass',
+        instrumentName: 'Pocket Trumpet',
+        leitmotifSound: 'trumpet_brass',
+        color: '#f59e0b'
+      },
+      stats: { technique: 60, toneQuality: 65, tempoStability: 60, sightReading: 55 },
+      level: 8,
+      xp: 1200
+    }
+  },
+  {
+    id: 'event_winter_percussion',
+    name: 'Thunderclap Taiko Summit',
+    seasonDay: 'Winter 16th (Frostbeat)',
+    zone: 'percussion_peaks',
+    venueName: 'Mountbeat Caldera Stage',
+    tierRequirement: 'chamber',
+    statRequirements: {
+      minEffectiveSkill: 70,
+      requiredSection: 'percussion',
+      minTempoStability: 65
+    },
+    entryFeeGold: 100,
+    rewardGold: 800,
+    rewardSparks: 60,
+    rewardStars: 2,
+    rewardBadgeId: 'badge_scherzo',
+    description: 'The ultimate trial of pulse, polyrhythm, and earth-shattering precision held over molten basalt pits.',
+    rivalMusician: {
+      id: 'rival_ronin',
+      name: 'Chieftain Ronin',
+      title: 'Master of the Primal Beat',
+      avatar: '🥁',
+      paletteColor: '#8b5cf6',
+      instrumentId: 'snare_kit',
+      instrumentName: 'Grand Taiko Drums',
+      section: 'percussion',
+      pet: {
+        id: 'pet_ronin_armadillo',
+        name: 'Staccato',
+        species: 'Rhythm Armadillo',
+        sprite: 'armadillo',
+        section: 'percussion',
+        instrumentName: 'Snare Kit',
+        leitmotifSound: 'drum_beat',
+        color: '#8b5cf6'
+      },
+      stats: { technique: 75, toneQuality: 70, tempoStability: 85, sightReading: 70 },
+      level: 10,
+      xp: 2000
+    }
+  },
+  {
+    id: 'event_grand_solstice_symphony',
+    name: 'Sonora Grand Solstice Symphony',
+    seasonDay: 'Grand Finale Festival',
+    zone: 'grand_hall',
+    venueName: 'The Eternal Sanctuary Stage',
+    tierRequirement: 'symphony',
+    statRequirements: {
+      minEffectiveSkill: 80,
+      requiredBadges: 4
+    },
+    entryFeeGold: 200,
+    rewardGold: 2000,
+    rewardSparks: 150,
+    rewardStars: 5,
+    rewardBadgeId: 'badge_overture',
+    description: 'The legendary climax where Sonora\'s supreme 8-piece orchestra performs the Ode to Harmony for the High Council.',
+    rivalMusician: {
+      id: 'rival_aurelius',
+      name: 'High Maestro Aurelius',
+      title: 'Conductor of the Spheres',
+      avatar: '👑',
+      paletteColor: '#ec4899',
+      instrumentId: 'harp',
+      instrumentName: 'The Celestial Harp',
+      section: 'strings',
+      pet: {
+        id: 'pet_aurelius_kirin',
+        name: 'Symphonia',
+        species: 'Cantabile Swan',
+        sprite: 'swan',
+        section: 'strings',
+        instrumentName: 'The Celestial Harp',
+        leitmotifSound: 'violin_pure',
+        color: '#ec4899'
+      },
+      stats: { technique: 90, toneQuality: 95, tempoStability: 90, sightReading: 95 },
+      level: 15,
+      xp: 5000
+    }
+  }
+];
+
+/* ---------------- DYNAMIC DIFFICULTY SCALING ---------------- */
+
+export function calculateDynamicRivalStats(baseStats: MusicianStats, progressTier: number): MusicianStats {
+  // progressTier: 1 (Duet), 2 (Trio), 3 (Quartet), 4 (Chamber), 5 (Symphony)
+  const multiplier = 1 + (progressTier - 1) * 0.35;
+  return {
+    technique: Math.min(100, Math.round(baseStats.technique * multiplier)),
+    toneQuality: Math.min(100, Math.round(baseStats.toneQuality * multiplier)),
+    tempoStability: Math.min(100, Math.round(baseStats.tempoStability * multiplier)),
+    sightReading: Math.min(100, Math.round(baseStats.sightReading * multiplier))
+  };
+}

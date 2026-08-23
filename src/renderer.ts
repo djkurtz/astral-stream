@@ -592,15 +592,15 @@ export class HarmoniaRenderer {
     const camY = state.camera.y;
 
     // 1. Rich Layered 2.5D Terrain Base
-    if (state.currentZone === 'woodwind_woods') {
+    if (state.currentZone === 'woodwind_woods' || state.currentZone === 'east_wilderness') {
       ctx.fillStyle = '#064e3b'; // Deep emerald forest base
       ctx.fillRect(0, 0, this.width, this.height);
       ctx.fillStyle = '#047857'; // Lush foliage underlayer
-    } else if (state.currentZone === 'brass_citadel') {
+    } else if (state.currentZone === 'brass_citadel' || state.currentZone === 'north_wilderness') {
       ctx.fillStyle = '#451a03'; // Warm stone base
       ctx.fillRect(0, 0, this.width, this.height);
       ctx.fillStyle = '#78350f'; // Gilded terracotta tiles
-    } else if (state.currentZone === 'percussion_peaks') {
+    } else if (state.currentZone === 'percussion_peaks' || state.currentZone === 'south_wilderness') {
       ctx.fillStyle = '#1e1b4b'; // Deep amethyst caldera base
       ctx.fillRect(0, 0, this.width, this.height);
       ctx.fillStyle = '#3b0764'; // Volcanic basalt
@@ -609,7 +609,7 @@ export class HarmoniaRenderer {
       ctx.fillRect(0, 0, this.width, this.height);
       ctx.fillStyle = '#1e293b'; // Polished parquet wood flooring
     } else {
-      // Cavatina Village (Vibrant Meadow)
+      // Cavatina Village & West Wilderness (Vibrant Meadow)
       ctx.fillStyle = '#064e3b'; // Deep woodland edge
       ctx.fillRect(0, 0, this.width, this.height);
       ctx.fillStyle = '#047857'; // Lush grass lawn
@@ -813,12 +813,33 @@ export class HarmoniaRenderer {
       ctx.fillRect(1080 - camX, 0 - camY, 6, 1050);
 
     } else if (state.currentZone === 'grand_hall') {
-      // Luxurious Crimson Velvet Runner (South Foyer y: 1600 -> Grand Stage y: 600)
-      ctx.fillStyle = '#991b1b';
-      ctx.fillRect(920 - camX, 600 - camY, 160, 1000);
+      // Luxurious Cross-Concourse (Connecting all 4 Cardinal Exits to Grand Stage & Clef Monument)
+      ctx.fillStyle = '#991b1b'; // Velvet runner
+      // Vertical runner (North to South)
+      ctx.fillRect(1120 - camX, 0 - camY, 160, 2000);
+      // Horizontal runner (West to East)
+      ctx.fillRect(0 - camX, 920 - camY, 2400, 160);
       ctx.fillStyle = '#fbbf24'; // Gold braided fringe
-      ctx.fillRect(914 - camX, 600 - camY, 6, 1000);
-      ctx.fillRect(1080 - camX, 600 - camY, 6, 1000);
+      ctx.fillRect(1114 - camX, 0 - camY, 6, 2000);
+      ctx.fillRect(1280 - camX, 0 - camY, 6, 2000);
+      ctx.fillRect(0 - camX, 914 - camY, 2400, 6);
+      ctx.fillRect(0 - camX, 1080 - camY, 2400, 6);
+
+    } else if (state.currentZone === 'west_wilderness' || state.currentZone === 'east_wilderness') {
+      // Horizontal Wilderness Traversal Highway
+      ctx.fillStyle = 'rgba(180, 83, 9, 0.28)';
+      ctx.fillRect(0 - camX, 660 - camY, 2000, 120);
+      ctx.strokeStyle = 'rgba(251, 191, 36, 0.2)';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(0 - camX, 660 - camY, 2000, 120);
+
+    } else if (state.currentZone === 'north_wilderness' || state.currentZone === 'south_wilderness') {
+      // Vertical Wilderness Traversal Highway
+      ctx.fillStyle = 'rgba(180, 83, 9, 0.28)';
+      ctx.fillRect(940 - camX, 0 - camY, 120, 1600);
+      ctx.strokeStyle = 'rgba(251, 191, 36, 0.2)';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(940 - camX, 0 - camY, 120, 1600);
     }
 
     // 3. Draw Transitions (Ground Exit Thresholds - Clean, non-intrusive road markings)

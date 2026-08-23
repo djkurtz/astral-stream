@@ -428,55 +428,73 @@ body {
 .atlas-container {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
 .atlas-map-canvas {
   position: relative;
   width: 100%;
-  height: 380px;
-  background: #0f172a;
+  height: 440px;
+  background: radial-gradient(circle at center, #1e293b 0%, #0b1329 100%);
   border: 2px solid #38bdf8;
-  border-radius: 12px;
+  border-radius: 14px;
   overflow: hidden;
   display: flex;
   justify-content: center;
   align-items: center;
+  box-shadow: inset 0 0 40px rgba(0,0,0,0.6);
 }
 
-.atlas-region-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 12px;
+.atlas-node {
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.2s ease;
+  cursor: pointer;
 }
 
-.atlas-region-card {
-  background: #0f172a;
-  border: 1px solid #334155;
-  border-radius: 10px;
-  padding: 12px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  transition: all 0.2s ease;
+.atlas-node:hover {
+  transform: scale(1.12);
+  filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.8));
 }
 
-.atlas-region-card.active {
-  border-color: #fbbf24;
-  background: rgba(251, 191, 36, 0.1);
-}
-
-.atlas-region-header {
+.atlas-inspector {
+  background: rgba(15, 23, 42, 0.95);
+  border: 1.5px solid #38bdf8;
+  border-radius: 12px;
+  padding: 14px 18px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-weight: 700;
-  font-size: 15px;
+  gap: 16px;
+  min-height: 80px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
 }
 
-.atlas-region-desc {
+.atlas-node-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.atlas-pill {
+  background: #1e293b;
+  border: 1px solid #475569;
+  border-radius: 20px;
+  padding: 6px 12px;
   font-size: 12px;
-  color: #94a3b8;
+  font-weight: 600;
+  color: #cbd5e1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s;
+}
+
+.atlas-pill:hover, .atlas-pill.active {
+  border-color: #38bdf8;
+  background: rgba(56, 189, 248, 0.15);
+  color: #f8fafc;
+  transform: translateY(-1px);
 }
 
 /* ⚙️ System & Settings Menu */
@@ -673,4 +691,107 @@ body {
 .loadout-btn:hover:not(.active) {
   border-color: #94a3b8;
   background: #1e293b;
+}
+
+/* 📅 Festival & Concert Competition Calendar */
+.calendar-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.event-card {
+  background: rgba(15, 23, 42, 0.85);
+  border: 1.5px solid #334155;
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: all 0.2s ease;
+}
+
+.event-card:hover {
+  border-color: #38bdf8;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+}
+
+.event-card.completed {
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.08);
+}
+
+.event-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.event-title {
+  font-size: 17px;
+  font-weight: 800;
+  color: #f8fafc;
+  font-family: 'Cinzel', serif;
+}
+
+.event-meta {
+  display: flex;
+  gap: 14px;
+  font-size: 12px;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.event-reqs-box {
+  background: rgba(30, 41, 59, 0.7);
+  border-radius: 8px;
+  padding: 10px 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  font-size: 12px;
+}
+
+.req-pill {
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+.req-pill.met {
+  background: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+  border: 1px solid #10b981;
+}
+
+.req-pill.unmet {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: 1px solid #ef4444;
+}
+
+.btn-enter-event {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  border: none;
+  color: #0f172a;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.btn-enter-event:hover:not(:disabled) {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  transform: translateY(-1px);
+}
+
+.btn-enter-event:disabled {
+  background: #475569;
+  color: #94a3b8;
+  cursor: not-allowed;
+  opacity: 0.6;
 }

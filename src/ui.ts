@@ -3,7 +3,7 @@
 import { HarmoniaGameEngine } from './game';
 import { ZoneId } from './types';
 import { soundEngine } from './audio';
-import { REPERTOIRE_DATABASE, ALL_INSTRUMENTS_INFO, calculateEffectiveSkill } from './data';
+import { REPERTOIRE_DATABASE, ALL_INSTRUMENTS_INFO, calculateEffectiveSkill, WORLD_ZONES } from './data';
 
 export class HarmoniaUI {
   private engine: HarmoniaGameEngine;
@@ -140,6 +140,24 @@ export class HarmoniaUI {
       });
     }
 
+    // Festival & Concert Calendar Modal Toggle Button
+    const btnCalendar = document.getElementById('btn-calendar');
+    const modalCalendar = document.getElementById('modal-calendar');
+    const btnCloseCalendar = document.getElementById('btn-close-calendar');
+
+    if (btnCalendar && modalCalendar) {
+      btnCalendar.addEventListener('click', () => {
+        this.renderCalendarModal();
+        modalCalendar.classList.remove('hidden');
+      });
+    }
+
+    if (btnCloseCalendar && modalCalendar) {
+      btnCloseCalendar.addEventListener('click', () => {
+        modalCalendar.classList.add('hidden');
+      });
+    }
+
     // System Menu & Settings Modal Toggle Button
     const btnSystem = document.getElementById('btn-system');
     const modalSystem = document.getElementById('modal-system');
@@ -216,7 +234,7 @@ export class HarmoniaUI {
     // Keyboard Shortcuts for Modals & Escape to Close
     window.addEventListener('keydown', (e) => {
       if (e.code === 'Escape') {
-        const allModals = [modalRepertoire, modalEnsemble, modalQuests, modalDex, modalBadges, modalCustomization, modalMap, modalSystem];
+        const allModals = [modalRepertoire, modalEnsemble, modalQuests, modalDex, modalBadges, modalCustomization, modalMap, modalCalendar, modalSystem];
         const anyOpen = allModals.some(m => m && !m.classList.contains('hidden'));
         if (anyOpen) {
           allModals.forEach(m => m?.classList.add('hidden'));
@@ -261,6 +279,12 @@ export class HarmoniaUI {
         modalQuests?.classList.toggle('hidden');
         if (modalQuests && !modalQuests.classList.contains('hidden')) {
           this.renderQuestsList();
+        }
+      }
+      if (e.code === 'KeyF') {
+        modalCalendar?.classList.toggle('hidden');
+        if (modalCalendar && !modalCalendar.classList.contains('hidden')) {
+          this.renderCalendarModal();
         }
       }
       if (e.code === 'KeyH') {
@@ -1084,117 +1108,400 @@ export class HarmoniaUI {
     }
   }
 
-  /* ---------------- SONORA OVERWORLD ATLAS ---------------- */
+    /* ---------------- SONORA OVERWORLD ATLAS (RADIAL GEOGRAPHY) ---------------- */
 
   public renderWorldMapModal(): void {
     const container = document.getElementById('map-body');
     if (!container) return;
     const state = this.engine.getState();
 
-    const regions: { id: ZoneId; name: string; icon: string; section: string; desc: string }[] = [
-      { id: 'cavatina_village', name: 'Cavatina Village', icon: '🎻', section: 'Strings Section', desc: 'Central melody hub, Academy conservatory, and Luthier workshop.' },
-      { id: 'woodwind_woods', name: 'Woodwind Woods', icon: '🪈', section: 'Woodwinds Section', desc: 'Whispering canopies, reed marshes, and elusive piccolo songbirds.' },
-      { id: 'brass_citadel', name: 'The Brass Citadel', icon: '🎺', section: 'Brass Section', desc: 'Gilded ramparts, fanfare bastions, and the Echo Amphitheater.' },
-      { id: 'percussion_peaks', name: 'Percussion Peaks', icon: '🥁', section: 'Percussion Section', desc: 'Stepped mountain ghats, resonant stone bells, and taiko calderas.' },
-      { id: 'grand_hall', name: 'Grand Symphony Hall', icon: '🏛️', section: 'Eternal Stage', desc: 'The pinnacle of acoustic mastery where four sections unite.' }
-    ];
+    const regions: Record<ZoneId, { name: string; icon: string; cardinal: string; section: string; desc: string; secrets: string }> = {
+      grand_hall: {
+        name: 'The Grand Symphony Hub',
+        icon: '🏛️',
+        cardinal: 'Central Hub',
+        section: 'Sanctuary of Maestros',
+        desc: 'The beating cultural heart of Sonora where the four musical disciplines unite in grand orchestral glory.',
+        secrets: 'Home to the High Conservatory, Grand Amphitheater, and the Solstice Symphony Finale.'
+      },
+      cavatina_village: {
+        name: 'Cavatina Village',
+        icon: '🎻',
+        cardinal: 'West Cardinal Realm',
+        section: 'Strings Section',
+        desc: 'Cradle of stringed resonance, artisan luthiers, and the tranquil Melodic Rose Tavern.',
+        secrets: 'Elder Timothy\'s Music Box, Master Marco\'s Forge, and the Clef Fountain.'
+      },
+      west_wilderness: {
+        name: 'Lyre Valley',
+        icon: '🌲',
+        cardinal: 'West Connector Trail',
+        section: 'Wild Strings Meadow',
+        desc: 'Whispering willow glens where gentle breezes pluck harmonic chords from wild flora.',
+        secrets: 'Silver Bow Glen Vista, lost Bach Minuet folio, and wild Vivace Hares.'
+      },
+      woodwind_woods: {
+        name: 'Woodwind Woods',
+        icon: '🪈',
+        cardinal: 'East Cardinal Realm',
+        section: 'Woodwinds Section',
+        desc: 'Sunlit canopies and reed riverbeds filled with the syncopated trills of sylvan jazz ensembles.',
+        secrets: 'Bandleader Sylvan\'s Canopy Stage and the Bellflower Basin Vista.'
+      },
+      east_wilderness: {
+        name: 'Breeze Glade',
+        icon: '🍃',
+        cardinal: 'East Connector Trail',
+        section: 'Wild Reedmarsh',
+        desc: 'Misty bamboo thickets and babbling brooks vibrating in pure melodic fourths and fifths.',
+        secrets: 'Zephyr Falls Vista and lost Debussy Rêverie manuscript.'
+      },
+      brass_citadel: {
+        name: 'The Brass Citadel',
+        icon: '🎺',
+        cardinal: 'North Cardinal Realm',
+        section: 'Brass Section',
+        desc: 'Gilded ramparts and soaring bastions projecting triumphant fanfares across the realm.',
+        secrets: 'Baroness Vesta\'s Echo Amphitheater and the Gilded Sunlit Pinnacle.'
+      },
+      north_wilderness: {
+        name: 'Echo Canyon',
+        icon: '🏜️',
+        cardinal: 'North Connector Trail',
+        section: 'Wild Golden Steppes',
+        desc: 'Red rock canyons and natural acoustic arches providing pristine sonic reflection.',
+        secrets: 'Resonance Peak Vista and lost Vivaldi Spring quartet score.'
+      },
+      percussion_peaks: {
+        name: 'Percussion Peaks',
+        icon: '🥁',
+        cardinal: 'South Cardinal Realm',
+        section: 'Percussion Section',
+        desc: 'Stepped mountain ghats and volcanic taiko monasteries resonating with ancient primal pulse.',
+        secrets: 'Chieftain Ronin\'s Mountbeat Stage and the High Ridge Monolith.'
+      },
+      south_wilderness: {
+        name: 'Rumble Gorge',
+        icon: '🌋',
+        cardinal: 'South Connector Trail',
+        section: 'Wild Rhythm Caverns',
+        desc: 'Deep subterranean basalt chasms where tectonic rumbles instill unwavering tempo stability.',
+        secrets: 'Echoing Caldera Vista and lost Tchaikovsky Dance score.'
+      }
+    };
 
-    let cardsHtml = '';
-    regions.forEach(r => {
-      const isCurrent = state.currentZone === r.id;
-      const isDiscovered = state.discoveredZones[r.id];
-      cardsHtml += `
-        <div class="atlas-region-card ${isCurrent ? 'active' : ''}">
-          <div class="atlas-region-header">
-            <span>${r.icon} ${r.name}</span>
-            <span style="font-size: 11px; color: ${isCurrent ? '#fbbf24' : (isDiscovered ? '#38bdf8' : '#64748b')};">
-              ${isCurrent ? '📍 YOU ARE HERE' : (isDiscovered ? '✓ Discovered' : '🔒 Unexplored')}
+    let selectedZone: ZoneId = state.currentZone;
+
+    const renderInspector = (zoneId: ZoneId) => {
+      const reg = regions[zoneId];
+      const isCurrent = state.currentZone === zoneId;
+      const isDiscovered = state.discoveredZones[zoneId];
+      const insp = container.querySelector('#atlas-inspector-content');
+      if (!insp) return;
+
+      insp.innerHTML = `
+        <div style="flex: 1;">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+            <span style="font-size: 24px;">${reg.icon}</span>
+            <span style="font-size: 18px; font-weight: 800; color: #f8fafc; font-family: 'Cinzel', serif;">${reg.name}</span>
+            <span style="font-size: 11px; font-weight: bold; padding: 2px 8px; border-radius: 4px; background: ${isCurrent ? 'rgba(251,191,36,0.2)' : (isDiscovered ? 'rgba(56,189,248,0.2)' : 'rgba(100,116,139,0.2)')}; color: ${isCurrent ? '#fbbf24' : (isDiscovered ? '#38bdf8' : '#94a3b8')};">
+              ${isCurrent ? '📍 YOU ARE HERE' : (isDiscovered ? '✓ DISCOVERED' : '🔒 UNEXPLORED')}
             </span>
           </div>
-          <div style="font-size: 12px; font-weight: 600; color: #cbd5e1;">${r.section}</div>
-          <div class="atlas-region-desc">${r.desc}</div>
+          <div style="font-size: 12px; font-weight: 600; color: #38bdf8; margin-bottom: 6px;">[${reg.cardinal}] • ${reg.section}</div>
+          <div style="font-size: 13px; color: #cbd5e1; line-height: 1.4;">${reg.desc}</div>
+          <div style="font-size: 12px; color: #fbbf24; margin-top: 4px;">✨ <strong>Features:</strong> ${reg.secrets}</div>
+        </div>
+        <div>
+          ${!isCurrent && isDiscovered ? `
+            <button id="btn-fast-travel" style="background: linear-gradient(135deg, #38bdf8, #0284c7); border: none; color: #0f172a; padding: 8px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 12px;">
+              ⚡ Travel to Region
+            </button>
+          ` : ''}
         </div>
       `;
-    });
+
+      const btnTravel = insp.querySelector('#btn-fast-travel');
+      if (btnTravel) {
+        btnTravel.addEventListener('click', () => {
+          this.engine.warpToZone(zoneId, WORLD_ZONES[zoneId].defaultSpawn);
+          document.getElementById('modal-map')?.classList.add('hidden');
+        });
+      }
+    };
 
     container.innerHTML = `
       <div class="atlas-container">
-        <!-- Interactive Cartography Canvas -->
+        <!-- Interactive Cartography Canvas (Hub & Spoke Compass Layout) -->
         <div class="atlas-map-canvas">
-          <svg viewBox="0 0 800 360" style="width: 100%; height: 100%; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.5));">
+          <svg viewBox="0 0 800 480" style="width: 100%; height: 100%; filter: drop-shadow(0 4px 16px rgba(0,0,0,0.6));">
             <defs>
-              <linearGradient id="roadGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+              <linearGradient id="roadH" x1="0%" y1="0%" x2="100%" y2="0%">
                 <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.8" />
-                <stop offset="100%" stop-color="#fbbf24" stop-opacity="0.8" />
+                <stop offset="50%" stop-color="#fbbf24" stop-opacity="0.9" />
+                <stop offset="100%" stop-color="#10b981" stop-opacity="0.8" />
+              </linearGradient>
+              <linearGradient id="roadV" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#eab308" stop-opacity="0.8" />
+                <stop offset="50%" stop-color="#ec4899" stop-opacity="0.9" />
+                <stop offset="100%" stop-color="#8b5cf6" stop-opacity="0.8" />
               </linearGradient>
             </defs>
 
-            <!-- Ocean / Archipelago Background -->
-            <rect width="800" height="360" fill="#0b1329" />
-            <circle cx="400" cy="180" r="140" fill="rgba(56, 189, 248, 0.04)" />
+            <!-- Compass Background Grid -->
+            <rect width="800" height="480" fill="#0b1329" />
+            <circle cx="400" cy="240" r="180" fill="none" stroke="rgba(56, 189, 248, 0.08)" stroke-width="2" stroke-dasharray="4,4" />
+            <circle cx="400" cy="240" r="100" fill="none" stroke="rgba(251, 191, 36, 0.08)" stroke-width="2" stroke-dasharray="4,4" />
 
-            <!-- Connecting Musical Roads -->
-            <!-- North Road to Citadel -->
-            <line x1="400" y1="180" x2="400" y2="60" stroke="url(#roadGlow)" stroke-width="4" stroke-dasharray="6,6" />
-            <!-- East Road to Woods -->
-            <line x1="400" y1="180" x2="650" y2="180" stroke="url(#roadGlow)" stroke-width="4" stroke-dasharray="6,6" />
-            <!-- South Road to Peaks -->
-            <line x1="400" y1="180" x2="400" y2="300" stroke="url(#roadGlow)" stroke-width="4" stroke-dasharray="6,6" />
-            <!-- West Road to Grand Hall -->
-            <line x1="400" y1="180" x2="150" y2="180" stroke="url(#roadGlow)" stroke-width="4" stroke-dasharray="6,6" />
+            <!-- Connecting Highways (Hub and Spoke) -->
+            <!-- Horizontal: West Village <-> West Wilds <-> Grand Hall <-> East Wilds <-> East Village -->
+            <line x1="120" y1="240" x2="680" y2="240" stroke="url(#roadH)" stroke-width="5" stroke-dasharray="6,6" />
+            <!-- Vertical: North Village <-> North Wilds <-> Grand Hall <-> South Wilds <-> South Village -->
+            <line x1="400" y1="70" x2="400" y2="410" stroke="url(#roadV)" stroke-width="5" stroke-dasharray="6,6" />
 
-            <!-- Nodes / Realm Landmarks -->
-            <!-- Brass Citadel (North) -->
-            <g transform="translate(400, 60)" cursor="pointer">
-              <circle r="36" fill="#78350f" stroke="#eab308" stroke-width="3" />
-              <text text-anchor="middle" y="6" font-size="22">🎺</text>
+            <!-- NODES -->
+            <!-- 1. North: Brass Citadel -->
+            <g class="atlas-node" id="node-brass_citadel" transform="translate(400, 70)">
+              <circle r="34" fill="#78350f" stroke="#eab308" stroke-width="3" />
+              <text text-anchor="middle" y="7" font-size="22">🎺</text>
               <text text-anchor="middle" y="48" fill="#f8fafc" font-size="12" font-weight="700" font-family="Inter">Brass Citadel</text>
             </g>
 
-            <!-- Woodwind Woods (East) -->
-            <g transform="translate(650, 180)" cursor="pointer">
-              <circle r="36" fill="#064e3b" stroke="#10b981" stroke-width="3" />
-              <text text-anchor="middle" y="6" font-size="22">🪈</text>
-              <text text-anchor="middle" y="48" fill="#f8fafc" font-size="12" font-weight="700" font-family="Inter">Woodwind Woods</text>
+            <!-- 2. North Wilds: Echo Canyon -->
+            <g class="atlas-node" id="node-north_wilderness" transform="translate(400, 155)">
+              <circle r="22" fill="#9a3412" stroke="#d97706" stroke-width="2" />
+              <text text-anchor="middle" y="5" font-size="15">🏜️</text>
+              <text text-anchor="start" x="28" y="4" fill="#cbd5e1" font-size="11" font-weight="600" font-family="Inter">Echo Canyon</text>
             </g>
 
-            <!-- Percussion Peaks (South) -->
-            <g transform="translate(400, 300)" cursor="pointer">
-              <circle r="36" fill="#3b0764" stroke="#8b5cf6" stroke-width="3" />
-              <text text-anchor="middle" y="6" font-size="22">🥁</text>
-              <text text-anchor="middle" y="48" fill="#f8fafc" font-size="12" font-weight="700" font-family="Inter">Percussion Peaks</text>
+            <!-- 3. East: Woodwind Woods -->
+            <g class="atlas-node" id="node-woodwind_woods" transform="translate(680, 240)">
+              <circle r="34" fill="#064e3b" stroke="#10b981" stroke-width="3" />
+              <text text-anchor="middle" y="7" font-size="22">🪈</text>
+              <text text-anchor="middle" y="48" fill="#f8fafc" font-size="12" font-weight="700" font-family="Inter">Woodwinds</text>
             </g>
 
-            <!-- Grand Symphony Hall (West) -->
-            <g transform="translate(150, 180)" cursor="pointer">
-              <circle r="36" fill="#831843" stroke="#ec4899" stroke-width="3" />
-              <text text-anchor="middle" y="6" font-size="22">🏛️</text>
-              <text text-anchor="middle" y="48" fill="#f8fafc" font-size="12" font-weight="700" font-family="Inter">Grand Hall</text>
+            <!-- 4. East Wilds: Breeze Glade -->
+            <g class="atlas-node" id="node-east_wilderness" transform="translate(540, 240)">
+              <circle r="22" fill="#065f46" stroke="#059669" stroke-width="2" />
+              <text text-anchor="middle" y="5" font-size="15">🍃</text>
+              <text text-anchor="middle" y="36" fill="#cbd5e1" font-size="11" font-weight="600" font-family="Inter">Breeze Glade</text>
             </g>
 
-            <!-- Cavatina Village (Center) -->
-            <g transform="translate(400, 180)" cursor="pointer">
-              <circle r="44" fill="#0c4a6e" stroke="#38bdf8" stroke-width="4" />
-              <text text-anchor="middle" y="8" font-size="26">🎻</text>
-              <text text-anchor="middle" y="58" fill="#f8fafc" font-size="13" font-weight="800" font-family="Inter">Cavatina Village</text>
+            <!-- 5. South: Percussion Peaks -->
+            <g class="atlas-node" id="node-percussion_peaks" transform="translate(400, 410)">
+              <circle r="34" fill="#3b0764" stroke="#8b5cf6" stroke-width="3" />
+              <text text-anchor="middle" y="7" font-size="22">🥁</text>
+              <text text-anchor="middle" y="48" fill="#f8fafc" font-size="12" font-weight="700" font-family="Inter">Percussion</text>
+            </g>
+
+            <!-- 6. South Wilds: Rumble Gorge -->
+            <g class="atlas-node" id="node-south_wilderness" transform="translate(400, 325)">
+              <circle r="22" fill="#581c87" stroke="#7c3aed" stroke-width="2" />
+              <text text-anchor="middle" y="5" font-size="15">🌋</text>
+              <text text-anchor="start" x="28" y="4" fill="#cbd5e1" font-size="11" font-weight="600" font-family="Inter">Rumble Gorge</text>
+            </g>
+
+            <!-- 7. West: Cavatina Village -->
+            <g class="atlas-node" id="node-cavatina_village" transform="translate(120, 240)">
+              <circle r="34" fill="#0c4a6e" stroke="#38bdf8" stroke-width="3" />
+              <text text-anchor="middle" y="7" font-size="22">🎻</text>
+              <text text-anchor="middle" y="48" fill="#f8fafc" font-size="12" font-weight="700" font-family="Inter">Cavatina</text>
+            </g>
+
+            <!-- 8. West Wilds: Lyre Valley -->
+            <g class="atlas-node" id="node-west_wilderness" transform="translate(260, 240)">
+              <circle r="22" fill="#0369a1" stroke="#0ea5e9" stroke-width="2" />
+              <text text-anchor="middle" y="5" font-size="15">🌲</text>
+              <text text-anchor="middle" y="36" fill="#cbd5e1" font-size="11" font-weight="600" font-family="Inter">Lyre Valley</text>
+            </g>
+
+            <!-- 9. CENTER: Grand Symphony Hall -->
+            <g class="atlas-node" id="node-grand_hall" transform="translate(400, 240)">
+              <circle r="44" fill="#831843" stroke="#ec4899" stroke-width="4" />
+              <text text-anchor="middle" y="8" font-size="26">🏛️</text>
+              <text text-anchor="middle" y="58" fill="#f8fafc" font-size="13" font-weight="800" font-family="Inter">Grand Hall</text>
             </g>
 
             <!-- Pulsing Current Location Pin -->
-            ${state.currentZone === 'cavatina_village' ? '<circle cx="400" cy="140" r="8" fill="#fbbf24"><animate attributeName="r" values="6;12;6" dur="1.5s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0.4;1" dur="1.5s" repeatCount="indefinite"/></circle><text x="400" y="130" fill="#fbbf24" font-size="12" font-weight="800" text-anchor="middle">YOU</text>' : ''}
-            ${state.currentZone === 'woodwind_woods' ? '<circle cx="650" cy="140" r="8" fill="#fbbf24"><animate attributeName="r" values="6;12;6" dur="1.5s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0.4;1" dur="1.5s" repeatCount="indefinite"/></circle><text x="650" y="130" fill="#fbbf24" font-size="12" font-weight="800" text-anchor="middle">YOU</text>' : ''}
-            ${state.currentZone === 'brass_citadel' ? '<circle cx="400" cy="20" r="8" fill="#fbbf24"><animate attributeName="r" values="6;12;6" dur="1.5s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0.4;1" dur="1.5s" repeatCount="indefinite"/></circle><text x="400" y="10" fill="#fbbf24" font-size="12" font-weight="800" text-anchor="middle">YOU</text>' : ''}
-            ${state.currentZone === 'percussion_peaks' ? '<circle cx="400" cy="260" r="8" fill="#fbbf24"><animate attributeName="r" values="6;12;6" dur="1.5s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0.4;1" dur="1.5s" repeatCount="indefinite"/></circle><text x="400" y="250" fill="#fbbf24" font-size="12" font-weight="800" text-anchor="middle">YOU</text>' : ''}
-            ${state.currentZone === 'grand_hall' ? '<circle cx="150" cy="140" r="8" fill="#fbbf24"><animate attributeName="r" values="6;12;6" dur="1.5s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0.4;1" dur="1.5s" repeatCount="indefinite"/></circle><text x="150" y="130" fill="#fbbf24" font-size="12" font-weight="800" text-anchor="middle">YOU</text>' : ''}
+            <g id="player-pin">
+              ${this.renderPlayerPin(state.currentZone)}
+            </g>
           </svg>
         </div>
 
-        <!-- Regional Guide List -->
-        <div class="atlas-region-grid">
-          ${cardsHtml}
+        <!-- Sleek Inspector Details Panel -->
+        <div class="atlas-inspector" id="atlas-inspector-content">
+          <!-- Populated dynamically -->
+        </div>
+
+        <!-- Quick Region Selector Pills -->
+        <div class="atlas-node-pills">
+          ${(Object.keys(regions) as ZoneId[]).map(z => `
+            <button class="atlas-pill ${state.currentZone === z ? 'active' : ''}" data-zone="${z}">
+              <span>${regions[z].icon}</span>
+              <span>${regions[z].name}</span>
+            </button>
+          `).join('')}
         </div>
       </div>
     `;
+
+    renderInspector(selectedZone);
+
+    // Add click/hover listeners to all SVG nodes
+    (Object.keys(regions) as ZoneId[]).forEach(z => {
+      const el = container.querySelector(`#node-${z}`);
+      if (el) {
+        el.addEventListener('click', () => {
+          selectedZone = z;
+          renderInspector(z);
+          container.querySelectorAll('.atlas-pill').forEach(p => p.classList.toggle('active', p.getAttribute('data-zone') === z));
+        });
+        el.addEventListener('mouseenter', () => renderInspector(z));
+      }
+    });
+
+    // Add click listeners to pills
+    container.querySelectorAll('.atlas-pill').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const z = (e.currentTarget as HTMLElement).getAttribute('data-zone') as ZoneId;
+        if (z) {
+          selectedZone = z;
+          renderInspector(z);
+          container.querySelectorAll('.atlas-pill').forEach(p => p.classList.toggle('active', p.getAttribute('data-zone') === z));
+        }
+      });
+    });
   }
+
+  private renderPlayerPin(zone: ZoneId): string {
+    const coords: Record<ZoneId, { x: number; y: number }> = {
+      grand_hall: { x: 400, y: 195 },
+      cavatina_village: { x: 120, y: 195 },
+      west_wilderness: { x: 260, y: 205 },
+      woodwind_woods: { x: 680, y: 195 },
+      east_wilderness: { x: 540, y: 205 },
+      brass_citadel: { x: 400, y: 25 },
+      north_wilderness: { x: 400, y: 120 },
+      percussion_peaks: { x: 400, y: 365 },
+      south_wilderness: { x: 400, y: 290 }
+    };
+    const pt = coords[zone] || { x: 400, y: 195 };
+    return `
+      <circle cx="${pt.x}" cy="${pt.y}" r="8" fill="#fbbf24">
+        <animate attributeName="r" values="6;12;6" dur="1.5s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="1;0.4;1" dur="1.5s" repeatCount="indefinite"/>
+      </circle>
+      <text x="${pt.x}" y="${pt.y - 12}" fill="#fbbf24" font-size="11" font-weight="800" text-anchor="middle">YOU</text>
+    `;
+  }
+
+  /* ---------------- FESTIVAL & CONCERT COMPETITION CALENDAR ---------------- */
+
+  public renderCalendarModal(): void {
+    const container = document.getElementById('calendar-body');
+    if (!container) return;
+    const state = this.engine.getState();
+    const player = state.ensemble.members[0];
+
+    container.innerHTML = '';
+
+    const header = document.createElement('div');
+    header.style.marginBottom = '16px';
+    header.innerHTML = `
+      <div style="font-size: 16px; font-weight: 800; color: #f8fafc;">🎪 Sonora Seasonal Grand Concert Series</div>
+      <div style="font-size: 13px; color: #94a3b8;">Meet the ensemble tier, proficiency, and entry requirements to compete in prestigious regional tournaments!</div>
+    `;
+    container.appendChild(header);
+
+    const grid = document.createElement('div');
+    grid.className = 'calendar-grid';
+
+    state.calendarEvents.forEach(event => {
+      const card = document.createElement('div');
+      const isCompleted = state.completedEvents.includes(event.id);
+      card.className = `event-card ${isCompleted ? 'completed' : ''}`;
+
+      // Check requirements
+      const tierRank: Record<string, number> = { solo: 1, duet: 2, trio: 3, quartet: 4, chamber: 6, symphony: 8 };
+      const currentRank = state.ensemble.members.length;
+      const requiredRank = tierRank[event.tierRequirement] || 1;
+      const tierMet = currentRank >= requiredRank;
+
+      const playerSkill = player ? calculateEffectiveSkill(player, state.proficiency, player.instrumentId) : 0;
+      const skillMet = !event.statRequirements.minEffectiveSkill || playerSkill >= event.statRequirements.minEffectiveSkill;
+
+      const sectionMet = !event.statRequirements.requiredSection || state.ensemble.members.some(m => m.section === event.statRequirements.requiredSection);
+      const tempoMet = !event.statRequirements.minTempoStability || (player && player.stats.tempoStability >= event.statRequirements.minTempoStability);
+      const sightMet = !event.statRequirements.minSightReading || (player && player.stats.sightReading >= event.statRequirements.minSightReading);
+      
+      const badgeCount = state.badges.filter(b => b.obtained).length;
+      const badgesMet = !event.statRequirements.requiredBadges || badgeCount >= event.statRequirements.requiredBadges;
+
+      const feeMet = state.wallet.gold >= event.entryFeeGold;
+      const allMet = tierMet && skillMet && sectionMet && tempoMet && sightMet && badgesMet;
+
+      card.innerHTML = `
+        <div class="event-header">
+          <div>
+            <span class="event-title">${event.name}</span>
+            <div class="event-meta">
+              <span>📅 ${event.seasonDay}</span>
+              <span>📍 ${event.venueName}</span>
+              <span>👥 ${event.tierRequirement.toUpperCase()} Tier</span>
+            </div>
+          </div>
+          <div>
+            ${isCompleted 
+              ? '<span style="color: #10b981; font-weight: bold; font-size: 14px;">🏆 VICTORIOUS ✓</span>'
+              : `<span style="color: #fbbf24; font-weight: bold; font-size: 13px;">Entry Fee: ${event.entryFeeGold} ♪</span>`}
+          </div>
+        </div>
+
+        <div style="font-size: 13px; color: #cbd5e1; line-height: 1.4;">${event.description}</div>
+
+        <div class="event-reqs-box">
+          <span style="font-weight: bold; color: #94a3b8;">Requirements:</span>
+          <span class="req-pill ${tierMet ? 'met' : 'unmet'}">${event.tierRequirement.toUpperCase()} Tier (${currentRank}/${requiredRank} musicians)</span>
+          ${event.statRequirements.minEffectiveSkill ? `<span class="req-pill ${skillMet ? 'met' : 'unmet'}">Skill ★${event.statRequirements.minEffectiveSkill}+ (Current: ${playerSkill})</span>` : ''}
+          ${event.statRequirements.requiredSection ? `<span class="req-pill ${sectionMet ? 'met' : 'unmet'}">${event.statRequirements.requiredSection.toUpperCase()} Musician Present</span>` : ''}
+          ${event.statRequirements.minTempoStability ? `<span class="req-pill ${tempoMet ? 'met' : 'unmet'}">Tempo Stability ≥ ${event.statRequirements.minTempoStability}</span>` : ''}
+          ${event.statRequirements.minSightReading ? `<span class="req-pill ${sightMet ? 'met' : 'unmet'}">Sight-Reading ≥ ${event.statRequirements.minSightReading}</span>` : ''}
+          ${event.statRequirements.requiredBadges ? `<span class="req-pill ${badgesMet ? 'met' : 'unmet'}">Clef Badges: ${badgeCount}/${event.statRequirements.requiredBadges}</span>` : ''}
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+          <div style="font-size: 12px; color: #10b981; font-weight: 600;">
+            🎁 Prizes: +${event.rewardGold} ♪ Notes, +${event.rewardSparks} ✨ Sparks, +${event.rewardStars} ★ Prestige
+          </div>
+          <div>
+            ${!isCompleted ? `
+              <button class="btn-enter-event" data-id="${event.id}" ${(!allMet || !feeMet) ? 'disabled' : ''}>
+                ${!feeMet ? 'Insufficient Notes' : (!allMet ? 'Requirements Locked' : '🎪 Register & Compete')}
+              </button>
+            ` : ''}
+          </div>
+        </div>
+      `;
+
+      grid.appendChild(card);
+    });
+
+    container.appendChild(grid);
+
+    // Event register buttons
+    container.querySelectorAll('.btn-enter-event').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = (e.currentTarget as HTMLElement).getAttribute('data-id');
+        if (id && this.engine.enterFestivalCompetition(id)) {
+          const modalCal = document.getElementById('modal-calendar');
+          modalCal?.classList.add('hidden');
+        }
+      });
+    });
+  }
+
 
   /* ---------------- SYSTEM MENU & SETTINGS ---------------- */
 

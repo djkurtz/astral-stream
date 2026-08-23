@@ -7,7 +7,7 @@ describe('Harmonia: Repertoire, Sheet Music & Concert Competitions', () => {
 
   beforeEach(() => {
     engine = new HarmoniaGameEngine();
-    engine.chooseStarter('pocket_trumpet', 'Baron');
+    engine.chooseStarter('violin', 'Aria');
     while (engine.getState().dialogue) {
       engine.advanceDialogue();
     }
@@ -53,16 +53,16 @@ describe('Harmonia: Repertoire, Sheet Music & Concert Competitions', () => {
     const minuetPiece = REPERTOIRE_DATABASE.find(p => p.id === 'piece_minuet')!;
     const quartetPiece = REPERTOIRE_DATABASE.find(p => p.id === 'piece_starlight_quartet')!;
 
-    // Initial ensemble is 1 solo brass player
+    // Initial ensemble is 1 solo strings player
     const ensembleSections: Record<string, number> = { strings: 0, woodwinds: 0, brass: 0, percussion: 0 };
     state.ensemble.members.forEach(m => { ensembleSections[m.section] = (ensembleSections[m.section] || 0) + 1; });
-    expect(ensembleSections.brass).toBe(1);
+    expect(ensembleSections.strings).toBe(1);
 
     // Minuet has no specific section requirements (playable by any solo instrument)
     const canPlayMinuet = Object.entries(minuetPiece.requiredSections).every(([sec, count]) => (ensembleSections[sec] || 0) >= count!);
     expect(canPlayMinuet).toBe(true);
 
-    // Cavatina Duet requires 1 strings and 1 woodwinds (not playable by solo brass)
+    // Cavatina Duet requires 1 strings and 1 woodwinds (not playable by solo strings without woodwinds)
     const canPlayDuet = Object.entries(duetPiece.requiredSections).every(([sec, count]) => (ensembleSections[sec] || 0) >= count!);
     expect(canPlayDuet).toBe(false);
 
