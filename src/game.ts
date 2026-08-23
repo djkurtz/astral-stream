@@ -4,7 +4,7 @@ import {
   GameState, Musician, Harmonipet, WorldNPC, RivalEnsemble,
   AuditionBattle, InstrumentId, InstrumentSection, EnsembleTier, ZoneId, TheoryChallengeType, PlayerCustomization,
   RepertoirePiece, HarmoniaSaveExport, HarmoniaSavePayload, HarmoniDexEntry, ActiveDispatch,
-  type PhoneMessage, PreBattleInfo, SectionAction, BattleMove
+  type PhoneMessage, PreBattleInfo, SectionAction, BattleMove, PronounSet
 } from './types';
 import {
   STARTER_OPTIONS, REPERTOIRE_DATABASE,
@@ -12,7 +12,7 @@ import {
   INSTRUMENT_ARTIFACTS, INITIAL_LOST_SCORES, INITIAL_INSPIRATION_VISTAS, INITIAL_GAME_QUESTS,
   INITIAL_HARMONIDEX, CLEF_BADGES, DEFAULT_CUSTOMIZATION, THEORY_CURRICULUM,
   getBattleMovesForMusician, ALL_INSTRUMENTS_INFO, RECRUITABLE_MUSICIANS, INITIAL_DISPATCH_VENUES, PET_SYNERGIES,
-  INITIAL_PHONE_MESSAGES, SECTION_ACTIONS
+  INITIAL_PHONE_MESSAGES, SECTION_ACTIONS, PRONOUN_PRESETS, FUNNY_NAME_PRESETS
 } from './data';
 import { soundEngine } from './audio';
 
@@ -105,7 +105,7 @@ export class HarmoniaGameEngine {
   }
 
   private createInitialState(): GameState {
-    return {
+    const state: GameState = {
       mode: 'character_customization',
       currentZone: 'cavatina_village',
       player: {
@@ -216,16 +216,52 @@ export class HarmoniaGameEngine {
       dialogue: null,
       time: 0
     };
+
+    // Assign random standard/funny pronouns to any NPC that doesn't have explicit pronouns
+    const pronounOptions = PRONOUN_PRESETS.filter(p => p.id !== 'custom').map(p => p.label);
+    for (const npc of state.npcs) {
+      if (!npc.pronouns && !npc.isProp) {
+        npc.pronouns = pronounOptions[Math.floor(Math.random() * pronounOptions.length)];
+      }
+      if (npc.musicianData && !npc.musicianData.pronouns) {
+        npc.musicianData.pronouns = npc.pronouns || pronounOptions[Math.floor(Math.random() * pronounOptions.length)];
+      }
+      if (!npc.isProp && (!npc.dialogueSets || npc.dialogueSets.length <= 1)) {
+        const base = npc.dialogue && npc.dialogue.length > 0 ? npc.dialogue : ["Hello, {player}!"];
+        npc.dialogueSets = [
+          base,
+          [`Greetings, {player}! The musical resonance across the realm is truly inspiring today.`, `Keep tuning your ears and sharpening your performance!`],
+          [`Hey there, {player}! Always remember to listen closely to the rhythm sweet spots when you harmonize with familiar companions.`]
+        ];
+      }
+    }
+
+    return state;
   }
 
   /* ---------------- STARTER CUSTOMIZATION ---------------- */
 
-  public chooseStarter(instrumentId: InstrumentId, playerName: string = 'Maestro'): void {
+  public chooseStarter(
+    instrumentId: InstrumentId, 
+    playerName?: string, 
+    pronouns?: string, 
+    customPronouns?: { customSubject?: string; customObject?: string; customPossessive?: string }
+  ): void {
     const starterOpt = STARTER_OPTIONS.find(s => s.id === instrumentId) || STARTER_OPTIONS[0];
     
+    const finalName = playerName || this.state.customization.name || 'Maestro';
+    const finalPronouns = pronouns || this.state.customization.pronouns || 'they/them';
+    this.state.customization.name = finalName;
+    this.state.customization.pronouns = finalPronouns;
+    if (customPronouns) {
+      this.state.customization.customSubject = customPronouns.customSubject;
+      this.state.customization.customObject = customPronouns.customObject;
+      this.state.customization.customPossessive = customPronouns.customPossessive;
+    }
+
     const playerMusician: Musician = {
       id: 'player_musician',
-      name: playerName,
+      name: finalName,
       title: 'Novice Soloist',
       isPlayer: true,
       avatar: starterOpt.section === 'strings' ? '🎻' : (starterOpt.section === 'woodwinds' ? '🪈' : (starterOpt.section === 'brass' ? '🎺' : '🥁')),
@@ -236,7 +272,11 @@ export class HarmoniaGameEngine {
       pet: starterOpt.pet,
       stats: { ...starterOpt.baseStats },
       level: 1,
-      xp: 0
+      xp: 0,
+      pronouns: finalPronouns,
+      outfitColor: this.state.customization.outfitColor,
+      hairColor: this.state.customization.hairColor,
+      hatStyle: this.state.customization.hatStyle
     };
 
     this.state.ensemble.members = [playerMusician];
@@ -285,7 +325,7 @@ export class HarmoniaGameEngine {
     soundEngine.startBGM(startZone, [starterOpt.section]);
 
     this.showDialogue('Harmonia Musical Heritage', '🎼', [
-      `Welcome to Harmonia, ${playerName}! Your bond with ${starterOpt.pet.name} the ${starterOpt.pet.species} shines bright.`,
+      `Welcome to Harmonia, {player}! Your bond with ${starterOpt.pet.name} the ${starterOpt.pet.species} shines bright.`,
       `As an aspiring master of the ${starterOpt.name} (${starterOpt.sectionName}), you begin your journey in ${startName}!`,
       "Hone your craft, explore the wilderness trails connecting each cardinal realm to the central Grand Symphony Hall, and join regional Festival Competitions to ascend your fame!"
     ]);
@@ -2080,11 +2120,15 @@ export class HarmoniaGameEngine {
           const b = zoneNPCs[j];
           const dist = Math.hypot(a.x - b.x, a.y - b.y);
           if (dist < 85) {
-            const banterPair = this.getBanterForNPCs(a, b);
-            if (banterPair) {
-              a.chatBubble = { text: banterPair[0], timer: 3.5 };
-              b.chatBubble = { text: banterPair[1], timer: 3.5 };
-              return; // one pair at a time
+            const banterMap = this.getBanterForNPCs(a, b);
+            if (banterMap) {
+              const textA = banterMap[a.name] || banterMap[a.id];
+              const textB = banterMap[b.name] || banterMap[b.id];
+              if (textA && textB) {
+                a.chatBubble = { text: textA, timer: 3.5 };
+                b.chatBubble = { text: textB, timer: 3.5 };
+                return; // one pair at a time
+              }
             }
           }
         }
@@ -2092,32 +2136,94 @@ export class HarmoniaGameEngine {
     }
   }
 
-  private getBanterForNPCs(a: WorldNPC, b: WorldNPC): [string, string] | null {
-    const names = [a.name, b.name].sort().join('&');
-    if (names.includes('Clara') && names.includes('Maya')) {
-      return ["Clara: More legato!", "Maya: In D minor."];
-    } else if (names.includes('Oliver') && names.includes('Devon')) {
-      return ["Oliver: Hear that bird?", "Devon: Smooth modal jazz."];
-    } else if (names.includes('Jax') && names.includes('Vesta')) {
-      return ["Jax: Triple fortissimo!", "Vesta: Watch your posture!"];
-    } else if (names.includes('Rita') && names.includes('Ronin')) {
-      return ["Rita: 160 BPM steady!", "Ronin: Solid pocket!"];
-    } else if (names.includes('Timmy') && names.includes('Barnaby')) {
-      return ["Timmy: Made 20♪ today!", "Barnaby: Proud of you!"];
-    } else if (names.includes('Clara') && names.includes('Chen')) {
-      return ["Mrs. Chen: Practice 40 hrs!", "Clara: Mom, I'm jamming!"];
-    } else if (names.includes('Oliver') && names.includes('Higgins')) {
-      return ["Mr. Higgins: No 5 AM flutes!", "Oliver: Just one scale!"];
-    } else if (names.includes('Jax') && names.includes('Briggs')) {
-      return ["Officer Briggs: Keep it down!", "Jax: High C forever!"];
-    } else if (names.includes('Rita') && names.includes('Kroll')) {
-      return ["Mama Kroll: Not on the table!", "Rita: Best snare surface!"];
+  private getBanterForNPCs(a: WorldNPC, b: WorldNPC): { [npcIdOrName: string]: string } | null {
+    const has = (npc: WorldNPC, sub: string) => npc.name.includes(sub) || npc.id.includes(sub);
+    const matchPair = (sub1: string, sub2: string) => 
+      (has(a, sub1) && has(b, sub2)) || (has(a, sub2) && has(b, sub1));
+
+    const map: { [key: string]: string } = {};
+
+    if (matchPair('Clara', 'Maya')) {
+      const clara = has(a, 'Clara') && !has(a, 'Chen') ? a : b;
+      const maya = clara === a ? b : a;
+      map[clara.name] = 'More legato!';
+      map[clara.id] = 'More legato!';
+      map[maya.name] = 'In D minor.';
+      map[maya.id] = 'In D minor.';
+    } else if (matchPair('Oliver', 'Devon')) {
+      const oliver = has(a, 'Oliver') && !has(a, 'Higgins') ? a : b;
+      const devon = oliver === a ? b : a;
+      map[oliver.name] = 'Hear that bird?';
+      map[oliver.id] = 'Hear that bird?';
+      map[devon.name] = 'Smooth modal jazz.';
+      map[devon.id] = 'Smooth modal jazz.';
+    } else if (matchPair('Jax', 'Vesta')) {
+      const jax = has(a, 'Jax') && !has(a, 'Briggs') ? a : b;
+      const vesta = jax === a ? b : a;
+      map[jax.name] = 'Triple fortissimo!';
+      map[jax.id] = 'Triple fortissimo!';
+      map[vesta.name] = 'Watch your posture!';
+      map[vesta.id] = 'Watch your posture!';
+    } else if (matchPair('Rita', 'Ronin')) {
+      const rita = has(a, 'Rita') && !has(a, 'Kroll') ? a : b;
+      const ronin = rita === a ? b : a;
+      map[rita.name] = '160 BPM steady!';
+      map[rita.id] = '160 BPM steady!';
+      map[ronin.name] = 'Solid pocket!';
+      map[ronin.id] = 'Solid pocket!';
+    } else if (matchPair('Tim', 'Barnaby') || matchPair('Toby', 'Barnaby')) {
+      const kid = has(a, 'Barnaby') ? b : a;
+      const bar = has(a, 'Barnaby') ? a : b;
+      map[kid.name] = 'Made 20♪ today!';
+      map[kid.id] = 'Made 20♪ today!';
+      map[bar.name] = 'Proud of you!';
+      map[bar.id] = 'Proud of you!';
+    } else if (matchPair('Clara', 'Chen')) {
+      const mom = has(a, 'Chen') ? a : b;
+      const kid = has(a, 'Chen') ? b : a;
+      map[mom.name] = 'Practice 40 hrs!';
+      map[mom.id] = 'Practice 40 hrs!';
+      map[kid.name] = "Mom, I'm jamming!";
+      map[kid.id] = "Mom, I'm jamming!";
+    } else if (matchPair('Oliver', 'Higgins')) {
+      const dad = has(a, 'Higgins') ? a : b;
+      const kid = has(a, 'Higgins') ? b : a;
+      map[dad.name] = 'No 5 AM flutes!';
+      map[dad.id] = 'No 5 AM flutes!';
+      map[kid.name] = 'Just one scale!';
+      map[kid.id] = 'Just one scale!';
+    } else if (matchPair('Jax', 'Briggs')) {
+      const dad = has(a, 'Briggs') ? a : b;
+      const kid = has(a, 'Briggs') ? b : a;
+      map[dad.name] = 'Keep it down!';
+      map[dad.id] = 'Keep it down!';
+      map[kid.name] = 'High C forever!';
+      map[kid.id] = 'High C forever!';
+    } else if (matchPair('Rita', 'Kroll')) {
+      const mom = has(a, 'Kroll') ? a : b;
+      const kid = has(a, 'Kroll') ? b : a;
+      map[mom.name] = 'Not on the table!';
+      map[mom.id] = 'Not on the table!';
+      map[kid.name] = 'Best snare surface!';
+      map[kid.id] = 'Best snare surface!';
     } else if (a.musicianData && b.musicianData) {
-      return ["Care for a quick jam?", "Let's lock in tempo!"];
+      map[a.name] = 'Care for a quick jam?';
+      map[a.id] = 'Care for a quick jam?';
+      map[b.name] = "Let's lock in tempo!";
+      map[b.id] = "Let's lock in tempo!";
     } else if (a.actionType === 'wild_harmonipet' || b.actionType === 'wild_harmonipet') {
-      return ["*Curious chirp*", "*Harmonic hum*"];
+      map[a.name] = '*Curious chirp*';
+      map[a.id] = '*Curious chirp*';
+      map[b.name] = '*Harmonic hum*';
+      map[b.id] = '*Harmonic hum*';
+    } else {
+      map[a.name] = 'Good day, maestro!';
+      map[a.id] = 'Good day, maestro!';
+      map[b.name] = 'Lovely acoustic weather!';
+      map[b.id] = 'Lovely acoustic weather!';
     }
-    return ["Good day, maestro!", "Lovely acoustic weather!"];
+
+    return map;
   }
 
   private updateMovement(dt: number): void {
@@ -2948,6 +3054,35 @@ export class HarmoniaGameEngine {
 
   public setCustomization(partial: Partial<PlayerCustomization>): void {
     this.state.customization = { ...this.state.customization, ...partial };
+    if (this.state.ensemble.members.length > 0) {
+      const player = this.state.ensemble.members[0];
+      if (partial.name !== undefined) player.name = partial.name;
+      if (partial.pronouns !== undefined) player.pronouns = partial.pronouns;
+      if (partial.outfitColor !== undefined) player.outfitColor = partial.outfitColor;
+      if (partial.hairColor !== undefined) player.hairColor = partial.hairColor;
+      if (partial.hatStyle !== undefined) player.hatStyle = partial.hatStyle;
+    }
+  }
+
+  public randomizeCustomization(): void {
+    const randomName = FUNNY_NAME_PRESETS[Math.floor(Math.random() * FUNNY_NAME_PRESETS.length)];
+    const availablePronouns = PRONOUN_PRESETS.filter(p => p.id !== 'custom');
+    const randomPronouns = availablePronouns[Math.floor(Math.random() * availablePronouns.length)].label;
+    const outfitColors = ['#2563eb', '#dc2626', '#059669', '#7c3aed', '#d97706', '#db2777', '#0891b2', '#0f172a'];
+    const hairColors = ['#1e293b', '#78350f', '#b45309', '#eab308', '#f8fafc', '#9333ea', '#0284c7', '#be123c'];
+    const hatStyles: ('beret' | 'feather_cap' | 'maestro' | 'headband' | 'none')[] = ['beret', 'feather_cap', 'maestro', 'headband', 'none'];
+    const finishes: ('classic_amber' | 'gilded_gold' | 'midnight_obsidian' | 'rosewood')[] = ['classic_amber', 'gilded_gold', 'midnight_obsidian', 'rosewood'];
+    const petTints = ['#f59e0b', '#38bdf8', '#eab308', '#c084fc', '#ec4899', '#10b981', '#ffffff'];
+
+    this.setCustomization({
+      name: randomName,
+      pronouns: randomPronouns,
+      outfitColor: outfitColors[Math.floor(Math.random() * outfitColors.length)],
+      hairColor: hairColors[Math.floor(Math.random() * hairColors.length)],
+      hatStyle: hatStyles[Math.floor(Math.random() * hatStyles.length)],
+      instrumentFinish: finishes[Math.floor(Math.random() * finishes.length)],
+      petTint: petTints[Math.floor(Math.random() * petTints.length)]
+    });
   }
 
   /* ---------------- MUSIC THEORY PROGRESSION & PET EVOLUTION ---------------- */
@@ -3109,6 +3244,103 @@ export class HarmoniaGameEngine {
 
   /* ---------------- DIALOGUE SYSTEM ---------------- */
 
+  public formatDialogueText(rawText: string, speakerName?: string): string {
+    if (!rawText) return rawText;
+    const cust = this.state.customization;
+    const playerName = cust.name || 'Maestro';
+    let pSet: PronounSet | undefined;
+    if (cust.pronouns === 'custom' || cust.pronouns === 'Custom...') {
+      pSet = {
+        id: 'custom',
+        label: 'custom',
+        subject: cust.customSubject || 'they',
+        object: cust.customObject || 'them',
+        possessive: cust.customPossessive || 'their',
+        possessivePronoun: cust.customPossessive || 'theirs',
+        reflexive: (cust.customObject || 'them') + 'self'
+      };
+    } else {
+      pSet = PRONOUN_PRESETS.find(p => p.id === cust.pronouns || p.label === cust.pronouns) || PRONOUN_PRESETS[0];
+    }
+
+    let npcName = speakerName || 'Musician';
+    let npcPronounStr = 'they/them';
+    if (speakerName) {
+      const npc = this.state.npcs.find(n => n.name === speakerName || n.id === speakerName || n.musicianData?.name === speakerName);
+      if (npc?.pronouns) {
+        npcPronounStr = npc.pronouns;
+      } else if (npc?.musicianData?.pronouns) {
+        npcPronounStr = npc.musicianData.pronouns;
+      }
+    }
+    const npcSet = PRONOUN_PRESETS.find(p => p.id === npcPronounStr || p.label === npcPronounStr) || PRONOUN_PRESETS[0];
+
+    const capitalize = (s: string) => s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
+
+    const replacements: [string, string][] = [
+      ['{player_name}', playerName],
+      ['{Player_name}', capitalize(playerName)],
+      ['{PLAYER_NAME}', playerName.toUpperCase()],
+      ['{player}', playerName],
+      ['{Player}', capitalize(playerName)],
+      ['{PLAYER}', playerName.toUpperCase()],
+
+      ['{player_sub}', pSet.subject],
+      ['{Player_sub}', capitalize(pSet.subject)],
+      ['{PLAYER_SUB}', pSet.subject.toUpperCase()],
+
+      ['{player_obj}', pSet.object],
+      ['{Player_obj}', capitalize(pSet.object)],
+      ['{PLAYER_OBJ}', pSet.object.toUpperCase()],
+
+      ['{player_pos}', pSet.possessive],
+      ['{Player_pos}', capitalize(pSet.possessive)],
+      ['{PLAYER_POS}', pSet.possessive.toUpperCase()],
+
+      ['{player_self}', pSet.reflexive],
+      ['{Player_self}', capitalize(pSet.reflexive)],
+      ['{PLAYER_SELF}', pSet.reflexive.toUpperCase()],
+
+      ['{they}', pSet.subject],
+      ['{They}', capitalize(pSet.subject)],
+      ['{THEY}', pSet.subject.toUpperCase()],
+
+      ['{them}', pSet.object],
+      ['{Them}', capitalize(pSet.object)],
+      ['{THEM}', pSet.object.toUpperCase()],
+
+      ['{their}', pSet.possessive],
+      ['{Their}', capitalize(pSet.possessive)],
+      ['{THEIR}', pSet.possessive.toUpperCase()],
+
+      ['{themself}', pSet.reflexive],
+      ['{Themself}', capitalize(pSet.reflexive)],
+      ['{THEMSELF}', pSet.reflexive.toUpperCase()],
+
+      ['{npc_name}', npcName],
+      ['{Npc_name}', capitalize(npcName)],
+      ['{NPC_NAME}', npcName.toUpperCase()],
+
+      ['{npc_sub}', npcSet.subject],
+      ['{Npc_sub}', capitalize(npcSet.subject)],
+      ['{NPC_SUB}', npcSet.subject.toUpperCase()],
+
+      ['{npc_obj}', npcSet.object],
+      ['{Npc_obj}', capitalize(npcSet.object)],
+      ['{NPC_OBJ}', npcSet.object.toUpperCase()],
+
+      ['{npc_pos}', npcSet.possessive],
+      ['{Npc_pos}', capitalize(npcSet.possessive)],
+      ['{NPC_POS}', npcSet.possessive.toUpperCase()]
+    ];
+
+    let result = rawText;
+    for (const [token, val] of replacements) {
+      result = result.split(token).join(val);
+    }
+    return result;
+  }
+
   public getNPCDialogue(target: WorldNPC): string[] {
     if (target.dialogueSets && target.dialogueSets.length > 0) {
       const idx = target.dialogueIndex || 0;
@@ -3119,7 +3351,8 @@ export class HarmoniaGameEngine {
   }
 
   public showDialogue(speaker: string, avatar: string, text: string[], onComplete?: () => void): void {
-    this.state.dialogue = { speaker, avatar, text, index: 0, onComplete };
+    const formatted = text.map(t => this.formatDialogueText(t, speaker));
+    this.state.dialogue = { speaker, avatar, text: formatted, index: 0, onComplete };
   }
 
   public advanceDialogue(): void {
@@ -3555,6 +3788,10 @@ export class HarmoniaGameEngine {
     if (!this.state.phoneMessages) return;
     const msg = this.state.phoneMessages.find(m => m.id === msgId);
     if (msg) msg.read = true;
+  }
+
+  public setActiveQuest(questId: string): void {
+    this.state.activeQuestId = questId;
   }
 
   public receivePhoneNotification(title: string, message: string, icon: string = '📱'): void {

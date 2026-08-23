@@ -59,6 +59,7 @@ export interface Musician {
   outfitColor?: string;
   hairColor?: string;
   hatStyle?: 'none' | 'beret' | 'feather_cap' | 'maestro' | 'headband';
+  pronouns?: string;
   dialogue?: string[];
   dialogueSets?: string[][];
   dialogueIndex?: number;
@@ -463,6 +464,7 @@ export interface WorldNPC {
   outfitColor?: string;
   hairColor?: string;
   hatStyle?: 'none' | 'beret' | 'feather_cap' | 'maestro' | 'headband';
+  pronouns?: string;
   dialogue: string[];
   dialogueSets?: string[][];
   dialogueIndex?: number;
@@ -495,7 +497,22 @@ export interface GameDialogue {
   onComplete?: () => void;
 }
 
+export interface PronounSet {
+  id: string;
+  label: string;
+  subject: string;
+  object: string;
+  possessive: string;
+  possessivePronoun: string;
+  reflexive: string;
+}
+
 export interface PlayerCustomization {
+  name: string;
+  pronouns: string;
+  customSubject?: string;
+  customObject?: string;
+  customPossessive?: string;
   outfitColor: string;
   hairColor: string;
   hatStyle: 'beret' | 'feather_cap' | 'maestro' | 'headband' | 'none';

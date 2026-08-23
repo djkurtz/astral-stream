@@ -95,20 +95,81 @@ export class HarmoniaRenderer {
 
     // Title
     ctx.fillStyle = '#f8fafc';
-    ctx.font = 'bold 36px "Cinzel", "Georgia", serif';
+    ctx.font = 'bold 30px "Cinzel", "Georgia", serif';
     ctx.textAlign = 'center';
-    ctx.fillText('🎼 HARMONIA: OPUS OF THE ENSEMBLE 🐾', this.width / 2, 80);
+    ctx.fillText('🎼 HARMONIA: OPUS OF THE ENSEMBLE 🐾', this.width / 2, 44);
 
+    const cust = state.customization;
+    const pName = cust.name || 'Maestro';
+    const pPronouns = cust.pronouns || 'they/them';
+
+    // Player Identity Banner at y: 58, h: 38
+    const bannerW = Math.min(840, this.width - 60);
+    const bannerH = 38;
+    const bannerX = (this.width - bannerW) / 2;
+    const bannerY = 58;
+
+    ctx.fillStyle = 'rgba(30, 41, 59, 0.9)';
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(bannerX, bannerY, bannerW, bannerH, 10);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 13px "Inter", sans-serif';
+    ctx.textAlign = 'center';
+    const hatLabel = cust.hatStyle !== 'none' ? cust.hatStyle.replace('_', ' ') : 'no hat';
+    const finishLabel = cust.instrumentFinish.replace('_', ' ');
+    ctx.fillText(`🎭 Maestro: ${pName} (${pPronouns})  •  Style: ${hatLabel} • finish: ${finishLabel}`, this.width / 2, bannerY + 24);
+
+    // Prominent Buttons Row: [Customize Identity (C)] and [Randomize Presets (R)] at y: 104, h: 30
+    const btnW = 200;
+    const btnH = 30;
+    const btnGap = 16;
+    const btn1X = this.width / 2 - btnW - btnGap / 2;
+    const btn2X = this.width / 2 + btnGap / 2;
+    const btnY = 104;
+
+    // Customize Button
+    ctx.fillStyle = 'rgba(14, 165, 233, 0.25)';
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(btn1X, btnY, btnW, btnH, 8);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#38bdf8';
+    ctx.font = 'bold 12px "Inter", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('✨ Customize Identity [C]', btn1X + btnW / 2, btnY + 20);
+
+    // Randomize Button
+    ctx.fillStyle = 'rgba(245, 158, 11, 0.25)';
+    ctx.strokeStyle = '#f59e0b';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(btn2X, btnY, btnW, btnH, 8);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#fbbf24';
+    ctx.font = 'bold 12px "Inter", sans-serif';
+    ctx.fillText('🎲 Randomize Style [R]', btn2X + btnW / 2, btnY + 20);
+
+    // Subtitle prompt
     ctx.fillStyle = '#94a3b8';
-    ctx.font = '18px "Inter", sans-serif';
-    ctx.fillText('Choose your Starter Instrument and bond with your musical Harmonipet familiar:', this.width / 2, 120);
+    ctx.font = '15px "Inter", sans-serif';
+    ctx.fillText('Choose your Starter Instrument and bond with your musical Harmonipet familiar:', this.width / 2, 154);
 
     // 4 Starter Cards
     const gap = Math.min(30, Math.max(10, (this.width - 760) / 16));
     const cardW = Math.min(260, (this.width - 60 - gap * 3) / 4);
-    const cardH = Math.min(460, this.height - 180);
+    const cardH = 510;
     const startX = (this.width - (cardW * 4 + gap * 3)) / 2;
-    const cardY = Math.min(160, this.height - cardH - 20);
+    const cardY = 175;
 
     STARTER_OPTIONS.forEach((opt, idx) => {
       const x = startX + idx * (cardW + gap);
@@ -3948,6 +4009,12 @@ export class HarmoniaRenderer {
       const rhythmX = (this.width - rhythmW) / 2;
       const rhythmY = 236;
 
+      // Visual header / label above the rhythm highway
+      ctx.fillStyle = '#34d399';
+      ctx.font = 'bold 11px "Inter", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('🎯 TEMPO SWEET SPOT: Hit notes in the green zone for 1.5x score bonus!', this.width / 2, rhythmY - 6);
+
       ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
       ctx.strokeStyle = '#475569';
       ctx.lineWidth = 1;
@@ -4498,6 +4565,24 @@ export class HarmoniaRenderer {
       ctx.textAlign = 'left';
       ctx.fillText(`👥 Ensemble Roster (${state.ensemble.members.length} Active • ${state.ensemble.tier.toUpperCase()})`, contentX + 16, contentY + 24);
 
+      // In-tab Badges Shortcut Button
+      const badgeSubBtnX = contentX + contentW - 130;
+      const badgeSubBtnY = contentY + 10;
+      const badgeSubBtnW = 118;
+      const badgeSubBtnH = 26;
+      ctx.fillStyle = 'rgba(234, 179, 8, 0.18)';
+      ctx.strokeStyle = '#fbbf24';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.roundRect(badgeSubBtnX, badgeSubBtnY, badgeSubBtnW, badgeSubBtnH, 6);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#fef08a';
+      ctx.font = 'bold 11px "Inter", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('🏆 Clef Badges', badgeSubBtnX + badgeSubBtnW / 2, badgeSubBtnY + 17);
+
       const members = state.ensemble.members || [];
       const itemH = 62;
       members.slice(0, 6).forEach((m, idx) => {
@@ -4533,6 +4618,24 @@ export class HarmoniaRenderer {
       ctx.font = 'bold 14px "Inter", sans-serif';
       ctx.textAlign = 'left';
       ctx.fillText('📅 Seasonal Gigs & Festival Circuit', contentX + 16, contentY + 24);
+
+      // In-tab Dispatch Shortcut Button
+      const dispatchSubBtnX = contentX + contentW - 130;
+      const dispatchSubBtnY = contentY + 10;
+      const dispatchSubBtnW = 118;
+      const dispatchSubBtnH = 26;
+      ctx.fillStyle = 'rgba(56, 189, 248, 0.18)';
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.roundRect(dispatchSubBtnX, dispatchSubBtnY, dispatchSubBtnW, dispatchSubBtnH, 6);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#bae6fd';
+      ctx.font = 'bold 11px "Inter", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('🎺 Dispatch Gigs', dispatchSubBtnX + dispatchSubBtnW / 2, dispatchSubBtnY + 17);
 
       const events = state.calendarEvents || [];
       const itemH = 68;
@@ -4648,23 +4751,56 @@ export class HarmoniaRenderer {
       });
     }
 
-    // Bottom Navigation Bar & Close Button
-    const closeBtnW = 200;
-    const closeBtnH = 34;
-    const closeBtnX = (this.width - closeBtnW) / 2;
-    const closeBtnY = phoneY + phoneH - 46;
+    // Bottom Navigation Bar with Shortcuts for Badges, Close, and Dispatch
+    const bottomBtnH = 34;
+    const bottomBtnY = phoneY + phoneH - 46;
+    const sideBtnW = Math.min(115, (phoneW - 60) / 3);
+    const closeW = Math.min(150, (phoneW - 60) / 3 + 20);
+    const gap = (phoneW - 40 - (sideBtnW * 2 + closeW)) / 2;
+    const badgesBtnX = phoneX + 20;
+    const closeBtnX = badgesBtnX + sideBtnW + gap;
+    const dispatchBtnX = closeBtnX + closeW + gap;
 
+    // Badges Shortcut Button
+    ctx.fillStyle = 'rgba(234, 179, 8, 0.18)';
+    ctx.strokeStyle = '#eab308';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(badgesBtnX, bottomBtnY, sideBtnW, bottomBtnH, 8);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#fef08a';
+    ctx.font = 'bold 11px "Inter", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🏆 Badges', badgesBtnX + sideBtnW / 2, bottomBtnY + 21);
+
+    // Close Phone Button
     ctx.fillStyle = 'rgba(239, 68, 68, 0.2)';
     ctx.strokeStyle = '#ef4444';
     ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.roundRect(closeBtnX, closeBtnY, closeBtnW, closeBtnH, 8);
+    ctx.roundRect(closeBtnX, bottomBtnY, closeW, bottomBtnH, 8);
     ctx.fill();
     ctx.stroke();
 
     ctx.fillStyle = '#fca5a5';
-    ctx.font = 'bold 12px "Inter", sans-serif';
+    ctx.font = 'bold 11px "Inter", sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('✕ Close Phone [P]', closeBtnX + closeBtnW / 2, closeBtnY + 21);
+    ctx.fillText('✕ Close [TAB / P]', closeBtnX + closeW / 2, bottomBtnY + 21);
+
+    // Dispatch Shortcut Button
+    ctx.fillStyle = 'rgba(56, 189, 248, 0.18)';
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(dispatchBtnX, bottomBtnY, sideBtnW, bottomBtnH, 8);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#bae6fd';
+    ctx.font = 'bold 11px "Inter", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🎺 Dispatch', dispatchBtnX + sideBtnW / 2, bottomBtnY + 21);
   }
 }

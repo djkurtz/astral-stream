@@ -5,7 +5,7 @@ import { ZoneId, InstrumentId, TheoryChallengeType } from './types';
 import { soundEngine } from './audio';
 import {
   REPERTOIRE_DATABASE, ALL_INSTRUMENTS_INFO, calculateEffectiveSkill, WORLD_ZONES,
-  RECRUITABLE_MUSICIANS, RIVAL_ENSEMBLES, THEORY_CURRICULUM
+  RECRUITABLE_MUSICIANS, RIVAL_ENSEMBLES, THEORY_CURRICULUM, PRONOUN_PRESETS, FUNNY_NAME_PRESETS
 } from './data';
 
 export class HarmoniaUI {
@@ -18,6 +18,22 @@ export class HarmoniaUI {
   }
 
   private setupEventListeners(): void {
+    // Phone / HarmoniPhone Toggle Button
+    const btnPhone = document.getElementById('btn-phone');
+    if (btnPhone) {
+      btnPhone.addEventListener('click', () => {
+        this.engine.togglePhone();
+      });
+    }
+
+    // Quick-Wheel Toggle Button
+    const btnQuickwheel = document.getElementById('btn-quickwheel');
+    if (btnQuickwheel) {
+      btnQuickwheel.addEventListener('click', () => {
+        this.engine.toggleQuickWheel();
+      });
+    }
+
     // Repertoire Modal Toggle Button
     const btnRepertoire = document.getElementById('btn-repertoire');
     const modalRepertoire = document.getElementById('modal-repertoire');
@@ -261,6 +277,48 @@ export class HarmoniaUI {
       }
     });
 
+    window.addEventListener('open-badges-modal', () => {
+      if (modalBadges) {
+        this.renderBadgesList();
+        modalBadges.classList.remove('hidden');
+      }
+    });
+
+    window.addEventListener('open-dispatch-modal', () => {
+      if (modalDispatch) {
+        this.renderDispatchModal();
+        modalDispatch.classList.remove('hidden');
+      }
+    });
+
+    window.addEventListener('open-ensemble-modal', () => {
+      if (modalEnsemble) {
+        this.renderEnsembleRoster();
+        modalEnsemble.classList.remove('hidden');
+      }
+    });
+
+    window.addEventListener('open-calendar-modal', () => {
+      if (modalCalendar) {
+        this.renderCalendarModal();
+        modalCalendar.classList.remove('hidden');
+      }
+    });
+
+    window.addEventListener('open-dex-modal', () => {
+      if (modalDex) {
+        this.renderHarmoniDex();
+        modalDex.classList.remove('hidden');
+      }
+    });
+
+    window.addEventListener('open-map-modal', () => {
+      if (modalMap) {
+        this.renderWorldMapModal();
+        modalMap.classList.remove('hidden');
+      }
+    });
+
     if (btnCloseLuthier && modalLuthier) {
       btnCloseLuthier.addEventListener('click', () => {
         modalLuthier.classList.add('hidden');
@@ -398,9 +456,6 @@ export class HarmoniaUI {
         if (modalBadges && !modalBadges.classList.contains('hidden')) {
           this.renderBadgesList();
         }
-      }
-      if (e.code === 'KeyP') {
-        this.engine.startPracticeSession('metronome');
       }
     });
   }
@@ -1388,24 +1443,80 @@ export class HarmoniaUI {
     if (!container) return;
 
     const state = this.engine.getState();
-    const lead = state.ensemble.members[0] || { name: 'Maestro' };
+    const lead = state.ensemble.members[0] || { name: 'Maestro', pronouns: 'they/them' };
     const cust = state.customization;
+    const currentName = cust.name || lead.name || 'Maestro';
+    const currentPronouns = cust.pronouns || lead.pronouns || 'they/them';
+    const isCustom = currentPronouns === 'custom' || currentPronouns === 'Custom...';
 
     container.innerHTML = `
       <div style="display:flex; flex-direction:column; gap:16px;">
-        <!-- Name Input -->
+        <!-- Header Actions: Randomize Everything -->
+        <div style="display:flex; justify-content:flex-end; margin-bottom:4px;">
+          <button 
+            id="btn-randomize-everything"
+            style="padding:8px 14px; background:linear-gradient(135deg, #d97706, #f59e0b); border:none; border-radius:8px; color:#ffffff; font-weight:bold; font-size:13px; cursor:pointer; box-shadow:0 2px 6px rgba(245,158,11,0.3);"
+          >
+            🎲 Randomize Everything
+          </button>
+        </div>
+
+        <!-- Name Input with Random Name Button -->
         <div style="background:rgba(15,23,42,0.6); padding:14px; border-radius:10px; border:1px solid #334155;">
           <label style="display:block; color:#38bdf8; font-weight:bold; font-size:14px; margin-bottom:6px;">
             ✏️ Maestro / Character Name:
           </label>
-          <input 
-            type="text" 
-            id="input-maestro-name" 
-            value="${lead.name}" 
-            maxlength="16" 
-            placeholder="Enter Maestro Name..."
-            style="width:100%; box-sizing:border-box; padding:10px 14px; background:#1e293b; border:2px solid #38bdf8; border-radius:8px; color:#f8fafc; font-size:16px; font-weight:bold; outline:none;"
-          />
+          <div style="display:flex; gap:8px;">
+            <input 
+              type="text" 
+              id="input-maestro-name" 
+              value="${currentName}" 
+              maxlength="20" 
+              placeholder="Enter Maestro Name..."
+              style="flex:1; box-sizing:border-box; padding:10px 14px; background:#1e293b; border:2px solid #38bdf8; border-radius:8px; color:#f8fafc; font-size:16px; font-weight:bold; outline:none;"
+            />
+            <button 
+              id="btn-random-name"
+              type="button"
+              style="padding:10px 14px; background:#334155; border:1px solid #64748b; border-radius:8px; color:#f8fafc; font-weight:bold; font-size:13px; cursor:pointer; white-space:nowrap;"
+            >
+              🎲 Random Name
+            </button>
+          </div>
+        </div>
+
+        <!-- Pronouns Selector -->
+        <div style="background:rgba(15,23,42,0.6); padding:14px; border-radius:10px; border:1px solid #334155;">
+          <label style="display:block; color:#38bdf8; font-weight:bold; font-size:14px; margin-bottom:6px;">
+            ✨ Pronouns:
+          </label>
+          <select 
+            id="select-maestro-pronouns"
+            style="width:100%; box-sizing:border-box; padding:10px 14px; background:#1e293b; border:2px solid #38bdf8; border-radius:8px; color:#f8fafc; font-size:14px; font-weight:bold; outline:none; cursor:pointer;"
+          >
+            ${PRONOUN_PRESETS.map(p => `
+              <option value="${p.id}" ${ (currentPronouns === p.id || currentPronouns === p.label) ? 'selected' : '' }>
+                ${p.label} ${p.id !== 'custom' ? `(${p.subject}/${p.object}/${p.possessive})` : ''}
+              </option>
+            `).join('')}
+          </select>
+
+          ${isCustom ? `
+            <div id="custom-pronouns-inputs" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin-top:10px;">
+              <div>
+                <label style="font-size:11px; color:#94a3b8; display:block; margin-bottom:2px;">Subject (e.g. ze):</label>
+                <input type="text" id="input-custom-sub" value="${cust.customSubject || 'they'}" style="width:100%; box-sizing:border-box; padding:6px 10px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#f8fafc; font-size:13px;" />
+              </div>
+              <div>
+                <label style="font-size:11px; color:#94a3b8; display:block; margin-bottom:2px;">Object (e.g. zir):</label>
+                <input type="text" id="input-custom-obj" value="${cust.customObject || 'them'}" style="width:100%; box-sizing:border-box; padding:6px 10px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#f8fafc; font-size:13px;" />
+              </div>
+              <div>
+                <label style="font-size:11px; color:#94a3b8; display:block; margin-bottom:2px;">Possessive (e.g. zir):</label>
+                <input type="text" id="input-custom-pos" value="${cust.customPossessive || 'their'}" style="width:100%; box-sizing:border-box; padding:6px 10px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#f8fafc; font-size:13px;" />
+              </div>
+            </div>
+          ` : ''}
         </div>
 
         <!-- Outfit Color Selection -->
@@ -1512,6 +1623,33 @@ export class HarmoniaUI {
     // Attach listeners
     const nameInput = document.getElementById('input-maestro-name') as HTMLInputElement;
 
+    const btnRandomName = document.getElementById('btn-random-name');
+    if (btnRandomName) {
+      btnRandomName.addEventListener('click', () => {
+        const rand = FUNNY_NAME_PRESETS[Math.floor(Math.random() * FUNNY_NAME_PRESETS.length)];
+        if (nameInput) nameInput.value = rand;
+        this.engine.setCustomization({ name: rand });
+      });
+    }
+
+    const selectPronouns = document.getElementById('select-maestro-pronouns') as HTMLSelectElement;
+    if (selectPronouns) {
+      selectPronouns.addEventListener('change', () => {
+        const val = selectPronouns.value;
+        const selectedPreset = PRONOUN_PRESETS.find(p => p.id === val);
+        this.engine.setCustomization({ pronouns: selectedPreset ? selectedPreset.label : val });
+        this.renderCustomizationModal();
+      });
+    }
+
+    const btnRandomAll = document.getElementById('btn-randomize-everything');
+    if (btnRandomAll) {
+      btnRandomAll.addEventListener('click', () => {
+        this.engine.randomizeCustomization();
+        this.renderCustomizationModal();
+      });
+    }
+
     container.querySelectorAll('.btn-swatch-outfit').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const color = (e.currentTarget as HTMLElement).dataset.color;
@@ -1565,12 +1703,24 @@ export class HarmoniaUI {
     const btnSave = document.getElementById('btn-save-customization');
     if (btnSave) {
       btnSave.addEventListener('click', () => {
-        const newName = nameInput?.value?.trim();
-        if (newName && state.ensemble.members.length > 0) {
-          state.ensemble.members[0].name = newName;
+        const newName = (document.getElementById('input-maestro-name') as HTMLInputElement)?.value?.trim() || 'Maestro';
+        const pronounsVal = (document.getElementById('select-maestro-pronouns') as HTMLSelectElement)?.value || 'they/them';
+        const pPreset = PRONOUN_PRESETS.find(p => p.id === pronounsVal);
+        const finalPronouns = pPreset ? pPreset.label : pronounsVal;
+
+        const partial: any = {
+          name: newName,
+          pronouns: finalPronouns
+        };
+        if (finalPronouns === 'custom' || pronounsVal === 'custom') {
+          partial.customSubject = (document.getElementById('input-custom-sub') as HTMLInputElement)?.value?.trim() || 'they';
+          partial.customObject = (document.getElementById('input-custom-obj') as HTMLInputElement)?.value?.trim() || 'them';
+          partial.customPossessive = (document.getElementById('input-custom-pos') as HTMLInputElement)?.value?.trim() || 'their';
         }
+
+        this.engine.setCustomization(partial);
         document.getElementById('modal-customization')?.classList.add('hidden');
-        this.showToast('✨ Maestro styling updated!');
+        this.showToast('✨ Maestro identity and styling updated!');
       });
     }
   }
@@ -1660,6 +1810,12 @@ export class HarmoniaUI {
     let selectedZone: ZoneId = state.currentZone;
     let currentInspected: ZoneId | null = null;
 
+    const updateSelectedNode = (zoneId: ZoneId) => {
+      container.querySelectorAll('.atlas-node').forEach(node => {
+        node.classList.toggle('active-inspected', node.id === `node-${zoneId}`);
+      });
+    };
+
     const renderInspector = (zoneId: ZoneId) => {
       if (currentInspected === zoneId) return;
       currentInspected = zoneId;
@@ -1671,20 +1827,20 @@ export class HarmoniaUI {
 
       insp.innerHTML = `
         <div style="flex: 1;">
-          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-            <span style="font-size: 24px;">${reg.icon}</span>
-            <span style="font-size: 18px; font-weight: 800; color: #f8fafc; font-family: 'Cinzel', serif;">${reg.name}</span>
-            <span style="font-size: 11px; font-weight: bold; padding: 2px 8px; border-radius: 4px; background: ${isCurrent ? 'rgba(251,191,36,0.2)' : (isDiscovered ? 'rgba(56,189,248,0.2)' : 'rgba(100,116,139,0.2)')}; color: ${isCurrent ? '#fbbf24' : (isDiscovered ? '#38bdf8' : '#94a3b8')};">
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+            <span style="font-size: 28px; line-height: 1;">${reg.icon}</span>
+            <span style="font-size: 20px; font-weight: 800; color: #f8fafc; font-family: 'Cinzel', serif; letter-spacing: 0.5px;">${reg.name}</span>
+            <span style="font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.5px; background: ${isCurrent ? 'rgba(251,191,36,0.2)' : (isDiscovered ? 'rgba(56,189,248,0.2)' : 'rgba(100,116,139,0.2)')}; color: ${isCurrent ? '#fbbf24' : (isDiscovered ? '#38bdf8' : '#94a3b8')}; border: 1px solid ${isCurrent ? 'rgba(251,191,36,0.4)' : (isDiscovered ? 'rgba(56,189,248,0.4)' : 'rgba(100,116,139,0.3)')};">
               ${isCurrent ? '📍 YOU ARE HERE' : (isDiscovered ? '✓ DISCOVERED' : '🔒 UNEXPLORED')}
             </span>
           </div>
-          <div style="font-size: 12px; font-weight: 600; color: #38bdf8; margin-bottom: 6px;">[${reg.cardinal}] • ${reg.section}</div>
-          <div style="font-size: 13px; color: #cbd5e1; line-height: 1.4;">${reg.desc}</div>
-          <div style="font-size: 12px; color: #fbbf24; margin-top: 4px;">✨ <strong>Key Routes & Features:</strong> ${reg.secrets}</div>
+          <div style="font-size: 13px; font-weight: 700; color: #38bdf8; margin-bottom: 8px;">[${reg.cardinal}] • ${reg.section}</div>
+          <div style="font-size: 13.5px; color: #cbd5e1; line-height: 1.5; margin-bottom: 8px;">${reg.desc}</div>
+          <div style="font-size: 12.5px; color: #fef08a; line-height: 1.4; background: rgba(0,0,0,0.3); padding: 8px 12px; border-radius: 8px; border-left: 3px solid #fbbf24;">✨ <strong>Key Routes & Features:</strong> ${reg.secrets}</div>
         </div>
-        <div>
+        <div style="margin-left: 16px; display: flex; flex-direction: column; justify-content: center; align-items: flex-end;">
           ${!isCurrent && isDiscovered ? `
-            <button id="btn-fast-travel" style="background: linear-gradient(135deg, #38bdf8, #0284c7); border: none; color: #0f172a; padding: 8px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 12px;">
+            <button id="btn-fast-travel" style="background: linear-gradient(135deg, #38bdf8, #0284c7); border: 1px solid rgba(255,255,255,0.3); color: #0f172a; padding: 10px 20px; border-radius: 10px; font-weight: 800; cursor: pointer; font-size: 13px; box-shadow: 0 4px 12px rgba(56,189,248,0.3); transition: all 0.2s;">
               ⚡ Travel to Region
             </button>
           ` : ''}
@@ -1761,94 +1917,81 @@ export class HarmoniaUI {
             <line x1="540" y1="240" x2="400" y2="155" stroke="#fef08a" stroke-width="2" stroke-dasharray="6,5" stroke-linecap="round" />
             <line x1="540" y1="240" x2="400" y2="325" stroke="#fef08a" stroke-width="2" stroke-dasharray="6,5" stroke-linecap="round" />
 
-            <!-- Clear Route Labels along Wilderness Connectors -->
-            <rect x="265" y="172" width="125" height="18" rx="4" fill="rgba(6, 78, 59, 0.85)" stroke="#10b981" stroke-width="1" transform="rotate(-31 327 181)" />
-            <text x="327" y="184" fill="#a7f3d0" font-size="9" font-weight="700" font-family="Inter" text-anchor="middle" transform="rotate(-31 327 184)">NW Pass: Lyre ↔ Echo</text>
-
-            <rect x="265" y="286" width="125" height="18" rx="4" fill="rgba(6, 78, 59, 0.85)" stroke="#10b981" stroke-width="1" transform="rotate(31 327 295)" />
-            <text x="327" y="298" fill="#a7f3d0" font-size="9" font-weight="700" font-family="Inter" text-anchor="middle" transform="rotate(31 327 298)">SW Pass: Lyre ↔ Rumble</text>
-
-            <rect x="410" y="172" width="125" height="18" rx="4" fill="rgba(6, 78, 59, 0.85)" stroke="#10b981" stroke-width="1" transform="rotate(31 472 181)" />
-            <text x="472" y="184" fill="#a7f3d0" font-size="9" font-weight="700" font-family="Inter" text-anchor="middle" transform="rotate(31 472 184)">NE Pass: Echo ↔ Breeze</text>
-
-            <rect x="410" y="286" width="125" height="18" rx="4" fill="rgba(6, 78, 59, 0.85)" stroke="#10b981" stroke-width="1" transform="rotate(-31 472 295)" />
-            <text x="472" y="298" fill="#a7f3d0" font-size="9" font-weight="700" font-family="Inter" text-anchor="middle" transform="rotate(-31 472 298)">SE Pass: Breeze ↔ Rumble</text>
-
             <!-- Main Trade Arteries -->
             <line x1="120" y1="240" x2="680" y2="240" stroke="url(#roadH)" stroke-width="4" stroke-dasharray="8,6" />
             <line x1="400" y1="70" x2="400" y2="410" stroke="url(#roadV)" stroke-width="4" stroke-dasharray="8,6" />
 
-            <!-- NODES (Full Region Names + Concentric Highlight when Current) -->
+            <!-- NODES (Circular Nodes with Icons & Native Hover Tooltips) -->
             <!-- 1. North: The Brass Citadel -->
             <g class="atlas-node" id="node-brass_citadel" transform="translate(400, 70)">
+              <title>${regions.brass_citadel.name}</title>
               ${renderHighlight('brass_citadel', 34)}
               <circle r="34" fill="#78350f" stroke="${state.currentZone === 'brass_citadel' ? '#fbbf24' : '#eab308'}" stroke-width="${state.currentZone === 'brass_citadel' ? 4 : 3}" />
-              <text text-anchor="middle" y="7" font-size="22">🎺</text>
-              <text text-anchor="middle" y="48" fill="#f8fafc" font-size="12" font-weight="700" font-family="Inter">The Brass Citadel</text>
+              <text text-anchor="middle" y="8" font-size="24">🎺</text>
             </g>
 
             <!-- 2. North Wilds: Echo Canyon -->
             <g class="atlas-node" id="node-north_wilderness" transform="translate(400, 155)">
+              <title>${regions.north_wilderness.name}</title>
               ${renderHighlight('north_wilderness', 22)}
               <circle r="22" fill="#9a3412" stroke="${state.currentZone === 'north_wilderness' ? '#fbbf24' : '#d97706'}" stroke-width="${state.currentZone === 'north_wilderness' ? 3.5 : 2}" />
-              <text text-anchor="middle" y="5" font-size="15">🏜️</text>
-              <text text-anchor="start" x="28" y="4" fill="#cbd5e1" font-size="11" font-weight="600" font-family="Inter">Echo Canyon</text>
+              <text text-anchor="middle" y="6" font-size="16">🏜️</text>
             </g>
 
             <!-- 3. East: Woodwind Woods -->
             <g class="atlas-node" id="node-woodwind_woods" transform="translate(680, 240)">
+              <title>${regions.woodwind_woods.name}</title>
               ${renderHighlight('woodwind_woods', 34)}
               <circle r="34" fill="#064e3b" stroke="${state.currentZone === 'woodwind_woods' ? '#fbbf24' : '#10b981'}" stroke-width="${state.currentZone === 'woodwind_woods' ? 4 : 3}" />
-              <text text-anchor="middle" y="7" font-size="22">🪈</text>
-              <text text-anchor="middle" y="48" fill="#f8fafc" font-size="12" font-weight="700" font-family="Inter">Woodwind Woods</text>
+              <text text-anchor="middle" y="8" font-size="24">🪈</text>
             </g>
 
             <!-- 4. East Wilds: Breeze Glade -->
             <g class="atlas-node" id="node-east_wilderness" transform="translate(540, 240)">
+              <title>${regions.east_wilderness.name}</title>
               ${renderHighlight('east_wilderness', 22)}
               <circle r="22" fill="#065f46" stroke="${state.currentZone === 'east_wilderness' ? '#fbbf24' : '#059669'}" stroke-width="${state.currentZone === 'east_wilderness' ? 3.5 : 2}" />
-              <text text-anchor="middle" y="5" font-size="15">🍃</text>
-              <text text-anchor="middle" y="36" fill="#cbd5e1" font-size="11" font-weight="600" font-family="Inter">Breeze Glade</text>
+              <text text-anchor="middle" y="6" font-size="16">🍃</text>
             </g>
 
             <!-- 5. South: Percussion Peaks -->
             <g class="atlas-node" id="node-percussion_peaks" transform="translate(400, 410)">
+              <title>${regions.percussion_peaks.name}</title>
               ${renderHighlight('percussion_peaks', 34)}
               <circle r="34" fill="#3b0764" stroke="${state.currentZone === 'percussion_peaks' ? '#fbbf24' : '#8b5cf6'}" stroke-width="${state.currentZone === 'percussion_peaks' ? 4 : 3}" />
-              <text text-anchor="middle" y="7" font-size="22">🥁</text>
-              <text text-anchor="middle" y="48" fill="#f8fafc" font-size="12" font-weight="700" font-family="Inter">Percussion Peaks</text>
+              <text text-anchor="middle" y="8" font-size="24">🥁</text>
             </g>
 
             <!-- 6. South Wilds: Rumble Gorge -->
             <g class="atlas-node" id="node-south_wilderness" transform="translate(400, 325)">
+              <title>${regions.south_wilderness.name}</title>
               ${renderHighlight('south_wilderness', 22)}
               <circle r="22" fill="#581c87" stroke="${state.currentZone === 'south_wilderness' ? '#fbbf24' : '#7c3aed'}" stroke-width="${state.currentZone === 'south_wilderness' ? 3.5 : 2}" />
-              <text text-anchor="middle" y="5" font-size="15">🌋</text>
-              <text text-anchor="start" x="28" y="4" fill="#cbd5e1" font-size="11" font-weight="600" font-family="Inter">Rumble Gorge</text>
+              <text text-anchor="middle" y="6" font-size="16">🌋</text>
             </g>
 
             <!-- 7. West: Cavatina Village -->
             <g class="atlas-node" id="node-cavatina_village" transform="translate(120, 240)">
+              <title>${regions.cavatina_village.name}</title>
               ${renderHighlight('cavatina_village', 34)}
               <circle r="34" fill="#0c4a6e" stroke="${state.currentZone === 'cavatina_village' ? '#fbbf24' : '#38bdf8'}" stroke-width="${state.currentZone === 'cavatina_village' ? 4 : 3}" />
-              <text text-anchor="middle" y="7" font-size="22">🎻</text>
-              <text text-anchor="middle" y="48" fill="#f8fafc" font-size="12" font-weight="700" font-family="Inter">Cavatina Village</text>
+              <text text-anchor="middle" y="8" font-size="24">🎻</text>
             </g>
 
             <!-- 8. West Wilds: Lyre Valley -->
             <g class="atlas-node" id="node-west_wilderness" transform="translate(260, 240)">
+              <title>${regions.west_wilderness.name}</title>
               ${renderHighlight('west_wilderness', 22)}
               <circle r="22" fill="#0369a1" stroke="${state.currentZone === 'west_wilderness' ? '#fbbf24' : '#0ea5e9'}" stroke-width="${state.currentZone === 'west_wilderness' ? 3.5 : 2}" />
-              <text text-anchor="middle" y="5" font-size="15">🌲</text>
-              <text text-anchor="middle" y="36" fill="#cbd5e1" font-size="11" font-weight="600" font-family="Inter">Lyre Valley</text>
+              <text text-anchor="middle" y="6" font-size="16">🌲</text>
             </g>
 
             <!-- 9. CENTER: The Central City -->
             <g class="atlas-node" id="node-grand_hall" transform="translate(400, 240)">
+              <title>${regions.grand_hall.name}</title>
               ${renderHighlight('grand_hall', 44)}
               <circle r="44" fill="#831843" stroke="${state.currentZone === 'grand_hall' ? '#fbbf24' : '#ec4899'}" stroke-width="${state.currentZone === 'grand_hall' ? 5 : 4}" />
-              <text text-anchor="middle" y="8" font-size="26">🏛️</text>
-              <text text-anchor="middle" y="58" fill="#f8fafc" font-size="12.5" font-weight="800" font-family="Inter">The Central City</text>
+              <text text-anchor="middle" y="10" font-size="28">🏛️</text>
             </g>
           </svg>
         </div>
@@ -1857,20 +2000,11 @@ export class HarmoniaUI {
         <div class="atlas-inspector" id="atlas-inspector-content">
           <!-- Populated dynamically -->
         </div>
-
-        <!-- Quick Region Selector Pills -->
-        <div class="atlas-node-pills">
-          ${(Object.keys(regions) as ZoneId[]).map(z => `
-            <button class="atlas-pill ${state.currentZone === z ? 'active' : ''}" data-zone="${z}">
-              <span>${regions[z].icon}</span>
-              <span>${regions[z].name}</span>
-            </button>
-          `).join('')}
-        </div>
       </div>
     `;
 
     renderInspector(selectedZone);
+    updateSelectedNode(selectedZone);
 
     // Add click/hover listeners to all SVG nodes
     (Object.keys(regions) as ZoneId[]).forEach(z => {
@@ -1879,23 +2013,22 @@ export class HarmoniaUI {
         el.addEventListener('click', () => {
           selectedZone = z;
           renderInspector(z);
-          container.querySelectorAll('.atlas-pill').forEach(p => p.classList.toggle('active', p.getAttribute('data-zone') === z));
+          updateSelectedNode(z);
         });
-        el.addEventListener('mouseenter', () => renderInspector(z));
+        el.addEventListener('mouseenter', () => {
+          renderInspector(z);
+          updateSelectedNode(z);
+        });
       }
     });
 
-    // Add click listeners to pills
-    container.querySelectorAll('.atlas-pill').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const z = (e.currentTarget as HTMLElement).getAttribute('data-zone') as ZoneId;
-        if (z) {
-          selectedZone = z;
-          renderInspector(z);
-          container.querySelectorAll('.atlas-pill').forEach(p => p.classList.toggle('active', p.getAttribute('data-zone') === z));
-        }
+    const svgCanvas = container.querySelector('.atlas-map-canvas');
+    if (svgCanvas) {
+      svgCanvas.addEventListener('mouseleave', () => {
+        renderInspector(selectedZone);
+        updateSelectedNode(selectedZone);
       });
-    });
+    }
   }
 
   /* ---------------- FESTIVAL & CONCERT COMPETITION CALENDAR ---------------- */

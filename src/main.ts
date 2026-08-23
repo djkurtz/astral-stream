@@ -16,7 +16,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   const engine = new HarmoniaGameEngine();
   const renderer = new HarmoniaRenderer(ctx);
-  new HarmoniaUI(engine);
+  const ui = new HarmoniaUI(engine);
 
   // Resize handler
   const resizeCanvas = () => {
@@ -35,17 +35,24 @@ window.addEventListener('DOMContentLoaded', () => {
     soundEngine.init();
     engine.handleKeyDown(e.code);
 
-    // Starter Selection via keyboard 1-4
+    // Starter Selection via keyboard 1-4, C for customize, R for randomize
     if (engine.getState().mode === 'character_customization') {
       if (e.code === 'Digit1') engine.chooseStarter(STARTER_OPTIONS[0].id);
       if (e.code === 'Digit2') engine.chooseStarter(STARTER_OPTIONS[1].id);
       if (e.code === 'Digit3') engine.chooseStarter(STARTER_OPTIONS[2].id);
       if (e.code === 'Digit4') engine.chooseStarter(STARTER_OPTIONS[3].id);
+      if (e.code === 'KeyC') {
+        ui.renderCustomizationModal();
+        document.getElementById('modal-customization')?.classList.remove('hidden');
+      }
+      if (e.code === 'KeyR') {
+        engine.randomizeCustomization();
+      }
     }
 
-    // In-world Quick-Wheel toggle via Tab / Q (Exploration mode)
+    // In-world Quick-Wheel toggle via Q (Exploration mode)
     if (engine.getState().mode === 'exploration') {
-      if (e.code === 'Tab' || e.code === 'KeyQ') {
+      if (e.code === 'KeyQ') {
         e.preventDefault();
         engine.toggleQuickWheel();
       }
@@ -99,8 +106,9 @@ window.addEventListener('DOMContentLoaded', () => {
       if (e.code === 'KeyV') engine.toggleStaffVisualizer();
     }
 
-    // Toggle Smartphone ("HarmoniPhone") via 'P'
-    if (e.code === 'KeyP') {
+    // Toggle Smartphone ("HarmoniPhone") via Tab / P
+    if (e.code === 'Tab' || e.code === 'KeyP') {
+      e.preventDefault();
       engine.togglePhone();
     }
   });
@@ -155,16 +163,34 @@ window.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Starter selection clicks
+    // Starter selection clicks & customization buttons
     if (state.mode === 'character_customization') {
+      const btnW = 200;
+      const btnH = 30;
+      const btnGap = 16;
+      const btn1X = 1280 / 2 - btnW - btnGap / 2;
+      const btn2X = 1280 / 2 + btnGap / 2;
+      const btnY = 104;
+
+      if (clickX >= btn1X && clickX <= btn1X + btnW && clickY >= btnY && clickY <= btnY + btnH) {
+        ui.renderCustomizationModal();
+        document.getElementById('modal-customization')?.classList.remove('hidden');
+        return;
+      }
+      if (clickX >= btn2X && clickX <= btn2X + btnW && clickY >= btnY && clickY <= btnY + btnH) {
+        engine.randomizeCustomization();
+        return;
+      }
+
       const cardW = 260;
       const gap = 30;
       const startX = (1280 - (cardW * 4 + gap * 3)) / 2;
-      const cardY = 160;
+      const cardY = 175;
+      const cardH = 510;
 
       STARTER_OPTIONS.forEach((opt, idx) => {
         const x = startX + idx * (cardW + gap);
-        if (clickX >= x && clickX <= x + cardW && clickY >= cardY && clickY <= cardY + 460) {
+        if (clickX >= x && clickX <= x + cardW && clickY >= cardY && clickY <= cardY + cardH) {
           engine.chooseStarter(opt.id);
         }
       });
@@ -233,14 +259,31 @@ window.addEventListener('DOMContentLoaded', () => {
       const phoneX = (canvas.width - phoneW) / 2;
       const phoneY = (canvas.height - phoneH) / 2;
 
-      // Close button
-      const closeBtnW = 180;
-      const closeBtnH = 32;
-      const closeBtnX = (canvas.width - closeBtnW) / 2;
-      const closeBtnY = phoneY + phoneH - 42;
-      if (clickX >= closeBtnX && clickX <= closeBtnX + closeBtnW && clickY >= closeBtnY && clickY <= closeBtnY + closeBtnH) {
-        engine.togglePhone(false);
-        return;
+      // Bottom Navigation Bar with Badges, Close, and Dispatch
+      const bottomBtnH = 34;
+      const bottomBtnY = phoneY + phoneH - 46;
+      const sideBtnW = Math.min(115, (phoneW - 60) / 3);
+      const closeW = Math.min(150, (phoneW - 60) / 3 + 20);
+      const gap = (phoneW - 40 - (sideBtnW * 2 + closeW)) / 2;
+      const badgesBtnX = phoneX + 20;
+      const closeBtnX = badgesBtnX + sideBtnW + gap;
+      const dispatchBtnX = closeBtnX + closeW + gap;
+
+      if (clickY >= bottomBtnY && clickY <= bottomBtnY + bottomBtnH) {
+        if (clickX >= badgesBtnX && clickX <= badgesBtnX + sideBtnW) {
+          engine.togglePhone(false);
+          window.dispatchEvent(new CustomEvent('open-badges-modal'));
+          return;
+        }
+        if (clickX >= closeBtnX && clickX <= closeBtnX + closeW) {
+          engine.togglePhone(false);
+          return;
+        }
+        if (clickX >= dispatchBtnX && clickX <= dispatchBtnX + sideBtnW) {
+          engine.togglePhone(false);
+          window.dispatchEvent(new CustomEvent('open-dispatch-modal'));
+          return;
+        }
       }
 
       // App Tabs (6 Tabs)
@@ -257,15 +300,54 @@ window.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      // Message item read click
       const activeTab = state.phoneTab || 'messages';
+      const contentX = phoneX + 20;
+      const contentY = phoneY + 84;
+      const contentW = phoneW - 40;
+
+      // In-tab shortcut buttons (Ensemble -> Badges, Calendar -> Dispatch)
+      if (activeTab === 'ensemble') {
+        const badgeSubBtnX = contentX + contentW - 130;
+        const badgeSubBtnY = contentY + 10;
+        const badgeSubBtnW = 118;
+        const badgeSubBtnH = 26;
+        if (clickX >= badgeSubBtnX && clickX <= badgeSubBtnX + badgeSubBtnW && clickY >= badgeSubBtnY && clickY <= badgeSubBtnY + badgeSubBtnH) {
+          engine.togglePhone(false);
+          window.dispatchEvent(new CustomEvent('open-badges-modal'));
+          return;
+        }
+      }
+
+      if (activeTab === 'calendar') {
+        const dispatchSubBtnX = contentX + contentW - 130;
+        const dispatchSubBtnY = contentY + 10;
+        const dispatchSubBtnW = 118;
+        const dispatchSubBtnH = 26;
+        if (clickX >= dispatchSubBtnX && clickX <= dispatchSubBtnX + dispatchSubBtnW && clickY >= dispatchSubBtnY && clickY <= dispatchSubBtnY + dispatchSubBtnH) {
+          engine.togglePhone(false);
+          window.dispatchEvent(new CustomEvent('open-dispatch-modal'));
+          return;
+        }
+      }
+
+      // Message item read click
       if (activeTab === 'messages' && state.phoneMessages) {
-        const contentY = phoneY + 84;
         const itemH = 88;
         state.phoneMessages.slice(0, 4).forEach((m, idx) => {
           const my = contentY + 36 + idx * (itemH + 8);
           if (clickX >= phoneX + 30 && clickX <= phoneX + phoneW - 30 && clickY >= my && clickY <= my + itemH) {
             engine.markPhoneMessageRead(m.id);
+          }
+        });
+      }
+
+      // Quest item selection click
+      if (activeTab === 'quests' && state.quests) {
+        const itemH = 68;
+        state.quests.slice(0, 5).forEach((q, idx) => {
+          const qy = contentY + 36 + idx * (itemH + 8);
+          if (clickX >= phoneX + 30 && clickX <= phoneX + phoneW - 30 && clickY >= qy && clickY <= qy + itemH) {
+            engine.setActiveQuest(q.id);
           }
         });
       }

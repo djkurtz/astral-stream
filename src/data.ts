@@ -2,10 +2,32 @@ import {
   Harmonipet, Musician, MusicianStats, RepertoirePiece, RivalEnsemble, WorldZone, WorldNPC, BattleMove, InstrumentId, FestivalEvent,
   InstrumentArtifact, LostScore, InspirationVista, PerformanceVenue, GameQuest, DispatchVenue,
   HarmoniDexEntry, ClefBadge, PlayerCustomization, TheoryChallengeType, TheoryQuestion,
-  InstrumentSection, PlayerProficiency, PetSynergy, PhoneMessage, SectionAction
+  InstrumentSection, PlayerProficiency, PetSynergy, PhoneMessage, SectionAction, PronounSet
 } from './types';
 
+export const PRONOUN_PRESETS: PronounSet[] = [
+  { id: 'they_them', label: 'they/them', subject: 'they', object: 'them', possessive: 'their', possessivePronoun: 'theirs', reflexive: 'themself' },
+  { id: 'she_her', label: 'she/her', subject: 'she', object: 'her', possessive: 'her', possessivePronoun: 'hers', reflexive: 'herself' },
+  { id: 'he_him', label: 'he/him', subject: 'he', object: 'him', possessive: 'his', possessivePronoun: 'his', reflexive: 'himself' },
+  { id: 'maestro_maestri', label: 'maestro/maestri', subject: 'maestro', object: 'maestro', possessive: "maestro's", possessivePronoun: "maestro's", reflexive: 'maestroself' },
+  { id: 'forte_fortissimo', label: 'forte/fortissimo', subject: 'forte', object: 'fortissimo', possessive: "forte's", possessivePronoun: "fortissimo's", reflexive: 'forteself' },
+  { id: 'allegro_vivace', label: 'allegro/vivace', subject: 'allegro', object: 'vivace', possessive: "allegro's", possessivePronoun: "vivace's", reflexive: 'allegroself' },
+  { id: 'spark_sparks', label: 'spark/sparks', subject: 'spark', object: 'sparks', possessive: "spark's", possessivePronoun: 'sparks', reflexive: 'sparkself' },
+  { id: 'treble_bass', label: 'treble/bass', subject: 'treble', object: 'bass', possessive: "treble's", possessivePronoun: "bass's", reflexive: 'trebleself' },
+  { id: 'diva_divas', label: 'diva/divas', subject: 'diva', object: 'diva', possessive: "diva's", possessivePronoun: 'divas', reflexive: 'divaself' },
+  { id: 'me_myself_i', label: 'me/myself/I', subject: 'I', object: 'me', possessive: 'my', possessivePronoun: 'mine', reflexive: 'myself' },
+  { id: 'custom', label: 'custom', subject: 'they', object: 'them', possessive: 'their', possessivePronoun: 'theirs', reflexive: 'themself' }
+];
+
+export const FUNNY_NAME_PRESETS: string[] = [
+  'Maestro', 'TrebleMaker', 'Cadenza', 'Forte', 'Staccato', 'Allegra', 'Brio', 'Harmonix',
+  'Piccolo Pete', 'Crescendo', 'Vivace', 'Arpeggio', 'Syncopation', 'Fermata', 'Glissando',
+  'TuningFork', 'Polyphony', 'Rhapsody', 'Scherzo', 'Metronome Mike', 'BassDrop', 'Octavia'
+];
+
 export const DEFAULT_CUSTOMIZATION: PlayerCustomization = {
+  name: 'Maestro',
+  pronouns: 'they/them',
   outfitColor: '#38bdf8',
   hairColor: '#78350f',
   hatStyle: 'beret',
@@ -1157,10 +1179,25 @@ export const RECRUITABLE_MUSICIANS: Musician[] = [
     outfitColor: '#ec4899',
     hairColor: '#fde047',
     hatStyle: 'beret',
+    pronouns: 'she/her',
     dialogue: [
       "Hey! Clara here (15 and proud!). I've been running scale drills for four hours straight—my fingers are practically humming!",
       "My swan familiar, Vibrato, says I need to chill, but the Conservatory Auditions are next month and I refuse to fumble my cadenza.",
       "You look like you've got serious musical drive! Wanna trade licks in a fast Audition Duel and see how our motifs match up?"
+    ],
+    dialogueSets: [
+      [
+        "Hey! Clara here (15 and proud!). I've been running scale drills for four hours straight—my fingers are practically humming!",
+        "My swan familiar, Vibrato, says I need to chill, but the Conservatory Auditions are next month and I refuse to fumble my cadenza.",
+        "You look like you've got serious musical drive! Wanna trade licks in a fast Audition Duel and see how our motifs match up?"
+      ],
+      [
+        "Vibrato is always telling me that musical expression matters more than raw speed.",
+        "I say: why not both? If you can play a chromatic run at 200 BPM with pristine vibrato, nobody can stop you!"
+      ],
+      [
+        "Have you seen my mom, Mrs. Chen? She's probably timing my practice sessions from across the village square with a stopwatch!"
+      ]
     ],
     auditionDialogue: [
       "Let's see that bow dexterity! Can your phrasing match my lyrical vibrato?"
@@ -1195,10 +1232,25 @@ export const RECRUITABLE_MUSICIANS: Musician[] = [
     stats: { technique: 32, toneQuality: 30, tempoStability: 34, sightReading: 38 },
     level: 2,
     xp: 120,
+    pronouns: 'he/him',
     dialogue: [
       "Shh! Listen! Did you hear that? That was a piccolo warbler in the high branches! I'm Oliver (13 and 3/4!).",
       "Everyone at school complains that the flute is 'too delicate', but Chirpy and I can play triple-tongued chromatic runs that leave them speechless!",
       "If you're putting together a real ensemble, you definitely need a lightning-fast woodwind voice. Care to jam?"
+    ],
+    dialogueSets: [
+      [
+        "Shh! Listen! Did you hear that? That was a piccolo warbler in the high branches! I'm Oliver (13 and 3/4!).",
+        "Everyone at school complains that the flute is 'too delicate', but Chirpy and I can play triple-tongued chromatic runs that leave them speechless!",
+        "If you're putting together a real ensemble, you definitely need a lightning-fast woodwind voice. Care to jam?"
+      ],
+      [
+        "Did you know the silver concert flute has the lowest air efficiency of any woodwind? You need super lungs to play sustained cadenzas!",
+        "Chirpy and I do breathing exercises every morning before sunrise."
+      ],
+      [
+        "My dad, Mr. Higgins, keeps hiding my piccolo because he says it frightens the neighborhood cats. But the tone is so clear and bright!"
+      ]
     ],
     auditionDialogue: [
       "Catch the gust! Try to keep up with my rapid-fire staccato arpeggios!"
@@ -1229,10 +1281,25 @@ export const RECRUITABLE_MUSICIANS: Musician[] = [
     stats: { technique: 30, toneQuality: 45, tempoStability: 36, sightReading: 25 },
     level: 3,
     xp: 240,
+    pronouns: 'he/him',
     dialogue: [
       "Yo! What's good! I'm Jax—first chair trumpet in the Citadel Youth Marching Brigade.",
       "The crew calls me 'The Brass Baron' because my high-C fanfares can literally shake dust off the castle chandeliers! Rally, sound off!",
       "You think your group's got the lung power and spine to back up my golden leads? Step up and prove it!"
+    ],
+    dialogueSets: [
+      [
+        "Yo! What's good! I'm Jax—first chair trumpet in the Citadel Youth Marching Brigade.",
+        "The crew calls me 'The Brass Baron' because my high-C fanfares can literally shake dust off the castle chandeliers! Rally, sound off!",
+        "You think your group's got the lung power and spine to back up my golden leads? Step up and prove it!"
+      ],
+      [
+        "When the Citadel gates swing open, you need a brass fanfare that commands respect across the entire valley!",
+        "Rally and I practice lip slurs until the stone walls ring with harmonic overtones."
+      ],
+      [
+        "My dad Officer Briggs is always yelling about noise complaints. Hey, greatness can't be contained by city ordinances!"
+      ]
     ],
     auditionDialogue: [
       "Brace your ears! Here comes a true fortissimo blast that'll test your harmonic shield!"
@@ -1263,10 +1330,25 @@ export const RECRUITABLE_MUSICIANS: Musician[] = [
     stats: { technique: 38, toneQuality: 32, tempoStability: 48, sightReading: 28 },
     level: 3,
     xp: 280,
+    pronouns: 'she/her',
     dialogue: [
       "One-two-three-BAM! Sup! I'm Rita. Most kids in town play polite salon minuets, but me and Groove? We live for thunderous backbeats and polyrhythms.",
       "If your ensemble can't lock into an unflinching 160 BPM pocket, you're gonna crumble on the big stage.",
       "Think your internal metronome is steady enough? Let's take it to the stage and trade rhythm chops!"
+    ],
+    dialogueSets: [
+      [
+        "One-two-three-BAM! Sup! I'm Rita. Most kids in town play polite salon minuets, but me and Groove? We live for thunderous backbeats and polyrhythms.",
+        "If your ensemble can't lock into an unflinching 160 BPM pocket, you're gonna crumble on the big stage.",
+        "Think your internal metronome is steady enough? Let's take it to the stage and trade rhythm chops!"
+      ],
+      [
+        "Rhythm isn't just counting time—it's the physical heartbeat that holds the whole melody together.",
+        "If the drummer rushes or drags, the whole symphony falls apart like a house of cards. Groove and I stay locked in!"
+      ],
+      [
+        "Mama Kroll banned drumsticks at the dinner table, so I learned to play quintuplets with spoons and butter knives instead!"
+      ]
     ],
     auditionDialogue: [
       "Lock in! Don't let your tempo rush or drag even a microsecond!"
@@ -1297,9 +1379,23 @@ export const RECRUITABLE_MUSICIANS: Musician[] = [
     stats: { technique: 26, toneQuality: 34, tempoStability: 30, sightReading: 24 },
     level: 2,
     xp: 100,
+    pronouns: 'he/him',
     dialogue: [
       "Hi mister maestro! I'm Toby (I'm eleven!). My big brother said I was too little for the town square concerts...",
       "...so Hoppy and I have been writing secret woodland folk songs out here in Lyre Valley! Want to hear one?"
+    ],
+    dialogueSets: [
+      [
+        "Hi mister maestro! I'm Toby (I'm eleven!). My big brother said I was too little for the town square concerts...",
+        "...so Hoppy and I have been writing secret woodland folk songs out here in Lyre Valley! Want to hear one?"
+      ],
+      [
+        "The cedar top on my acoustic guitar gives it such a warm, mellow chime! Barnaby Jr loves the open G chord best of all.",
+        "Someday I'm gonna play on the main stage at Sinfonia Magna!"
+      ],
+      [
+        "Barkeep Barnaby gives me warm cider when I play for the travelers at The Melodic Rose. Everyone claps for my fingerpicking!"
+      ]
     ],
     auditionDialogue: ["Watch my fingerpicking! I've been practicing every single afternoon!"],
     recruitedDialogue: ["YAY! I'm in a real ensemble now! Wait till my brother hears about this!"]
@@ -1326,10 +1422,22 @@ export const RECRUITABLE_MUSICIANS: Musician[] = [
     stats: { technique: 38, toneQuality: 44, tempoStability: 32, sightReading: 36 },
     level: 3,
     xp: 220,
+    pronouns: 'she/her',
     dialogue: [
       "Everything sounds more profound in D minor. I'm Maya.",
       "The other academy kids obsess over cheerful major scales, but the cello was born for weeping cantabiles and dark resonance.",
       "Can your music handle genuine emotional depth, or is it all just sunshine and arpeggios?"
+    ],
+    dialogueSets: [
+      [
+        "Everything sounds more profound in D minor. I'm Maya.",
+        "The other academy kids obsess over cheerful major scales, but the cello was born for weeping cantabiles and dark resonance.",
+        "Can your music handle genuine emotional depth, or is it all just sunshine and arpeggios?"
+      ],
+      [
+        "A cello's C-string vibrates with the lowest fundamental in the string section. You feel it in your chest before you hear it.",
+        "Nocturne and I only practice after twilight."
+      ]
     ],
     auditionDialogue: ["Feel the melancholic weight of my bass resonance! Respond with true emotion!"],
     recruitedDialogue: ["...Impressive. Your harmonic phrasing actually resonated with my soul. I'll join your journey."]
@@ -1356,9 +1464,19 @@ export const RECRUITABLE_MUSICIANS: Musician[] = [
     stats: { technique: 40, toneQuality: 42, tempoStability: 36, sightReading: 42 },
     level: 3,
     xp: 210,
+    pronouns: 'she/her',
     dialogue: [
       "U-um... hello. I'm Chloe. Double reeds are super tricky to control, and crowds make me kind of nervous...",
       "Pebble the frog helps me steady my breath out here in the quiet mist of Breeze Glade. Would you... like to play a duet?"
+    ],
+    dialogueSets: [
+      [
+        "U-um... hello. I'm Chloe. Double reeds are super tricky to control, and crowds make me kind of nervous...",
+        "Pebble the frog helps me steady my breath out here in the quiet mist of Breeze Glade. Would you... like to play a duet?"
+      ],
+      [
+        "The oboe provides the concert A for the whole orchestra to tune to. It's a huge responsibility, but Pebble gives me courage!"
+      ]
     ],
     auditionDialogue: ["I-I'll try my best! Listen to the overtone resonance of my rosewood reed!"],
     recruitedDialogue: ["You made me feel so calm and confident! Pebble and I would love to travel with you!"]
@@ -1385,9 +1503,19 @@ export const RECRUITABLE_MUSICIANS: Musician[] = [
     stats: { technique: 48, toneQuality: 52, tempoStability: 44, sightReading: 46 },
     level: 4,
     xp: 380,
+    pronouns: 'he/him',
     dialogue: [
       "Hey man. Devon here. Ditching morning theory lectures to transcribe bird calls in the canopy.",
       "Jazz isn't just about playing all the right notes—it's about the space between 'em. Got an interesting chord chart you wanna jam on?"
+    ],
+    dialogueSets: [
+      [
+        "Hey man. Devon here. Ditching morning theory lectures to transcribe bird calls in the canopy.",
+        "Jazz isn't just about playing all the right notes—it's about the space between 'em. Got an interesting chord chart you wanna jam on?"
+      ],
+      [
+        "Miles and I have been exploring Dorian and Mixolydian modes out here in the woods. Pure tonal color, man."
+      ]
     ],
     auditionDialogue: ["Let's ride this modal groove. Show me your improvisational chops!"],
     recruitedDialogue: ["Smooth phrasing, my friend. Pure vibes. Miles and I are definitely down for this tour."]
@@ -1414,9 +1542,19 @@ export const RECRUITABLE_MUSICIANS: Musician[] = [
     stats: { technique: 46, toneQuality: 48, tempoStability: 42, sightReading: 38 },
     level: 4,
     xp: 350,
+    pronouns: 'they/them',
     dialogue: [
       "Jax thinks he's the loudest horn in Harmonia? Hilarious! My trombone slide reaches low pedal tones that shake the whole canyon!",
       "Echo Canyon is my personal practice amphitheater. Want to see whose sound waves carry further?"
+    ],
+    dialogueSets: [
+      [
+        "Jax thinks he's the loudest horn in Harmonia? Hilarious! My trombone slide reaches low pedal tones that shake the whole canyon!",
+        "Echo Canyon is my personal practice amphitheater. Want to see whose sound waves carry further?"
+      ],
+      [
+        "The slide trombone has completely continuous pitch flexibility—no valves locking you into fixed intervals! Diesel and I love a good glissando!"
+      ]
     ],
     auditionDialogue: ["Incoming glissando! Catch this sonic wave if you can!"],
     recruitedDialogue: ["Whoa, you actually harmonized with that gliss! That was epic! Count me in on your brass lineup!"]
@@ -1443,9 +1581,19 @@ export const RECRUITABLE_MUSICIANS: Musician[] = [
     stats: { technique: 45, toneQuality: 38, tempoStability: 55, sightReading: 30 },
     level: 4,
     xp: 360,
+    pronouns: 'he/him',
     dialogue: [
       "YEAH! DID YOU HEAR THAT CRACKLE?! I'm Ren! These basalt stones sound just like giant timpani!",
       "Tank can curl into a ball and roll a 240 BPM blast beat! CAN YOU MATCH OUR PRIMAL ENERGY?!"
+    ],
+    dialogueSets: [
+      [
+        "YEAH! DID YOU HEAR THAT CRACKLE?! I'm Ren! These basalt stones sound just like giant timpani!",
+        "Tank can curl into a ball and roll a 240 BPM blast beat! CAN YOU MATCH OUR PRIMAL ENERGY?!"
+      ],
+      [
+        "Timpani can actually be tuned to specific pitch notes with foot pedals! It's melodic thunder, baby!"
+      ]
     ],
     auditionDialogue: ["MAXIMUM TEMPO! Try to stay standing against our volcanic rhythm rush!"],
     recruitedDialogue: ["THAT WAS SO SICK! Your whole ensemble was grooving! We're coming with you for sure!"]
@@ -1472,10 +1620,21 @@ export const RECRUITABLE_MUSICIANS: Musician[] = [
     stats: { technique: 55, toneQuality: 58, tempoStability: 50, sightReading: 60 },
     level: 5,
     xp: 500,
+    pronouns: 'they/them',
     dialogue: [
       "Whew... running on two hours of sleep and iced coffee. I'm Nico, senior composition student at the High Conservatory.",
       "If you're preparing for the Grand Solstice Symphony, remember: balance across all 4 instrument families is what creates true harmonic transcendence.",
       "Would you like to test your ensemble's multi-part voicing against my orchestral harp counterpoint?"
+    ],
+    dialogueSets: [
+      [
+        "Whew... running on two hours of sleep and iced coffee. I'm Nico, senior composition student at the High Conservatory.",
+        "If you're preparing for the Grand Solstice Symphony, remember: balance across all 4 instrument families is what creates true harmonic transcendence.",
+        "Would you like to test your ensemble's multi-part voicing against my orchestral harp counterpoint?"
+      ],
+      [
+        "Pedal harps have 7 pedals to shift strings across flat, natural, and sharp keys. It's like playing piano with your hands and dancing with your feet!"
+      ]
     ],
     auditionDialogue: ["Observe the voice leading across four independent registers! Show me your ensemble synergy!"],
     recruitedDialogue: ["Magnificent polyphony! Your orchestration has genuine brilliance. I would be thrilled to arrange and perform with your ensemble!"]
@@ -2073,6 +2232,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     y: 540,
     zone: 'cavatina_village',
     isNonMusician: true,
+    pronouns: 'they/them',
     musicianData: {
       id: 'prof_lyra',
       name: 'Professor Lyra',
@@ -2082,6 +2242,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       instrumentId: 'silver_flute',
       instrumentName: 'Silver Baton',
       section: 'woodwinds',
+      pronouns: 'they/them',
       pet: { id: 'pet_lyra', name: 'Syllable', species: 'Staccato Songbird', sprite: 'bird', section: 'woodwinds', instrumentName: 'Silver Baton', leitmotifSound: 'flute_chirp', color: '#0284c7' },
       isNonMusician: true,
       stats: { technique: 50, toneQuality: 50, tempoStability: 50, sightReading: 50 },
@@ -2115,6 +2276,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     y: 540,
     zone: 'cavatina_village',
     isNonMusician: true,
+    pronouns: 'he/him',
     musicianData: {
       id: 'luthier_marco',
       name: 'Master Marco',
@@ -2124,6 +2286,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       instrumentId: 'violin',
       instrumentName: 'Carving Chisel',
       section: 'strings',
+      pronouns: 'he/him',
       pet: { id: 'pet_marco', name: 'Chisel', species: 'Harmonic Beaver', sprite: 'beaver', section: 'strings', instrumentName: 'Carving Chisel', leitmotifSound: 'violin_pure', color: '#b45309' },
       isNonMusician: true,
       stats: { technique: 60, toneQuality: 70, tempoStability: 40, sightReading: 40 },
@@ -2171,6 +2334,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     y: 1200,
     zone: 'cavatina_village',
     isNonMusician: true,
+    pronouns: 'he/him',
     musicianData: {
       id: 'barkeep_barnaby',
       name: 'Barnaby',
@@ -2180,6 +2344,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       instrumentId: 'acoustic_guitar',
       instrumentName: 'Tavern Stein',
       section: 'strings',
+      pronouns: 'he/him',
       pet: { id: 'pet_barnaby', name: 'Stein', species: 'Melody Hound', sprite: 'hound', section: 'strings', instrumentName: 'Tavern Stein', leitmotifSound: 'guitar_strum', color: '#d97706' },
       isNonMusician: true,
       stats: { technique: 45, toneQuality: 55, tempoStability: 50, sightReading: 40 },
@@ -2378,9 +2543,11 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     wander: true,
     anchorX: 820,
     anchorY: 850,
+    pronouns: 'she/her',
     musicianData: RECRUITABLE_MUSICIANS[0],
     actionType: 'audition_battle',
-    dialogue: RECRUITABLE_MUSICIANS[0].dialogue || []
+    dialogue: RECRUITABLE_MUSICIANS[0].dialogue || [],
+    dialogueSets: RECRUITABLE_MUSICIANS[0].dialogueSets
   },
   {
     id: 'npc_maya_world',
@@ -2392,9 +2559,11 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     wander: true,
     anchorX: 1250,
     anchorY: 850,
+    pronouns: 'she/her',
     musicianData: RECRUITABLE_MUSICIANS[5],
     actionType: 'audition_battle',
-    dialogue: RECRUITABLE_MUSICIANS[5].dialogue || []
+    dialogue: RECRUITABLE_MUSICIANS[5].dialogue || [],
+    dialogueSets: RECRUITABLE_MUSICIANS[5].dialogueSets
   },
   {
     id: 'npc_side_musicbox',
@@ -2405,9 +2574,23 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     zone: 'cavatina_village',
     actionType: 'talk',
     questId: 'quest_side_musicbox',
+    pronouns: 'he/him',
     dialogue: [
       "Ah, young maestro! My cherished antique music box lost its delicate brass cylinder pins...",
       "Could you visit Master Marco at the Artisan Forge and craft replacement pins? I would reward you handsomely with Notes and Sparks!"
+    ],
+    dialogueSets: [
+      [
+        "Ah, young maestro! My cherished antique music box lost its delicate brass cylinder pins...",
+        "Could you visit Master Marco at the Artisan Forge and craft replacement pins? I would reward you handsomely with Notes and Sparks!"
+      ],
+      [
+        "In my youth, I traveled all the way to the Grand Symphony Hall. The acoustic resonance of that dome will take your breath away!",
+        "Never stop listening to the harmonic overtones around you, young {player}."
+      ],
+      [
+        "A well-tuned music box can calm even the wildest Harmonipets. Keep practicing your interval recognition!"
+      ]
     ]
   },
   {
@@ -2484,6 +2667,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     anchorY: 880,
     actionType: 'talk',
     isNonMusician: true,
+    pronouns: 'she/her',
     dialogue: [
       "Sweetie! Stand up straight and relax your shoulders! Have you practiced your 40 hours today?! 🎻",
       "I just texted Mrs. Chen that you're going to headline the Solstice Gala in Sinfonia Magna! Don't make me look bad in the village group chat!",
@@ -2522,6 +2706,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     anchorY: 800,
     actionType: 'talk',
     isNonMusician: true,
+    pronouns: 'she/her',
     questId: 'quest_mrs_chen_score',
     dialogue: [
       "Have you seen Clara? She promised she'd practice for 40 hours today, but she's out challenging strangers by the fountain!",
@@ -2650,9 +2835,11 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     wander: true,
     anchorX: 400,
     anchorY: 900,
+    pronouns: 'he/him',
     musicianData: RECRUITABLE_MUSICIANS[4],
     actionType: 'audition_battle',
-    dialogue: RECRUITABLE_MUSICIANS[4].dialogue || []
+    dialogue: RECRUITABLE_MUSICIANS[4].dialogue || [],
+    dialogueSets: RECRUITABLE_MUSICIANS[4].dialogueSets
   },
   {
     id: 'npc_chest_west',
@@ -3105,9 +3292,11 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     wander: true,
     anchorX: 900,
     anchorY: 850,
+    pronouns: 'he/him',
     musicianData: RECRUITABLE_MUSICIANS[1],
     actionType: 'audition_battle',
-    dialogue: RECRUITABLE_MUSICIANS[1].dialogue || []
+    dialogue: RECRUITABLE_MUSICIANS[1].dialogue || [],
+    dialogueSets: RECRUITABLE_MUSICIANS[1].dialogueSets
   },
   {
     id: 'npc_devon_world',
@@ -3119,9 +3308,11 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     wander: true,
     anchorX: 1300,
     anchorY: 550,
+    pronouns: 'he/him',
     musicianData: RECRUITABLE_MUSICIANS[7],
     actionType: 'audition_battle',
-    dialogue: RECRUITABLE_MUSICIANS[7].dialogue || []
+    dialogue: RECRUITABLE_MUSICIANS[7].dialogue || [],
+    dialogueSets: RECRUITABLE_MUSICIANS[7].dialogueSets
   },
   {
     id: 'npc_wild_finch',
@@ -3210,6 +3401,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     anchorY: 900,
     actionType: 'talk',
     isNonMusician: true,
+    pronouns: 'he/him',
     dialogue: [
       "My boy Oliver loves the flute. It's great, except he wakes up at 5:00 AM trying to harmonize with the piccolos outside his bedroom window.",
       "Do you know how loud a high-register piccolo trill is before your first cup of coffee? It pierces bone."
@@ -3741,9 +3933,11 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     wander: true,
     anchorX: 1000,
     anchorY: 800,
+    pronouns: 'he/him',
     musicianData: RECRUITABLE_MUSICIANS[2],
     actionType: 'audition_battle',
-    dialogue: RECRUITABLE_MUSICIANS[2].dialogue || []
+    dialogue: RECRUITABLE_MUSICIANS[2].dialogue || [],
+    dialogueSets: RECRUITABLE_MUSICIANS[2].dialogueSets
   },
   {
     id: 'npc_vesta_citadel',
@@ -3846,6 +4040,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     anchorY: 850,
     actionType: 'talk',
     isNonMusician: true,
+    pronouns: 'he/him',
     dialogue: [
       "Jax says he's 'first chair in the Citadel Youth Brigade'. All I know is every time he hits a high C, my patrol cruiser alarm goes off across the plaza.",
       "I love the boy's confidence, but the city council keeps sending me noise ordinances with my own signature on them."
@@ -4388,9 +4583,11 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     wander: true,
     anchorX: 1000,
     anchorY: 1050,
+    pronouns: 'she/her',
     musicianData: RECRUITABLE_MUSICIANS[3],
     actionType: 'audition_battle',
-    dialogue: RECRUITABLE_MUSICIANS[3].dialogue || []
+    dialogue: RECRUITABLE_MUSICIANS[3].dialogue || [],
+    dialogueSets: RECRUITABLE_MUSICIANS[3].dialogueSets
   },
   {
     id: 'npc_ronin_peaks',
@@ -4493,6 +4690,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     anchorY: 1100,
     actionType: 'talk',
     isNonMusician: true,
+    pronouns: 'she/her',
     dialogue: [
       "Rita tapped drumbeats on her cereal bowl, the bathroom sink, and my dining table for ten years straight.",
       "Buying her that custom snare kit wasn't a gift—it was purely self-defense. At least now the pots and pans stay in one piece."
