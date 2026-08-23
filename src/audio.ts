@@ -264,6 +264,65 @@ export class AudioEngine {
     }
   }
 
+  public playEmergencyAlertBuzz(): void {
+    this.init();
+
+    // Trigger physical hardware vibration if available (mobile phones / gamepads)
+    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+      try {
+        navigator.vibrate([400, 150, 400, 150, 600]);
+      } catch (_e) {
+        // Ignore if restricted by browser permissions
+      }
+    }
+
+    if (!this.ctx || this.isMuted) return;
+
+    // Authentic Dual-Tone 853Hz & 960Hz Emergency Broadcast Alert Pulsed Screech + Sub Motor Hum
+    const bursts = [0, 0.45, 0.9];
+    bursts.forEach(startTime => {
+      if (!this.ctx) return;
+      const t = this.ctx.currentTime + startTime;
+      const duration = 0.38;
+
+      // Tone 1: 853 Hz (EAS Attention Frequency)
+      const osc1 = this.ctx.createOscillator();
+      const gain1 = this.ctx.createGain();
+      osc1.type = 'sawtooth';
+      osc1.frequency.setValueAtTime(853, t);
+      gain1.gain.setValueAtTime(0.25, t);
+      gain1.gain.exponentialRampToValueAtTime(0.01, t + duration);
+      osc1.connect(gain1);
+      gain1.connect(this.ctx.destination);
+      osc1.start(t);
+      osc1.stop(t + duration);
+
+      // Tone 2: 960 Hz (EAS Attention Frequency)
+      const osc2 = this.ctx.createOscillator();
+      const gain2 = this.ctx.createGain();
+      osc2.type = 'sawtooth';
+      osc2.frequency.setValueAtTime(960, t);
+      gain2.gain.setValueAtTime(0.25, t);
+      gain2.gain.exponentialRampToValueAtTime(0.01, t + duration);
+      osc2.connect(gain2);
+      gain2.connect(this.ctx.destination);
+      osc2.start(t);
+      osc2.stop(t + duration);
+
+      // Low phone motor vibration hum (60 Hz)
+      const oscSub = this.ctx.createOscillator();
+      const gainSub = this.ctx.createGain();
+      oscSub.type = 'square';
+      oscSub.frequency.setValueAtTime(60, t);
+      gainSub.gain.setValueAtTime(0.3, t);
+      gainSub.gain.exponentialRampToValueAtTime(0.01, t + duration);
+      oscSub.connect(gainSub);
+      gainSub.connect(this.ctx.destination);
+      oscSub.start(t);
+      oscSub.stop(t + duration);
+    });
+  }
+
   private currentBiome: 'beach' | 'plaza' | 'grove' | 'ruins' | 'ridge' = 'plaza';
 
   public setBiome(biome: 'beach' | 'plaza' | 'grove' | 'ruins' | 'ridge'): void {

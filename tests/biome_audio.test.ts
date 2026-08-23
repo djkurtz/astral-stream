@@ -34,4 +34,10 @@ describe('Adaptive Biome Soundscapes & Positional Audio', () => {
     soundEngine.setBiome('beach');
     expect((soundEngine as any).currentBiome).toBe('beach');
   });
+
+  it('should trigger emergency alert buzz and haptic vibration without error', () => {
+    expect(() => {
+      soundEngine.playEmergencyAlertBuzz();
+    }).not.toThrow();
+  });
 });

@@ -418,10 +418,31 @@ h1 {
   transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
+.dialogue-card.emergency-alert {
+  border: 4px solid #ef4444;
+  background: linear-gradient(135deg, rgba(30, 10, 15, 0.96), rgba(15, 23, 42, 0.96));
+  box-shadow: 0 0 45px rgba(239, 68, 68, 0.85), inset 0 0 25px rgba(239, 68, 68, 0.4);
+  animation: phone-buzz 0.12s infinite alternate, alert-pulse 1.2s infinite ease-in-out;
+}
+
+@keyframes phone-buzz {
+  0% { transform: translateX(-50%) translateY(0) rotate(0deg); }
+  25% { transform: translateX(-51%) translateY(-2px) rotate(-1deg); }
+  50% { transform: translateX(-49%) translateY(1px) rotate(1deg); }
+  75% { transform: translateX(-50.5%) translateY(-1px) rotate(-0.5deg); }
+  100% { transform: translateX(-49.5%) translateY(2px) rotate(0.8deg); }
+}
+
+@keyframes alert-pulse {
+  0%, 100% { border-color: #ef4444; box-shadow: 0 0 45px rgba(239, 68, 68, 0.85); }
+  50% { border-color: #f59e0b; box-shadow: 0 0 60px rgba(245, 158, 11, 0.95); }
+}
+
 .dialogue-card.hidden {
   opacity: 0;
   pointer-events: none;
   transform: translateX(-50%) translateY(15px);
+  animation: none;
 }
 
 .dialogue-avatar {

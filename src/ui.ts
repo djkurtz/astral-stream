@@ -1,4 +1,5 @@
 import { AstralGameEngine } from './game';
+import { soundEngine } from './audio';
 
 export class AstralUIManager {
   private engine: AstralGameEngine;
@@ -6,10 +7,26 @@ export class AstralUIManager {
   private renderedQueueKey: string = '';
   private lastDialogueIndex: number = -1;
   private lastDialogueSpeaker: string = '';
+  private hasPlayedInitialAlertBuzz: boolean = false;
 
   constructor(engine: AstralGameEngine) {
     this.engine = engine;
     this.setupEventListeners();
+
+    // Trigger initial alert buzz on very first user interaction
+    const triggerInitialBuzz = () => {
+      if (!this.hasPlayedInitialAlertBuzz) {
+        this.hasPlayedInitialAlertBuzz = true;
+        soundEngine.playEmergencyAlertBuzz();
+      }
+      window.removeEventListener('click', triggerInitialBuzz);
+      window.removeEventListener('keydown', triggerInitialBuzz);
+      window.removeEventListener('touchstart', triggerInitialBuzz);
+    };
+
+    window.addEventListener('click', triggerInitialBuzz);
+    window.addEventListener('keydown', triggerInitialBuzz);
+    window.addEventListener('touchstart', triggerInitialBuzz);
   }
 
   private setupEventListeners(): void {
@@ -86,6 +103,14 @@ export class AstralUIManager {
       if (state.dialogue) {
         dialogueBox.classList.remove('hidden');
         const d = state.dialogue;
+
+        // Toggle phone buzz emergency alert visuals
+        if (d.speaker.includes('EMERGENCY') || d.speaker.includes('BROADCAST')) {
+          dialogueBox.classList.add('emergency-alert');
+        } else {
+          dialogueBox.classList.remove('emergency-alert');
+        }
+
         if (this.lastDialogueSpeaker !== d.speaker || this.lastDialogueIndex !== d.index) {
           document.getElementById('dialogue-speaker')!.textContent = d.speaker;
           document.getElementById('dialogue-avatar')!.textContent = d.avatar;
@@ -95,6 +120,7 @@ export class AstralUIManager {
         }
       } else {
         dialogueBox.classList.add('hidden');
+        dialogueBox.classList.remove('emergency-alert');
         this.lastDialogueIndex = -1;
       }
     }
