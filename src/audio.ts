@@ -1,13 +1,23 @@
 // Advanced Procedural Web Audio Engine for Astral Stream
+import { AudioTimbrePreset } from './types';
 
 export class AudioEngine {
   private ctx: AudioContext | null = null;
   private isMuted: boolean = false;
   private isWarped: boolean = false;
   private bgmInterval: number | null = null;
-  private currentTrack: 'town' | 'battle' | null = null;
+  private currentTrack: string | null = null;
   private stepCount: number = 0;
   private filterNode: BiquadFilterNode | null = null;
+  private chimeCatTimbre: AudioTimbrePreset = 'chiptune_square';
+
+  public setChimeCatTimbre(preset: AudioTimbrePreset): void {
+    this.chimeCatTimbre = preset;
+  }
+
+  public getChimeCatTimbre(): AudioTimbrePreset {
+    return this.chimeCatTimbre;
+  }
 
   public init(): void {
     if (this.ctx) return;
@@ -44,6 +54,82 @@ export class AudioEngine {
 
       osc.start();
       osc.stop(this.ctx.currentTime + duration);
+    } catch (e) {}
+  }
+
+  // 1. Warm Analog Saw Lead (Detuned Sawtooths + Resonant Filter Sweep)
+  public playWarmAnalogLead(freq: number, duration: number = 0.22, vol: number = 0.16): void {
+    if (!this.ctx || this.isMuted || freq <= 0) return;
+    try {
+      const t = this.ctx.currentTime;
+      const osc1 = this.ctx.createOscillator();
+      const osc2 = this.ctx.createOscillator();
+      osc1.type = 'sawtooth';
+      osc2.type = 'sawtooth';
+      osc1.frequency.setValueAtTime(freq, t);
+      osc2.frequency.setValueAtTime(freq * 1.008, t); // Detuned for warmth
+
+      const filter = this.ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.Q.setValueAtTime(3.5, t);
+      filter.frequency.setValueAtTime(freq * 1.4, t);
+      filter.frequency.exponentialRampToValueAtTime(freq * 4.5, t + 0.04);
+      filter.frequency.exponentialRampToValueAtTime(freq * 1.6, t + duration);
+
+      const gain = this.ctx.createGain();
+      gain.gain.setValueAtTime(vol, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
+
+      osc1.connect(filter);
+      osc2.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.filterNode || this.ctx.destination);
+
+      osc1.start(t);
+      osc2.start(t);
+      osc1.stop(t + duration);
+      osc2.stop(t + duration);
+    } catch (e) {}
+  }
+
+  // 2. Electric FM Rhodes (Frequency Modulation + Tine Sparkle)
+  public playFMRhodesChime(freq: number, duration: number = 0.32, vol: number = 0.18): void {
+    if (!this.ctx || this.isMuted || freq <= 0) return;
+    try {
+      const t = this.ctx.currentTime;
+      const carrier = this.ctx.createOscillator();
+      carrier.type = 'sine';
+      carrier.frequency.setValueAtTime(freq, t);
+
+      const modulator = this.ctx.createOscillator();
+      modulator.type = 'sine';
+      modulator.frequency.setValueAtTime(freq * 3.5, t);
+
+      const modGain = this.ctx.createGain();
+      modGain.gain.setValueAtTime(freq * 1.6, t);
+      modGain.gain.exponentialRampToValueAtTime(1.0, t + 0.1);
+
+      modulator.connect(modGain);
+      modGain.connect(carrier.frequency);
+
+      const sparkle = this.ctx.createOscillator();
+      sparkle.type = 'triangle';
+      sparkle.frequency.setValueAtTime(freq * 2.0, t);
+
+      const mainGain = this.ctx.createGain();
+      mainGain.gain.setValueAtTime(vol, t);
+      mainGain.gain.exponentialRampToValueAtTime(0.001, t + duration);
+
+      carrier.connect(mainGain);
+      sparkle.connect(mainGain);
+      mainGain.connect(this.filterNode || this.ctx.destination);
+
+      modulator.start(t);
+      carrier.start(t);
+      sparkle.start(t);
+      modulator.stop(t + duration);
+      carrier.stop(t + duration);
+      sparkle.stop(t + duration);
     } catch (e) {}
   }
 
@@ -153,7 +239,18 @@ export class AudioEngine {
 
   public playMoveSound(type: string): void {
     if (type === 'arpeggio') {
-      [659, 783, 987, 1318].forEach((f, i) => setTimeout(() => this.playTone(f, 'square', 0.12, 0.12), i * 50));
+      const notes = [659, 783, 987, 1318];
+      notes.forEach((f, i) => {
+        setTimeout(() => {
+          if (this.chimeCatTimbre === 'warm_saw') {
+            this.playWarmAnalogLead(f, 0.16, 0.14);
+          } else if (this.chimeCatTimbre === 'fm_rhodes') {
+            this.playFMRhodesChime(f, 0.22, 0.16);
+          } else {
+            this.playTone(f, 'square', 0.12, 0.12);
+          }
+        }, i * 50);
+      });
     } else if (type === 'violin_staccato') {
       // Classical Baroque Violin Staccato (Rapid crisp bowing)
       [440, 554.37, 659.25, 880].forEach((f, i) => {
@@ -216,9 +313,17 @@ export class AudioEngine {
 
   public playCreatureMotif(spiritId: string): void {
     if (spiritId === 'spirit_chime_cat') {
-      // 8-Bit Ascending Arcade Chirp
-      [523.25, 659.25, 783.99, 1046.50].forEach((f, i) => {
-        setTimeout(() => this.playTone(f, 'square', 0.1, 0.15), i * 65);
+      const notes = [523.25, 659.25, 783.99, 1046.50];
+      notes.forEach((f, i) => {
+        setTimeout(() => {
+          if (this.chimeCatTimbre === 'warm_saw') {
+            this.playWarmAnalogLead(f, 0.18, 0.16);
+          } else if (this.chimeCatTimbre === 'fm_rhodes') {
+            this.playFMRhodesChime(f, 0.26, 0.18);
+          } else {
+            this.playTone(f, 'square', 0.1, 0.15);
+          }
+        }, i * 65);
       });
     } else if (spiritId === 'spirit_allegro_owl') {
       // Baroque Violin Concertmaster Cadence
@@ -323,13 +428,14 @@ export class AudioEngine {
     });
   }
 
-  private currentBiome: 'beach' | 'plaza' | 'grove' | 'ruins' | 'ridge' = 'plaza';
+  private currentBiome: 'beach' | 'plaza' | 'sangeet' | 'bamboo' | 'grove' | 'ruins' | 'ridge' | 'cafe' | 'vinyl_den' = 'plaza';
 
-  public setBiome(biome: 'beach' | 'plaza' | 'grove' | 'ruins' | 'ridge'): void {
+  public setBiome(biome: 'beach' | 'plaza' | 'sangeet' | 'bamboo' | 'grove' | 'ruins' | 'ridge' | 'cafe' | 'vinyl_den'): void {
     this.currentBiome = biome;
   }
 
   public updatePlayerPosition(x: number, y: number): void {
+    // Retained for coordinate-based fallback
     let targetBiome: 'beach' | 'plaza' | 'grove' | 'ruins' | 'ridge' = 'plaza';
     if (y > 1850 && x < 1400) {
       targetBiome = 'beach';
@@ -349,10 +455,18 @@ export class AudioEngine {
   }
 
   /* ---------------- STRUCTURED BGM SYSTEM ---------------- */
-  public switchTrack(track: 'town' | 'battle'): void {
+  public switchTrack(track: string): void {
     if (this.currentTrack === track && this.bgmInterval) return;
     this.stopBGM();
     this.currentTrack = track;
+    if (track === 'beach') this.currentBiome = 'beach';
+    else if (track === 'sangeet') this.currentBiome = 'sangeet';
+    else if (track === 'bamboo') this.currentBiome = 'bamboo';
+    else if (track === 'ruins') this.currentBiome = 'ruins';
+    else if (track === 'ridge') this.currentBiome = 'ridge';
+    else if (track === 'cafe') this.currentBiome = 'cafe';
+    else if (track === 'vinyl_den') this.currentBiome = 'vinyl_den';
+    else if (track === 'town') this.currentBiome = 'plaza';
     this.startBGM();
   }
 
@@ -375,7 +489,19 @@ export class AudioEngine {
         { b: 73.4, m: [293, 349, 440, 587], voice: 'triangle' },
         { b: 116.5, m: [466, 587, 698, 880], voice: 'triangle' }
       ],
-      grove: [ // Zen Bamboo Koto / Pentatonic (D - F - G - A - C)
+      sangeet: [ // Vedic Sangeet Lotus Sanctuary - Raga Yaman (D - F# - A - C#)
+        { b: 146.8, m: [293.6, 370.0, 440.0, 554.4], voice: 'sawtooth' },
+        { b: 110.0, m: [220.0, 277.2, 330.0, 440.0], voice: 'sawtooth' },
+        { b: 146.8, m: [440.0, 493.9, 554.4, 659.3], voice: 'sawtooth' },
+        { b: 98.0, m: [196.0, 246.9, 293.7, 370.0], voice: 'sawtooth' }
+      ],
+      bamboo: [ // Zen Bamboo Koto / Pentatonic (D - F - G - A - C)
+        { b: 146.8, m: [293, 349, 392, 440], voice: 'triangle' },
+        { b: 110.0, m: [440, 523, 587, 659], voice: 'triangle' },
+        { b: 146.8, m: [587, 659, 783, 880], voice: 'triangle' },
+        { b: 98.0, m: [392, 440, 523, 587], voice: 'triangle' }
+      ],
+      grove: [ // Legacy Alias for Bamboo
         { b: 146.8, m: [293, 349, 392, 440], voice: 'triangle' },
         { b: 110.0, m: [440, 523, 587, 659], voice: 'triangle' },
         { b: 146.8, m: [587, 659, 783, 880], voice: 'triangle' },
@@ -392,6 +518,18 @@ export class AudioEngine {
         { b: 98.0, m: [392, 493, 587, 493], voice: 'sawtooth' },
         { b: 82.4, m: [329, 392, 493, 392], voice: 'sawtooth' },
         { b: 92.5, m: [369, 440, 554, 440], voice: 'sawtooth' }
+      ],
+      cafe: [ // Warm Lo-Fi Chillhop (Fmaj7 - Em7 - Dm7 - Cmaj7)
+        { b: 87.3, m: [349, 440, 523, 659], voice: 'sine' },
+        { b: 82.4, m: [329, 392, 493, 587], voice: 'sine' },
+        { b: 73.4, m: [293, 349, 440, 523], voice: 'sine' },
+        { b: 65.4, m: [261, 329, 392, 523], voice: 'sine' }
+      ],
+      vinyl_den: [ // Turntable Soul & Rare Wax (Bbmaj7 - Gm7 - Cm7 - F7)
+        { b: 116.5, m: [466, 587, 698, 880], voice: 'triangle' },
+        { b: 98.0, m: [392, 466, 587, 698], voice: 'triangle' },
+        { b: 130.8, m: [523, 622, 783, 932], voice: 'triangle' },
+        { b: 87.3, m: [349, 440, 523, 698], voice: 'triangle' }
       ]
     };
 
@@ -430,7 +568,7 @@ export class AudioEngine {
         this.playTone(this.isWarped ? mel * 1.02 : mel, 'square', 0.08, 0.05);
 
       } else {
-        const currentProg = biomeChords[this.currentBiome] || biomeChords.plaza;
+        const currentProg = (biomeChords as any)[this.currentBiome] || biomeChords.plaza;
         const chord = currentProg[chordIndex];
         const voice = (chord.voice as OscillatorType) || 'sine';
 
@@ -439,7 +577,12 @@ export class AudioEngine {
           if (step16 === 0 || step16 === 10) this.playDrum('kick');
           if (step16 === 4 || step16 === 12) this.playDrum('clap');
           if (step16 % 2 === 1) this.playDrum('hihat');
-        } else if (this.currentBiome === 'grove') {
+        } else if (this.currentBiome === 'sangeet') {
+          // Tabla pulse pattern (Dha Dha Din Tin)
+          if (step16 === 0 || step16 === 8) this.playTone(110, 'sine', 0.18, 0.2); // Bayan bass
+          if (step16 === 4 || step16 === 12) this.playTone(293.66, 'triangle', 0.08, 0.12); // Dayan rim
+          if (step16 % 2 === 1) this.playTone(587.33, 'sine', 0.04, 0.05);
+        } else if (this.currentBiome === 'bamboo' || this.currentBiome === 'grove') {
           if (step16 === 0 || step16 === 8) this.playDrum('kick');
           if (step16 === 6 || step16 === 14) this.playDrum('hihat');
         } else if (this.currentBiome === 'ridge') {
@@ -447,7 +590,7 @@ export class AudioEngine {
           if (step16 % 4 === 2) this.playDrum('snare');
           if (Math.random() < 0.25) this.playStaticHiss(0.08, 0.08);
         } else {
-          // Plaza / Ruins default
+          // Plaza / Cafe / Vinyl / Ruins default
           if (step16 === 0 || step16 === 8) this.playDrum('kick');
           if (step16 === 4 || step16 === 12) this.playDrum('snare');
           if (step16 % 2 === 0) this.playDrum('hihat');
@@ -455,13 +598,13 @@ export class AudioEngine {
 
         // Bass
         if (subStep === 0) {
-          const bassType = this.currentBiome === 'ridge' ? 'sawtooth' : 'triangle';
+          const bassType = this.currentBiome === 'ridge' ? 'sawtooth' : (this.currentBiome === 'sangeet' ? 'sawtooth' : 'triangle');
           this.playTone(chord.b, bassType, 0.28, this.currentBiome === 'ridge' ? 0.14 : 0.1);
         }
 
         // Ambient Melody Arpeggios
         const mel = chord.m[subStep];
-        if (subStep % 2 === 0 || this.currentBiome === 'beach') {
+        if (subStep % 2 === 0 || this.currentBiome === 'beach' || this.currentBiome === 'sangeet') {
           this.playTone(mel, voice, 0.2, 0.07);
         }
       }

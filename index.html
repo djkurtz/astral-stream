@@ -34,7 +34,7 @@
 
         <!-- Exploration Controls Hint -->
         <div id="exploration-hud" class="hud-controls-hint">
-          🎮 <b>[W,A,S,D]</b> Walk &bull; <b>[SPACE]</b> Interact &bull; <b>[Q / Click Badge]</b> Switch Lead
+          🎮 <b>[W,A,S,D]</b> Walk &bull; <b>[SPACE]</b> Interact &bull; <b>[C]</b> Streamer Studio &bull; <b>[Q / Click Badge]</b> Switch Lead
         </div>
 
         <!-- Floating 3-Stage Audio Match Panel -->
@@ -94,6 +94,109 @@
           <!-- Attack Moves (DJ Launchpad Grid) -->
           <div id="battle-moves" class="moves-grid">
             <!-- Injected stem pad buttons -->
+          </div>
+        </div>
+
+        <!-- Streamer Studio & Synth Lab Modal -->
+        <div id="customization-modal" class="overlay-modal hidden">
+          <div class="modal-backdrop"></div>
+          <div class="modal-card">
+            <div class="modal-header">
+              <h2>🪞 STREAMER STUDIO &amp; SYNTH LAB</h2>
+              <button id="close-custom-btn" class="close-btn" title="Close [ESC]">&times;</button>
+            </div>
+            <div class="modal-body">
+              <!-- Left: Live Preview Canvas -->
+              <div class="preview-section">
+                <div class="canvas-preview-wrapper">
+                  <canvas id="custom-preview-canvas" width="220" height="220"></canvas>
+                </div>
+                <div id="custom-preview-title" class="preview-callsign">Novice Streamer</div>
+                <div class="preview-hint">Press <b>[C]</b> or <b>[ESC]</b> anytime in exploration to return</div>
+              </div>
+
+              <!-- Right: Customization Controls -->
+              <div class="controls-section">
+                <!-- Section 1: Streamer Outfit -->
+                <div class="custom-group">
+                  <h3>🎧 Streamer Style</h3>
+                  <div class="custom-options" id="player-palette-options">
+                    <button class="palette-btn active" data-pal="neon_cyan">
+                      <span class="color-dot" style="background:#f43f5e"></span>
+                      <span class="color-dot" style="background:#06b6d4"></span>
+                      Neon Cyan
+                    </button>
+                    <button class="palette-btn" data-pal="cyber_magenta">
+                      <span class="color-dot" style="background:#ec4899"></span>
+                      <span class="color-dot" style="background:#f472b6"></span>
+                      Cyber Magenta
+                    </button>
+                    <button class="palette-btn" data-pal="sunset_gold">
+                      <span class="color-dot" style="background:#ea580c"></span>
+                      <span class="color-dot" style="background:#fbbf24"></span>
+                      Sunset Gold
+                    </button>
+                    <button class="palette-btn" data-pal="emerald_synth">
+                      <span class="color-dot" style="background:#059669"></span>
+                      <span class="color-dot" style="background:#34d399"></span>
+                      Emerald Synth
+                    </button>
+                  </div>
+                  <div class="title-picker">
+                    <label>Call-Sign Title:</label>
+                    <select id="player-title-select" class="custom-select">
+                      <option value="Novice Streamer">Novice Streamer</option>
+                      <option value="Audio Explorer">Audio Explorer</option>
+                      <option value="Beat Architect">Beat Architect</option>
+                      <option value="Rhythm Master">Rhythm Master</option>
+                      <option value="Cosmic Sound Sovereign">Cosmic Sound Sovereign</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Section 2: Chime-Cat Palette & Timbre -->
+                <div class="custom-group">
+                  <h3>🐱 Chime-Cat Oscillator &amp; Keybed</h3>
+                  <div class="custom-options" id="cat-palette-options">
+                    <button class="palette-btn active" data-catpal="classic_cyan">
+                      <span class="color-dot" style="background:#38bdf8"></span>
+                      <span class="color-dot" style="background:#ec4899"></span>
+                      Classic Cyan
+                    </button>
+                    <button class="palette-btn" data-catpal="synthwave_magenta">
+                      <span class="color-dot" style="background:#d946ef"></span>
+                      <span class="color-dot" style="background:#fbbf24"></span>
+                      Synthwave
+                    </button>
+                    <button class="palette-btn" data-catpal="vaporwave_lavender">
+                      <span class="color-dot" style="background:#a855f7"></span>
+                      <span class="color-dot" style="background:#2dd4bf"></span>
+                      Vaporwave
+                    </button>
+                    <button class="palette-btn" data-catpal="darkmode_neon">
+                      <span class="color-dot" style="background:#1e293b"></span>
+                      <span class="color-dot" style="background:#22c55e"></span>
+                      Dark Mode
+                    </button>
+                  </div>
+
+                  <div class="timbre-picker">
+                    <label>Lead Oscillator Timbre:</label>
+                    <div class="timbre-options" id="cat-timbre-options">
+                      <button class="timbre-btn active" data-timbre="chiptune_square">
+                        👾 Square (8-Bit Pulse)
+                      </button>
+                      <button class="timbre-btn" data-timbre="warm_saw">
+                        🎷 Saw (Analog Warmth)
+                      </button>
+                      <button class="timbre-btn" data-timbre="fm_rhodes">
+                        ✨ FM Rhodes (Tine Chime)
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 

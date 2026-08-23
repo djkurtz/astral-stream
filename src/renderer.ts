@@ -1,4 +1,5 @@
 import { GameState, StreamSpirit, MusicalShrine, NPCEntity } from './types';
+import { ZONE_CONFIGS } from './data';
 
 export class AstralRenderer {
   private canvas: HTMLCanvasElement;
@@ -51,6 +52,11 @@ export class AstralRenderer {
     // Cleansing Cinematic
     if (state.mode === 'cleansing_cinematic') {
       this.renderCleansingWave(state, w, h);
+    }
+
+    // Zone Transition Wipe / Location Banner
+    if (state.transition) {
+      this.renderTransition(state, w, h);
     }
   }
 
@@ -217,7 +223,7 @@ export class AstralRenderer {
     }
 
     // 18. Player Character
-    this.drawDetailedPlayer(ctx, state.player.x, state.player.y, state.player.dir, state.player.isMoving, t);
+    this.drawDetailedPlayer(ctx, state.player.x, state.player.y, state.player.dir, state.player.isMoving, t, state.playerCustomization);
 
     // Follower Companions (Lead Active Spirit + Bass-Hound following in player's footsteps)
     const getFollowerCoords = (orderIdx: number) => {
@@ -256,7 +262,7 @@ export class AstralRenderer {
     };
 
     const drawCompanionSprite = (spiritId: string, cx: number, cy: number) => {
-      if (spiritId === 'spirit_chime_cat') this.drawDetailedCat(ctx, cx, cy, t);
+      if (spiritId === 'spirit_chime_cat') this.drawDetailedCat(ctx, cx, cy, t, state.chimeCatCustomization);
       else if (spiritId === 'spirit_bass_hound') this.drawDetailedHound(ctx, cx, cy, t);
       else if (spiritId === 'spirit_allegro_owl') this.drawDetailedOwl(ctx, cx, cy, t);
       else if (spiritId === 'spirit_sitar_swan') this.drawDetailedSwan(ctx, cx, cy, t);
@@ -1804,7 +1810,7 @@ export class AstralRenderer {
   }
 
   /* ---------------- DETAILED PIXEL SPRITES ---------------- */
-  private drawDetailedPlayer(ctx: CanvasRenderingContext2D, x: number, y: number, dir: string, isMoving: boolean, t: number): void {
+  private drawDetailedPlayer(ctx: CanvasRenderingContext2D, x: number, y: number, dir: string, isMoving: boolean, t: number, custom?: import('./types').PlayerCustomization): void {
     ctx.save();
     ctx.translate(x, y);
 
@@ -1832,18 +1838,19 @@ export class AstralRenderer {
     ctx.fillRect(-6 + legSwing, 2, 6, 4);
     ctx.fillRect(1 - legSwing, 2, 6, 4);
 
-    // Jacket (Neon Coral)
-    ctx.fillStyle = '#f43f5e';
+    // Jacket
+    ctx.fillStyle = custom?.jacketColor || '#f43f5e';
     ctx.fillRect(-8, -22 + bob, 16, 17);
 
     // Head / Face
     ctx.fillStyle = '#fde047';
     ctx.fillRect(-6, -34 + bob, 12, 13);
 
-    // Direction-aware facial features
+    // Direction-aware facial features & hair
+    const hairColor = custom?.hairColor || '#ca8a04';
     if (dir === 'up') {
       // Facing up: back of head hair
-      ctx.fillStyle = '#ca8a04';
+      ctx.fillStyle = hairColor;
       ctx.fillRect(-6, -34 + bob, 12, 6);
     } else if (dir === 'left' || dir === 'right') {
       // Profile eyes looking forward
@@ -1851,6 +1858,8 @@ export class AstralRenderer {
       ctx.fillRect(2, -30 + bob, 3, 4);
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(3, -30 + bob, 1, 2);
+      ctx.fillStyle = hairColor;
+      ctx.fillRect(-6, -34 + bob, 8, 4);
     } else {
       // Down: both eyes forward
       ctx.fillStyle = '#0f172a';
@@ -1859,18 +1868,21 @@ export class AstralRenderer {
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(-4, -30 + bob, 1, 2);
       ctx.fillRect(1, -30 + bob, 1, 2);
+      ctx.fillStyle = hairColor;
+      ctx.fillRect(-6, -34 + bob, 12, 3);
     }
 
-    // Cyan Headphones
-    ctx.fillStyle = '#06b6d4';
+    // Headphones
+    ctx.fillStyle = custom?.headphoneColor || '#06b6d4';
     ctx.fillRect(-9, -36 + bob, 18, 5);
     ctx.fillRect(-10, -32 + bob, 3, 8);
     ctx.fillRect(7, -32 + bob, 3, 8);
 
     // Glowing Vibe-Phone in hand
     if (dir !== 'up') {
-      ctx.fillStyle = '#06b6d4';
-      ctx.shadowColor = '#06b6d4';
+      const glowColor = custom?.vibeGlowColor || '#06b6d4';
+      ctx.fillStyle = glowColor;
+      ctx.shadowColor = glowColor;
       ctx.shadowBlur = 8;
       ctx.fillRect(8, -16 + bob, 6, 10);
       ctx.fillStyle = '#ffffff';
@@ -1881,9 +1893,16 @@ export class AstralRenderer {
     ctx.restore();
   }
 
-  private drawDetailedCat(ctx: CanvasRenderingContext2D, x: number, y: number, t: number): void {
+  private drawDetailedCat(ctx: CanvasRenderingContext2D, x: number, y: number, t: number, custom?: import('./types').ChimeCatCustomization): void {
     ctx.save();
     ctx.translate(x, y);
+
+    const bodyCol = custom?.bodyColor || '#38bdf8';
+    const earCol = custom?.earColor || '#ec4899';
+    const auraCol = custom?.auraColor || '#38bdf8';
+    const keyCol = custom?.keyColor || '#ffffff';
+    const jackCol = custom?.jackColor || '#fbbf24';
+    const tailCol = custom?.tailColor || '#38bdf8';
 
     // Shadow
     ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
@@ -1891,15 +1910,15 @@ export class AstralRenderer {
     ctx.ellipse(0, 5, 9, 4, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // Body (Pastel Cyan)
-    ctx.fillStyle = '#38bdf8';
+    // Body
+    ctx.fillStyle = bodyCol;
     ctx.fillRect(-7, -10, 14, 12);
 
     // Head
     ctx.fillRect(-6, -18, 12, 10);
 
     // Ears
-    ctx.fillStyle = '#ec4899';
+    ctx.fillStyle = earCol;
     ctx.beginPath();
     ctx.moveTo(-6, -18);
     ctx.lineTo(-4, -24);
@@ -1917,19 +1936,19 @@ export class AstralRenderer {
     ctx.fillRect(2, -15, 2, 3);
 
     // Glowing Neon LED Whiskers
-    ctx.fillStyle = '#38bdf8';
+    ctx.fillStyle = auraCol;
     ctx.fillRect(-8, -13, 3, 1);
     ctx.fillRect(5, -13, 3, 1);
 
     // Piano Keys along spine
     for (let k = -5; k <= 3; k += 2) {
-      ctx.fillStyle = '#ffffff';
+      ctx.fillStyle = keyCol;
       ctx.fillRect(k, -11, 2, 2);
     }
 
     // Tail (Wagging audio cord)
     const tailWag = Math.sin(t * 8) * 4;
-    ctx.strokeStyle = '#38bdf8';
+    ctx.strokeStyle = tailCol;
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(-7, -4);
@@ -1937,7 +1956,7 @@ export class AstralRenderer {
     ctx.stroke();
 
     // Golden Audio Jack
-    ctx.fillStyle = '#fbbf24';
+    ctx.fillStyle = jackCol;
     ctx.fillRect(-14, -18, 4, 4);
 
     ctx.restore();
@@ -2401,7 +2420,7 @@ export class AstralRenderer {
     }
   }
 
-  private drawPixelNPCPet(ctx: CanvasRenderingContext2D, px: number, py: number, pet: { name: string; species: string; sprite: 'bird' | 'pup' | 'fawn' | 'gull'; instrument: string }, t: number): void {
+  private drawPixelNPCPet(ctx: CanvasRenderingContext2D, px: number, py: number, pet: { name: string; species: string; sprite: 'bird' | 'pup' | 'fawn' | 'gull' | 'moth'; instrument: string }, t: number): void {
     ctx.save();
     ctx.translate(px, py);
     const bob = Math.sin(t * 6 + px) * 2;
@@ -2473,6 +2492,25 @@ export class AstralRenderer {
       // Orange Beak
       ctx.fillStyle = '#ea580c';
       ctx.fillRect(6, -8 + bob, 4, 2);
+
+    } else if (pet.sprite === 'moth') {
+      // Maya's Mellow-Moth (Lo-Fi Moth)
+      const flutter = Math.sin(t * 16) * 3;
+      ctx.fillStyle = '#ea580c';
+      ctx.fillRect(-2, -8 + bob, 4, 8);
+      // Fluttering Translucent Lo-Fi Wings
+      ctx.fillStyle = 'rgba(251, 191, 36, 0.7)';
+      ctx.beginPath();
+      ctx.ellipse(-6, -8 + bob + flutter, 6, 4, -0.3, 0, Math.PI * 2);
+      ctx.ellipse(6, -8 + bob + flutter, 6, 4, 0.3, 0, Math.PI * 2);
+      ctx.fill();
+      // Antennae
+      ctx.strokeStyle = '#fef08a';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(-1, -8 + bob); ctx.lineTo(-4, -14 + bob);
+      ctx.moveTo(1, -8 + bob); ctx.lineTo(4, -14 + bob);
+      ctx.stroke();
     }
 
     ctx.restore();
@@ -3009,6 +3047,19 @@ export class AstralRenderer {
       ctx.fillText('Harmonic Latte • Free', 320, 62);
       ctx.fillText('Lo-Fi Cold Brew • Free', 320, 78);
 
+      // Streamer Studio Mirror (Left Wall, x: 100, y: 180)
+      ctx.fillStyle = '#06b6d4';
+      ctx.fillRect(85, 150, 30, 48);
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(85, 150, 30, 48);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+      ctx.fillRect(88, 153, 24, 42);
+      ctx.fillStyle = '#38bdf8';
+      ctx.font = '700 8px Fredoka, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('🪞 MIRROR', 100, 144);
+
       // Customer Tables
       // Maya's Table (Left)
       ctx.fillStyle = '#92400e';
@@ -3101,13 +3152,13 @@ export class AstralRenderer {
     }
 
     // Render Player Character
-    this.drawDetailedPlayer(ctx, state.player.x, state.player.y, state.player.dir, state.player.isMoving, t);
+    this.drawDetailedPlayer(ctx, state.player.x, state.player.y, state.player.dir, state.player.isMoving, t, state.playerCustomization);
 
     // Render Follower Companion inside room
     if (state.streamQueue.length > 0) {
       const active = state.streamQueue[state.activeSpiritIndex] || state.streamQueue[0];
       const trailPos = state.followerTrail && state.followerTrail[7] ? state.followerTrail[7] : { x: state.player.x, y: state.player.y + 24 };
-      if (active.id === 'spirit_chime_cat') this.drawDetailedCat(ctx, trailPos.x, trailPos.y, t);
+      if (active.id === 'spirit_chime_cat') this.drawDetailedCat(ctx, trailPos.x, trailPos.y, t, state.chimeCatCustomization);
       else if (active.id === 'spirit_bass_hound') this.drawDetailedHound(ctx, trailPos.x, trailPos.y, t);
       else if (active.id === 'spirit_allegro_owl') this.drawDetailedOwl(ctx, trailPos.x, trailPos.y, t);
       else if (active.id === 'spirit_sitar_swan') this.drawDetailedSwan(ctx, trailPos.x, trailPos.y, t);
@@ -3136,6 +3187,10 @@ export class AstralRenderer {
         promptText = '🚪 [SPACE] Exit to Cadence Plaza';
         subText = 'Step outside into festival';
         accentColor = '#38bdf8';
+      } else if (target.actionType === 'customize') {
+        promptText = '🪞 [SPACE] Streamer Studio [C]';
+        subText = 'Customize Outfit & Chime-Cat';
+        accentColor = '#06b6d4';
       } else if (target.actionType === 'talk') {
         promptText = `💬 [SPACE] Talk to ${target.name}`;
         subText = target.title || 'Festival Customer';
@@ -3169,4 +3224,44 @@ export class AstralRenderer {
 
     ctx.restore();
   }
+
+  /* ---------------- RPG ZONE TRANSITION BANNER ---------------- */
+  private renderTransition(state: GameState, w: number, h: number): void {
+    if (!state.transition) return;
+    const tr = state.transition;
+    const ctx = this.ctx;
+
+    // Calculate alpha for fade in / fade out
+    let alpha = 0;
+    if (tr.phase === 'fade_out') {
+      alpha = tr.progress * 2; // 0 to 1.0
+    } else {
+      alpha = (1.0 - tr.progress) * 2; // 1.0 to 0
+    }
+    alpha = Math.max(0, Math.min(1, alpha));
+
+    ctx.save();
+    ctx.fillStyle = `rgba(10, 15, 30, ${alpha})`;
+    ctx.fillRect(0, 0, w, h);
+
+    // Location Banner
+    if (alpha > 0.4) {
+      const zoneConfig = ZONE_CONFIGS[tr.toZone];
+      if (zoneConfig) {
+        const textAlpha = Math.min(1, (alpha - 0.4) / 0.5);
+        ctx.fillStyle = `rgba(255, 255, 255, ${textAlpha})`;
+        ctx.textAlign = 'center';
+        ctx.font = '800 32px Fredoka, sans-serif';
+        ctx.shadowColor = zoneConfig.themeColor || '#38bdf8';
+        ctx.shadowBlur = 14;
+        ctx.fillText(zoneConfig.name, w / 2, h / 2 - 10);
+        ctx.font = '600 16px Fredoka, sans-serif';
+        ctx.shadowBlur = 6;
+        ctx.fillStyle = `rgba(203, 213, 225, ${textAlpha})`;
+        ctx.fillText(zoneConfig.subtitle || '', w / 2, h / 2 + 25);
+      }
+    }
+    ctx.restore();
+  }
 }
+

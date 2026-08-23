@@ -77,6 +77,48 @@ export class AstralUIManager {
       this.engine.triggerPlaylistBlend();
       this.updateUI();
     });
+
+    // Customization Studio Modal Listeners
+    document.getElementById('close-custom-btn')?.addEventListener('click', () => {
+      this.engine.closeCustomizationModal();
+      this.updateUI();
+    });
+
+    document.querySelectorAll('#player-palette-options .palette-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const pal = (e.currentTarget as HTMLElement).dataset.pal;
+        if (pal) {
+          this.engine.setPlayerPalette(pal as any);
+          this.updateUI();
+        }
+      });
+    });
+
+    document.getElementById('player-title-select')?.addEventListener('change', (e) => {
+      const val = (e.target as HTMLSelectElement).value;
+      this.engine.setPlayerTitle(val);
+      this.updateUI();
+    });
+
+    document.querySelectorAll('#cat-palette-options .palette-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const pal = (e.currentTarget as HTMLElement).dataset.catpal;
+        if (pal) {
+          this.engine.setChimeCatPalette(pal as any);
+          this.updateUI();
+        }
+      });
+    });
+
+    document.querySelectorAll('#cat-timbre-options .timbre-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const timbre = (e.currentTarget as HTMLElement).dataset.timbre;
+        if (timbre) {
+          this.engine.setChimeCatTimbre(timbre as any);
+          this.updateUI();
+        }
+      });
+    });
   }
 
   public updateUI(): void {
@@ -250,6 +292,170 @@ export class AstralUIManager {
         `).join('');
         this.renderedQueueKey = currentQueueKey;
       }
+    }
+
+    // 5. Streamer Studio & Synth Lab Modal
+    const customModal = document.getElementById('customization-modal');
+    if (customModal) {
+      if (state.isCustomizing) {
+        customModal.classList.remove('hidden');
+
+        // Sync Player Palette Buttons
+        document.querySelectorAll('#player-palette-options .palette-btn').forEach(btn => {
+          const pal = (btn as HTMLElement).dataset.pal;
+          if (pal === state.playerCustomization.paletteId) {
+            btn.classList.add('active');
+          } else {
+            btn.classList.remove('active');
+          }
+        });
+
+        // Sync Title Select
+        const titleSelect = document.getElementById('player-title-select') as HTMLSelectElement;
+        if (titleSelect && document.activeElement !== titleSelect) {
+          titleSelect.value = state.playerCustomization.title;
+        }
+
+        // Sync Cat Palette Buttons
+        document.querySelectorAll('#cat-palette-options .palette-btn').forEach(btn => {
+          const pal = (btn as HTMLElement).dataset.catpal;
+          if (pal === state.chimeCatCustomization.paletteId) {
+            btn.classList.add('active');
+          } else {
+            btn.classList.remove('active');
+          }
+        });
+
+        // Sync Cat Timbre Buttons
+        document.querySelectorAll('#cat-timbre-options .timbre-btn').forEach(btn => {
+          const timbre = (btn as HTMLElement).dataset.timbre;
+          if (timbre === state.chimeCatCustomization.timbrePreset) {
+            btn.classList.add('active');
+          } else {
+            btn.classList.remove('active');
+          }
+        });
+
+        // Render Live Preview
+        this.renderCustomPreview(state);
+      } else {
+        customModal.classList.add('hidden');
+      }
+    }
+  }
+
+  private renderCustomPreview(state: any): void {
+    const canvas = document.getElementById('custom-preview-canvas') as HTMLCanvasElement;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    ctx.save();
+    ctx.translate(canvas.width / 2, canvas.height / 2 + 20);
+    ctx.scale(2.4, 2.4);
+
+    const t = state.time;
+    const custom = state.playerCustomization;
+    const catCustom = state.chimeCatCustomization;
+
+    // Draw Player
+    ctx.save();
+    ctx.translate(-22, 0);
+    // Shadow
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+    ctx.beginPath();
+    ctx.ellipse(0, 6, 12, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Legs
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(-6, -6, 5, 10);
+    ctx.fillRect(1, -6, 5, 10);
+    // Shoes
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(-6, 2, 6, 4);
+    ctx.fillRect(1, 2, 6, 4);
+    // Jacket
+    ctx.fillStyle = custom.jacketColor;
+    ctx.fillRect(-8, -22, 16, 17);
+    // Head / Face
+    ctx.fillStyle = '#fde047';
+    ctx.fillRect(-6, -34, 12, 13);
+    // Eyes forward
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(-4, -30, 3, 4);
+    ctx.fillRect(1, -30, 3, 4);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(-4, -30, 1, 2);
+    ctx.fillRect(1, -30, 1, 2);
+    // Hair
+    ctx.fillStyle = custom.hairColor;
+    ctx.fillRect(-6, -34, 12, 3);
+    // Headphones
+    ctx.fillStyle = custom.headphoneColor;
+    ctx.fillRect(-9, -36, 18, 5);
+    ctx.fillRect(-10, -32, 3, 8);
+    ctx.fillRect(7, -32, 3, 8);
+    // Vibe Phone
+    ctx.fillStyle = custom.vibeGlowColor;
+    ctx.shadowColor = custom.vibeGlowColor;
+    ctx.shadowBlur = 8;
+    ctx.fillRect(8, -16, 6, 10);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(9, -15, 4, 7);
+    ctx.shadowBlur = 0;
+    ctx.restore();
+
+    // Draw Chime-Cat
+    ctx.save();
+    ctx.translate(22, 5);
+    // Shadow
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+    ctx.beginPath();
+    ctx.ellipse(0, 5, 9, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Body
+    ctx.fillStyle = catCustom.bodyColor;
+    ctx.fillRect(-7, -10, 14, 12);
+    ctx.fillRect(-6, -18, 12, 10);
+    // Ears
+    ctx.fillStyle = catCustom.earColor;
+    ctx.beginPath();
+    ctx.moveTo(-6, -18); ctx.lineTo(-4, -24); ctx.lineTo(-1, -18); ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(1, -18); ctx.lineTo(4, -24); ctx.lineTo(6, -18); ctx.fill();
+    // Eyes
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(-4, -15, 2, 3);
+    ctx.fillRect(2, -15, 2, 3);
+    // Whiskers
+    ctx.fillStyle = catCustom.auraColor;
+    ctx.fillRect(-8, -13, 3, 1);
+    ctx.fillRect(5, -13, 3, 1);
+    // Piano Keys
+    for (let k = -5; k <= 3; k += 2) {
+      ctx.fillStyle = catCustom.keyColor;
+      ctx.fillRect(k, -11, 2, 2);
+    }
+    // Tail
+    const tailWag = Math.sin(t * 8) * 3;
+    ctx.strokeStyle = catCustom.tailColor;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(-7, -4);
+    ctx.quadraticCurveTo(-14, -10 + tailWag, -12, -16);
+    ctx.stroke();
+    // Audio Jack
+    ctx.fillStyle = catCustom.jackColor;
+    ctx.fillRect(-14, -18, 4, 4);
+    ctx.restore();
+
+    ctx.restore();
+
+    const titleEl = document.getElementById('custom-preview-title');
+    if (titleEl) {
+      titleEl.textContent = custom.title;
     }
   }
 }

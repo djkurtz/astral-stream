@@ -1,6 +1,6 @@
 import { soundEngine } from './audio';
-import { BOSS_SIGNAL_OVERLORD, FUSED_CHIMERA, JAX_SPIRIT, RIVAL_JAX, STARTER_SPIRIT, TOWN_ITEMS, TOWN_NPCS, TOWN_SOUND_RIPPLES, TOWN_WILD_GLITCHES, WILD_SPAWN_ZONES, WORLD_OBSTACLES } from './data';
-import { CollectibleItem, GameState, Move, NPCEntity, SoundRipple, WildGlitchEntity } from './types';
+import { BOSS_SIGNAL_OVERLORD, CHIME_CAT_PALETTES, FUSED_CHIMERA, JAX_SPIRIT, PLAYER_PALETTES, RIVAL_JAX, STARTER_SPIRIT, TOWN_ITEMS, TOWN_NPCS, TOWN_SOUND_RIPPLES, TOWN_WILD_GLITCHES, WILD_SPAWN_ZONES, WORLD_OBSTACLES, ZONE_CONFIGS } from './data';
+import { AudioTimbrePreset, CatPaletteId, CollectibleItem, GameState, Move, NPCEntity, PlayerPaletteId, SoundRipple, WildGlitchEntity, ZoneId } from './types';
 
 export class AstralGameEngine {
   private state: GameState;
@@ -21,6 +21,19 @@ export class AstralGameEngine {
     return {
       mode: 'intro',
       questStage: 'intro',
+      currentZone: 'plaza',
+      transition: null,
+      discoveredZones: {
+        plaza: true,
+        beach: false,
+        sangeet: false,
+        bamboo: false,
+        ruins: false,
+        ridge: false,
+        cafe: false,
+        vinyl_den: false
+      },
+      zoneChallenges: {},
       camera: {
         x: 860,
         y: 1040
@@ -32,6 +45,25 @@ export class AstralGameEngine {
         dir: 'up',
         isMoving: false
       },
+      playerCustomization: {
+        title: 'Novice Streamer',
+        paletteId: 'neon_cyan',
+        jacketColor: '#f43f5e',
+        headphoneColor: '#06b6d4',
+        hairColor: '#ca8a04',
+        vibeGlowColor: '#06b6d4'
+      },
+      chimeCatCustomization: {
+        paletteId: 'classic_cyan',
+        bodyColor: '#38bdf8',
+        earColor: '#ec4899',
+        auraColor: '#38bdf8',
+        keyColor: '#ffffff',
+        jackColor: '#fbbf24',
+        tailColor: '#38bdf8',
+        timbrePreset: 'chiptune_square'
+      },
+      isCustomizing: false,
       npcs: JSON.parse(JSON.stringify(TOWN_NPCS)),
       soundRipples: JSON.parse(JSON.stringify(TOWN_SOUND_RIPPLES)),
       wildGlitches: JSON.parse(JSON.stringify(TOWN_WILD_GLITCHES)),
@@ -80,6 +112,16 @@ export class AstralGameEngine {
         }
       }
 
+      // Hotkey [C] for Customization Studio
+      if (e.code === 'KeyC') {
+        if (this.state.mode === 'exploration' || this.state.isCustomizing) {
+          this.toggleCustomizationModal();
+        }
+      }
+      if (e.code === 'Escape' && this.state.isCustomizing) {
+        this.closeCustomizationModal();
+      }
+
       // Battle Move Shortcuts (1, 2) & Blend (B)
       if (this.state.mode === 'battle' && this.state.battle?.turn === 'player') {
         if (e.code === 'Digit1' || e.code === 'Numpad1') this.initiatePlayerMove(0);
@@ -118,9 +160,41 @@ export class AstralGameEngine {
 
     this.state.time += dt;
 
+    // Zone Transition Lifecycle
+    if (this.state.transition) {
+      const tr = this.state.transition;
+      tr.progress += dt / tr.duration;
+
+      if (tr.phase === 'fade_out' && tr.progress >= 0.5) {
+        tr.phase = 'fade_in';
+        this.state.currentZone = tr.toZone;
+        this.state.player.x = tr.targetSpawn.x;
+        this.state.player.y = tr.targetSpawn.y;
+        if (tr.targetSpawn.dir) this.state.player.dir = tr.targetSpawn.dir;
+        this.state.player.isMoving = false;
+        this.state.followerTrail = [{ x: this.state.player.x, y: this.state.player.y }];
+        this.state.discoveredZones[tr.toZone] = true;
+
+        if (tr.toZone === 'cafe') this.state.currentInterior = 'cafe';
+        else if (tr.toZone === 'vinyl_den') this.state.currentInterior = 'vinyl_den';
+        else this.state.currentInterior = null;
+
+        const nextConfig = ZONE_CONFIGS[tr.toZone];
+        if (nextConfig) {
+          soundEngine.switchTrack(nextConfig.ambientTrack);
+        }
+      }
+      
+      if (tr.progress >= 1.0) {
+        this.state.transition = null;
+      }
+      return;
+    }
+
     // Exploration Movement, AI & Proximity
     if (this.state.mode === 'exploration') {
       this.updatePlayerMovement(dt);
+      this.checkTransitionTriggers();
       this.updateWildMonsters(dt);
       this.updateProximity();
       soundEngine.updatePlayerPosition(this.state.player.x, this.state.player.y);
@@ -134,9 +208,7 @@ export class AstralGameEngine {
       }
     }
 
-    // In update(now), calculate smooth camera centering:
-    this.state.camera.x = Math.max(0, Math.min(3200 - 1280, this.state.player.x - 640));
-    this.state.camera.y = Math.max(0, Math.min(2400 - 720, this.state.player.y - 360));
+    this.updateCamera(dt);
 
     // Rhythm Timing Bar Animation in Battle
     if (this.state.mode === 'battle' && this.state.battle?.turn === 'rhythm_timing') {
@@ -235,9 +307,9 @@ export class AstralGameEngine {
       return;
     }
 
-    // Natural physical world limits (replaces artificial clamps)
-    const nextX = Math.max(40, Math.min(3160, this.state.player.x + dx));
-    const nextY = Math.max(40, Math.min(2360, this.state.player.y + dy));
+    const zone = ZONE_CONFIGS[this.state.currentZone] || ZONE_CONFIGS.plaza;
+    const nextX = Math.max(40, Math.min(zone.width - 40, this.state.player.x + dx));
+    const nextY = Math.max(40, Math.min(zone.height - 40, this.state.player.y + dy));
 
     // Axis-independent collision checking for smooth wall sliding
     const canMoveX = !this.checkObstacleCollision(nextX, this.state.player.y);
@@ -265,6 +337,119 @@ export class AstralGameEngine {
     }
   }
 
+  public updateCamera(_dt: number): void {
+    const px = this.state.player.x;
+    const py = this.state.player.y;
+    const zone = ZONE_CONFIGS[this.state.currentZone] || ZONE_CONFIGS.plaza;
+
+    let targetX = px - 640;
+    let targetY = py - 360;
+
+    const maxCamX = Math.max(0, zone.width - 1280);
+    const maxCamY = Math.max(0, zone.height - 720);
+
+    targetX = Math.max(0, Math.min(maxCamX, targetX));
+    targetY = Math.max(0, Math.min(maxCamY, targetY));
+
+    if (zone.width < 1280) {
+      targetX = -(1280 - zone.width) / 2;
+    }
+    if (zone.height < 720) {
+      targetY = -(720 - zone.height) / 2;
+    }
+
+    this.state.camera.x = Math.round(targetX);
+    this.state.camera.y = Math.round(targetY);
+  }
+
+  public checkTransitionTriggers(): void {
+    if (this.state.transition || this.state.dialogue || this.state.mode !== 'exploration' || !this.state.player.isMoving) return;
+    const zone = ZONE_CONFIGS[this.state.currentZone];
+    if (!zone || !zone.transitions) return;
+
+    const px = this.state.player.x;
+    const py = this.state.player.y;
+
+    for (const tr of zone.transitions) {
+      const b = tr.bounds;
+      if (px >= b.x && px <= b.x + b.w && py >= b.y && py <= b.y + b.h) {
+        // Sonic vines check for Ruins to Ridge
+        if (tr.id === 'tr_ruins_to_ridge') {
+          const vinesActive = this.state.questStage !== 'ridge_breach' && 
+                              this.state.questStage !== 'gate_ready' && 
+                              this.state.questStage !== 'cleansed';
+          if (vinesActive) {
+            this.showDialogue('Sage Lyra', '🎻', [
+              "⚠️ Thorny Sonic Vines block the chasm to Desolation Ridge!",
+              "Defeat the Wild Glitch-Golem colossus in the central ruins to disperse the vines."
+            ]);
+            this.state.player.x += 20;
+            return;
+          }
+        }
+        this.startZoneTransition(tr.targetZone, tr.targetSpawn);
+        return;
+      }
+    }
+  }
+
+  public startZoneTransition(toZone: ZoneId, targetSpawn: { x: number; y: number; dir?: 'up' | 'down' | 'left' | 'right' }): void {
+    if (this.state.transition) return;
+    soundEngine.playLockChime();
+    this.state.transition = {
+      fromZone: this.state.currentZone,
+      toZone,
+      targetSpawn,
+      progress: 0,
+      duration: 0.5,
+      phase: 'fade_out'
+    };
+  }
+
+  /* ---------------- CUSTOMIZATION STUDIO ---------------- */
+  public toggleCustomizationModal(): void {
+    this.state.isCustomizing = !this.state.isCustomizing;
+    soundEngine.playLockChime();
+  }
+
+  public closeCustomizationModal(): void {
+    this.state.isCustomizing = false;
+  }
+
+  public setPlayerPalette(paletteId: PlayerPaletteId): void {
+    const pal = PLAYER_PALETTES[paletteId];
+    if (!pal) return;
+    this.state.playerCustomization.paletteId = paletteId;
+    this.state.playerCustomization.jacketColor = pal.jacketColor;
+    this.state.playerCustomization.headphoneColor = pal.headphoneColor;
+    this.state.playerCustomization.hairColor = pal.hairColor;
+    this.state.playerCustomization.vibeGlowColor = pal.vibeGlowColor;
+    soundEngine.playSuccessDing();
+  }
+
+  public setPlayerTitle(title: string): void {
+    this.state.playerCustomization.title = title;
+  }
+
+  public setChimeCatPalette(paletteId: CatPaletteId): void {
+    const pal = CHIME_CAT_PALETTES[paletteId];
+    if (!pal) return;
+    this.state.chimeCatCustomization.paletteId = paletteId;
+    this.state.chimeCatCustomization.bodyColor = pal.bodyColor;
+    this.state.chimeCatCustomization.earColor = pal.earColor;
+    this.state.chimeCatCustomization.auraColor = pal.auraColor;
+    this.state.chimeCatCustomization.keyColor = pal.keyColor;
+    this.state.chimeCatCustomization.jackColor = pal.jackColor;
+    this.state.chimeCatCustomization.tailColor = pal.tailColor;
+    soundEngine.playSuccessDing();
+  }
+
+  public setChimeCatTimbre(timbre: AudioTimbrePreset): void {
+    this.state.chimeCatCustomization.timbrePreset = timbre;
+    soundEngine.setChimeCatTimbre(timbre);
+    soundEngine.playMoveSound('arpeggio');
+  }
+
   public checkInteriorCollision(x: number, y: number): boolean {
     if (x < 90 || x > 550 || y < 140 || y > 380) return true; // Room boundary walls
     if (x >= 200 && x <= 440 && y >= 140 && y <= 190) return true; // Front service counter
@@ -284,6 +469,24 @@ export class AstralGameEngine {
     const onEastJetty2 = (x >= 1095 && x <= 1145 && y >= 2200 && y <= 2220);
     const onEastJetty3 = (x >= 1295 && x <= 1345 && y >= 2200 && y <= 2220);
     const onJetty = onEastJetty1 || onEastJetty2 || onEastJetty3;
+
+    // Check active zone obstacles
+    const zone = ZONE_CONFIGS[this.state.currentZone];
+    if (zone && zone.obstacles) {
+      for (const obs of zone.obstacles) {
+        if (obs.type === 'water') {
+          if (obs.direction === 'south') {
+            if (onJetty && y <= 2220) continue;
+            if (y > obs.value) return true;
+          }
+          if (obs.direction === 'west' && x < obs.value) return true;
+        } else if (obs.type === 'box') {
+          if (x >= obs.x && x <= obs.x + obs.w && y >= obs.y && y <= obs.y + obs.h) return true;
+        } else if (obs.type === 'circle') {
+          if (Math.hypot(x - obs.x, y - obs.y) <= obs.radius) return true;
+        }
+      }
+    }
 
     // Sonic Vines Barrier (Blocks the mountain pass gorge x: 580..820 at y: 820..900 until dissolved)
     const vinesActive = this.state.questStage !== 'ridge_breach' && 
@@ -545,6 +748,32 @@ export class AstralGameEngine {
         return;
       }
 
+      // Streamer Mirror Customization
+      if (npc.actionType === 'customize') {
+        this.toggleCustomizationModal();
+        return;
+      }
+
+      // Linear & Side Biome Challenges
+      if (npc.actionType === 'challenge_linear1') {
+        soundEngine.playSuccessDing();
+        this.state.zoneChallenges[npc.id] = true;
+        this.showDialogue(npc.name, '⚡', npc.dialogue);
+        return;
+      }
+      if (npc.actionType === 'challenge_linear2') {
+        soundEngine.playDiscoveryFanfare();
+        this.state.zoneChallenges[npc.id] = true;
+        this.showDialogue(npc.name, '🌟', npc.dialogue);
+        return;
+      }
+      if (npc.actionType === 'challenge_side') {
+        soundEngine.playDiscoveryFanfare();
+        this.state.zoneChallenges[npc.id] = true;
+        this.showDialogue(npc.name, '✨', npc.dialogue);
+        return;
+      }
+
       if (npc.id === 'npc_gate') {
         if (!this.state.activeCompanion) {
           this.showDialogue('Glitch Gate', '⚠️👾', [
@@ -688,6 +917,7 @@ export class AstralGameEngine {
   public startAudioMatchScan(ripple: SoundRipple): void {
     this.state.mode = 'audio_match_scan';
     this.state.audioMatch = {
+      stage: 1,
       challengeType: ripple.challengeType,
       spiritToUnlock: JSON.parse(JSON.stringify(ripple.spirit)),
       isComplete: false,
