@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ASTRAL STREAM: The Frequency Chronicles</title>
+  <link rel="stylesheet" href="./src/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700;800&family=Press+Start+2P&family=Rajdhani:wght@600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="app">
+    <!-- Top Bar: Streamer Header & Living Queue -->
+    <header id="top-bar">
+      <div class="brand">
+        <span class="logo-icon">📱</span>
+        <div>
+          <h1>ASTRAL STREAM</h1>
+          <div class="subtitle">✨ LIVE AUDIO-MATCH & PLAYLIST BLEND ✨</div>
+        </div>
+      </div>
+
+      <!-- Now Playing Stream Queue -->
+      <div id="stream-queue" class="stream-queue-container">
+        <!-- Dynamically injected stream badges -->
+      </div>
+    </header>
+
+    <!-- Main Game Viewport -->
+    <main id="workspace">
+      <div id="canvas-container">
+        <canvas id="game-canvas"></canvas>
+
+        <!-- Exploration Controls Hint -->
+        <div id="exploration-hud" class="hud-controls-hint">
+          🎮 <b>[W,A,S,D]</b> Walk &bull; <b>[SPACE]</b> Interact &bull; <b>[C]</b> Streamer Studio &bull; <b>[Q / Click Badge]</b> Switch Lead
+        </div>
+
+        <!-- Floating 3-Stage Audio Match Panel -->
+        <div id="audio-scan-panel" class="overlay-panel hidden">
+          <div id="scan-stage-title" class="panel-header">🔍 SONIC RADAR: AUDIO-MATCH</div>
+          
+          <!-- Stage 1: Waveform Slider -->
+          <div id="stage-1-controls" class="stage-container hidden">
+            <div class="slider-hint">🎛️ Use <b>[A / D]</b> or <b>[◀ / ▶]</b> keys (or drag slider):</div>
+            <input type="range" id="freq-slider" min="0" max="100" value="15" class="modern-slider" />
+          </div>
+
+          <!-- Stage 2: Call & Response Pads -->
+          <div id="stage-2-controls" class="stage-container hidden">
+            <div class="slider-hint">🎹 Press <b>[1, 2, 3]</b> or <b>[J, K, L]</b> (or click pads):</div>
+            <div class="melody-pads-grid">
+              <button class="melody-btn pad-red" data-pad="0">🔴 LOW [1/J]</button>
+              <button class="melody-btn pad-yellow" data-pad="1">🟡 MID [2/K]</button>
+              <button class="melody-btn pad-blue" data-pad="2">🔵 HIGH [3/L]</button>
+            </div>
+          </div>
+
+          <!-- Stage 3: Rhythm Pulse Lock Button -->
+          <div id="stage-3-controls" class="stage-container hidden">
+            <div class="slider-hint">🎯 Hit [SPACE] or Click on the beat when rings align:</div>
+            <button id="rhythm-hit-btn" class="pulse-scan-btn">
+              <span class="btn-text">🎯 SYNC ON THE BEAT! [SPACE] 🎯</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Floating Battle Launchpad Panel -->
+        <div id="battle-panel" class="overlay-panel hidden">
+          <div class="battle-hud">
+            <!-- Player Stats -->
+            <div class="fighter-card player-card">
+              <div id="player-name" class="fighter-name">Chime-Cat [#ChiptunePop]</div>
+              <div class="meter-bar"><div id="player-hp-bar" class="meter-fill hp-fill"></div></div>
+              <div id="player-hp-text" class="meter-text">65/65 HP</div>
+            </div>
+
+            <div class="vs-badge">VS</div>
+
+            <!-- Enemy Stats -->
+            <div class="fighter-card enemy-card">
+              <div id="enemy-name" class="fighter-name">Bass-Hound [#SpikedBass]</div>
+              <div class="meter-bar"><div id="enemy-hp-bar" class="meter-fill enemy-hp-fill"></div></div>
+              <div id="enemy-hp-text" class="meter-text">85/85 HP</div>
+            </div>
+          </div>
+
+          <!-- Collaborative Playlist Blend Button -->
+          <button id="battle-blend-btn" class="fusion-btn hidden">
+            🌟 COLLABORATIVE PLAYLIST BLEND! [B] 🌟
+          </button>
+
+          <!-- Attack Moves (DJ Launchpad Grid) -->
+          <div id="battle-moves" class="moves-grid">
+            <!-- Injected stem pad buttons -->
+          </div>
+        </div>
+
+        <!-- Streamer Studio & Synth Lab Modal -->
+        <div id="customization-modal" class="overlay-modal hidden">
+          <div class="modal-backdrop"></div>
+          <div class="modal-card">
+            <div class="modal-header">
+              <h2>🪞 STREAMER STUDIO &amp; SYNTH LAB</h2>
+              <button id="close-custom-btn" class="close-btn" title="Close [ESC]">&times;</button>
+            </div>
+            <div class="modal-body">
+              <!-- Left: Live Preview Canvas -->
+              <div class="preview-section">
+                <div class="canvas-preview-wrapper">
+                  <canvas id="custom-preview-canvas" width="220" height="220"></canvas>
+                </div>
+                <div id="custom-preview-title" class="preview-callsign">Novice Streamer</div>
+                <div class="preview-hint">Press <b>[C]</b> or <b>[ESC]</b> anytime in exploration to return</div>
+              </div>
+
+              <!-- Right: Customization Controls -->
+              <div class="controls-section">
+                <!-- Section 1: Streamer Outfit -->
+                <div class="custom-group">
+                  <h3>🎧 Streamer Style</h3>
+                  <div class="custom-options" id="player-palette-options">
+                    <button class="palette-btn active" data-pal="neon_cyan">
+                      <span class="color-dot" style="background:#f43f5e"></span>
+                      <span class="color-dot" style="background:#06b6d4"></span>
+                      Neon Cyan
+                    </button>
+                    <button class="palette-btn" data-pal="cyber_magenta">
+                      <span class="color-dot" style="background:#ec4899"></span>
+                      <span class="color-dot" style="background:#f472b6"></span>
+                      Cyber Magenta
+                    </button>
+                    <button class="palette-btn" data-pal="sunset_gold">
+                      <span class="color-dot" style="background:#ea580c"></span>
+                      <span class="color-dot" style="background:#fbbf24"></span>
+                      Sunset Gold
+                    </button>
+                    <button class="palette-btn" data-pal="emerald_synth">
+                      <span class="color-dot" style="background:#059669"></span>
+                      <span class="color-dot" style="background:#34d399"></span>
+                      Emerald Synth
+                    </button>
+                  </div>
+                  <div class="title-picker">
+                    <label>Call-Sign Title:</label>
+                    <select id="player-title-select" class="custom-select">
+                      <option value="Novice Streamer">Novice Streamer</option>
+                      <option value="Audio Explorer">Audio Explorer</option>
+                      <option value="Beat Architect">Beat Architect</option>
+                      <option value="Rhythm Master">Rhythm Master</option>
+                      <option value="Cosmic Sound Sovereign">Cosmic Sound Sovereign</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Section 2: Chime-Cat Palette & Timbre -->
+                <div class="custom-group">
+                  <h3>🐱 Chime-Cat Oscillator &amp; Keybed</h3>
+                  <div class="custom-options" id="cat-palette-options">
+                    <button class="palette-btn active" data-catpal="classic_cyan">
+                      <span class="color-dot" style="background:#38bdf8"></span>
+                      <span class="color-dot" style="background:#ec4899"></span>
+                      Classic Cyan
+                    </button>
+                    <button class="palette-btn" data-catpal="synthwave_magenta">
+                      <span class="color-dot" style="background:#d946ef"></span>
+                      <span class="color-dot" style="background:#fbbf24"></span>
+                      Synthwave
+                    </button>
+                    <button class="palette-btn" data-catpal="vaporwave_lavender">
+                      <span class="color-dot" style="background:#a855f7"></span>
+                      <span class="color-dot" style="background:#2dd4bf"></span>
+                      Vaporwave
+                    </button>
+                    <button class="palette-btn" data-catpal="darkmode_neon">
+                      <span class="color-dot" style="background:#1e293b"></span>
+                      <span class="color-dot" style="background:#22c55e"></span>
+                      Dark Mode
+                    </button>
+                  </div>
+
+                  <div class="timbre-picker">
+                    <label>Lead Oscillator Timbre:</label>
+                    <div class="timbre-options" id="cat-timbre-options">
+                      <button class="timbre-btn active" data-timbre="chiptune_square">
+                        👾 Square (8-Bit Pulse)
+                      </button>
+                      <button class="timbre-btn" data-timbre="warm_saw">
+                        🎷 Saw (Analog Warmth)
+                      </button>
+                      <button class="timbre-btn" data-timbre="fm_rhodes">
+                        ✨ FM Rhodes (Tine Chime)
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Floating Story Dialogue Box -->
+        <div id="dialogue-box" class="dialogue-card hidden">
+          <div id="dialogue-avatar" class="dialogue-avatar">📱</div>
+          <div class="dialogue-content">
+            <div id="dialogue-speaker" class="dialogue-speaker">Speaker</div>
+            <div id="dialogue-text" class="dialogue-text">Dialogue text goes here...</div>
+            <div class="dialogue-prompt">▶ Click or Press Space to Continue</div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script type="module" src="./src/main.ts"></script>
+</body>
+</html>

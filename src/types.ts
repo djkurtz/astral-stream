@@ -1,327 +1,246 @@
-export type GameMode = 
-  | 'intro'
-  | 'exploration'
-  | 'audio_match_scan'
-  | 'dialogue'
-  | 'battle'
-  | 'cleansing_cinematic'
-  | 'victory';
+// Harmonia: Opus of the Ensemble - Core Data Types
 
-export type GenreType = 
-  | 'symphonic'   // Classical, Baroque, Romantic Orchestral (Violin, Cello, Piano)
-  | 'global'       // Global traditions: Sitar, Kora, Flamenco, Gamelan, Steelpan
-  | 'jazz'         // Jazz, Blues, Bebop, Big Band Brass (Saxophone, Trumpet)
-  | 'synth'        // Chiptune, Synthwave, Electronic Pop
-  | 'bass'         // Funk, Rock, Overdrive Bass, 808
-  | 'static'       // Rogue Noise, Analog Desync
-  | 'cosmic';      // Omnigenre Fusion Mashup
+export type InstrumentSection = 'strings' | 'woodwinds' | 'brass' | 'percussion';
 
-export type AudioChallengeType = 'waveform_slider' | 'call_response' | 'rhythm_pulse';
+export type InstrumentId = 
+  | 'violin' | 'acoustic_guitar' | 'cello' | 'harp'
+  | 'silver_flute' | 'soprano_sax' | 'clarinet' | 'oboe'
+  | 'pocket_trumpet' | 'french_horn' | 'trombone' | 'tuba'
+  | 'snare_kit' | 'marimba' | 'timpani' | 'glockenspiel';
 
-export type ZoneId = 
-  | 'plaza'
-  | 'beach'
-  | 'sangeet'
-  | 'bamboo'
-  | 'ruins'
-  | 'ridge'
-  | 'cafe'
-  | 'vinyl_den';
-
-export interface Move {
+export interface Harmonipet {
   id: string;
   name: string;
-  type: GenreType;
-  power: number;
-  cost: number;
-  description: string;
-  soundType: 'arpeggio' | 'bass_drop' | 'brass_riff' | 'glitch_hit' | 'cosmic_burst' | 'violin_staccato' | 'sitar_twang' | 'taiko_boom';
-  effectiveness?: string;
+  species: string;
+  sprite: string;
+  section: InstrumentSection;
+  instrumentName: string;
+  leitmotifSound: string;
+  color: string;
 }
 
-export interface StreamSpirit {
+export interface MusicianStats {
+  technique: number;     // Accuracy and speed in complex passages (1-100)
+  toneQuality: number;   // Resonance and dynamic expression (1-100)
+  tempoStability: number;// Metronomic timing and resilience to disruption (1-100)
+  sightReading: number;  // Speed of learning new sheet music (1-100)
+}
+
+export interface Musician {
   id: string;
   name: string;
   title: string;
-  vibeTag: string;
-  species: string;
-  instrument: string;
+  isPlayer?: boolean;
   avatar: string;
-  originTradition: string; // e.g. "European Classical", "Indian Classical", "West African", "Caribbean", "Japanese Matsuri"
-  type: GenreType;
-  color: string;
+  paletteColor: string;
+  instrumentId: InstrumentId;
+  instrumentName: string;
+  section: InstrumentSection;
+  pet: Harmonipet;
+  stats: MusicianStats;
   level: number;
   xp: number;
-  maxXp: number;
-  hp: number;
-  maxHp: number;
-  energy: number;
-  attack: number;
-  defense: number;
-  speed: number;
-  moves: Move[];
-  isFused?: boolean;
-  harmonicEnrichment?: number;
-  isEvolved?: boolean;
+  dialogue?: string[];
+  auditionDialogue?: string[];
+  recruitedDialogue?: string[];
 }
 
-export interface NPCEntity {
+export interface RepertoirePiece {
   id: string;
-  name: string;
   title: string;
-  x: number;
-  y: number;
-  sprite: 'aria' | 'dj_otter' | 'jax' | 'maestro_owl' | 'glitch_gate' | 'pelican' | 'spark' | 'lyra' | 'maya' | 'leo' | 'ravi' | 'door_cafe' | 'door_vinyl' | 'puzzle_beacon' | 'puzzle_torii' | 'puzzle_obelisk' | 'puzzle_switch' | 'prop_mirror';
-  color: string;
-  dialogue: string[];
-  dialoguePostAlert?: string[];
-  actionType?: 'talk' | 'battle_jax' | 'audio_match' | 'enter_building' | 'exit_building' | 'order_coffee' | 'browse_shop' | 'customize' | 'challenge_linear1' | 'challenge_linear2' | 'challenge_side';
-  zone?: ZoneId;
-  interior?: 'cafe' | 'vinyl_den';
-  pet?: {
-    name: string;
-    species: string;
-    sprite: 'bird' | 'pup' | 'fawn' | 'gull' | 'moth';
-    instrument: string;
+  composer: string;
+  genre: string;
+  difficulty: number; // 1 to 5 stars
+  minEnsembleTier: 'solo' | 'duet' | 'trio' | 'quartet' | 'chamber' | 'orchestra';
+  requiredSections: {
+    strings?: number;
+    woodwinds?: number;
+    brass?: number;
+    percussion?: number;
   };
-}
-
-export interface MusicalShrine {
-  id: string;
-  name: string;
-  tradition: string;
-  biome: string;
-  zone?: ZoneId;
-  x: number;
-  y: number;
-  challengeType: AudioChallengeType;
-  spirit: StreamSpirit;
-  discovered: boolean;
-}
-
-export type SoundRipple = MusicalShrine;
-
-export interface WildGlitchEntity {
-  id: string;
-  name: string;
-  x: number;
-  y: number;
-  zone?: ZoneId;
-  spirit: StreamSpirit;
-  defeated: boolean;
-  spawnOrigin?: { x: number; y: number; radius: number };
-  isAlerted?: boolean;
-  wanderTimer?: number;
-  wanderTarget?: { x: number; y: number };
-  respawnTimer?: number;
-}
-
-export interface CollectibleItem {
-  id: string;
-  name: string;
-  icon: string;
-  x: number;
-  y: number;
-  zone?: ZoneId;
-  type: 'tuning_fork' | 'golden_vinyl' | 'energy_battery' | 'frequency_crystal';
+  bpm: number;
+  chords: {
+    strings?: number[];
+    woodwinds?: number[];
+    winds?: number[];
+    brass?: number[];
+    percussion?: string;
+  }[];
+  melody: number[];
   description: string;
-  effect: string;
-  collected: boolean;
+  masteryXp: number;
+  isMastered: boolean;
 }
 
-export interface BattleState {
-  type: 'wild' | 'rival' | 'boss';
-  playerSpirit: StreamSpirit;
-  enemySpirit?: StreamSpirit;
-  enemyBoss?: {
-    id: string;
-    name: string;
-    title: string;
-    avatar: string;
-    type: GenreType;
-    hp: number;
-    maxHp: number;
-    attack: number;
-    moves: Move[];
-    glitchIntensity: number;
-  };
-  turn: 'player' | 'rhythm_timing' | 'enemy' | 'animating';
-  pendingMoveIndex: number | null;
-  rhythmCursor: number;
-  rhythmSpeed: number;
-  targetWindowStart: number;
-  targetWindowEnd: number;
-  rhythmResult: 'PERFECT' | 'GREAT' | 'MISS' | null;
-  log: string;
-  canBlend: boolean;
-  blendActive: boolean;
+export type EnsembleTier = 'solo' | 'duet' | 'trio' | 'quartet' | 'chamber' | 'orchestra';
+
+export interface Ensemble {
+  name: string;
+  tier: EnsembleTier;
+  members: Musician[];
+  activePiece: RepertoirePiece | null;
+  reputationStars: number;
+  fameLevel: number;
 }
 
-export interface AudioMatchState {
-  stage: 1 | 2 | 3;
-  spiritToUnlock: StreamSpirit;
-  isComplete: boolean;
-  targetFreq: number;
-  playerFreq: number;
-  holdTime: number;
-  melodySequence: number[];
-  playerSequence: number[];
-  activeDemoNote: number | null;
-  isListeningToPlayer: boolean;
-  pulseRadius: number;
-  targetRadius: number;
+export interface PracticeNote {
+  targetTime: number; // in seconds relative to drill start
+  lane: number;       // 0 to 3
+  pitch: number;      // frequency or midi note
+  hit?: boolean;
+  missed?: boolean;
+  accuracy?: 'perfect' | 'great' | 'good' | 'miss';
+}
+
+export interface PracticeSession {
+  type: 'metronome' | 'scale_run' | 'tone_shaping';
+  instrumentId: InstrumentId;
+  duration: number;
+  elapsedTime: number;
+  bpm: number;
+  notes: PracticeNote[];
+  score: number;
   combo: number;
-  feedback: string | null;
-  challengeType?: AudioChallengeType;
+  maxCombo: number;
+  feedbackText: string;
+  feedbackTimer: number;
+  completed: boolean;
+  statGained: { stat: keyof MusicianStats; amount: number } | null;
 }
 
-export interface PlayerPosition {
-  x: number;
-  y: number;
-  dir: 'up' | 'down' | 'left' | 'right';
-  isMoving: boolean;
+export interface BattleMove {
+  id: string;
+  name: string;
+  section: InstrumentSection;
+  power: number;
+  harmonyCost: number;
+  effect: 'resonance_boost' | 'tempo_lock' | 'vibrato_charm' | 'fortissimo_burst';
+  description: string;
 }
 
-export interface BoxObstacle {
-  type: 'box';
+export interface AuditionBattle {
+  opponent: Musician;
+  playerHarmonyMeter: number; // 0 to 100
+  opponentHarmonyMeter: number; // 0 to 100
+  harmonyPoints: number;      // Resource for moves (0 to 100)
+  maxHarmonyPoints: number;
+  turn: 'player' | 'opponent';
+  turnTimer: number;
+  log: string[];
+  selectedMoveIndex: number;
+  concluded: boolean;
+  won?: boolean;
+}
+
+export interface RivalEnsemble {
+  id: string;
+  name: string;
+  tier: EnsembleTier;
+  conductorName: string;
+  members: Musician[];
+  piece: RepertoirePiece;
+  reputationRequired: number;
+  rewardStars: number;
+  description: string;
+}
+
+export interface ConcertCompetition {
+  rival: RivalEnsemble;
+  playerPiece: RepertoirePiece;
+  playerScore: number;
+  rivalScore: number;
+  audienceApplause: number; // 0 to 100
+  currentMeasure: number;
+  totalMeasures: number;
+  isPlaying: boolean;
+  concluded: boolean;
+  won?: boolean;
+  rewardsGiven?: boolean;
+}
+
+export type ZoneId = 'cavatina_village' | 'woodwind_woods' | 'brass_citadel' | 'percussion_peaks' | 'grand_hall';
+
+export interface WorldObstacle {
+  type: 'box' | 'circle';
   x: number;
   y: number;
-  w: number;
-  h: number;
+  w?: number;
+  h?: number;
+  radius?: number;
   name?: string;
 }
 
-export interface CircleObstacle {
-  type: 'circle';
-  x: number;
-  y: number;
-  radius: number;
-  name?: string;
-}
-
-export interface WaterBoundary {
-  type: 'water';
-  direction: 'south' | 'west';
-  value: number;
-  name?: string;
-}
-
-export type WorldObstacle = BoxObstacle | CircleObstacle | WaterBoundary;
-
-// --- Zone System ---
-export interface ZoneTransitionTrigger {
+export interface ZoneTransition {
   id: string;
   targetZone: ZoneId;
-  targetSpawn: { x: number; y: number; dir?: 'up' | 'down' | 'left' | 'right' };
+  targetSpawn: { x: number; y: number; dir: 'up' | 'down' | 'left' | 'right' };
   bounds: { x: number; y: number; w: number; h: number };
-  promptText?: string;
+  promptText: string;
 }
 
-export interface ZoneMapConfig {
+export interface WorldZone {
   id: ZoneId;
   name: string;
   subtitle: string;
   width: number;
   height: number;
-  ambientTrack: 'town' | 'beach' | 'sangeet' | 'bamboo' | 'ruins' | 'ridge' | 'cafe' | 'vinyl_den';
+  ambientBgm: string;
   themeColor: string;
-  transitions: ZoneTransitionTrigger[];
-  obstacles: WorldObstacle[];
   defaultSpawn: { x: number; y: number; dir: 'up' | 'down' | 'left' | 'right' };
+  transitions: ZoneTransition[];
+  obstacles: WorldObstacle[];
 }
 
-export interface TransitionState {
-  fromZone: ZoneId;
-  toZone: ZoneId;
-  targetSpawn: { x: number; y: number; dir?: 'up' | 'down' | 'left' | 'right' };
-  progress: number;
-  duration: number;
-  phase: 'fade_out' | 'fade_in';
-}
-
-// --- Customization Types ---
-export type PlayerPaletteId = 'neon_cyan' | 'cyber_magenta' | 'sunset_gold' | 'emerald_synth' | 'lavender_dream';
-export type CatPaletteId = 'classic_cyan' | 'synthwave_magenta' | 'vaporwave_lavender' | 'darkmode_neon';
-export type AudioTimbrePreset = 'chiptune_square' | 'warm_saw' | 'fm_rhodes';
-
-export interface PlayerPalette {
-  id: PlayerPaletteId;
+export interface WorldNPC {
+  id: string;
   name: string;
-  jacketColor: string;
-  headphoneColor: string;
-  hairColor: string;
-  vibeGlowColor: string;
-}
-
-export interface CatPalette {
-  id: CatPaletteId;
-  name: string;
-  bodyColor: string;
-  earColor: string;
-  auraColor: string;
-  keyColor: string;
-  jackColor: string;
-  tailColor: string;
-}
-
-export interface PlayerCustomization {
   title: string;
-  paletteId: PlayerPaletteId;
-  jacketColor: string;
-  headphoneColor: string;
-  hairColor: string;
-  vibeGlowColor: string;
+  x: number;
+  y: number;
+  zone: ZoneId;
+  musicianData?: Musician;
+  actionType: 'talk' | 'audition_battle' | 'practice_bench' | 'competition_stage' | 'sheet_music_stand';
+  dialogue: string[];
+  sheetMusicReward?: string; // piece ID
 }
 
-export interface ChimeCatCustomization {
-  paletteId: CatPaletteId;
-  bodyColor: string;
-  earColor: string;
-  auraColor: string;
-  keyColor: string;
-  jackColor: string;
-  tailColor: string;
-  timbrePreset: AudioTimbrePreset;
+export interface GameDialogue {
+  speaker: string;
+  avatar: string;
+  text: string[];
+  index: number;
+  onComplete?: () => void;
 }
+
+export type GameMode = 
+  | 'character_customization' 
+  | 'exploration' 
+  | 'practice' 
+  | 'audition_battle' 
+  | 'competition' 
+  | 'dialogue' 
+  | 'repertoire_menu';
 
 export interface GameState {
   mode: GameMode;
-  questStage: 'intro' | 'seek_traditions' | 'ruins_clearing' | 'ridge_breach' | 'gate_ready' | 'cleansed';
   currentZone: ZoneId;
-  transition: TransitionState | null;
-  discoveredZones: Record<ZoneId, boolean>;
-  camera: {
+  player: {
     x: number;
     y: number;
+    dir: 'up' | 'down' | 'left' | 'right';
+    isMoving: boolean;
   };
-  zoneClean: boolean;
-  player: PlayerPosition;
-  npcs: NPCEntity[];
-  soundRipples: SoundRipple[];
-  wildGlitches: WildGlitchEntity[];
-  items: CollectibleItem[];
-  inventory: string[];
-  activeCompanion: string | null;
-  followerTrail: Array<{ x: number; y: number }>;
-  streamQueue: StreamSpirit[];
-  activeSpiritIndex: number;
-  nearbyInteractable: NPCEntity | SoundRipple | WildGlitchEntity | CollectibleItem | null;
-  audioMatch: AudioMatchState | null;
-  battle: BattleState | null;
-  dialogue: {
-    speaker: string;
-    avatar: string;
-    text: string[];
-    index: number;
-    onComplete?: () => void;
-  } | null;
+  followerTrail: { x: number; y: number }[];
+  camera: { x: number; y: number };
+  ensemble: Ensemble;
+  recruitedMusicians: Musician[];
+  repertoire: RepertoirePiece[];
+  discoveredZones: Record<ZoneId, boolean>;
+  npcs: WorldNPC[];
+  nearbyInteractable: WorldNPC | null;
+  practiceSession: PracticeSession | null;
+  auditionBattle: AuditionBattle | null;
+  competition: ConcertCompetition | null;
+  dialogue: GameDialogue | null;
   time: number;
-  glitchActive: boolean;
-  cleansingProgress: number;
-  currentInterior: 'cafe' | 'vinyl_den' | null;
-  visitedCafe: boolean;
-  zoneChallenges: Record<string, boolean>;
-  playerCustomization: PlayerCustomization;
-  chimeCatCustomization: ChimeCatCustomization;
-  isCustomizing: boolean;
 }

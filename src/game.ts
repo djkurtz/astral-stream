@@ -1,16 +1,22 @@
-import { soundEngine } from './audio';
-import { BOSS_SIGNAL_OVERLORD, CHIME_CAT_PALETTES, FUSED_CHIMERA, JAX_SPIRIT, PLAYER_PALETTES, RIVAL_JAX, STARTER_SPIRIT, TOWN_ITEMS, TOWN_NPCS, TOWN_SOUND_RIPPLES, TOWN_WILD_GLITCHES, WILD_SPAWN_ZONES, WORLD_OBSTACLES, ZONE_CONFIGS } from './data';
-import { AudioTimbrePreset, CatPaletteId, CollectibleItem, GameState, Move, NPCEntity, PlayerPaletteId, SoundRipple, WildGlitchEntity, ZoneId } from './types';
+// Harmonia: Opus of the Ensemble - Game Engine
 
-export class AstralGameEngine {
+import {
+  GameState, Musician, WorldNPC,
+  AuditionBattle, InstrumentId, EnsembleTier, ZoneId
+} from './types';
+import {
+  STARTER_OPTIONS, REPERTOIRE_DATABASE,
+  RIVAL_ENSEMBLES, WORLD_ZONES, INITIAL_WORLD_NPCS, BATTLE_MOVES
+} from './data';
+import { soundEngine } from './audio';
+
+export class HarmoniaGameEngine {
   private state: GameState;
-  private lastTick: number = 0;
   private keysDown: Set<string> = new Set();
-  private emergencyTriggered: boolean = false;
+  private lastTime: number = 0;
 
   constructor() {
     this.state = this.createInitialState();
-    this.setupInputHandlers();
   }
 
   public getState(): GameState {
@@ -19,623 +25,507 @@ export class AstralGameEngine {
 
   private createInitialState(): GameState {
     return {
-      mode: 'intro',
-      questStage: 'intro',
-      currentZone: 'cafe',
-      transition: null,
-      discoveredZones: {
-        plaza: true,
-        beach: false,
-        sangeet: false,
-        bamboo: false,
-        ruins: false,
-        ridge: false,
-        cafe: true,
-        vinyl_den: false
-      },
-      zoneChallenges: {},
-      camera: {
-        x: 0,
-        y: 0
-      },
-      zoneClean: true,
+      mode: 'character_customization',
+      currentZone: 'cavatina_village',
       player: {
-        x: 320,
-        y: 300,
-        dir: 'up',
+        x: 1000,
+        y: 800,
+        dir: 'down',
         isMoving: false
       },
-      playerCustomization: {
-        title: 'Novice Streamer',
-        paletteId: 'neon_cyan',
-        jacketColor: '#f43f5e',
-        headphoneColor: '#06b6d4',
-        hairColor: '#ca8a04',
-        vibeGlowColor: '#06b6d4'
+      followerTrail: [{ x: 1000, y: 820 }],
+      camera: { x: 360, y: 440 },
+      ensemble: {
+        name: 'The Harmonia Ensemble',
+        tier: 'solo',
+        members: [],
+        activePiece: REPERTOIRE_DATABASE[0], // Minuet in G
+        reputationStars: 0,
+        fameLevel: 1
       },
-      chimeCatCustomization: {
-        paletteId: 'classic_cyan',
-        bodyColor: '#38bdf8',
-        earColor: '#ec4899',
-        auraColor: '#38bdf8',
-        keyColor: '#ffffff',
-        jackColor: '#fbbf24',
-        tailColor: '#38bdf8',
-        timbrePreset: 'chiptune_square'
+      recruitedMusicians: [],
+      repertoire: [REPERTOIRE_DATABASE[0]], // Starter solo piece
+      discoveredZones: {
+        cavatina_village: true,
+        woodwind_woods: false,
+        brass_citadel: false,
+        percussion_peaks: false,
+        grand_hall: false
       },
-      isCustomizing: false,
-      npcs: JSON.parse(JSON.stringify(TOWN_NPCS)),
-      soundRipples: JSON.parse(JSON.stringify(TOWN_SOUND_RIPPLES)),
-      wildGlitches: JSON.parse(JSON.stringify(TOWN_WILD_GLITCHES)),
-      items: JSON.parse(JSON.stringify(TOWN_ITEMS)),
-      inventory: [],
-      activeCompanion: null,
-      followerTrail: [{ x: 320, y: 324 }],
-      streamQueue: [JSON.parse(JSON.stringify(STARTER_SPIRIT))],
-      activeSpiritIndex: 0,
+      npcs: JSON.parse(JSON.stringify(INITIAL_WORLD_NPCS)),
       nearbyInteractable: null,
-      audioMatch: null,
-      battle: null,
-      dialogue: {
-        speaker: 'Aria ☕',
-        avatar: '☕',
-        text: [
-          "Good morning, Streamer! Welcome to the Neon Cafe for the annual Soundwave Festival! ☕✨",
-          "I see you brought your bonded partner, Chime-Cat! 🐱 That crisp chiptune wave from Metro Sound City is always refreshing to hear.",
-          "Latte-Chirp and I are getting the morning espresso dialed in. Order a Harmonic Latte anytime to top off your squad's HP and energy!",
-          "Chat with Maya and Leo at the lounge tables, or test your look in the Streamer Mirror [C] before heading outside to the plaza.",
-          "When you're ready, head out through the front door [SPACE] to explore Cadence Plaza and celebrate the Soundwave Festival!"
-        ],
-        index: 0
-      },
-      time: 0,
-      glitchActive: false,
-      cleansingProgress: 0,
-      currentInterior: 'cafe',
-      visitedCafe: true
+      practiceSession: null,
+      auditionBattle: null,
+      competition: null,
+      dialogue: null,
+      time: 0
     };
   }
 
-  private setupInputHandlers(): void {
-    window.addEventListener('keydown', (e) => {
-      this.keysDown.add(e.code);
+  /* ---------------- STARTER CUSTOMIZATION ---------------- */
 
-      // Interaction Key (Space or E or Enter)
-      if (e.code === 'Space' || e.code === 'KeyE' || e.code === 'Enter') {
-        if (this.state.dialogue) {
-          this.advanceDialogue();
-        } else if (this.state.mode === 'battle' && this.state.battle?.turn === 'rhythm_timing') {
-          this.resolveRhythmHit();
-        } else if (this.state.mode === 'audio_match_scan' && this.state.audioMatch?.challengeType === 'rhythm_pulse') {
-          this.hitRhythmPulse();
-        } else if (this.state.mode === 'exploration' && this.state.nearbyInteractable) {
-          this.interactWithNearby();
+  public chooseStarter(instrumentId: InstrumentId, playerName: string = 'Maestro'): void {
+    const starterOpt = STARTER_OPTIONS.find(s => s.id === instrumentId) || STARTER_OPTIONS[0];
+    
+    const playerMusician: Musician = {
+      id: 'player_musician',
+      name: playerName,
+      title: 'Novice Soloist',
+      isPlayer: true,
+      avatar: starterOpt.section === 'strings' ? '🎻' : (starterOpt.section === 'woodwinds' ? '🪈' : (starterOpt.section === 'brass' ? '🎺' : '🥁')),
+      paletteColor: starterOpt.pet.color,
+      instrumentId: starterOpt.id,
+      instrumentName: starterOpt.name,
+      section: starterOpt.section,
+      pet: starterOpt.pet,
+      stats: { ...starterOpt.baseStats },
+      level: 1,
+      xp: 0
+    };
+
+    this.state.ensemble.members = [playerMusician];
+    this.state.recruitedMusicians = [playerMusician];
+    this.state.mode = 'exploration';
+
+    // Start zone ambient music
+    soundEngine.startBGM('cavatina_village', [starterOpt.section]);
+
+    this.showDialogue('Sonora Academy', '🎼', [
+      `Welcome to Sonora, ${playerName}! Your bond with ${starterOpt.pet.name} the ${starterOpt.pet.species} shines bright.`,
+      `You hold the ${starterOpt.name} (${starterOpt.sectionName}). Practice your instrument at the Practice Shed to the west to hone your Technique and Tone!`,
+      "Explore Cavatina Village, discover new Sheet Music, and challenge fellow musicians to Audition Duels to expand your ensemble!"
+    ]);
+  }
+
+  /* ---------------- PRACTICE SHED SYSTEM ---------------- */
+
+  public startPracticeSession(type: 'metronome' | 'scale_run' | 'tone_shaping' = 'metronome'): void {
+    if (this.state.ensemble.members.length === 0) return;
+    const lead = this.state.ensemble.members[0];
+    const bpm = 100;
+    const duration = 15; // 15 second drill
+
+    const notes: any[] = [];
+    // Generate rhythmic target notes every 2 beats
+    for (let t = 2.0; t < duration - 1.0; t += (60 / bpm) * 2) {
+      notes.push({
+        targetTime: t,
+        lane: Math.floor(Math.random() * 4),
+        pitch: 440,
+        hit: false,
+        missed: false
+      });
+    }
+
+    this.state.practiceSession = {
+      type,
+      instrumentId: lead.instrumentId,
+      duration,
+      elapsedTime: 0,
+      bpm,
+      notes,
+      score: 0,
+      combo: 0,
+      maxCombo: 0,
+      feedbackText: 'Get Ready to Play!',
+      feedbackTimer: 1.5,
+      completed: false,
+      statGained: null
+    };
+
+    this.state.mode = 'practice';
+  }
+
+  public hitPracticeNote(lane: number = 0): void {
+    const session = this.state.practiceSession;
+    if (!session || session.completed) return;
+
+    const lead = this.state.ensemble.members[0];
+    const now = session.elapsedTime;
+    let closestNote = null;
+    let minDelta = Infinity;
+
+    for (const note of session.notes) {
+      if (!note.hit && !note.missed) {
+        const delta = Math.abs(now - note.targetTime);
+        if (delta < minDelta) {
+          minDelta = delta;
+          closestNote = note;
         }
       }
+    }
 
-      // Hotkey [C] for Customization Studio
-      if (e.code === 'KeyC') {
-        if (this.state.mode === 'exploration' || this.state.isCustomizing) {
-          this.toggleCustomizationModal();
-        }
-      }
-      if (e.code === 'Escape' && this.state.isCustomizing) {
-        this.closeCustomizationModal();
-      }
+    if (closestNote && minDelta < 0.35) {
+      closestNote.hit = true;
+      let accuracy: 'perfect' | 'great' | 'good' | 'miss' = 'good';
+      let pts = 50;
 
-      // Battle Move Shortcuts (1, 2) & Blend (B)
-      if (this.state.mode === 'battle' && this.state.battle?.turn === 'player') {
-        if (e.code === 'Digit1' || e.code === 'Numpad1') this.initiatePlayerMove(0);
-        if (e.code === 'Digit2' || e.code === 'Numpad2') this.initiatePlayerMove(1);
-        if (e.code === 'KeyB') this.triggerPlaylistBlend();
+      if (minDelta < 0.08) {
+        accuracy = 'perfect';
+        pts = 100;
+      } else if (minDelta < 0.18) {
+        accuracy = 'great';
+        pts = 75;
       }
 
-      // Melody Jam Tone Matcher Shortcuts (1/J, 2/K, 3/L)
-      if (this.state.mode === 'audio_match_scan' && this.state.audioMatch?.challengeType === 'call_response') {
-        if (e.code === 'Digit1' || e.code === 'KeyJ') this.inputMelodyPad(0);
-        if (e.code === 'Digit2' || e.code === 'KeyK') this.inputMelodyPad(1);
-        if (e.code === 'Digit3' || e.code === 'KeyL') this.inputMelodyPad(2);
-      }
+      closestNote.accuracy = accuracy;
+      session.score += pts * (1 + Math.floor(session.combo / 5) * 0.2);
+      session.combo++;
+      if (session.combo > session.maxCombo) session.maxCombo = session.combo;
 
-      // Switch Active Harmonimal (Q or Tab)
-      if (this.state.mode === 'exploration' && !this.state.dialogue) {
-        if (e.code === 'KeyQ' || e.code === 'Tab') {
-          e.preventDefault();
-          this.cycleActiveSpirit();
-        }
-      }
-    });
+      session.feedbackText = accuracy.toUpperCase() + '!';
+      session.feedbackTimer = 0.6;
 
-    window.addEventListener('keyup', (e) => {
-      this.keysDown.delete(e.code);
+      soundEngine.playNoteAccuracyFeedback(accuracy);
+      soundEngine.playInstrumentNote(lead.instrumentId, 440 + lane * 110, 0.3, 0.8);
+    } else {
+      session.combo = 0;
+      session.feedbackText = 'MISS!';
+      session.feedbackTimer = 0.5;
+      soundEngine.playNoteAccuracyFeedback('miss');
+    }
+  }
+
+  private finishPracticeSession(): void {
+    const session = this.state.practiceSession;
+    if (!session) return;
+    session.completed = true;
+
+    const lead = this.state.ensemble.members[0];
+    let stat: keyof typeof lead.stats = 'technique';
+    if (session.type === 'scale_run') stat = 'technique';
+    else if (session.type === 'tone_shaping') stat = 'toneQuality';
+    else stat = 'tempoStability';
+
+    const gain = Math.max(1, Math.floor(session.score / 200));
+    lead.stats[stat] = Math.min(100, lead.stats[stat] + gain);
+    lead.xp += session.score;
+
+    session.statGained = { stat, amount: gain };
+    soundEngine.playFanfare();
+
+    this.showDialogue('Practice Complete!', '✨', [
+      `Practice session concluded! Final Score: ${Math.floor(session.score)} (Max Combo: ${session.maxCombo}).`,
+      `${lead.name}'s ${stat.toUpperCase()} increased by +${gain}! (${lead.stats[stat]}/100). Keep practicing to master your repertoire!`
+    ], () => {
+      this.state.mode = 'exploration';
+      this.state.practiceSession = null;
     });
   }
 
-  public update(now: number): void {
-    if (this.lastTick === 0) {
-      this.lastTick = now;
+  /* ---------------- AUDITION BATTLE SYSTEM ---------------- */
+
+  public startAuditionBattle(targetNpc: WorldNPC): void {
+    if (!targetNpc.musicianData) return;
+    const opponent = targetNpc.musicianData;
+
+    this.state.auditionBattle = {
+      opponent,
+      playerHarmonyMeter: 20,
+      opponentHarmonyMeter: 20,
+      harmonyPoints: 50,
+      maxHarmonyPoints: 100,
+      turn: 'player',
+      turnTimer: 0,
+      log: [
+        `Audition Duel started against ${opponent.name} (${opponent.instrumentName})!`,
+        `Fill the Harmony Meter to 100% to convince ${opponent.name} to join your ensemble!`
+      ],
+      selectedMoveIndex: 0,
+      concluded: false
+    };
+
+    this.state.mode = 'audition_battle';
+  }
+
+  public executeBattleMove(moveKey: string): void {
+    const battle = this.state.auditionBattle;
+    if (!battle || battle.turn !== 'player' || battle.concluded) return;
+
+    const move = BATTLE_MOVES[moveKey] || Object.values(BATTLE_MOVES)[0];
+    const player = this.state.ensemble.members[0];
+
+    if (battle.harmonyPoints < move.harmonyCost) {
+      battle.log.push("Not enough Harmony Points for this technique!");
       return;
     }
-    const dt = (now - this.lastTick) / 1000;
-    this.lastTick = now;
 
+    battle.harmonyPoints -= move.harmonyCost;
+    const power = move.power + Math.floor(player.stats.toneQuality / 5);
+    battle.playerHarmonyMeter = Math.min(100, battle.playerHarmonyMeter + power);
+    battle.log.push(`${player.name} performed [${move.name}]! Harmony surged +${power}%.`);
+
+    soundEngine.playInstrumentNote(player.instrumentId, 523.25, 0.4, 0.9);
+
+    if (battle.playerHarmonyMeter >= 100) {
+      this.resolveBattleVictory(battle);
+      return;
+    }
+
+    // Opponent turn
+    battle.turn = 'opponent';
+    setTimeout(() => {
+      if (!this.state.auditionBattle || this.state.auditionBattle.concluded) return;
+      this.executeOpponentTurn();
+    }, 800);
+  }
+
+  private executeOpponentTurn(): void {
+    const battle = this.state.auditionBattle;
+    if (!battle || battle.concluded) return;
+
+    const opp = battle.opponent;
+    const oppPower = 15 + Math.floor(opp.stats.toneQuality / 8);
+    battle.opponentHarmonyMeter = Math.min(100, battle.opponentHarmonyMeter + oppPower);
+    battle.log.push(`${opp.name} countered with an acoustic flourish (+${oppPower}% opponent resonance)!`);
+
+    soundEngine.playInstrumentNote(opp.instrumentId, 440, 0.4, 0.8);
+    battle.harmonyPoints = Math.min(battle.maxHarmonyPoints, battle.harmonyPoints + 20);
+    battle.turn = 'player';
+  }
+
+  private resolveBattleVictory(battle: AuditionBattle): void {
+    battle.concluded = true;
+    battle.won = true;
+    const recruited = battle.opponent;
+
+    if (!this.state.recruitedMusicians.some(m => m.id === recruited.id)) {
+      this.state.recruitedMusicians.push(recruited);
+      this.state.ensemble.members.push(recruited);
+
+      // Update Ensemble Tier
+      const count = this.state.ensemble.members.length;
+      let tier: EnsembleTier = 'solo';
+      if (count === 2) tier = 'duet';
+      else if (count === 3) tier = 'trio';
+      else if (count >= 4 && count < 6) tier = 'quartet';
+      else if (count >= 6 && count < 8) tier = 'chamber';
+      else if (count >= 8) tier = 'orchestra';
+      this.state.ensemble.tier = tier;
+
+      // Update dynamic BGM section layering
+      const activeSections = Array.from(new Set(this.state.ensemble.members.map(m => m.section)));
+      soundEngine.startBGM(this.state.currentZone, activeSections);
+    }
+
+    soundEngine.playFanfare();
+    this.showDialogue('Audition Triumphant!', '🎉', [
+      `Splendid performance! ${recruited.name} and ${recruited.pet.name} (${recruited.pet.species}) are deeply moved by your musicianship!`,
+      `${recruited.name} joined your ensemble! Your ensemble is now a [${this.state.ensemble.tier.toUpperCase()}]!`,
+      "Check your Repertoire binder to see which multi-part pieces you can now perform!"
+    ], () => {
+      this.state.mode = 'exploration';
+      this.state.auditionBattle = null;
+    });
+  }
+
+  /* ---------------- CONCERT COMPETITION SYSTEM ---------------- */
+
+  public startConcertCompetition(rivalId?: string): void {
+    const rival = RIVAL_ENSEMBLES.find(r => r.id === rivalId) || RIVAL_ENSEMBLES[0];
+    const piece = this.state.ensemble.activePiece || REPERTOIRE_DATABASE[0];
+
+    this.state.competition = {
+      rival,
+      playerPiece: piece,
+      playerScore: 0,
+      rivalScore: 0,
+      audienceApplause: 50,
+      currentMeasure: 0,
+      totalMeasures: 8,
+      isPlaying: true,
+      concluded: false
+    };
+
+    this.state.mode = 'competition';
+  }
+
+  public advanceConcertPerformance(): void {
+    const comp = this.state.competition;
+    if (!comp || comp.concluded) return;
+
+    comp.currentMeasure++;
+    const ensemblePower = this.state.ensemble.members.reduce((acc, m) => acc + (m.stats.technique + m.stats.toneQuality), 0);
+    const rivalPower = comp.rival.members.reduce((acc, m) => acc + (m.stats.technique + m.stats.toneQuality), 0);
+    const measureScore = Math.floor(ensemblePower / 2 + 10);
+    const rivalMeasureScore = Math.floor(rivalPower / 2 + 5);
+    comp.playerScore += measureScore;
+    comp.rivalScore += rivalMeasureScore;
+
+    // Play ensemble chord for this measure
+    for (const m of this.state.ensemble.members) {
+      soundEngine.playInstrumentNote(m.instrumentId, 440 + Math.random() * 200, 0.4, 0.7);
+    }
+
+    if (comp.currentMeasure >= comp.totalMeasures) {
+      comp.concluded = true;
+      comp.won = comp.playerScore >= comp.rivalScore;
+
+      if (comp.won && !comp.rewardsGiven) {
+        comp.rewardsGiven = true;
+        this.state.ensemble.reputationStars += comp.rival.rewardStars;
+        this.state.ensemble.fameLevel = 1 + Math.floor(this.state.ensemble.reputationStars / 2);
+        soundEngine.playFanfare();
+      }
+
+      this.showDialogue('Concert Results', '🏆', [
+        `Performance Concluded! Final Score: ${comp.playerScore} vs Rival ${comp.rivalScore}!`,
+        comp.won ? `VICTORY! The audience erupts in standing ovation! Earned +${comp.rival.rewardStars} Reputation Stars (Total: ${this.state.ensemble.reputationStars} ★).` : "A valiant effort! Practice your ensemble's Technique and try again!"
+      ], () => {
+        this.state.mode = 'exploration';
+        this.state.competition = null;
+      });
+    }
+  }
+
+  /* ---------------- EXPLORATION & COLLISION ---------------- */
+
+  public update(time: number): void {
+    const dt = this.lastTime ? Math.min((time - this.lastTime) / 1000, 0.1) : 0.016;
+    this.lastTime = time;
     this.state.time += dt;
 
-    // Zone Transition Lifecycle
-    if (this.state.transition) {
-      const tr = this.state.transition;
-      tr.progress += dt / tr.duration;
+    if (this.state.mode === 'practice' && this.state.practiceSession && !this.state.practiceSession.completed) {
+      const session = this.state.practiceSession;
+      session.elapsedTime += dt;
+      if (session.feedbackTimer > 0) session.feedbackTimer -= dt;
 
-      if (tr.phase === 'fade_out' && tr.progress >= 0.5) {
-        tr.phase = 'fade_in';
-        this.state.currentZone = tr.toZone;
-        this.state.player.x = tr.targetSpawn.x;
-        this.state.player.y = tr.targetSpawn.y;
-        if (tr.targetSpawn.dir) this.state.player.dir = tr.targetSpawn.dir;
-        this.state.player.isMoving = false;
-        this.state.followerTrail = [{ x: this.state.player.x, y: this.state.player.y }];
-        this.state.discoveredZones[tr.toZone] = true;
+      // Metronome click on beat
+      const beatDuration = 60 / session.bpm;
+      const prevBeat = Math.floor((session.elapsedTime - dt) / beatDuration);
+      const currBeat = Math.floor(session.elapsedTime / beatDuration);
+      if (currBeat > prevBeat) {
+        soundEngine.playMetronomeClick(currBeat % 4 === 0);
+      }
 
-        if (tr.toZone === 'cafe') this.state.currentInterior = 'cafe';
-        else if (tr.toZone === 'vinyl_den') this.state.currentInterior = 'vinyl_den';
-        else this.state.currentInterior = null;
-
-        const nextConfig = ZONE_CONFIGS[tr.toZone];
-        if (nextConfig) {
-          soundEngine.switchTrack(nextConfig.ambientTrack);
+      // Check for missed notes
+      for (const note of session.notes) {
+        if (!note.hit && !note.missed && session.elapsedTime > note.targetTime + 0.3) {
+          note.missed = true;
+          session.combo = 0;
+          session.feedbackText = 'MISS!';
+          session.feedbackTimer = 0.4;
         }
       }
-      
-      if (tr.progress >= 1.0) {
-        this.state.transition = null;
+
+      if (session.elapsedTime >= session.duration) {
+        this.finishPracticeSession();
       }
       return;
     }
 
-    // Exploration Movement, AI & Proximity
     if (this.state.mode === 'exploration') {
-      this.updatePlayerMovement(dt);
-      this.checkTransitionTriggers();
-      this.updateWildMonsters(dt);
+      this.updateMovement(dt);
+      this.updateCamera();
       this.updateProximity();
-      soundEngine.updatePlayerPosition(this.state.player.x, this.state.player.y);
-
-      // Trigger Emergency Broadcast after player leaves cafe and approaches the musical fountain
-      if (this.state.questStage === 'intro' && !this.emergencyTriggered && !this.state.currentInterior && this.state.visitedCafe) {
-        const distToFountain = Math.hypot(this.state.player.x - 1600, this.state.player.y - 1450);
-        if (distToFountain < 130) {
-          this.triggerEmergencyBroadcast();
-        }
-      }
-    }
-
-    this.updateCamera(dt);
-
-    // Rhythm Timing Bar Animation in Battle
-    if (this.state.mode === 'battle' && this.state.battle?.turn === 'rhythm_timing') {
-      const b = this.state.battle;
-      b.rhythmCursor += b.rhythmSpeed * dt;
-      if (b.rhythmCursor > 1.0) {
-        b.rhythmCursor = 0; // Loop cursor
-      }
-    }
-
-    // Individual Audio Match Updates
-    if (this.state.mode === 'audio_match_scan' && this.state.audioMatch) {
-      const match = this.state.audioMatch;
-      if (match.challengeType === 'waveform_slider') {
-        // Keyboard controls for slider: Left / A to decrease, Right / D to increase
-        let slideDir = 0;
-        if (this.keysDown.has('KeyA') || this.keysDown.has('ArrowLeft')) slideDir -= 1;
-        if (this.keysDown.has('KeyD') || this.keysDown.has('ArrowRight')) slideDir += 1;
-        if (slideDir !== 0) {
-          const newFreq = Math.max(0, Math.min(100, match.playerFreq + slideDir * 45 * dt));
-          this.setPlayerFrequency(newFreq);
-        }
-
-        if (Math.abs(match.playerFreq - match.targetFreq) < 6) {
-          match.holdTime += dt;
-          if (match.holdTime >= 1.2 && !match.isComplete) {
-            this.completeAudioMatch();
-          }
-        } else {
-          match.holdTime = Math.max(0, match.holdTime - dt * 2);
-        }
-      } else if (match.challengeType === 'rhythm_pulse' && !match.isComplete) {
-        match.pulseRadius += dt * 140;
-        if (match.pulseRadius > 150) {
-          match.pulseRadius = 0;
-        }
-      }
-    }
-
-    // Cleansing Cinematic Progress
-    if (this.state.mode === 'cleansing_cinematic') {
-      this.state.cleansingProgress += dt * 0.5;
-      if (this.state.cleansingProgress >= 1.0) {
-        this.state.mode = 'victory';
-        this.state.questStage = 'cleansed';
-        this.state.zoneClean = true;
-        this.state.glitchActive = false;
-        soundEngine.setWarped(false);
-        soundEngine.switchTrack('town');
-        soundEngine.playCleansingBloom();
-        this.showDialogue('Jax & Aria', '🎉', [
-          "WE DID IT! Look at Cadence Plaza... the entire static rift has dissolved!",
-          "High-definition stereo melodies and vibrant neon colors have completely restored the shoreline!",
-          "Thank you for rocking the Astral Stream demo!"
-        ]);
-      }
     }
   }
 
-  /* ---------------- EXPLORATION & MOVEMENT ---------------- */
-  private updatePlayerMovement(dt: number): void {
-    if (this.state.dialogue !== null || this.state.mode !== 'exploration') {
-      this.state.player.isMoving = false;
-      return;
-    }
-
-    const speed = 170 * dt;
+  private updateMovement(dt: number): void {
     let dx = 0;
     let dy = 0;
+    if (this.keysDown.has('KeyW') || this.keysDown.has('ArrowUp')) dy -= 1;
+    if (this.keysDown.has('KeyS') || this.keysDown.has('ArrowDown')) dy += 1;
+    if (this.keysDown.has('KeyA') || this.keysDown.has('ArrowLeft')) dx -= 1;
+    if (this.keysDown.has('KeyD') || this.keysDown.has('ArrowRight')) dx += 1;
 
-    if (this.keysDown.has('KeyW') || this.keysDown.has('ArrowUp')) { dy -= speed; this.state.player.dir = 'up'; }
-    if (this.keysDown.has('KeyS') || this.keysDown.has('ArrowDown')) { dy += speed; this.state.player.dir = 'down'; }
-    if (this.keysDown.has('KeyA') || this.keysDown.has('ArrowLeft')) { dx -= speed; this.state.player.dir = 'left'; }
-    if (this.keysDown.has('KeyD') || this.keysDown.has('ArrowRight')) { dx += speed; this.state.player.dir = 'right'; }
-
-    this.state.player.isMoving = (dx !== 0 || dy !== 0);
-
-    if (this.state.currentInterior) {
-      // Interior Room Movement Bounds (Neon Cafe & Vinyl Den)
-      const nextX = Math.max(90, Math.min(550, this.state.player.x + dx));
-      const nextY = Math.max(140, Math.min(380, this.state.player.y + dy));
-      const canMoveX = !this.checkInteriorCollision(nextX, this.state.player.y);
-      const canMoveY = !this.checkInteriorCollision(this.state.player.x, nextY);
-
-      if (canMoveX) this.state.player.x = nextX;
-      if (canMoveY) this.state.player.y = nextY;
-
-      if (this.state.player.isMoving && (canMoveX || canMoveY)) {
-        if (!this.state.followerTrail) this.state.followerTrail = [];
-        const last = this.state.followerTrail[0];
-        if (!last || Math.hypot(this.state.player.x - last.x, this.state.player.y - last.y) >= 5) {
-          this.state.followerTrail.unshift({ x: this.state.player.x, y: this.state.player.y });
-          if (this.state.followerTrail.length > 80) this.state.followerTrail.pop();
-        }
-      }
-      return;
-    }
-
-    const zone = ZONE_CONFIGS[this.state.currentZone] || ZONE_CONFIGS.plaza;
-    const nextX = Math.max(40, Math.min(zone.width - 40, this.state.player.x + dx));
-    const nextY = Math.max(40, Math.min(zone.height - 40, this.state.player.y + dy));
-
-    // Axis-independent collision checking for smooth wall sliding
-    const canMoveX = !this.checkObstacleCollision(nextX, this.state.player.y);
-    const canMoveY = !this.checkObstacleCollision(this.state.player.x, nextY);
-
-    if (canMoveX) {
-      this.state.player.x = nextX;
-    }
-    if (canMoveY) {
-      this.state.player.y = nextY;
-    }
-
-    // Record breadcrumb trail for followers in the party
-    if (this.state.player.isMoving && (canMoveX || canMoveY)) {
-      if (!this.state.followerTrail) {
-        this.state.followerTrail = [];
-      }
-      const last = this.state.followerTrail[0];
-      if (!last || Math.hypot(this.state.player.x - last.x, this.state.player.y - last.y) >= 5) {
-        this.state.followerTrail.unshift({ x: this.state.player.x, y: this.state.player.y });
-        if (this.state.followerTrail.length > 80) {
-          this.state.followerTrail.pop();
-        }
-      }
-    }
-  }
-
-  public updateCamera(_dt: number): void {
-    const px = this.state.player.x;
-    const py = this.state.player.y;
-    const zone = ZONE_CONFIGS[this.state.currentZone] || ZONE_CONFIGS.plaza;
-
-    let targetX = px - 640;
-    let targetY = py - 360;
-
-    const maxCamX = Math.max(0, zone.width - 1280);
-    const maxCamY = Math.max(0, zone.height - 720);
-
-    targetX = Math.max(0, Math.min(maxCamX, targetX));
-    targetY = Math.max(0, Math.min(maxCamY, targetY));
-
-    if (zone.width < 1280) {
-      targetX = -(1280 - zone.width) / 2;
-    }
-    if (zone.height < 720) {
-      targetY = -(720 - zone.height) / 2;
-    }
-
-    this.state.camera.x = Math.round(targetX);
-    this.state.camera.y = Math.round(targetY);
-  }
-
-  public checkTransitionTriggers(): void {
-    if (this.state.transition || this.state.dialogue || this.state.mode !== 'exploration' || !this.state.player.isMoving) return;
-    const zone = ZONE_CONFIGS[this.state.currentZone];
-    if (!zone || !zone.transitions) return;
-
-    const px = this.state.player.x;
-    const py = this.state.player.y;
-
-    for (const tr of zone.transitions) {
-      const b = tr.bounds;
-      if (px >= b.x && px <= b.x + b.w && py >= b.y && py <= b.y + b.h) {
-        // Sonic vines check for Ruins to Ridge
-        if (tr.id === 'tr_ruins_to_ridge') {
-          const vinesActive = this.state.questStage !== 'ridge_breach' && 
-                              this.state.questStage !== 'gate_ready' && 
-                              this.state.questStage !== 'cleansed';
-          if (vinesActive) {
-            this.showDialogue('Sage Lyra', '🎻', [
-              "⚠️ Thorny Sonic Vines block the chasm to Desolation Ridge!",
-              "Defeat the Wild Glitch-Golem colossus in the central ruins to disperse the vines."
-            ]);
-            this.state.player.x += 20;
-            return;
-          }
-        }
-        this.startZoneTransition(tr.targetZone, tr.targetSpawn);
-        return;
-      }
-    }
-  }
-
-  public startZoneTransition(toZone: ZoneId, targetSpawn: { x: number; y: number; dir?: 'up' | 'down' | 'left' | 'right' }): void {
-    if (this.state.transition) return;
-    soundEngine.playLockChime();
-    this.state.transition = {
-      fromZone: this.state.currentZone,
-      toZone,
-      targetSpawn,
-      progress: 0,
-      duration: 0.5,
-      phase: 'fade_out'
-    };
-  }
-
-  /* ---------------- CUSTOMIZATION STUDIO ---------------- */
-  public toggleCustomizationModal(): void {
-    this.state.isCustomizing = !this.state.isCustomizing;
-    soundEngine.playLockChime();
-  }
-
-  public closeCustomizationModal(): void {
-    this.state.isCustomizing = false;
-  }
-
-  public setPlayerPalette(paletteId: PlayerPaletteId): void {
-    const pal = PLAYER_PALETTES[paletteId];
-    if (!pal) return;
-    this.state.playerCustomization.paletteId = paletteId;
-    this.state.playerCustomization.jacketColor = pal.jacketColor;
-    this.state.playerCustomization.headphoneColor = pal.headphoneColor;
-    this.state.playerCustomization.hairColor = pal.hairColor;
-    this.state.playerCustomization.vibeGlowColor = pal.vibeGlowColor;
-    soundEngine.playSuccessDing();
-  }
-
-  public setPlayerTitle(title: string): void {
-    this.state.playerCustomization.title = title;
-  }
-
-  public setChimeCatPalette(paletteId: CatPaletteId): void {
-    const pal = CHIME_CAT_PALETTES[paletteId];
-    if (!pal) return;
-    this.state.chimeCatCustomization.paletteId = paletteId;
-    this.state.chimeCatCustomization.bodyColor = pal.bodyColor;
-    this.state.chimeCatCustomization.earColor = pal.earColor;
-    this.state.chimeCatCustomization.auraColor = pal.auraColor;
-    this.state.chimeCatCustomization.keyColor = pal.keyColor;
-    this.state.chimeCatCustomization.jackColor = pal.jackColor;
-    this.state.chimeCatCustomization.tailColor = pal.tailColor;
-    soundEngine.playSuccessDing();
-  }
-
-  public setChimeCatTimbre(timbre: AudioTimbrePreset): void {
-    this.state.chimeCatCustomization.timbrePreset = timbre;
-    soundEngine.setChimeCatTimbre(timbre);
-    soundEngine.playMoveSound('arpeggio');
-  }
-
-  public checkInteriorCollision(x: number, y: number): boolean {
-    if (x < 90 || x > 550 || y < 140 || y > 380) return true; // Room boundary walls
-    if (x >= 200 && x <= 440 && y >= 140 && y <= 190) return true; // Front service counter
-    if (this.state.currentInterior === 'cafe') {
-      if (x >= 140 && x <= 220 && y >= 240 && y <= 280) return true; // Maya lo-fi table
-      if (x >= 420 && x <= 500 && y >= 240 && y <= 280) return true; // Leo synth table
-    } else if (this.state.currentInterior === 'vinyl_den') {
-      if (x >= 140 && x <= 220 && y >= 240 && y <= 280) return true; // Left vinyl crate
-      if (x >= 420 && x <= 500 && y >= 240 && y <= 280) return true; // Right vinyl crate
-    }
-    return false;
-  }
-
-  public checkObstacleCollision(x: number, y: number): boolean {
-    // Walkable Pier Jetties extending over the ocean water
-    const onEastJetty1 = (x >= 895 && x <= 945 && y >= 2200 && y <= 2220);
-    const onEastJetty2 = (x >= 1095 && x <= 1145 && y >= 2200 && y <= 2220);
-    const onEastJetty3 = (x >= 1295 && x <= 1345 && y >= 2200 && y <= 2220);
-    const onJetty = onEastJetty1 || onEastJetty2 || onEastJetty3;
-
-    // Check active zone obstacles
-    const zone = ZONE_CONFIGS[this.state.currentZone];
-    if (zone && zone.obstacles) {
-      for (const obs of zone.obstacles) {
-        if (obs.type === 'water') {
-          if (obs.direction === 'south') {
-            if (onJetty && y <= 2220) continue;
-            if (y > obs.value) return true;
-          }
-          if (obs.direction === 'west' && x < obs.value) return true;
-        } else if (obs.type === 'box') {
-          if (x >= obs.x && x <= obs.x + obs.w && y >= obs.y && y <= obs.y + obs.h) return true;
-        } else if (obs.type === 'circle') {
-          if (Math.hypot(x - obs.x, y - obs.y) <= obs.radius) return true;
-        }
-      }
-    }
-
-    // Sonic Vines Barrier (Blocks the mountain pass gorge x: 580..820 at y: 820..900 until dissolved)
-    const vinesActive = this.state.questStage !== 'ridge_breach' && 
-                        this.state.questStage !== 'gate_ready' && 
-                        this.state.questStage !== 'cleansed';
-    if (vinesActive && x >= 560 && x <= 840 && y >= 820 && y <= 900) {
-      return true;
-    }
-
-    for (const obs of WORLD_OBSTACLES) {
-      if (obs.type === 'water') {
-        if (obs.direction === 'south') {
-          if (onJetty && y <= 2220) {
-            continue; // Walkable wooden pier jetty fingers extending over the ocean
-          }
-          if (y > obs.value) return true;
-        }
-        if (obs.direction === 'west' && x < obs.value) return true;
-      } else if (obs.type === 'box') {
-        if (x >= obs.x && x <= obs.x + obs.w && y >= obs.y && y <= obs.y + obs.h) {
-          return true;
-        }
-      } else if (obs.type === 'circle') {
-        const dist = Math.hypot(x - obs.x, y - obs.y);
-        if (dist <= obs.radius) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  public checkBuildingCollision(x: number, y: number): boolean {
-    return this.checkObstacleCollision(x, y);
-  }
-
-  private updateWildMonsters(dt: number): void {
-    const inVillage = this.state.currentZone === 'plaza' || this.state.currentInterior !== null;
-    const px = this.state.player.x;
-    const py = this.state.player.y;
-
-    for (const g of this.state.wildGlitches) {
-      // Monsters never spawn or exist in the village (Plaza or interiors)
-      if (g.zone === 'plaza' || g.zone === 'cafe' || g.zone === 'vinyl_den') continue;
-
-      // When player is exploring in the village, skip monster pursuit
-      if (inVillage && this.state.currentZone !== g.zone) {
-        g.isAlerted = false;
-        continue;
-      }
-
-      if (g.defeated) {
-        g.respawnTimer = (g.respawnTimer || 0) + dt;
-        if (g.respawnTimer > 20) {
-          g.defeated = false;
-          g.respawnTimer = 0;
-          if (g.spawnOrigin) {
-            const angle = Math.random() * Math.PI * 2;
-            const dist = Math.random() * g.spawnOrigin.radius * 0.8;
-            g.x = g.spawnOrigin.x + Math.cos(angle) * dist;
-            g.y = g.spawnOrigin.y + Math.sin(angle) * dist;
-          } else {
-            const zone = WILD_SPAWN_ZONES.find(z => z.possibleSpirits.some(s => s.id === g.spirit.id)) || WILD_SPAWN_ZONES[0];
-            g.x = zone.minX + Math.random() * (zone.maxX - zone.minX);
-            g.y = zone.minY + Math.random() * (zone.maxY - zone.minY);
-          }
-        }
-        continue;
-      }
-
-      const dist = Math.hypot(px - g.x, py - g.y);
-
-      // Active Pursuit AI when player is within 220px
-      if (dist < 220 && !this.state.dialogue) {
-        g.isAlerted = true;
-        const dx = (px - g.x) / dist;
-        const dy = (py - g.y) / dist;
-        const speed = g.spirit.id === 'spirit_glitch_golem' ? 55 : (g.spirit.id === 'spirit_steel_panda' ? 65 : 85);
-
-        const nextX = g.x + dx * speed * dt;
-        const nextY = g.y + dy * speed * dt;
-
-        if (!this.checkObstacleCollision(nextX, nextY)) {
-          g.x = nextX;
-          g.y = nextY;
-        }
-
-        // Direct Touch Battle Encounter
-        if (dist < 34 && this.state.mode === 'exploration' && !this.state.dialogue) {
-          this.startWildBattle(g);
-          return;
-        }
+    const player = this.state.player;
+    if (dx !== 0 || dy !== 0) {
+      player.isMoving = true;
+      if (Math.abs(dx) > Math.abs(dy)) {
+        player.dir = dx > 0 ? 'right' : 'left';
       } else {
-        g.isAlerted = false;
-        // Wandering / Patrol around spawn origin
-        g.wanderTimer = (g.wanderTimer || 0) - dt;
-        if (g.wanderTimer <= 0) {
-          g.wanderTimer = 3 + Math.random() * 3;
-          const originX = g.spawnOrigin ? g.spawnOrigin.x : g.x;
-          const originY = g.spawnOrigin ? g.spawnOrigin.y : g.y;
-          const maxR = g.spawnOrigin ? g.spawnOrigin.radius * 0.7 : 100;
-          const angle = Math.random() * Math.PI * 2;
-          const r = Math.random() * maxR;
-          g.wanderTarget = { x: originX + Math.cos(angle) * r, y: originY + Math.sin(angle) * r };
-        }
+        player.dir = dy > 0 ? 'down' : 'up';
+      }
 
-        if (g.wanderTarget) {
-          const tDist = Math.hypot(g.wanderTarget.x - g.x, g.wanderTarget.y - g.y);
-          if (tDist > 5) {
-            const wdx = (g.wanderTarget.x - g.x) / tDist;
-            const wdy = (g.wanderTarget.y - g.y) / tDist;
-            const wSpeed = 25;
-            const nextX = g.x + wdx * wSpeed * dt;
-            const nextY = g.y + wdy * wSpeed * dt;
-            if (!this.checkObstacleCollision(nextX, nextY)) {
-              g.x = nextX;
-              g.y = nextY;
-            }
+      const speed = 180;
+      const mag = Math.hypot(dx, dy);
+      const moveX = (dx / mag) * speed * dt;
+      const moveY = (dy / mag) * speed * dt;
+
+      const nextX = player.x + moveX;
+      const nextY = player.y + moveY;
+
+      if (!this.checkObstacleCollision(nextX, player.y)) player.x = nextX;
+      if (!this.checkObstacleCollision(player.x, nextY)) player.y = nextY;
+
+      // Update follower trail for pets and ensemble partners
+      const lastTrail = this.state.followerTrail[0];
+      if (!lastTrail || Math.hypot(player.x - lastTrail.x, player.y - lastTrail.y) > 24) {
+        this.state.followerTrail.unshift({ x: player.x, y: player.y });
+        if (this.state.followerTrail.length > 20) this.state.followerTrail.pop();
+      }
+
+      // Check Zone Transitions
+      const zone = WORLD_ZONES[this.state.currentZone];
+      if (zone) {
+        for (const tr of zone.transitions) {
+          if (
+            player.x >= tr.bounds.x && player.x <= tr.bounds.x + tr.bounds.w &&
+            player.y >= tr.bounds.y && player.y <= tr.bounds.y + tr.bounds.h
+          ) {
+            this.warpToZone(tr.targetZone, tr.targetSpawn);
+            break;
           }
         }
       }
+    } else {
+      player.isMoving = false;
     }
+  }
+
+  public warpToZone(targetZone: ZoneId, spawn: { x: number; y: number; dir: 'up' | 'down' | 'left' | 'right' }): void {
+    this.state.currentZone = targetZone;
+    this.state.player.x = spawn.x;
+    this.state.player.y = spawn.y;
+    this.state.player.dir = spawn.dir;
+    this.state.followerTrail = [{ x: spawn.x, y: spawn.y }];
+    this.state.discoveredZones[targetZone] = true;
+
+    const activeSections = Array.from(new Set(this.state.ensemble.members.map(m => m.section)));
+    soundEngine.startBGM(targetZone, activeSections);
+  }
+
+  private checkObstacleCollision(x: number, y: number): boolean {
+    const zone = WORLD_ZONES[this.state.currentZone];
+    if (!zone) return false;
+
+    // Bounds check
+    if (x < 60 || x > zone.width - 60 || y < 60 || y > zone.height - 60) return true;
+
+    for (const obs of zone.obstacles) {
+      if (obs.type === 'box' && obs.w && obs.h) {
+        if (x >= obs.x && x <= obs.x + obs.w && y >= obs.y && y <= obs.y + obs.h) return true;
+      } else if (obs.type === 'circle' && obs.radius) {
+        if (Math.hypot(x - obs.x, y - obs.y) < obs.radius + 16) return true;
+      }
+    }
+    return false;
+  }
+
+  private updateCamera(): void {
+    const zone = WORLD_ZONES[this.state.currentZone] || { width: 2000, height: 1600 };
+    const viewW = 1280;
+    const viewH = 720;
+
+    let targetX = this.state.player.x - viewW / 2;
+    let targetY = this.state.player.y - viewH / 2;
+
+    targetX = Math.max(0, Math.min(targetX, zone.width - viewW));
+    targetY = Math.max(0, Math.min(targetY, zone.height - viewH));
+
+    this.state.camera.x = targetX;
+    this.state.camera.y = targetY;
   }
 
   public updateProximity(): void {
     const px = this.state.player.x;
     const py = this.state.player.y;
-    let closest: NPCEntity | SoundRipple | WildGlitchEntity | CollectibleItem | null = null;
-    let minDist = 65;
+    let closest: WorldNPC | null = null;
+    let minDist = 70;
 
-    if (this.state.currentInterior) {
-      // In Interior: Only interact with NPCs inside this specific room
-      for (const npc of this.state.npcs) {
-        if (npc.interior === this.state.currentInterior) {
-          const d = Math.hypot(px - npc.x, py - npc.y);
-          if (d < minDist) {
-            minDist = d;
-            closest = npc;
-          }
-        }
-      }
-      this.state.nearbyInteractable = closest;
-      return;
-    }
-
-    // Overworld: Check overworld NPCs (doors & outdoor residents)
     for (const npc of this.state.npcs) {
-      if (!npc.interior) {
+      if (npc.zone === this.state.currentZone) {
         const d = Math.hypot(px - npc.x, py - npc.y);
         if (d < minDist) {
           minDist = d;
@@ -643,40 +533,6 @@ export class AstralGameEngine {
         }
       }
     }
-
-    // Check Sound Shrines
-    for (const rip of this.state.soundRipples) {
-      if (!rip.discovered) {
-        const d = Math.hypot(px - rip.x, py - rip.y);
-        if (d < minDist) {
-          minDist = d;
-          closest = rip;
-        }
-      }
-    }
-
-    // Check Wild Glitches
-    for (const g of this.state.wildGlitches) {
-      if (!g.defeated) {
-        const d = Math.hypot(px - g.x, py - g.y);
-        if (d < minDist) {
-          minDist = d;
-          closest = g;
-        }
-      }
-    }
-
-    // Check Collectible Items
-    for (const item of this.state.items) {
-      if (!item.collected) {
-        const d = Math.hypot(px - item.x, py - item.y);
-        if (d < minDist) {
-          minDist = d;
-          closest = item;
-        }
-      }
-    }
-
     this.state.nearbyInteractable = closest;
   }
 
@@ -684,722 +540,83 @@ export class AstralGameEngine {
     const target = this.state.nearbyInteractable;
     if (!target) return;
 
-    if ('collected' in target) {
-      // Collectible Item Encounter
-      this.collectItem(target as CollectibleItem);
+    if (target.actionType === 'practice_bench') {
+      this.startPracticeSession('metronome');
       return;
     }
 
-    if ('spirit' in target && 'defeated' in target) {
-      // Wild Glitch Encounter
-      this.startWildBattle(target as WildGlitchEntity);
+    if (target.actionType === 'sheet_music_stand' && target.sheetMusicReward) {
+      const piece = REPERTOIRE_DATABASE.find(p => p.id === target.sheetMusicReward);
+      if (piece && !this.state.repertoire.some(p => p.id === piece.id)) {
+        this.state.repertoire.push(piece);
+        soundEngine.playFanfare();
+      }
+      this.showDialogue(target.name, '📜', target.dialogue);
       return;
     }
 
-    if ('dialogue' in target) {
-      // NPC / Building Door
-      const npc = target as NPCEntity;
-
-      // Enter Building Door
-      if (npc.actionType === 'enter_building') {
-        soundEngine.playLockChime();
-        if (npc.id === 'door_cafe') {
-          this.startZoneTransition('cafe', { x: 320, y: 340, dir: 'up' });
-        } else if (npc.id === 'door_vinyl') {
-          this.startZoneTransition('vinyl_den', { x: 320, y: 340, dir: 'up' });
-        }
-        return;
-      }
-
-      // Exit Building Door
-      if (npc.actionType === 'exit_building') {
-        soundEngine.playLockChime();
-        if (this.state.currentInterior === 'cafe') {
-          this.startZoneTransition('plaza', { x: 1360, y: 1380, dir: 'down' });
-        } else if (this.state.currentInterior === 'vinyl_den') {
-          this.startZoneTransition('plaza', { x: 1910, y: 1380, dir: 'down' });
-        }
-        return;
-      }
-
-      // Cafe Coffee Order
-      if (npc.actionType === 'order_coffee') {
-        soundEngine.playSuccessDing();
-        for (const s of this.state.streamQueue) {
-          s.hp = s.maxHp;
-          s.energy = 100;
-        }
-        if (this.state.questStage === 'intro') {
-          this.showDialogue(npc.name, '☕', [
-            "Here is your steaming Harmonic Latte! ☕✨",
-            "Your squad's HP and Energy are fully restored to maximum!",
-            "Aria's partner, Latte-Chirp (Melody Songbird), chirps a cheerful flute melody beside you."
-          ]);
-        } else {
-          this.showDialogue(npc.name, '☕', [
-            "Here is your steaming Harmonic Latte! ☕✨",
-            "Your squad's HP and Energy are fully restored to maximum!",
-            "Stay safe out there in the static storm, Streamer. Please bring Latte-Chirp back!"
-          ]);
-        }
-        return;
-      }
-
-      // Vinyl Den Shop Browse
-      if (npc.actionType === 'browse_shop') {
-        soundEngine.playLockChime();
-        const introMsg = this.state.questStage === 'intro'
-          ? "DJ Otter's partner, Vinyl-Pup (Groove Terrier), wags its tail to the beat."
-          : "Stay tuned into the rhythm, Streamer. We're counting on you to break the static!";
-        this.showDialogue(npc.name, '💽', [
-          npc.dialogue[0] || "Browsing the rare vinyl crates...",
-          "You tuned your audio receptors to the rare analog pressings! (+10 Max Energy for all Harmonimals)",
-          introMsg
+    if (target.actionType === 'audition_battle' && target.musicianData) {
+      if (this.state.recruitedMusicians.some(m => m.id === target.musicianData?.id)) {
+        this.showDialogue(target.name, target.musicianData.avatar, [
+          `Hey ${this.state.ensemble.members[0].name}! Our ${this.state.ensemble.tier} is sounding more harmonious by the day!`
         ]);
         return;
       }
-
-      // Streamer Mirror Customization
-      if (npc.actionType === 'customize') {
-        this.toggleCustomizationModal();
-        return;
-      }
-
-      // Linear & Side Biome Challenges
-      if (npc.actionType === 'challenge_linear1') {
-        soundEngine.playSuccessDing();
-        this.state.zoneChallenges[npc.id] = true;
-        this.showDialogue(npc.name, '⚡', npc.dialogue);
-        return;
-      }
-      if (npc.actionType === 'challenge_linear2') {
-        soundEngine.playDiscoveryFanfare();
-        this.state.zoneChallenges[npc.id] = true;
-        this.showDialogue(npc.name, '🌟', npc.dialogue);
-        return;
-      }
-      if (npc.actionType === 'challenge_side') {
-        soundEngine.playDiscoveryFanfare();
-        this.state.zoneChallenges[npc.id] = true;
-        this.showDialogue(npc.name, '✨', npc.dialogue);
-        return;
-      }
-
-      if (npc.id === 'npc_gate') {
-        if (!this.state.activeCompanion) {
-          this.showDialogue('Glitch Gate', '⚠️👾', [
-            "⚠️ The Glitch Gate is sealed by dense static interference!",
-            "You need to duel and ally with Jax to synchronize your frequencies before attempting to breach."
-          ]);
-        } else {
-          this.showDialogue('Glitch Gate', '⚠️👾', [
-            "The static storm is howling on the other side... Dead Channel 000 awaits!",
-            "Your tag-team squad (Chime-Cat & Bass-Hound) is synced and ready.",
-            "Step through to breach the rift and initiate the Boss Battle!"
-          ], () => {
-            this.startBattle('boss');
-          });
-        }
-        return;
-      }
-
-      if (npc.actionType === 'battle_jax') {
-        if (this.state.activeCompanion === 'jax') {
-          this.showDialogue('Jax & Bass-Hound', '🐶🎸', [
-            "We're linked and ready for the boss! 🐶🎸",
-            "Make sure you explore Cadence Plaza and tune into the 3 cultural sound ripples if you want to expand your squad.",
-            "When you're ready, step right up to the Glitch Gate behind me to breach the static storm!"
-          ]);
-        } else {
-          this.showDialogue(npc.name, '🎸', npc.dialogue, () => {
-            this.startBattle('rival');
-          });
-        }
-        return;
-      }
-
-      let avatar = '💬';
-      if (npc.sprite === 'aria') avatar = '☕';
-      else if (npc.sprite === 'dj_otter') avatar = '💽';
-      else if (npc.sprite === 'maestro_owl') avatar = '🦉';
-      else if (npc.sprite === 'pelican') avatar = '🦢';
-      else if (npc.sprite === 'spark') avatar = '⚡';
-      else if (npc.sprite === 'jax') avatar = '🎸';
-      else if (npc.sprite === 'lyra') avatar = '🔮';
-      else if (npc.sprite === 'maya') avatar = '🎧';
-      else if (npc.sprite === 'leo') avatar = '🎹';
-
-      let dialogueLines = npc.dialogue;
-      if (this.state.questStage !== 'intro' && npc.dialoguePostAlert) {
-        dialogueLines = npc.dialoguePostAlert;
-      }
-      this.showDialogue(npc.name, avatar, dialogueLines);
-    } else {
-      // Sound Ripple
-      const rip = target as SoundRipple;
-      this.startAudioMatchScan(rip);
-    }
-  }
-
-  public collectItem(item: CollectibleItem): void {
-    if (item.collected) return;
-    item.collected = true;
-    this.state.inventory.push(item.name);
-    soundEngine.playDiscoveryFanfare();
-
-    const targetSpirit = this.state.streamQueue[0];
-    let buffSummary = '';
-
-    if (targetSpirit) {
-      switch (item.type) {
-        case 'tuning_fork':
-          targetSpirit.attack += 5;
-          buffSummary = `${targetSpirit.name}'s Attack increased by +5! (Now ${targetSpirit.attack})`;
-          break;
-        case 'golden_vinyl':
-          targetSpirit.maxHp += 20;
-          targetSpirit.hp = Math.min(targetSpirit.maxHp, targetSpirit.hp + 20);
-          buffSummary = `${targetSpirit.name}'s Max HP increased by +20! (Now ${targetSpirit.maxHp} HP)`;
-          break;
-        case 'frequency_crystal':
-          targetSpirit.maxHp += 10;
-          targetSpirit.hp = Math.min(targetSpirit.maxHp, targetSpirit.hp + 10);
-          targetSpirit.attack += 3;
-          buffSummary = `${targetSpirit.name}'s Max HP increased by +10 and Attack by +3!`;
-          break;
-        case 'energy_battery':
-          targetSpirit.maxHp += 15;
-          targetSpirit.hp = Math.min(targetSpirit.maxHp, targetSpirit.hp + 15);
-          targetSpirit.defense += 10;
-          buffSummary = `${targetSpirit.name}'s Defense increased by +10 and Max HP by +15!`;
-          break;
-      }
+      this.startAuditionBattle(target);
+      return;
     }
 
-    this.showDialogue(
-      '✨ ITEM DISCOVERED! ✨',
-      item.icon,
-      [
-        `You found the ${item.name}!`,
-        item.description,
-        `Effect: ${item.effect}`,
-        buffSummary ? `⚡ ${buffSummary}` : ''
-      ].filter(Boolean)
-    );
+    if (target.actionType === 'competition_stage') {
+      this.startConcertCompetition();
+      return;
+    }
 
-    this.updateProximity();
+    this.showDialogue(target.name, '💬', target.dialogue);
   }
 
   /* ---------------- DIALOGUE SYSTEM ---------------- */
-  public advanceDialogue(): void {
-    if (!this.state.dialogue) return;
-    soundEngine.playTone(520, 'sine', 0.05, 0.05);
-
-    if (this.state.dialogue.index < this.state.dialogue.text.length - 1) {
-      this.state.dialogue.index++;
-    } else {
-      const onComplete = this.state.dialogue.onComplete;
-      this.state.dialogue = null;
-      if (onComplete) {
-        onComplete();
-      } else if (this.state.mode === 'intro') {
-        this.state.mode = 'exploration';
-        const currentZoneConfig = ZONE_CONFIGS[this.state.currentZone];
-        soundEngine.switchTrack(currentZoneConfig ? currentZoneConfig.ambientTrack : 'cafe');
-      }
-    }
-  }
-
-  public triggerEmergencyBroadcast(): void {
-    if (this.emergencyTriggered) return;
-    this.emergencyTriggered = true;
-    this.showDialogue('⚠️ EMERGENCY BROADCAST ⚠️', '📳', [
-      "[CRACKLE... BZZZT...] ALL LOCAL FREQUENCY CONNECTIONS SEVERED! THE ISLANDERS' HARMONIMALS ARE DISSOLVING INTO ANALOG STATIC!",
-      "A catastrophic rogue anomaly known as DEAD CHANNEL 000 has hijacked the northern broadcast tower on Desolation Ridge!",
-      "[Aria ☕] Latte-Chirp! My sweet songbird... the connection vanished into static! 😭",
-      "Streamer, your Chime-Cat is visiting from another land... its carrier wave is completely immune to the distortion!",
-      "Our only hope is to seek out the 3 ancient Musical Tradition Shrines across the island's cultural biomes: on the Tidal Sands, in the Bamboo Grove, and inside the Sound Ruins.",
-      "Sample the sacred archetypes at each shrine and bond them with Chime-Cat's frequency to protect them from the static.",
-      "Once you gather all the island's traditions, breach the Glitch Gate to defeat Dead Channel 000 and restore all our music pets!"
-    ], () => {
-      this.state.questStage = 'seek_traditions';
-    });
-  }
 
   public showDialogue(speaker: string, avatar: string, text: string[], onComplete?: () => void): void {
     this.state.dialogue = { speaker, avatar, text, index: 0, onComplete };
   }
 
-  /* ---------------- DISTINCT AUDIO MATCH CHALLENGES ---------------- */
-  public startAudioMatchScan(ripple: SoundRipple): void {
-    this.state.mode = 'audio_match_scan';
-    this.state.audioMatch = {
-      stage: 1,
-      challengeType: ripple.challengeType,
-      spiritToUnlock: JSON.parse(JSON.stringify(ripple.spirit)),
-      isComplete: false,
-      targetFreq: 65,
-      playerFreq: 15,
-      holdTime: 0,
-      melodySequence: [0, 2, 1, 2], // Low, High, Mid, High
-      playerSequence: [],
-      activeDemoNote: null,
-      isListeningToPlayer: false,
-      pulseRadius: 0,
-      targetRadius: 110,
-      combo: 0,
-      feedback: null
-    };
-
-    if (ripple.challengeType === 'call_response') {
-      setTimeout(() => this.playMelodyDemo(), 400);
-    }
-  }
-
-  public setPlayerFrequency(val: number): void {
-    const match = this.state.audioMatch;
-    if (!match || match.challengeType !== 'waveform_slider') return;
-    match.playerFreq = val;
-    soundEngine.playTone(200 + val * 5, 'sine', 0.04, 0.04);
-  }
-
-  public playMelodyDemo(): void {
-    const match = this.state.audioMatch;
-    if (!match || match.challengeType !== 'call_response') return;
-
-    match.playerSequence = [];
-    match.isListeningToPlayer = false;
-
-    match.melodySequence.forEach((note, idx) => {
-      setTimeout(() => {
-        if (this.state.audioMatch?.challengeType === 'call_response') {
-          this.state.audioMatch.activeDemoNote = note;
-          soundEngine.playPadTone(note);
-          setTimeout(() => {
-            if (this.state.audioMatch) this.state.audioMatch.activeDemoNote = null;
-          }, 250);
-        }
-      }, idx * 500 + 400);
-    });
-
-    setTimeout(() => {
-      if (this.state.audioMatch?.challengeType === 'call_response') {
-        this.state.audioMatch.isListeningToPlayer = true;
-      }
-    }, match.melodySequence.length * 500 + 600);
-  }
-
-  public inputMelodyPad(padIndex: number): void {
-    const match = this.state.audioMatch;
-    if (!match || match.challengeType !== 'call_response' || !match.isListeningToPlayer) return;
-
-    soundEngine.playPadTone(padIndex);
-    match.playerSequence.push(padIndex);
-
-    const curStep = match.playerSequence.length - 1;
-    if (match.playerSequence[curStep] !== match.melodySequence[curStep]) {
-      soundEngine.playTone(120, 'sawtooth', 0.3, 0.15);
-      match.playerSequence = [];
-      setTimeout(() => this.playMelodyDemo(), 600);
-      return;
-    }
-
-    if (match.playerSequence.length === match.melodySequence.length) {
-      this.completeAudioMatch();
-    }
-  }
-
-  public hitRhythmPulse(): void {
-    const match = this.state.audioMatch;
-    if (!match || match.challengeType !== 'rhythm_pulse' || match.isComplete) return;
-
-    const diff = Math.abs(match.pulseRadius - match.targetRadius);
-    if (diff < 18) {
-      match.combo++;
-      match.feedback = `✨ ON BEAT! (${match.combo}/3) ✨`;
-      soundEngine.playRhythmHit('PERFECT');
-
-      if (match.combo >= 3) {
-        this.completeAudioMatch();
-      }
+  public advanceDialogue(): void {
+    if (!this.state.dialogue) return;
+    if (this.state.dialogue.index < this.state.dialogue.text.length - 1) {
+      this.state.dialogue.index++;
     } else {
-      match.combo = Math.max(0, match.combo - 1);
-      match.feedback = '❌ OFF BEAT! Try again';
-      soundEngine.playRhythmHit('MISS');
+      const cb = this.state.dialogue.onComplete;
+      this.state.dialogue = null;
+      if (cb) cb();
     }
   }
 
-  public completeAudioMatch(): void {
-    const match = this.state.audioMatch;
-    if (!match || match.isComplete) return;
+  public handleKeyDown(code: string): void {
+    this.keysDown.add(code);
 
-    match.isComplete = true;
-    soundEngine.playSuccessDing();
-    soundEngine.playCreatureMotif(match.spiritToUnlock.id);
-
-    setTimeout(() => {
-      const unlocked = match.spiritToUnlock;
-      this.state.streamQueue.push(unlocked);
-      const rip = this.state.soundRipples.find(r => r.spirit.id === unlocked.id);
-      if (rip) rip.discovered = true;
-
-      if (this.state.questStage === 'seek_traditions' && this.state.streamQueue.length >= 3) {
-        this.state.questStage = 'ruins_clearing';
-      }
-
-      this.state.audioMatch = null;
-      this.state.mode = 'exploration';
-      this.showDialogue(unlocked.name, unlocked.avatar, [
-        `✨ SACRED TRADITION SAMPLED! Attuned to ${unlocked.name} [${unlocked.vibeTag}]!`,
-        `Origin Tradition: ${unlocked.originTradition} (${unlocked.instrument}).`,
-        `The ${unlocked.name} archetype has bonded with Chime-Cat's uncorrupted carrier frequency, shielding it from Dead Channel 000!`,
-        `💡 Added to your master playlist! In battle, sample defeated ${unlocked.type} monsters to enrich this archetype toward Harmonic Evolution!`
-      ]);
-    }, 1000);
-  }
-
-  public switchActiveSpirit(index: number): void {
-    if (index >= 0 && index < this.state.streamQueue.length) {
-      this.state.activeSpiritIndex = index;
-      const active = this.state.streamQueue[index];
-      soundEngine.playCreatureMotif(active.id);
-
-      // In Battle: Live stem sampling into the active channel
-      if (this.state.mode === 'battle' && this.state.battle && this.state.battle.turn === 'player') {
-        const prevHp = this.state.battle.playerSpirit.hp;
-        const prevMax = this.state.battle.playerSpirit.maxHp;
-        const ratio = prevHp / prevMax;
-        this.state.battle.playerSpirit = JSON.parse(JSON.stringify(active));
-        this.state.battle.playerSpirit.hp = Math.max(1, Math.floor(this.state.battle.playerSpirit.maxHp * ratio));
-        this.state.battle.log = `🎛️ STEM SWITCH: Sampled ${active.name} [${active.vibeTag}]! Leitmotif active.`;
-      }
-    }
-  }
-
-  public cycleActiveSpirit(): void {
-    if (this.state.streamQueue.length <= 1) return;
-    const nextIdx = (this.state.activeSpiritIndex + 1) % this.state.streamQueue.length;
-    this.switchActiveSpirit(nextIdx);
-  }
-
-  /* ---------------- BATTLE & RHYTHM TIMING SYSTEM ---------------- */
-  public startWildBattle(glitch: WildGlitchEntity): void {
-    this.state.mode = 'battle';
-    soundEngine.switchTrack('battle');
-    const playerSpirit = JSON.parse(JSON.stringify(this.state.streamQueue[this.state.activeSpiritIndex] || this.state.streamQueue[0] || STARTER_SPIRIT));
-
-    this.state.battle = {
-      type: 'wild',
-      playerSpirit,
-      enemySpirit: JSON.parse(JSON.stringify(glitch.spirit)),
-      turn: 'player',
-      pendingMoveIndex: null,
-      rhythmCursor: 0,
-      rhythmSpeed: 1.2,
-      targetWindowStart: 0.40,
-      targetWindowEnd: 0.65,
-      rhythmResult: null,
-      log: `A wild ${glitch.name} emerged from the static sands! Pick a move!`,
-      canBlend: this.state.streamQueue.length >= 2,
-      blendActive: false
-    };
-  }
-
-  public startBattle(type: 'rival' | 'boss'): void {
-    this.state.mode = 'battle';
-    soundEngine.switchTrack('battle');
-    const playerSpirit = JSON.parse(JSON.stringify(this.state.streamQueue[this.state.activeSpiritIndex] || this.state.streamQueue[0] || STARTER_SPIRIT));
-
-    if (type === 'rival') {
-      this.state.battle = {
-        type: 'rival',
-        playerSpirit,
-        enemySpirit: JSON.parse(JSON.stringify(JAX_SPIRIT)),
-        turn: 'player',
-        pendingMoveIndex: null,
-        rhythmCursor: 0,
-        rhythmSpeed: 1.4,
-        targetWindowStart: 0.40,
-        targetWindowEnd: 0.65,
-        rhythmResult: null,
-        log: `${RIVAL_JAX.name} dropped into battle with Bass-Hound! Pick a move!`,
-        canBlend: false,
-        blendActive: false
-      };
-    } else {
-      this.state.glitchActive = true;
-      soundEngine.setWarped(true);
-      this.state.battle = {
-        type: 'boss',
-        playerSpirit,
-        enemyBoss: JSON.parse(JSON.stringify(BOSS_SIGNAL_OVERLORD)),
-        turn: 'player',
-        pendingMoveIndex: null,
-        rhythmCursor: 0,
-        rhythmSpeed: 1.6,
-        targetWindowStart: 0.38,
-        targetWindowEnd: 0.62,
-        rhythmResult: null,
-        log: `DEAD CHANNEL 000 hijacked the feed! Press [B] to FUSE with Bass-Hound!`,
-        canBlend: true,
-        blendActive: false
-      };
-    }
-  }
-
-  public initiatePlayerMove(moveIndex: number): void {
-    const b = this.state.battle;
-    if (!b || b.turn !== 'player') return;
-
-    b.pendingMoveIndex = moveIndex;
-    b.turn = 'rhythm_timing';
-    b.rhythmCursor = 0;
-    b.rhythmResult = null;
-    b.log = `Sync your attack! Hit [SPACE] or Click in the green target zone!`;
-  }
-
-  public resolveRhythmHit(): void {
-    const b = this.state.battle;
-    if (!b || b.turn !== 'rhythm_timing' || b.pendingMoveIndex === null) return;
-
-    const inWindow = b.rhythmCursor >= b.targetWindowStart && b.rhythmCursor <= b.targetWindowEnd;
-    const center = (b.targetWindowStart + b.targetWindowEnd) / 2;
-    const dist = Math.abs(b.rhythmCursor - center);
-
-    let grade: 'PERFECT' | 'GREAT' | 'MISS' = 'MISS';
-    let multiplier = 0.5;
-
-    if (inWindow) {
-      if (dist < 0.05) {
-        grade = 'PERFECT';
-        multiplier = 1.5;
-        b.playerSpirit.energy = Math.min(100, b.playerSpirit.energy + 10);
-      } else {
-        grade = 'GREAT';
-        multiplier = 1.0;
+    if (code === 'Space' || code === 'Enter') {
+      if (this.state.dialogue) {
+        this.advanceDialogue();
+      } else if (this.state.mode === 'exploration') {
+        this.interactWithNearby();
+      } else if (this.state.mode === 'practice') {
+        this.hitPracticeNote(0);
+      } else if (this.state.mode === 'competition') {
+        this.advanceConcertPerformance();
       }
     }
 
-    b.rhythmResult = grade;
-    soundEngine.playRhythmHit(grade);
-
-    const move = b.playerSpirit.moves[b.pendingMoveIndex];
-    b.turn = 'animating';
-
-    // Global Genre Affinity Multipliers:
-    // 🎻 Symphonic > 🎹 Synth > 🪕 Global > 🎷 Jazz > 🎻 Symphonic
-    let genreMult = 1.0;
-    const eType = (b.type === 'rival' || b.type === 'wild') ? b.enemySpirit?.type : b.enemyBoss?.type;
-    if (move.type === 'symphonic' && eType === 'synth') genreMult = 1.5;
-    if (move.type === 'synth' && eType === 'global') genreMult = 1.5;
-    if (move.type === 'global' && eType === 'jazz') genreMult = 1.5;
-    if (move.type === 'jazz' && eType === 'symphonic') genreMult = 1.5;
-    if (move.type === 'bass' && (eType === 'jazz' || eType === 'synth')) genreMult = 1.3;
-    if (move.type === 'cosmic' && eType === 'static') genreMult = 1.8;
-
-    const totalDmg = Math.max(8, Math.floor((move.power + b.playerSpirit.attack * 0.4) * multiplier * genreMult));
-
-    soundEngine.playMoveSound(move.soundType);
-
-    setTimeout(() => {
-      if ((b.type === 'rival' || b.type === 'wild') && b.enemySpirit) {
-        b.enemySpirit.hp = Math.max(0, b.enemySpirit.hp - totalDmg);
-        b.log = `[${grade} SYNC!] ${b.playerSpirit.name} landed ${move.name} for ${totalDmg} damage!`;
-        if (b.enemySpirit.hp <= 0) {
-          setTimeout(() => this.handleBattleVictory(), 1000);
-          return;
-        }
-      } else if (b.type === 'boss' && b.enemyBoss) {
-        b.enemyBoss.hp = Math.max(0, b.enemyBoss.hp - totalDmg);
-        b.log = `[${grade} SYNC!] ${b.playerSpirit.name} smashed the Core for ${totalDmg} damage!`;
-        if (b.enemyBoss.hp <= 0) {
-          setTimeout(() => this.handleBattleVictory(), 1000);
-          return;
-        }
-      }
-
-      setTimeout(() => this.executeEnemyTurn(), 1200);
-    }, 600);
-  }
-
-  public triggerPlaylistBlend(): void {
-    const b = this.state.battle;
-    if (!b || !b.canBlend || b.blendActive) return;
-
-    soundEngine.playCleansingBloom();
-    b.blendActive = true;
-    b.playerSpirit = JSON.parse(JSON.stringify(FUSED_CHIMERA));
-    b.log = `🌟 MULTIPART HARMONY FUSION! Mixed all active stems into the Omni-Harmony Chimera!`;
-  }
-
-  private executeEnemyTurn(): void {
-    const b = this.state.battle;
-    if (!b) return;
-
-    let enemyName = '';
-    let move: Move;
-
-    if ((b.type === 'rival' || b.type === 'wild') && b.enemySpirit) {
-      enemyName = b.enemySpirit.name;
-      move = b.enemySpirit.moves[Math.floor(Math.random() * b.enemySpirit.moves.length)];
-    } else if (b.type === 'boss' && b.enemyBoss) {
-      enemyName = b.enemyBoss.name;
-      move = b.enemyBoss.moves[Math.floor(Math.random() * b.enemyBoss.moves.length)];
-    } else {
-      return;
+    if (this.state.mode === 'practice') {
+      if (code === 'Digit1' || code === 'KeyA') this.hitPracticeNote(0);
+      if (code === 'Digit2' || code === 'KeyS') this.hitPracticeNote(1);
+      if (code === 'Digit3' || code === 'KeyD') this.hitPracticeNote(2);
+      if (code === 'Digit4' || code === 'KeyF') this.hitPracticeNote(3);
     }
-
-    soundEngine.playMoveSound(move.soundType);
-    const dmg = Math.max(6, Math.floor(move.power * 0.7));
-    b.playerSpirit.hp = Math.max(1, b.playerSpirit.hp - dmg);
-
-    b.log = `${enemyName} unleashed ${move.name}! Dealt ${dmg} damage.`;
-    b.turn = 'player';
   }
 
-  private handleBattleVictory(): void {
-    const b = this.state.battle!;
-    if (b.type === 'wild') {
-      soundEngine.playSuccessDing();
-      soundEngine.playLockChime();
-      this.state.mode = 'exploration';
-      this.state.battle = null;
-      soundEngine.switchTrack('town');
-
-      // Find and mark defeated
-      const activeGlitch = this.state.wildGlitches.find(g => !g.defeated && g.spirit.id === b.enemySpirit?.id);
-      if (activeGlitch) activeGlitch.defeated = true;
-      if (b.enemySpirit?.id === 'spirit_glitch_golem') {
-        this.state.questStage = 'ridge_breach';
-      }
-
-      // Frequency Resonance XP & Level Up
-      const activeSpirit = this.state.streamQueue[this.state.activeSpiritIndex] || this.state.streamQueue[0];
-
-      // Sample Harmonic Stems & Archetype Evolution
-      const targetSpirit = this.state.streamQueue.find(s => s.type === b.enemySpirit?.type) || activeSpirit;
-      targetSpirit.harmonicEnrichment = (targetSpirit.harmonicEnrichment || 0) + 1;
-      let evolutionMsg = '';
-      if (targetSpirit.harmonicEnrichment >= 3 && !targetSpirit.isEvolved) {
-        targetSpirit.isEvolved = true;
-        if (targetSpirit.id === 'spirit_chime_cat') {
-          targetSpirit.name = 'Polyphonic Synth-Cat';
-          targetSpirit.title = 'Prism Spectrum Synthesizer';
-          targetSpirit.maxHp += 30;
-          targetSpirit.attack += 8;
-          targetSpirit.moves.push({
-            id: 'move_cat_evo',
-            name: 'PRISM SPECTRUM ARPEGGIO',
-            type: 'synth',
-            power: 45,
-            cost: 20,
-            description: 'Cascading polyphonic chord progression piercing static.',
-            soundType: 'arpeggio'
-          });
-        } else if (targetSpirit.id === 'spirit_allegro_owl') {
-          targetSpirit.name = 'Virtuoso Violin-Owl';
-          targetSpirit.title = 'Concertmaster of the Grand Hall';
-          targetSpirit.maxHp += 35;
-          targetSpirit.attack += 10;
-          targetSpirit.moves.push({
-            id: 'move_owl_evo',
-            name: 'BAROQUE CONCERTO FINALE',
-            type: 'symphonic',
-            power: 50,
-            cost: 25,
-            description: 'Furious double-stop violin bowings pierce discordant waves.',
-            soundType: 'violin_staccato'
-          });
-        } else if (targetSpirit.id === 'spirit_sitar_swan') {
-          targetSpirit.name = 'Raga Maharaja-Swan';
-          targetSpirit.title = 'Transcendental Veena Sovereign';
-          targetSpirit.maxHp += 35;
-          targetSpirit.attack += 10;
-          targetSpirit.moves.push({
-            id: 'move_swan_evo',
-            name: 'TRANSCENDENTAL RAGA GLIDE',
-            type: 'global',
-            power: 48,
-            cost: 22,
-            description: 'Microtonal meend glides resonate with celestial harmony.',
-            soundType: 'sitar_twang'
-          });
-        } else if (targetSpirit.id === 'spirit_taiko_tanuki') {
-          targetSpirit.name = 'O-Daiko Thunder-Tanuki';
-          targetSpirit.title = 'Matsuri Thunder Master';
-          targetSpirit.maxHp += 40;
-          targetSpirit.defense += 8;
-          targetSpirit.moves.push({
-            id: 'move_tanuki_evo',
-            name: 'THUNDER FESTIVAL CRESCENDO',
-            type: 'global',
-            power: 52,
-            cost: 25,
-            description: 'Seismic barrage of taiko thunder booms that shatters static.',
-            soundType: 'taiko_boom'
-          });
-        } else if (targetSpirit.id === 'spirit_bass_hound') {
-          targetSpirit.name = 'Sub-Zero Mega-Hound';
-          targetSpirit.title = 'Seismic Overdrive Colossus';
-          targetSpirit.maxHp += 45;
-          targetSpirit.attack += 12;
-          targetSpirit.moves.push({
-            id: 'move_hound_evo',
-            name: 'SEISMIC 808 EARTHQUAKE',
-            type: 'bass',
-            power: 55,
-            cost: 25,
-            description: 'Sub-bass pressure wave that levels all static interference.',
-            soundType: 'bass_drop'
-          });
-        }
-        targetSpirit.hp = targetSpirit.maxHp;
-        evolutionMsg = ` 🌟 HARMONIC EVOLUTION! ${targetSpirit.name} absorbed the wild stems and evolved!`;
-      }
-
-      // Frequency Resonance XP & Level Up
-      activeSpirit.xp += 50;
-      let levelUpMsg = '';
-      if (activeSpirit.xp >= activeSpirit.maxXp) {
-        activeSpirit.level++;
-        activeSpirit.xp -= activeSpirit.maxXp;
-        activeSpirit.maxXp = Math.floor(activeSpirit.maxXp * 1.5);
-        activeSpirit.maxHp += 15;
-        activeSpirit.hp = activeSpirit.maxHp;
-        activeSpirit.attack += 4;
-        levelUpMsg = ` 🌟 LEVEL UP! ${activeSpirit.name} reached Lv. ${activeSpirit.level}! (Max HP +15, ATK +4)`;
-      }
-
-      this.showDialogue('Battle Victory', '✨🎉', [
-        `✨ You cleansed the ${b.enemySpirit?.name || 'Wild Glitch'} and sampled its harmonic stem!`,
-        `🎶 ${targetSpirit.name} gained +1 Harmonic Resonance (${targetSpirit.harmonicEnrichment}/3 stems)${evolutionMsg}`,
-        `${activeSpirit.name} gained +50 Frequency Resonance (XP)!${levelUpMsg}`,
-        `Keep attuning at the cultural shrines to unlock all archetype traditions!`
-      ]);
-    } else if (b.type === 'rival') {
-      soundEngine.playLockChime();
-      this.state.activeCompanion = 'jax';
-      this.state.questStage = 'gate_ready';
-      if (!this.state.streamQueue.find(s => s.id === JAX_SPIRIT.id)) {
-        this.state.streamQueue.push(JSON.parse(JSON.stringify(JAX_SPIRIT)));
-      }
-      this.state.mode = 'exploration';
-      this.state.battle = null;
-      soundEngine.switchTrack('town');
-
-      this.showDialogue('Jax & Bass-Hound', '🐶🎸', [
-        "Whoa... okay, your timing is clean and your rhythm is sharp. I respect that!",
-        "My Sub-Woofer Bass-Hound track is officially added to your master playlist! 🐶🎸",
-        "We're linked and ready. In battle, you can sample my overdrive bass stem or trigger our Multipart Harmony Fusion!",
-        "Whenever you're ready for the final battle, step up to the Glitch Gate to breach the static storm together!"
-      ]);
-    } else if (b.type === 'boss') {
-      this.state.mode = 'cleansing_cinematic';
-      this.state.battle = null;
-      this.state.cleansingProgress = 0;
-      soundEngine.playCleansingBloom();
-    }
+  public handleKeyUp(code: string): void {
+    this.keysDown.delete(code);
   }
 }
 
-export { AstralGameEngine as GameEngine };
+export const GameEngine = HarmoniaGameEngine;
