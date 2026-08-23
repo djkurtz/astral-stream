@@ -1,8 +1,7 @@
-// Harmonia: Opus of the Ensemble - Game Database
-
 import {
   Harmonipet, Musician, RepertoirePiece, RivalEnsemble, WorldZone, WorldNPC, BattleMove, InstrumentId,
-  InstrumentArtifact, LostScore, InspirationVista, PerformanceVenue, GameQuest
+  InstrumentArtifact, LostScore, InspirationVista, PerformanceVenue, GameQuest,
+  HarmoniDexEntry, ClefBadge
 } from './types';
 
 /* ---------------- STARTER INSTRUMENTS & PETS ---------------- */
@@ -779,6 +778,96 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     dialogue: [
       "Oh my! My grandfather's music box lost its cylinder pins. If you can gather brass pins from the luthier, I'll reward you handsomely with 150 Notes (♪)!"
     ]
+  },
+
+  // Wild Harmonipets for Bonding
+  {
+    id: 'npc_wild_hare',
+    name: 'Wild Vivace Hare',
+    title: 'Wild Harmonipet (Acoustic Guitar) [SPACE to Harmonize]',
+    x: 1750,
+    y: 750,
+    zone: 'cavatina_village',
+    actionType: 'wild_harmonipet',
+    wildPetData: {
+      id: 'pet_hare_wild',
+      name: 'Vivace',
+      species: 'Vivace Hare',
+      sprite: '🐇',
+      section: 'strings',
+      instrumentName: 'Acoustic Guitar',
+      leitmotifSound: 'guitar_strum',
+      color: '#f59e0b'
+    },
+    dialogue: [
+      "A wild Vivace Hare is strumming harmonic rhythms on its acoustic guitar! Match its cadence to bond with it!"
+    ]
+  },
+  {
+    id: 'npc_wild_otter',
+    name: 'Wild Cantabile Otter',
+    title: 'Wild Harmonipet (Oboe) [SPACE to Harmonize]',
+    x: 1550,
+    y: 850,
+    zone: 'woodwind_woods',
+    actionType: 'wild_harmonipet',
+    wildPetData: {
+      id: 'pet_otter_wild',
+      name: 'Lento',
+      species: 'Cantabile Otter',
+      sprite: '🦦',
+      section: 'woodwinds',
+      instrumentName: 'Oboe',
+      leitmotifSound: 'oboe_melody',
+      color: '#10b981'
+    },
+    dialogue: [
+      "A graceful Cantabile Otter is piping warm lyrical melodies by the brook! Match its cadence to bond with it!"
+    ]
+  },
+  {
+    id: 'npc_wild_ram',
+    name: 'Wild Alpine Ram',
+    title: 'Wild Harmonipet (French Horn) [SPACE to Harmonize]',
+    x: 1600,
+    y: 700,
+    zone: 'brass_citadel',
+    actionType: 'wild_harmonipet',
+    wildPetData: {
+      id: 'pet_ram_wild',
+      name: 'Rondo',
+      species: 'Alpine Ram',
+      sprite: '🐏',
+      section: 'brass',
+      instrumentName: 'French Horn',
+      leitmotifSound: 'horn_call',
+      color: '#f97316'
+    },
+    dialogue: [
+      "A noble Alpine Ram calls out with rich horn echoes! Match its cadence to bond with it!"
+    ]
+  },
+  {
+    id: 'npc_wild_squirrel',
+    name: 'Wild Marimba Squirrel',
+    title: 'Wild Harmonipet (Rosewood Marimba) [SPACE to Harmonize]',
+    x: 1400,
+    y: 850,
+    zone: 'percussion_peaks',
+    actionType: 'wild_harmonipet',
+    wildPetData: {
+      id: 'pet_squirrel_wild',
+      name: 'Click',
+      species: 'Marimba Squirrel',
+      sprite: '🐿️',
+      section: 'percussion',
+      instrumentName: 'Marimba',
+      leitmotifSound: 'marimba_roll',
+      color: '#ec4899'
+    },
+    dialogue: [
+      "A nimble Marimba Squirrel is tapping energetic triplets on polished rosewood bars! Match its cadence to bond with it!"
+    ]
   }
 ];
 
@@ -1036,5 +1125,314 @@ export const INITIAL_GAME_QUESTS: GameQuest[] = [
     rewardSparks: 10,
     rewardStars: 0,
     completed: false
+  }
+];
+
+/* ---------------- THE HARMONIDEX (16 CREATURE BESTIARY) ---------------- */
+
+export const INITIAL_HARMONIDEX: HarmoniDexEntry[] = [
+  // Strings (4 Species)
+  {
+    id: 'dex_swan',
+    species: 'Allegro Swan',
+    name: 'Allegro',
+    section: 'strings',
+    instrumentId: 'violin',
+    instrumentName: 'Violin',
+    sprite: '🦢',
+    description: 'An elegant avian familiar known for soaring lyrical cantilenas and razor-sharp spiccato bowing.',
+    discovered: true,
+    bonded: true,
+    evolutionStage: 1,
+    evolvesTo: 'Symphonic Swan',
+    evolutionLevel: 20
+  },
+  {
+    id: 'dex_hare',
+    species: 'Vivace Hare',
+    name: 'Vivace',
+    section: 'strings',
+    instrumentId: 'acoustic_guitar',
+    instrumentName: 'Acoustic Guitar',
+    sprite: '🐇',
+    description: 'A nimble woodland creature that strums rapid rasgueado chords with astonishing speed.',
+    discovered: false,
+    bonded: false,
+    evolutionStage: 1,
+    evolvesTo: 'Virtuoso Hare',
+    evolutionLevel: 20
+  },
+  {
+    id: 'dex_fox',
+    species: 'Andante Fox',
+    name: 'Soren',
+    section: 'strings',
+    instrumentId: 'cello',
+    instrumentName: 'Cello',
+    sprite: '🦊',
+    description: 'A wise russet fox whose cello vibrations resonate deeply within the listener’s heart.',
+    discovered: false,
+    bonded: false,
+    evolutionStage: 1,
+    evolvesTo: 'Maestro Fox',
+    evolutionLevel: 20
+  },
+  {
+    id: 'dex_dolphin',
+    species: 'Glissando Dolphin',
+    name: 'Marina',
+    section: 'strings',
+    instrumentId: 'harp',
+    instrumentName: 'Concert Harp',
+    sprite: '🐬',
+    description: 'A magical marine creature that plucks shimmering arpeggios that mimic the ocean spray.',
+    discovered: false,
+    bonded: false,
+    evolutionStage: 1
+  },
+
+  // Woodwinds (4 Species)
+  {
+    id: 'dex_finch',
+    species: 'Piccolo Finch',
+    name: 'Pip',
+    section: 'woodwinds',
+    instrumentId: 'silver_flute',
+    instrumentName: 'Silver Flute',
+    sprite: '🐦',
+    description: 'A vibrant songbird producing crystalline high-register trills that carry across mountain winds.',
+    discovered: true,
+    bonded: false,
+    evolutionStage: 1,
+    evolvesTo: 'Seraph Finch',
+    evolutionLevel: 20
+  },
+  {
+    id: 'dex_otter',
+    species: 'Cantabile Otter',
+    name: 'Lento',
+    section: 'woodwinds',
+    instrumentId: 'oboe',
+    instrumentName: 'Oboe',
+    sprite: '🦦',
+    description: 'A playful aquatic familiar whose double-reed timbre possesses melancholic and noble depth.',
+    discovered: false,
+    bonded: false,
+    evolutionStage: 1
+  },
+  {
+    id: 'dex_lynx',
+    species: 'Clarinet Lynx',
+    name: 'Sonata',
+    section: 'woodwinds',
+    instrumentId: 'clarinet',
+    instrumentName: 'Bb Clarinet',
+    sprite: '🐱',
+    description: 'A sleek predator capable of gliding effortlessly between liquid low chalumeau and bright clarion registers.',
+    discovered: false,
+    bonded: false,
+    evolutionStage: 1
+  },
+  {
+    id: 'dex_badger',
+    species: 'Bassoon Badger',
+    name: 'Grave',
+    section: 'woodwinds',
+    instrumentId: 'soprano_sax',
+    instrumentName: 'Soprano Sax / Reeds',
+    sprite: '🦡',
+    description: 'A grounded familiar whose staccato bass notes form the bedrock of woodwind counterpoint.',
+    discovered: false,
+    bonded: false,
+    evolutionStage: 1
+  },
+
+  // Brass (4 Species)
+  {
+    id: 'dex_terrier',
+    species: 'Fanfare Terrier',
+    name: 'Buster',
+    section: 'brass',
+    instrumentId: 'pocket_trumpet',
+    instrumentName: 'Pocket Trumpet',
+    sprite: '🐕',
+    description: 'An enthusiastic canine familiar whose brassy barks sound like regal royal fanfares.',
+    discovered: true,
+    bonded: false,
+    evolutionStage: 1,
+    evolvesTo: 'Grand Herald Hound',
+    evolutionLevel: 20
+  },
+  {
+    id: 'dex_ram',
+    species: 'Alpine Ram',
+    name: 'Rondo',
+    section: 'brass',
+    instrumentId: 'french_horn',
+    instrumentName: 'French Horn',
+    sprite: '🐏',
+    description: 'With curling golden horns, this majestic creature projects warm heroic calls across the alpine peaks.',
+    discovered: false,
+    bonded: false,
+    evolutionStage: 1
+  },
+  {
+    id: 'dex_lion',
+    species: 'Regal Lion',
+    name: 'Brillante',
+    section: 'brass',
+    instrumentId: 'trombone',
+    instrumentName: 'Tenor Trombone',
+    sprite: '🦁',
+    description: 'A proud monarch whose roaring glissandos command immediate dynamic attention on the battlefield.',
+    discovered: false,
+    bonded: false,
+    evolutionStage: 1
+  },
+  {
+    id: 'dex_elephant',
+    species: 'Tuba Elephant',
+    name: 'Basso',
+    section: 'brass',
+    instrumentId: 'tuba',
+    instrumentName: 'Bass Tuba',
+    sprite: '🐘',
+    description: 'A gentle giant whose seismic pedal tones shake the earth and anchor the harmony.',
+    discovered: false,
+    bonded: false,
+    evolutionStage: 1
+  },
+
+  // Percussion (4 Species)
+  {
+    id: 'dex_raccoon',
+    species: 'Beat Raccoon',
+    name: 'Tempo',
+    section: 'percussion',
+    instrumentId: 'snare_kit',
+    instrumentName: 'Snare & Hi-Hat',
+    sprite: '🦝',
+    description: 'A dexterous trickster who can maintain complex polyrhythmic beats without missing a single pulse.',
+    discovered: true,
+    bonded: false,
+    evolutionStage: 1,
+    evolvesTo: 'Groove Master Raccoon',
+    evolutionLevel: 20
+  },
+  {
+    id: 'dex_bear',
+    species: 'Thunder Bear',
+    name: 'Kensho',
+    section: 'percussion',
+    instrumentId: 'timpani',
+    instrumentName: 'Timpani',
+    sprite: '🐻',
+    description: 'A colossal mountain guardian that strikes kettle drums with thunderous fortissimo authority.',
+    discovered: false,
+    bonded: false,
+    evolutionStage: 1
+  },
+  {
+    id: 'dex_squirrel',
+    species: 'Marimba Squirrel',
+    name: 'Click',
+    section: 'percussion',
+    instrumentId: 'marimba',
+    instrumentName: 'Rosewood Marimba',
+    sprite: '🐿️',
+    description: 'Darting along polished wooden bars, this creature produces sparkling xylophonic cascades.',
+    discovered: false,
+    bonded: false,
+    evolutionStage: 1
+  },
+  {
+    id: 'dex_owl',
+    species: 'Chime Owl',
+    name: 'Luna',
+    section: 'percussion',
+    instrumentId: 'glockenspiel',
+    instrumentName: 'Glockenspiel',
+    sprite: '🦉',
+    description: 'A nocturnal familiar that taps pure bell-metal tones, resonating with celestial clarity.',
+    discovered: false,
+    bonded: false,
+    evolutionStage: 1
+  }
+];
+
+/* ---------------- THE 8 CONSERVATORY CLEF BADGES ---------------- */
+
+export const CLEF_BADGES: ClefBadge[] = [
+  {
+    id: 'badge_prelude',
+    name: 'Prelude Clef',
+    icon: '𝄞',
+    section: 'strings',
+    conservatory: 'Cavatina Village Academy',
+    maestroName: 'Lady Beatrice',
+    obtained: false
+  },
+  {
+    id: 'badge_pastorale',
+    name: 'Pastorale Clef',
+    icon: '𝄢',
+    section: 'woodwinds',
+    conservatory: 'Pastoral Meadow Conservatory',
+    maestroName: 'Master Rowan',
+    obtained: false
+  },
+  {
+    id: 'badge_bossa',
+    name: 'Bossa Clef',
+    icon: '𝄡',
+    section: 'percussion',
+    conservatory: 'Port Resonata Jazz Pavilion',
+    maestroName: 'Duke Sterling',
+    obtained: false
+  },
+  {
+    id: 'badge_cadenza',
+    name: 'Cadenza Clef',
+    icon: '𝄪',
+    section: 'brass',
+    conservatory: 'Metro Cadenza Gilded Guild',
+    maestroName: 'Baron Von Brass',
+    obtained: false
+  },
+  {
+    id: 'badge_rondo',
+    name: 'Rondo Clef',
+    icon: '𝄫',
+    section: 'strings',
+    conservatory: 'Echo Canyon Hermitage',
+    maestroName: 'Maestro Soren',
+    obtained: false
+  },
+  {
+    id: 'badge_scherzo',
+    name: 'Scherzo Clef',
+    icon: '𝄬',
+    section: 'percussion',
+    conservatory: 'Mountbeat Taiko Monastery',
+    maestroName: 'Grandmaster Kensho',
+    obtained: false
+  },
+  {
+    id: 'badge_nocturne',
+    name: 'Nocturne Clef',
+    icon: '𝄭',
+    section: 'woodwinds',
+    conservatory: 'Starlight Conservatory of Sonora',
+    maestroName: 'Lady Selene',
+    obtained: false
+  },
+  {
+    id: 'badge_overture',
+    name: 'Overture Clef',
+    icon: '𝄮',
+    section: 'all',
+    conservatory: 'Grand Citadel of Virtuosos',
+    maestroName: 'General Roland',
+    obtained: false
   }
 ];

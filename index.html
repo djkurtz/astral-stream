@@ -15,6 +15,8 @@
       <button id="btn-practice" class="tool-btn" title="Practice your instrument">🎹 [P] Practice Shed</button>
       <button id="btn-repertoire" class="tool-btn" title="View sheet music repertoire">📜 [R] Repertoire</button>
       <button id="btn-ensemble" class="tool-btn" title="Inspect ensemble members">🐾 [E] Ensemble</button>
+      <button id="btn-dex" class="tool-btn" title="Open HarmoniDex Bestiary">📖 [D] HarmoniDex</button>
+      <button id="btn-badges" class="tool-btn" title="View Conservatory Badges">🏆 [B] Badges</button>
     </div>
 
     <!-- Repertoire Sheet Music Modal -->
@@ -38,6 +40,32 @@
           <button id="btn-close-ensemble" class="btn-close">&times;</button>
         </div>
         <div id="ensemble-roster-list" class="modal-body">
+          <!-- Populated by ui.ts -->
+        </div>
+      </div>
+    </div>
+
+    <!-- HarmoniDex Modal -->
+    <div id="modal-dex" class="modal-overlay hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="modal-title">📖 Sonora HarmoniDex (Creature Bestiary)</div>
+          <button id="btn-close-dex" class="btn-close">&times;</button>
+        </div>
+        <div id="dex-list" class="modal-body">
+          <!-- Populated by ui.ts -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Clef Badges Modal -->
+    <div id="modal-badges" class="modal-overlay hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="modal-title">🏆 Regional Conservatory Clef Badges</div>
+          <button id="btn-close-badges" class="btn-close">&times;</button>
+        </div>
+        <div id="badges-list" class="modal-body">
           <!-- Populated by ui.ts -->
         </div>
       </div>

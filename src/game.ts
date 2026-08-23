@@ -7,7 +7,8 @@ import {
 import {
   STARTER_OPTIONS, REPERTOIRE_DATABASE,
   RIVAL_ENSEMBLES, WORLD_ZONES, INITIAL_WORLD_NPCS, BATTLE_MOVES,
-  INSTRUMENT_ARTIFACTS, INITIAL_LOST_SCORES, INITIAL_INSPIRATION_VISTAS, INITIAL_GAME_QUESTS
+  INSTRUMENT_ARTIFACTS, INITIAL_LOST_SCORES, INITIAL_INSPIRATION_VISTAS, INITIAL_GAME_QUESTS,
+  INITIAL_HARMONIDEX, CLEF_BADGES
 } from './data';
 import { soundEngine } from './audio';
 
@@ -45,6 +46,9 @@ export class HarmoniaGameEngine {
         fameLevel: 1
       },
       recruitedMusicians: [],
+      ensembleBox: [],
+      harmoniDex: JSON.parse(JSON.stringify(INITIAL_HARMONIDEX)),
+      badges: JSON.parse(JSON.stringify(CLEF_BADGES)),
       repertoire: [REPERTOIRE_DATABASE[0]], // Starter solo piece
       discoveredZones: {
         cavatina_village: true,
@@ -67,6 +71,7 @@ export class HarmoniaGameEngine {
       activeQuestId: 'quest_ch1',
       practiceSession: null,
       auditionBattle: null,
+      harmonizeEncounter: null,
       competition: null,
       dialogue: null,
       time: 0
@@ -97,6 +102,13 @@ export class HarmoniaGameEngine {
     this.state.ensemble.members = [playerMusician];
     this.state.recruitedMusicians = [playerMusician];
     this.state.mode = 'exploration';
+
+    // Mark starter in HarmoniDex
+    const dexEntry = this.state.harmoniDex.find(d => d.instrumentId === starterOpt.id);
+    if (dexEntry) {
+      dexEntry.discovered = true;
+      dexEntry.bonded = true;
+    }
 
     // Start zone ambient music
     soundEngine.startBGM('cavatina_village', [starterOpt.section]);
@@ -334,6 +346,108 @@ export class HarmoniaGameEngine {
     });
   }
 
+  /* ---------------- WILD HARMONIPET BONDING (POKEMON-STYLE CATCHING) ---------------- */
+
+  public startHarmonizeEncounter(npc: WorldNPC): void {
+    if (!npc.wildPetData) return;
+    const pet = npc.wildPetData;
+    const targetMelody = [261.63, 329.63, 392.00, 523.25]; // C E G C
+    this.state.harmonizeEncounter = {
+      pet,
+      instrumentId: (npc.wildPetData.section === 'strings' ? 'acoustic_guitar' : (npc.wildPetData.section === 'woodwinds' ? 'oboe' : (npc.wildPetData.section === 'brass' ? 'french_horn' : 'marimba'))) as InstrumentId,
+      targetMelody,
+      playerInputs: [],
+      resonanceMeter: 20,
+      catchThreshold: 80,
+      attemptsRemaining: 4,
+      concluded: false,
+      caught: false
+    };
+    this.state.mode = 'harmonize_wild';
+    soundEngine.playInstrumentNote(this.state.ensemble.members[0].instrumentId, 440, 0.4, 0.8);
+  }
+
+  public playHarmonizeNote(noteIndex: number = 0): void {
+    const enc = this.state.harmonizeEncounter;
+    if (!enc || enc.concluded) return;
+
+    enc.attemptsRemaining--;
+    const player = this.state.ensemble.members[0];
+    const targetFreq = enc.targetMelody[noteIndex % enc.targetMelody.length];
+    enc.playerInputs.push(targetFreq);
+
+    // Play feedback tone
+    soundEngine.playInstrumentNote(player.instrumentId, targetFreq, 0.3, 0.8);
+
+    // Evaluate accuracy & boost resonance
+    const resonanceGain = Math.floor(25 + (player.stats.technique + player.stats.toneQuality) / 8);
+    enc.resonanceMeter = Math.min(100, enc.resonanceMeter + resonanceGain);
+
+    if (enc.resonanceMeter >= enc.catchThreshold) {
+      // Successfully bonded / caught!
+      enc.concluded = true;
+      enc.caught = true;
+
+      // Update HarmoniDex
+      const dex = this.state.harmoniDex.find(d => d.species === enc.pet.species);
+      if (dex) {
+        dex.discovered = true;
+        dex.bonded = true;
+      }
+
+      // Create new musician partner
+      const newMusician: Musician = {
+        id: `musician_${enc.pet.id}`,
+        name: enc.pet.name,
+        title: `Bonded ${enc.pet.species}`,
+        avatar: enc.pet.sprite,
+        paletteColor: enc.pet.color,
+        instrumentId: enc.instrumentId,
+        instrumentName: enc.pet.instrumentName,
+        section: enc.pet.section,
+        pet: enc.pet,
+        stats: { technique: 25, toneQuality: 25, tempoStability: 25, sightReading: 20 },
+        level: 1,
+        xp: 0
+      };
+
+      if (this.state.ensemble.members.length < 8) {
+        this.state.ensemble.members.push(newMusician);
+        this.state.recruitedMusicians.push(newMusician);
+        const count = this.state.ensemble.members.length;
+        if (count === 2) this.state.ensemble.tier = 'duet';
+        else if (count === 3) this.state.ensemble.tier = 'trio';
+        else if (count >= 4 && count < 6) this.state.ensemble.tier = 'quartet';
+        else if (count >= 6) this.state.ensemble.tier = 'chamber';
+      } else {
+        this.state.ensembleBox.push(newMusician);
+      }
+
+      // Remove NPC from world
+      this.state.npcs = this.state.npcs.filter(n => n.id !== this.state.nearbyInteractable?.id);
+      this.state.nearbyInteractable = null;
+
+      soundEngine.playFanfare();
+      this.showDialogue('Harmonipet Bonded!', '🐾', [
+        `Harmonic resonance reached 100%! ${enc.pet.name} the ${enc.pet.species} felt your musical soul and joined your team!`,
+        `Registered in your HarmoniDex! (Total Bonded: ${this.state.harmoniDex.filter(d => d.bonded).length} / ${this.state.harmoniDex.length})`
+      ], () => {
+        this.state.mode = 'exploration';
+        this.state.harmonizeEncounter = null;
+      });
+    } else if (enc.attemptsRemaining <= 0) {
+      // Failed to harmonize
+      enc.concluded = true;
+      enc.caught = false;
+      this.showDialogue('Harmonipet Fled', '💨', [
+        `${enc.pet.name} was startled by the dissonant cadence and scurried into the brush! Practice your tone and try again.`
+      ], () => {
+        this.state.mode = 'exploration';
+        this.state.harmonizeEncounter = null;
+      });
+    }
+  }
+
   /* ---------------- CONCERT COMPETITION SYSTEM ---------------- */
 
   public startConcertCompetition(rivalId?: string): void {
@@ -375,6 +489,7 @@ export class HarmoniaGameEngine {
     if (comp.currentMeasure >= comp.totalMeasures) {
       comp.concluded = true;
       comp.won = comp.playerScore >= comp.rivalScore;
+      let badgeWonName = '';
 
       if (comp.won && !comp.rewardsGiven) {
         comp.rewardsGiven = true;
@@ -385,12 +500,20 @@ export class HarmoniaGameEngine {
         this.state.wallet.reputationStars += comp.rival.rewardStars;
         this.state.ensemble.reputationStars = this.state.wallet.reputationStars;
         this.state.ensemble.fameLevel = 1 + Math.floor(this.state.ensemble.reputationStars / 2);
+
+        // Award Conservatory Badge
+        const badgeIndex = Math.min(this.state.badges.length - 1, this.state.ensemble.reputationStars - 1);
+        if (badgeIndex >= 0 && !this.state.badges[badgeIndex].obtained) {
+          this.state.badges[badgeIndex].obtained = true;
+          badgeWonName = ` Awarded the [${this.state.badges[badgeIndex].name} ${this.state.badges[badgeIndex].icon}]!`;
+        }
+
         soundEngine.playFanfare();
       }
 
       this.showDialogue('Concert Results', '🏆', [
         `Performance Concluded! Final Score: ${comp.playerScore} vs Rival ${comp.rivalScore}!`,
-        comp.won ? `VICTORY! The audience erupts in standing ovation! Earned +${comp.rival.rewardStars} Reputation Stars (Total: ${this.state.ensemble.reputationStars} ★), +${comp.rival.rewardStars * 200} Notes ♪, +${comp.rival.rewardStars * 10} Sparks ✨.` : "A valiant effort! Practice your ensemble's Technique and try again!"
+        comp.won ? `VICTORY! The audience erupts in standing ovation! Earned +${comp.rival.rewardStars} Reputation Stars (Total: ${this.state.ensemble.reputationStars} ★), +${comp.rival.rewardStars * 200} Notes ♪, +${comp.rival.rewardStars * 10} Sparks ✨.${badgeWonName}` : "A valiant effort! Practice your ensemble's Technique and try again!"
       ], () => {
         this.state.mode = 'exploration';
         this.state.competition = null;
@@ -630,6 +753,11 @@ export class HarmoniaGameEngine {
       this.showDialogue('Master Luthier Marco', '🔨', [
         "Welcome to the Forge! Bring me Notes (♪) and Inspiration Sparks (✨) to craft signature instrument artifacts and ascend your tone!"
       ]);
+      return;
+    }
+
+    if (target.actionType === 'wild_harmonipet') {
+      this.startHarmonizeEncounter(target);
       return;
     }
 

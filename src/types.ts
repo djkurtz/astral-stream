@@ -264,6 +264,44 @@ export interface WorldZone {
   obstacles: WorldObstacle[];
 }
 
+export interface HarmoniDexEntry {
+  id: string;
+  species: string;
+  name: string;
+  section: InstrumentSection;
+  instrumentId: InstrumentId;
+  instrumentName: string;
+  sprite: string;
+  description: string;
+  discovered: boolean;
+  bonded: boolean;
+  evolutionStage: 1 | 2 | 3;
+  evolvesTo?: string;
+  evolutionLevel?: number;
+}
+
+export interface ClefBadge {
+  id: string;
+  name: string;
+  icon: string;
+  section: InstrumentSection | 'all';
+  conservatory: string;
+  maestroName: string;
+  obtained: boolean;
+}
+
+export interface HarmonizeEncounter {
+  pet: Harmonipet;
+  instrumentId: InstrumentId;
+  targetMelody: number[];
+  playerInputs: number[];
+  resonanceMeter: number;
+  catchThreshold: number;
+  attemptsRemaining: number;
+  concluded: boolean;
+  caught: boolean;
+}
+
 export interface WorldNPC {
   id: string;
   name: string;
@@ -272,10 +310,12 @@ export interface WorldNPC {
   y: number;
   zone: ZoneId;
   musicianData?: Musician;
-  actionType: 'talk' | 'audition_battle' | 'practice_bench' | 'competition_stage' | 'sheet_music_stand' | 'inspiration_vista' | 'luthier_shop';
+  actionType: 'talk' | 'audition_battle' | 'practice_bench' | 'competition_stage' | 'sheet_music_stand' | 'inspiration_vista' | 'luthier_shop' | 'wild_harmonipet' | 'conservatory_master';
   dialogue: string[];
   sheetMusicReward?: string; // piece ID
   vistaId?: string;
+  badgeId?: string;
+  wildPetData?: Harmonipet;
 }
 
 export interface GameDialogue {
@@ -295,7 +335,10 @@ export type GameMode =
   | 'dialogue' 
   | 'repertoire_menu'
   | 'luthier_menu'
-  | 'quest_menu';
+  | 'quest_menu'
+  | 'harmonize_wild'
+  | 'dex_menu'
+  | 'badge_menu';
 
 export interface GameState {
   mode: GameMode;
@@ -310,6 +353,9 @@ export interface GameState {
   camera: { x: number; y: number };
   ensemble: Ensemble;
   recruitedMusicians: Musician[];
+  ensembleBox: Musician[]; // PC Storage Box for non-active party members
+  harmoniDex: HarmoniDexEntry[]; // The 16+ creature encyclopedia
+  badges: ClefBadge[]; // The 8 Conservatory Badges
   repertoire: RepertoirePiece[];
   discoveredZones: Record<ZoneId, boolean>;
   npcs: WorldNPC[];
@@ -322,6 +368,7 @@ export interface GameState {
   activeQuestId: string | null;
   practiceSession: PracticeSession | null;
   auditionBattle: AuditionBattle | null;
+  harmonizeEncounter: HarmonizeEncounter | null;
   competition: ConcertCompetition | null;
   dialogue: GameDialogue | null;
   time: number;

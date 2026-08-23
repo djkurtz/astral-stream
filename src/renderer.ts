@@ -44,6 +44,12 @@ export class HarmoniaRenderer {
       return;
     }
 
+    if (state.mode === 'harmonize_wild') {
+      this.renderHarmonizeWild(state);
+      this.renderDialogue(state);
+      return;
+    }
+
     // Default: Exploration Mode
     this.renderWorldMap(state);
     this.renderHUD(state);
@@ -661,5 +667,127 @@ export class HarmoniaRenderer {
       }
     }
     ctx.fillText(line, x, currY);
+  }
+
+  /* ---------------- WILD HARMONIPET ENCOUNTER RENDERER ---------------- */
+
+  private renderHarmonizeWild(state: GameState): void {
+    const ctx = this.ctx;
+    const enc = state.harmonizeEncounter;
+    if (!enc) return;
+
+    // Background Gradient
+    const bgGrad = ctx.createRadialGradient(this.width / 2, this.height / 2, 50, this.width / 2, this.height / 2, 700);
+    bgGrad.addColorStop(0, '#064e3b');
+    bgGrad.addColorStop(1, '#022c22');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, this.width, this.height);
+
+    // Title
+    ctx.fillStyle = '#6ee7b7';
+    ctx.font = 'bold 30px "Cinzel", serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🐾 Wild Harmonipet Encounter!', this.width / 2, 60);
+
+    ctx.fillStyle = '#a7f3d0';
+    ctx.font = '16px "Inter", sans-serif';
+    ctx.fillText(`Play harmonic intervals to attune with ${enc.pet.name} the ${enc.pet.species}!`, this.width / 2, 95);
+
+    // Opponent Wild Creature Platform
+    ctx.fillStyle = 'rgba(6, 78, 59, 0.6)';
+    ctx.beginPath();
+    ctx.ellipse(880, 280, 160, 50, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.font = '72px "Inter", sans-serif';
+    ctx.textAlign = 'center';
+    const bounce = Math.sin(state.time * 4) * 8;
+    ctx.fillText(enc.pet.sprite, 880, 270 + bounce);
+
+    // Wild Creature Nameplate
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+    ctx.strokeStyle = enc.pet.color;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(720, 120, 320, 75, 12);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 18px "Inter", sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText(`Wild ${enc.pet.name}`, 740, 150);
+
+    ctx.fillStyle = enc.pet.color;
+    ctx.font = '14px "Inter", sans-serif';
+    ctx.fillText(`${enc.pet.species} (${enc.pet.section.toUpperCase()})`, 740, 175);
+
+    // Player Platform
+    ctx.fillStyle = 'rgba(6, 78, 59, 0.6)';
+    ctx.beginPath();
+    ctx.ellipse(360, 420, 160, 50, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    const player = state.ensemble.members[0];
+    ctx.font = '64px "Inter", sans-serif';
+    ctx.fillText(player.avatar, 340, 410);
+    ctx.font = '48px "Inter", sans-serif';
+    ctx.fillText(player.pet.sprite, 410, 415 + Math.cos(state.time * 4) * 6);
+
+    // Central Resonance Meter
+    const barW = 500;
+    const barH = 26;
+    const barX = (this.width - barW) / 2;
+    const barY = 360;
+    this.drawBar(ctx, barX, barY, barW, barH, enc.resonanceMeter, 100, '#10b981', `Resonance: ${enc.resonanceMeter}% (Threshold: ${enc.catchThreshold}%)`);
+
+    // Threshold Marker
+    const threshX = barX + (enc.catchThreshold / 100) * barW;
+    ctx.strokeStyle = '#fbbf24';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(threshX, barY - 4);
+    ctx.lineTo(threshX, barY + barH + 4);
+    ctx.stroke();
+
+    // Attempts Counter
+    ctx.fillStyle = '#fbbf24';
+    ctx.font = 'bold 16px "Inter", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(`Harmonic Attempts Remaining: ${enc.attemptsRemaining} / 4`, this.width / 2, 425);
+
+    // Note Action Buttons
+    const notes = [
+      { label: '[1] C4 (Root)', freq: 261.63, sub: 'Foundation' },
+      { label: '[2] E4 (Third)', freq: 329.63, sub: 'Harmonic Warmth' },
+      { label: '[3] G4 (Fifth)', freq: 392.00, sub: 'Consonance' },
+      { label: '[4] C5 (Octave)', freq: 523.25, sub: 'Overtone Surge' }
+    ];
+
+    const cardW = 190;
+    const cardH = 80;
+    const gap = 16;
+    const startX = (this.width - (cardW * 4 + gap * 3)) / 2;
+    const cardY = 480;
+
+    notes.forEach((n, idx) => {
+      const cx = startX + idx * (cardW + gap);
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+      ctx.strokeStyle = '#34d399';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect(cx, cardY, cardW, cardH, 10);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#6ee7b7';
+      ctx.font = 'bold 16px "Inter", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(n.label, cx + cardW / 2, cardY + 34);
+
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '12px "Inter", sans-serif';
+      ctx.fillText(n.sub, cx + cardW / 2, cardY + 58);
+    });
   }
 }
