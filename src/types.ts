@@ -505,3 +505,47 @@ export interface GameState {
   dialogue: GameDialogue | null;
   time: number;
 }
+
+export interface HarmoniaSavePayload {
+  currentZone: ZoneId;
+  player: {
+    x: number;
+    y: number;
+    dir: 'up' | 'down' | 'left' | 'right';
+    isMoving: boolean;
+  };
+  customization: PlayerCustomization;
+  ensemble: Ensemble;
+  recruitedMusicians: Musician[];
+  ensembleBox: Musician[];
+  harmoniDex: HarmoniDexEntry[];
+  badges: ClefBadge[];
+  repertoire: RepertoirePiece[];
+  discoveredZones: Record<ZoneId, boolean>;
+  wallet: PlayerWallet;
+  artifacts: InstrumentArtifact[];
+  lostScores: LostScore[];
+  vistas: InspirationVista[];
+  quests: GameQuest[];
+  activeQuestId: string | null;
+  questInventory: string[];
+  openedChests: string[];
+  discoveredSecrets?: string[];
+  proficiency: PlayerProficiency;
+  practiceLevel: number;
+  theoryLevel: number;
+  completedTheoryDrills: string[];
+  completedEvents: string[];
+  pianistBuskingWins: number;
+  hasPianoAccompaniment: boolean;
+  calendarEvents?: FestivalEvent[];
+}
+
+export interface HarmoniaSaveExport {
+  version: string;
+  game: string;
+  exportedAt: string;
+  schema: string;
+  data: HarmoniaSavePayload;
+}
+

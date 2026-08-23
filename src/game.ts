@@ -1,16 +1,16 @@
 // Harmonia: Opus of the Ensemble - Game Engine
 
 import {
-  GameState, Musician, WorldNPC, RivalEnsemble,
+  GameState, Musician, Harmonipet, WorldNPC, RivalEnsemble,
   AuditionBattle, InstrumentId, EnsembleTier, ZoneId, TheoryChallengeType, PlayerCustomization,
-  RepertoirePiece
+  RepertoirePiece, HarmoniaSaveExport, HarmoniaSavePayload
 } from './types';
 import {
   STARTER_OPTIONS, REPERTOIRE_DATABASE,
   RIVAL_ENSEMBLES, WORLD_ZONES, INITIAL_WORLD_NPCS, BATTLE_MOVES, FESTIVAL_CALENDAR, calculateDynamicRivalStats,
   INSTRUMENT_ARTIFACTS, INITIAL_LOST_SCORES, INITIAL_INSPIRATION_VISTAS, INITIAL_GAME_QUESTS,
   INITIAL_HARMONIDEX, CLEF_BADGES, DEFAULT_CUSTOMIZATION, THEORY_CURRICULUM,
-  getBattleMovesForMusician, ALL_INSTRUMENTS_INFO
+  getBattleMovesForMusician, ALL_INSTRUMENTS_INFO, RECRUITABLE_MUSICIANS
 } from './data';
 import { BattleMove } from './types';
 import { soundEngine } from './audio';
@@ -200,8 +200,7 @@ export class HarmoniaGameEngine {
   /* ---------------- PRACTICE SHED SYSTEM ---------------- */
 
   public startPracticeSession(type: 'metronome' | 'scale_run' | 'tone_shaping' = 'metronome'): void {
-    if (this.state.ensemble.members.length === 0) return;
-    const lead = this.state.ensemble.members[0];
+    const lead = this.ensurePlayerMusician();
     const tier = this.state.practiceLevel;
     const bpms = [85, 110, 135, 160];
     const bpm = bpms[Math.min(tier - 1, bpms.length - 1)];
@@ -794,6 +793,7 @@ export class HarmoniaGameEngine {
   /* ---------------- CONCERT COMPETITION SYSTEM ---------------- */
 
   public startConcertCompetition(rivalId?: string): void {
+    this.ensurePlayerMusician();
     const baseRival = RIVAL_ENSEMBLES.find(r => r.id === rivalId) || RIVAL_ENSEMBLES[0];
     const tier = this.getProgressionTier();
     const scaledMembers = baseRival.members.map(m => ({
@@ -824,6 +824,7 @@ export class HarmoniaGameEngine {
   }
 
   public startPianistBuskingDuel(forcedTier?: number): void {
+    this.ensurePlayerMusician();
     const duelTier = forcedTier !== undefined ? forcedTier : Math.min(3, (this.state.pianistBuskingWins || 0) + 1);
     const duelConfigs = [
       { name: 'Novice Busk', bpm: 120, width: 0.16, tech: 25, tone: 25, stars: 2 },
@@ -1921,6 +1922,202 @@ export class HarmoniaGameEngine {
     }
   }
 
+  public exportSaveFile(): string {
+    const payload: HarmoniaSavePayload = {
+      currentZone: this.state.currentZone,
+      player: {
+        x: this.state.player.x,
+        y: this.state.player.y,
+        dir: this.state.player.dir,
+        isMoving: false
+      },
+      customization: JSON.parse(JSON.stringify(this.state.customization)),
+      ensemble: JSON.parse(JSON.stringify(this.state.ensemble)),
+      recruitedMusicians: JSON.parse(JSON.stringify(this.state.recruitedMusicians)),
+      ensembleBox: JSON.parse(JSON.stringify(this.state.ensembleBox)),
+      harmoniDex: JSON.parse(JSON.stringify(this.state.harmoniDex)),
+      badges: JSON.parse(JSON.stringify(this.state.badges)),
+      repertoire: JSON.parse(JSON.stringify(this.state.repertoire)),
+      discoveredZones: JSON.parse(JSON.stringify(this.state.discoveredZones)),
+      wallet: { ...this.state.wallet },
+      artifacts: JSON.parse(JSON.stringify(this.state.artifacts)),
+      lostScores: JSON.parse(JSON.stringify(this.state.lostScores)),
+      vistas: JSON.parse(JSON.stringify(this.state.vistas)),
+      quests: JSON.parse(JSON.stringify(this.state.quests)),
+      activeQuestId: this.state.activeQuestId,
+      questInventory: [...this.state.questInventory],
+      openedChests: [...this.state.openedChests],
+      discoveredSecrets: this.state.discoveredSecrets ? [...this.state.discoveredSecrets] : [],
+      proficiency: JSON.parse(JSON.stringify(this.state.proficiency)),
+      practiceLevel: this.state.practiceLevel,
+      theoryLevel: this.state.theoryLevel,
+      completedTheoryDrills: [...this.state.completedTheoryDrills],
+      completedEvents: [...this.state.completedEvents],
+      pianistBuskingWins: this.state.pianistBuskingWins,
+      hasPianoAccompaniment: this.state.hasPianoAccompaniment,
+      calendarEvents: JSON.parse(JSON.stringify(this.state.calendarEvents))
+    };
+
+    const exportWrapper: HarmoniaSaveExport = {
+      version: '1.0.0',
+      game: 'Harmonia: Opus of the Ensemble',
+      exportedAt: new Date().toISOString(),
+      schema: 'harmonia_save_v1',
+      data: payload
+    };
+
+    return JSON.stringify(exportWrapper, null, 2);
+  }
+
+  public importSaveFile(jsonString: string): { success: boolean; error?: string } {
+    if (!jsonString || typeof jsonString !== 'string' || jsonString.trim() === '') {
+      return { success: false, error: 'Save data is empty or invalid string.' };
+    }
+
+    let parsed: any;
+    try {
+      parsed = JSON.parse(jsonString);
+    } catch (err: any) {
+      return { success: false, error: `Invalid JSON syntax: ${err?.message || 'Malformed JSON'}` };
+    }
+
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      return { success: false, error: 'Invalid save structure: Root must be a valid JSON object.' };
+    }
+
+    // Handle both wrapped format { version, schema, data: { ... } } and direct payload
+    const data: any = (parsed.data && typeof parsed.data === 'object' && !Array.isArray(parsed.data))
+      ? parsed.data
+      : parsed;
+
+    // Schema Validation
+    if (!data.player || typeof data.player.x !== 'number' || typeof data.player.y !== 'number' || !data.player.dir) {
+      return { success: false, error: 'Schema validation failed: Missing or corrupt player position data.' };
+    }
+
+    if (!data.ensemble || typeof data.ensemble !== 'object' || !Array.isArray(data.ensemble.members)) {
+      return { success: false, error: 'Schema validation failed: Missing or invalid ensemble roster.' };
+    }
+
+    if (!data.wallet || typeof data.wallet.gold !== 'number' || typeof data.wallet.inspirationSparks !== 'number' || typeof data.wallet.reputationStars !== 'number') {
+      return { success: false, error: 'Schema validation failed: Missing or corrupt player wallet.' };
+    }
+
+    if (!data.proficiency || typeof data.proficiency !== 'object' || !data.proficiency.sections || !data.proficiency.instruments || !Array.isArray(data.proficiency.unlockedInstruments)) {
+      return { success: false, error: 'Schema validation failed: Missing or invalid player proficiency structure.' };
+    }
+
+    if (!Array.isArray(data.harmoniDex)) {
+      return { success: false, error: 'Schema validation failed: HarmoniDex bestiary must be an array.' };
+    }
+
+    if (!Array.isArray(data.badges)) {
+      return { success: false, error: 'Schema validation failed: Clef Badges must be an array.' };
+    }
+
+    if (!Array.isArray(data.quests)) {
+      return { success: false, error: 'Schema validation failed: Quests journal must be an array.' };
+    }
+
+    if (!Array.isArray(data.repertoire)) {
+      return { success: false, error: 'Schema validation failed: Sheet music repertoire must be an array.' };
+    }
+
+    if (typeof data.currentZone !== 'string') {
+      return { success: false, error: 'Schema validation failed: Current world zone (currentZone) must be a valid zone string.' };
+    }
+
+    try {
+      // Restore core state
+      this.state.currentZone = data.currentZone as ZoneId;
+      this.state.player = {
+        x: data.player.x,
+        y: data.player.y,
+        dir: data.player.dir,
+        isMoving: false
+      };
+      this.state.customization = data.customization
+        ? JSON.parse(JSON.stringify(data.customization))
+        : JSON.parse(JSON.stringify(DEFAULT_CUSTOMIZATION));
+      this.state.ensemble = JSON.parse(JSON.stringify(data.ensemble));
+      this.state.recruitedMusicians = Array.isArray(data.recruitedMusicians)
+        ? JSON.parse(JSON.stringify(data.recruitedMusicians))
+        : [];
+      this.state.ensembleBox = Array.isArray(data.ensembleBox)
+        ? JSON.parse(JSON.stringify(data.ensembleBox))
+        : [];
+      this.state.harmoniDex = JSON.parse(JSON.stringify(data.harmoniDex));
+      this.state.badges = JSON.parse(JSON.stringify(data.badges));
+      this.state.repertoire = JSON.parse(JSON.stringify(data.repertoire));
+      this.state.discoveredZones = data.discoveredZones
+        ? JSON.parse(JSON.stringify(data.discoveredZones))
+        : { cavatina_village: true, woodwind_woods: false, brass_citadel: false, percussion_peaks: false, grand_hall: false, west_wilderness: false, east_wilderness: false, north_wilderness: false, south_wilderness: false };
+      this.state.wallet = {
+        gold: Math.max(0, data.wallet.gold),
+        inspirationSparks: Math.max(0, data.wallet.inspirationSparks),
+        reputationStars: Math.max(0, data.wallet.reputationStars)
+      };
+      this.state.artifacts = Array.isArray(data.artifacts)
+        ? JSON.parse(JSON.stringify(data.artifacts))
+        : JSON.parse(JSON.stringify(INSTRUMENT_ARTIFACTS));
+      this.state.lostScores = Array.isArray(data.lostScores)
+        ? JSON.parse(JSON.stringify(data.lostScores))
+        : JSON.parse(JSON.stringify(INITIAL_LOST_SCORES));
+      this.state.vistas = Array.isArray(data.vistas)
+        ? JSON.parse(JSON.stringify(data.vistas))
+        : JSON.parse(JSON.stringify(INITIAL_INSPIRATION_VISTAS));
+      this.state.quests = JSON.parse(JSON.stringify(data.quests));
+      this.state.activeQuestId = data.activeQuestId || 'quest_ch1';
+      this.state.questInventory = Array.isArray(data.questInventory) ? [...data.questInventory] : [];
+      this.state.openedChests = Array.isArray(data.openedChests) ? [...data.openedChests] : [];
+      this.state.discoveredSecrets = Array.isArray(data.discoveredSecrets) ? [...data.discoveredSecrets] : [];
+      this.state.proficiency = JSON.parse(JSON.stringify(data.proficiency));
+      this.state.practiceLevel = typeof data.practiceLevel === 'number' ? data.practiceLevel : 1;
+      this.state.theoryLevel = typeof data.theoryLevel === 'number' ? data.theoryLevel : 1;
+      this.state.completedTheoryDrills = Array.isArray(data.completedTheoryDrills) ? [...data.completedTheoryDrills] : [];
+      this.state.completedEvents = Array.isArray(data.completedEvents) ? [...data.completedEvents] : [];
+      this.state.pianistBuskingWins = typeof data.pianistBuskingWins === 'number' ? data.pianistBuskingWins : 0;
+      this.state.hasPianoAccompaniment = Boolean(data.hasPianoAccompaniment);
+      this.state.calendarEvents = Array.isArray(data.calendarEvents)
+        ? JSON.parse(JSON.stringify(data.calendarEvents))
+        : JSON.parse(JSON.stringify(FESTIVAL_CALENDAR));
+
+      // Re-initialize NPC roster matching current state (exclude wild pets that are bonded/caught)
+      const bondedSpecies = new Set(this.state.harmoniDex.filter(d => d.bonded).map(d => d.species));
+      this.state.npcs = JSON.parse(JSON.stringify(INITIAL_WORLD_NPCS)).filter((npc: WorldNPC) => {
+        if (npc.actionType === 'wild_harmonipet' && npc.wildPetData) {
+          return !bondedSpecies.has(npc.wildPetData.species);
+        }
+        return true;
+      });
+
+      // Re-initialize runtime engine systems
+      this.state.mode = 'exploration';
+      this.state.followerTrail = [{ x: this.state.player.x, y: this.state.player.y }];
+      this.state.camera = { x: this.state.player.x, y: this.state.player.y };
+      this.state.nearbyInteractable = null;
+      this.state.practiceSession = null;
+      this.state.theoryChallenge = null;
+      this.state.auditionBattle = null;
+      this.state.harmonizeEncounter = null;
+      this.state.competition = null;
+      this.state.dialogue = null;
+
+      // Audio engine update
+      const activeSections = Array.from(new Set(this.state.ensemble.members.map(m => m.section)));
+      soundEngine.startBGM(this.state.currentZone, activeSections);
+
+      // Persist to local storage to maintain parity
+      this.saveGame();
+
+      return { success: true };
+    } catch (e: any) {
+      console.error('Save import failed during state restoration', e);
+      return { success: false, error: `Restoration error: ${e?.message || 'Unknown state error'}` };
+    }
+  }
+
+
   public switchPlayerInstrument(newInstrumentId: InstrumentId): void {
     if (!this.state.proficiency.unlockedInstruments.includes(newInstrumentId)) return;
     const player = this.state.ensemble.members[0];
@@ -1998,6 +2195,158 @@ export class HarmoniaGameEngine {
   public restartGame(): void {
     localStorage.removeItem('harmonia_saved_game');
     this.state = this.createInitialState();
+  }
+
+  /* ---------------- DEVELOPER SANDBOX & CHEAT SUITE ---------------- */
+
+  public ensurePlayerMusician(instrumentId: InstrumentId = 'violin'): Musician {
+    if (this.state.ensemble.members.length === 0) {
+      this.chooseStarter(instrumentId, 'Maestro (Dev)');
+    }
+    return this.state.ensemble.members[0];
+  }
+
+  public startSandboxAuditionBattle(opponentMusicianId: string): void {
+    this.ensurePlayerMusician();
+    let opponent: Musician | undefined = RECRUITABLE_MUSICIANS.find(m => m.id === opponentMusicianId);
+    if (!opponent) {
+      const npc = this.state.npcs.find(n => n.musicianData?.id === opponentMusicianId || n.id === opponentMusicianId);
+      if (npc && npc.musicianData) {
+        opponent = npc.musicianData;
+      }
+    }
+    if (!opponent) {
+      opponent = RECRUITABLE_MUSICIANS[0];
+    }
+
+    this.state.auditionBattle = {
+      opponent,
+      playerHarmonyMeter: 20,
+      opponentHarmonyMeter: 20,
+      harmonyPoints: 60,
+      maxHarmonyPoints: 100,
+      playerStance: 'normal',
+      opponentStance: 'normal',
+      turn: 'player',
+      turnTimer: 0,
+      cadencePromptActive: false,
+      log: [
+        `⚔️ [Sandbox] Audition Clash started against ${opponent.name} (${opponent.instrumentName})!`,
+        `Tactics: Use Pianissimo Shield to deflect dissonance, or Fortissimo Surge to double your next strike!`
+      ],
+      selectedMoveIndex: 0,
+      concluded: false
+    };
+
+    soundEngine.stopBGM();
+    this.state.mode = 'audition_battle';
+  }
+
+  public startSandboxHarmonizeEncounter(creatureDexId: string): void {
+    this.ensurePlayerMusician();
+    const dexEntry = this.state.harmoniDex.find(d => d.id === creatureDexId || d.species.toLowerCase().includes(creatureDexId.toLowerCase())) || this.state.harmoniDex[0];
+    
+    const pet: Harmonipet = {
+      id: `wild_${dexEntry.id}`,
+      name: dexEntry.name,
+      species: dexEntry.species,
+      sprite: dexEntry.sprite,
+      section: dexEntry.section,
+      instrumentName: dexEntry.instrumentName,
+      instrumentId: dexEntry.instrumentId,
+      leitmotifSound: dexEntry.instrumentId,
+      color: dexEntry.section === 'strings' ? '#ec4899' : (dexEntry.section === 'woodwinds' ? '#10b981' : (dexEntry.section === 'brass' ? '#eab308' : '#8b5cf6'))
+    };
+
+    const FREQS = [261.63, 329.63, 392.00, 523.25];
+    let noteIndices = [0, 1, 2, 3];
+    if (pet.section === 'woodwinds') noteIndices = [0, 2, 1, 3];
+    else if (pet.section === 'brass') noteIndices = [0, 2, 3, 2];
+    else if (pet.section === 'percussion') noteIndices = [0, 0, 2, 3];
+
+    const targetMelody = noteIndices.map(i => FREQS[i]);
+
+    this.state.harmonizeEncounter = {
+      pet,
+      instrumentId: dexEntry.instrumentId,
+      targetMelody,
+      targetNoteIndices: noteIndices,
+      currentStep: 0,
+      revealedSteps: [false, false, false, false],
+      isPlayingMelody: false,
+      playerInputs: [],
+      resonanceMeter: 20,
+      catchThreshold: 80,
+      attemptsRemaining: 5,
+      lastFeedback: undefined,
+      lastFeedbackText: undefined,
+      concluded: false,
+      caught: false
+    };
+
+    this.state.mode = 'harmonize_wild';
+    soundEngine.stopBGM();
+    soundEngine.playWildlifeCall(pet.species.toLowerCase());
+    this.replayHarmonizeMelody();
+  }
+
+  public teleportTo(zoneId: ZoneId, x: number, y: number, dir: 'up' | 'down' | 'left' | 'right' = 'down'): void {
+    this.ensurePlayerMusician();
+    this.state.mode = 'exploration';
+    this.warpToZone(zoneId, { x, y, dir });
+  }
+
+  public cheatAddCurrency(gold: number, sparks: number, stars: number): void {
+    this.state.wallet.gold = Math.max(0, this.state.wallet.gold + gold);
+    this.state.wallet.inspirationSparks = Math.max(0, this.state.wallet.inspirationSparks + sparks);
+    this.state.wallet.reputationStars = Math.max(0, this.state.wallet.reputationStars + stars);
+  }
+
+  public cheatUnlockAllInstruments(): void {
+    const allIds = Object.keys(ALL_INSTRUMENTS_INFO) as InstrumentId[];
+    this.state.proficiency.unlockedInstruments = [...allIds];
+    allIds.forEach(id => {
+      this.state.proficiency.instruments[id] = { level: 10, xp: 1000 };
+    });
+    this.state.proficiency.sections.strings = 100;
+    this.state.proficiency.sections.woodwinds = 100;
+    this.state.proficiency.sections.brass = 100;
+    this.state.proficiency.sections.percussion = 100;
+  }
+
+  public cheatSetMasterStats(): void {
+    this.ensurePlayerMusician();
+    this.state.ensemble.members.forEach(m => {
+      m.stats.technique = 100;
+      m.stats.toneQuality = 100;
+      m.stats.tempoStability = 100;
+      m.stats.sightReading = 100;
+      m.level = 20;
+    });
+    this.cheatUnlockAllInstruments();
+  }
+
+  public cheatTogglePianoAccompaniment(): boolean {
+    this.state.hasPianoAccompaniment = !this.state.hasPianoAccompaniment;
+    return this.state.hasPianoAccompaniment;
+  }
+
+  public cheatUnlockAllRepertoire(): void {
+    const pieces = JSON.parse(JSON.stringify(REPERTOIRE_DATABASE)) as RepertoirePiece[];
+    pieces.forEach(p => { p.isMastered = true; });
+    this.state.repertoire = pieces;
+  }
+
+  public cheatUnlockAllBadges(): void {
+    this.state.badges.forEach(b => { b.obtained = true; });
+  }
+
+  public cheatCompleteAllQuests(): void {
+    this.state.quests.forEach(q => { q.completed = true; });
+  }
+
+  public cheatClearResetData(): void {
+    this.restartGame();
   }
 }
 

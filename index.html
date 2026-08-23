@@ -21,8 +21,12 @@
       <button id="btn-calendar" class="tool-btn" data-tooltip="Festival & Concert Calendar [F]">📅</button>
       <button id="btn-dex" class="tool-btn" data-tooltip="HarmoniDex Bestiary [H]">📖</button>
       <button id="btn-badges" class="tool-btn" data-tooltip="Conservatory Clef Badges [B]">🏆</button>
+      <button id="btn-export-save" class="tool-btn" data-tooltip="Export Save [💾 ⬇️]">💾</button>
+      <button id="btn-import-save" class="tool-btn" data-tooltip="Import Save [📂 ⬆️]">📂</button>
+      <button id="btn-sandbox" class="tool-btn" data-tooltip="Developer Sandbox [~ / F1]">🛠️</button>
       <button id="btn-system" class="tool-btn" data-tooltip="System Menu & Settings [ESC]">⚙️</button>
     </div>
+    <input type="file" id="file-input-import" accept=".json" style="display: none;" />
 
     <!-- Repertoire Sheet Music Modal -->
     <div id="modal-repertoire" class="modal-overlay hidden">
@@ -149,6 +153,26 @@
           <button id="btn-close-system" class="btn-close">&times;</button>
         </div>
         <div id="system-body" class="modal-body">
+          <!-- Populated by ui.ts -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Developer Sandbox & Interactive Diagnostic Suite Modal -->
+    <div id="modal-sandbox" class="modal-overlay hidden">
+      <div class="modal-content sandbox-modal-content">
+        <div class="modal-header">
+          <div class="modal-title">🛠️ Harmonia Developer Sandbox & Diagnostics</div>
+          <button id="btn-close-sandbox" class="btn-close">&times;</button>
+        </div>
+        <div class="sandbox-tabs-header">
+          <button class="sandbox-tab-btn active" data-tab="mechanics">🚀 Mechanics Sandbox</button>
+          <button class="sandbox-tab-btn" data-tab="teleporter">📍 World Teleporter</button>
+          <button class="sandbox-tab-btn" data-tab="soundboard">🔊 Audio Soundboard</button>
+          <button class="sandbox-tab-btn" data-tab="cheats">⚡ State & Cheats</button>
+          <button class="sandbox-tab-btn" data-tab="diagnostics">🧪 Live Diagnostics</button>
+        </div>
+        <div id="sandbox-body" class="modal-body sandbox-modal-body">
           <!-- Populated by ui.ts -->
         </div>
       </div>
