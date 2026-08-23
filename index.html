@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Astra Imperium - Space Empire Builder</title>
+  <link rel="stylesheet" href="./src/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="app">
+    <!-- Top Resource & Navigation Bar -->
+    <header id="top-bar">
+      <div class="brand">
+        <span class="logo-icon">🪐</span>
+        <h1>ASTRA IMPERIUM</h1>
+      </div>
+      <div id="resources" class="resource-bar">
+        <!-- Dynamically injected via UI -->
+      </div>
+      <div class="controls">
+        <button id="speed-btn" class="ctrl-btn">Speed: 1x</button>
+        <button id="pause-btn" class="ctrl-btn">⏸ Pause</button>
+        <button id="save-btn" class="ctrl-btn">💾 Save</button>
+      </div>
+    </header>
+
+    <!-- Main Game Workspace -->
+    <main id="workspace">
+      <!-- Solar System Viewport -->
+      <div id="canvas-container">
+        <canvas id="game-canvas"></canvas>
+        <div id="canvas-overlay-hints">
+          <span>Click a planet or station to manage • Drag to pan • Scroll to zoom</span>
+        </div>
+      </div>
+
+      <!-- Management & Strategy Panel -->
+      <aside id="side-panel">
+        <nav class="panel-tabs">
+          <button class="tab-btn active" data-tab="sector">Overview</button>
+          <button class="tab-btn" data-tab="base">Base / Colony</button>
+          <button class="tab-btn" data-tab="shipyard">Shipyard</button>
+          <button class="tab-btn" data-tab="fleet">Fleets</button>
+        </nav>
+
+        <div id="tab-content" class="panel-body">
+          <!-- Dynamic Tab Content -->
+        </div>
+
+        <div id="log-container">
+          <div class="log-header">COMMAND LOG</div>
+          <div id="event-log"></div>
+        </div>
+      </aside>
+    </main>
+  </div>
+  <script type="module" src="./src/main.ts"></script>
+</body>
+</html>
