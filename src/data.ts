@@ -1029,6 +1029,26 @@ export const REPERTOIRE_DATABASE: RepertoirePiece[] = [
     isMastered: false
   },
   {
+    id: 'piece_mountain_rondo',
+    title: 'Mountain Rondo & Thunder Bell',
+    composer: 'Chief Korath',
+    genre: 'Rhythmic Folk Suite',
+    difficulty: 4,
+    minEnsembleTier: 'chamber',
+    requiredSections: { strings: 1, woodwinds: 1, brass: 1, percussion: 2 },
+    bpm: 136,
+    chords: [
+      { strings: [220, 261, 329], winds: [440, 523], brass: [220, 440], percussion: 'timpani' },
+      { strings: [174, 220, 261], winds: [349, 440], brass: [174, 349], percussion: 'snare_kit' },
+      { strings: [196, 246, 293], winds: [392, 493], brass: [196, 392], percussion: 'timpani' },
+      { strings: [220, 261, 329], winds: [440, 523], brass: [220, 440], percussion: 'glockenspiel' }
+    ],
+    melody: [440, 523, 659, 523, 440, 392, 440, 523],
+    description: 'A dynamic, thundering percussion feature that echoes off the canyon walls with polyrhythmic fury.',
+    masteryXp: 750,
+    isMastered: false
+  },
+  {
     id: 'piece_ode_to_harmony',
     title: 'Ode to Harmony (Grand Finale)',
     composer: 'The First Maestro',
@@ -1227,36 +1247,187 @@ export const RIVAL_ENSEMBLES: RivalEnsemble[] = [
     piece: REPERTOIRE_DATABASE[0], // Minuet in G
     reputationRequired: 0,
     rewardStars: 1,
-    description: 'A cheerful local street busker looking for a friendly musical exchange at the town gazebo.'
+    description: 'A cheerful local street busker looking for a friendly musical exchange at the Cavatina gazebo.'
   },
   {
-    id: 'rival_allegro_duo',
-    name: 'The Allegro Academy Duet',
-    tier: 'duet',
-    conductorName: 'Lady Beatrice',
-    members: [
-      RECRUITABLE_MUSICIANS[0], // Clara (Violin)
-      RECRUITABLE_MUSICIANS[1]  // Oliver (Flute)
-    ],
-    piece: REPERTOIRE_DATABASE[1], // Cavatina Two-Part Invention
-    reputationRequired: 1,
-    rewardStars: 2,
-    description: 'A polished chamber duo celebrated for their clean phrasing and intricate counterpoint.'
-  },
-  {
-    id: 'rival_triad_trio',
-    name: 'The Starlight Jazz Trio',
+    id: 'rival_woodwind_trio',
+    name: 'The Whispering Canopy Trio',
     tier: 'trio',
-    conductorName: 'Duke Sterling',
+    conductorName: 'Master Sylvan',
     members: [
-      RECRUITABLE_MUSICIANS[0], // Clara
-      RECRUITABLE_MUSICIANS[1], // Oliver
-      RECRUITABLE_MUSICIANS[3]  // Rita
+      {
+        id: 'rival_sylvan',
+        name: 'Master Sylvan',
+        title: 'Forest Flutist',
+        avatar: '🪈',
+        paletteColor: '#10b981',
+        instrumentId: 'silver_flute',
+        instrumentName: 'Silver Concert Flute',
+        section: 'woodwinds',
+        pet: {
+          id: 'pet_finch_sylvan',
+          name: 'Zephyr',
+          species: 'Canopy Finch',
+          sprite: 'finch',
+          section: 'woodwinds',
+          instrumentName: 'Concert Flute',
+          leitmotifSound: 'flute_chirp',
+          color: '#10b981'
+        },
+        stats: { technique: 45, toneQuality: 45, tempoStability: 40, sightReading: 40 },
+        level: 4,
+        xp: 300
+      },
+      {
+        id: 'rival_reed',
+        name: 'Reed',
+        title: 'Cane Oboist',
+        avatar: '🌾',
+        paletteColor: '#059669',
+        instrumentId: 'oboe',
+        instrumentName: 'Rosewood Oboe',
+        section: 'woodwinds',
+        pet: {
+          id: 'pet_otter_reed',
+          name: 'Echo',
+          species: 'River Otter',
+          sprite: 'otter',
+          section: 'woodwinds',
+          instrumentName: 'Oboe',
+          leitmotifSound: 'oboe_melody',
+          color: '#059669'
+        },
+        stats: { technique: 40, toneQuality: 42, tempoStability: 38, sightReading: 38 },
+        level: 3,
+        xp: 250
+      },
+      {
+        id: 'rival_moss',
+        name: 'Rowan',
+        title: 'Woodland Cellist',
+        avatar: '🎻',
+        paletteColor: '#047857',
+        instrumentId: 'cello',
+        instrumentName: 'Acoustic Cello',
+        section: 'strings',
+        pet: {
+          id: 'pet_hound_rowan',
+          name: 'Cedar',
+          species: 'Forest Hound',
+          sprite: 'hound',
+          section: 'strings',
+          instrumentName: 'Acoustic Cello',
+          leitmotifSound: 'violin_pure',
+          color: '#047857'
+        },
+        stats: { technique: 42, toneQuality: 44, tempoStability: 40, sightReading: 40 },
+        level: 4,
+        xp: 280
+      }
     ],
     piece: REPERTOIRE_DATABASE[2], // Bossa Nova Serenade
+    reputationRequired: 1,
+    rewardStars: 2,
+    description: 'A nimble woodland trio performing syncopated bossa nova rhythms under the resonant forest canopies.'
+  },
+  {
+    id: 'rival_brass_quartet',
+    name: 'The Gilded Citadel Fanfare',
+    tier: 'quartet',
+    conductorName: 'Baroness Vesta',
+    members: [
+      {
+        id: 'rival_vesta',
+        name: 'Baroness Vesta',
+        title: 'Citadel Hornist',
+        avatar: '📯',
+        paletteColor: '#eab308',
+        instrumentId: 'french_horn',
+        instrumentName: 'Gilded French Horn',
+        section: 'brass',
+        pet: {
+          id: 'pet_ram_vesta',
+          name: 'Valiant',
+          species: 'Citadel Ram',
+          sprite: 'ram',
+          section: 'brass',
+          instrumentName: 'French Horn',
+          leitmotifSound: 'horn_call',
+          color: '#eab308'
+        },
+        stats: { technique: 65, toneQuality: 68, tempoStability: 60, sightReading: 58 },
+        level: 6,
+        xp: 600
+      },
+      {
+        id: 'rival_cornet_guard',
+        name: 'Lieutenant Val',
+        title: 'Herald Cornet',
+        avatar: '🎺',
+        paletteColor: '#ca8a04',
+        instrumentId: 'pocket_trumpet',
+        instrumentName: 'Golden Trumpet',
+        section: 'brass',
+        pet: {
+          id: 'pet_terrier_val',
+          name: 'Blare',
+          species: 'Fanfare Terrier',
+          sprite: 'terrier',
+          section: 'brass',
+          instrumentName: 'Golden Trumpet',
+          leitmotifSound: 'trumpet_blare',
+          color: '#ca8a04'
+        },
+        stats: { technique: 62, toneQuality: 64, tempoStability: 58, sightReading: 55 },
+        level: 6,
+        xp: 550
+      },
+      RECRUITABLE_MUSICIANS[0], // Clara (Strings)
+      RECRUITABLE_MUSICIANS[1]  // Oliver (Woodwinds)
+    ],
+    piece: REPERTOIRE_DATABASE[3], // Starlight Quartet
     reputationRequired: 3,
     rewardStars: 3,
-    description: 'A groovy ensemble combining smooth jazz melodies with tight percussion grooves.'
+    description: 'A regal brass and string quartet whose wall of sound commands authority across the Citadel concourse.'
+  },
+  {
+    id: 'rival_thunder_chamber',
+    name: 'The Mountain Thunder Corps',
+    tier: 'chamber',
+    conductorName: 'Chief Korath',
+    members: [
+      {
+        id: 'rival_korath',
+        name: 'Chief Korath',
+        title: 'Thunder Timpanist',
+        avatar: '🥁',
+        paletteColor: '#8b5cf6',
+        instrumentId: 'timpani',
+        instrumentName: 'Caldera Timpani',
+        section: 'percussion',
+        pet: {
+          id: 'pet_badger_korath',
+          name: 'Grom',
+          species: 'Thunder Badger',
+          sprite: 'badger',
+          section: 'percussion',
+          instrumentName: 'Caldera Timpani',
+          leitmotifSound: 'timpani_boom',
+          color: '#8b5cf6'
+        },
+        stats: { technique: 80, toneQuality: 82, tempoStability: 85, sightReading: 75 },
+        level: 8,
+        xp: 850
+      },
+      RECRUITABLE_MUSICIANS[0], // Clara (Violin)
+      RECRUITABLE_MUSICIANS[1], // Oliver (Flute)
+      RECRUITABLE_MUSICIANS[2], // Baron (Trumpet)
+      RECRUITABLE_MUSICIANS[3]  // Rita (Snare)
+    ],
+    piece: REPERTOIRE_DATABASE[4], // Mountain Rondo
+    reputationRequired: 5,
+    rewardStars: 4,
+    description: 'A colossal rhythmic chamber troupe driving intricate polyrhythmic grooves with thundering stone bells.'
   },
   {
     id: 'rival_grand_orchestra',
@@ -1264,13 +1435,36 @@ export const RIVAL_ENSEMBLES: RivalEnsemble[] = [
     tier: 'orchestra',
     conductorName: 'Maestro Valerius',
     members: [
+      {
+        id: 'rival_valerius',
+        name: 'Maestro Valerius',
+        title: 'Grand Conductor',
+        avatar: '🎼',
+        paletteColor: '#ec4899',
+        instrumentId: 'violin',
+        instrumentName: 'Platinum Maestro Baton',
+        section: 'strings',
+        pet: {
+          id: 'pet_swan_valerius',
+          name: 'Sinfonia',
+          species: 'Symphony Swan',
+          sprite: 'swan',
+          section: 'strings',
+          instrumentName: 'Grand Baton',
+          leitmotifSound: 'violin_pure',
+          color: '#ec4899'
+        },
+        stats: { technique: 95, toneQuality: 98, tempoStability: 95, sightReading: 95 },
+        level: 12,
+        xp: 2000
+      },
       RECRUITABLE_MUSICIANS[0],
       RECRUITABLE_MUSICIANS[1],
       RECRUITABLE_MUSICIANS[2],
       RECRUITABLE_MUSICIANS[3]
     ],
-    piece: REPERTOIRE_DATABASE[4], // Ode to Harmony
-    reputationRequired: 6,
+    piece: REPERTOIRE_DATABASE[5], // Ode to Harmony
+    reputationRequired: 7,
     rewardStars: 5,
     description: 'The supreme masters of orchestral music in Sonora. Defeating them seals your legacy as the Grand Maestro!'
   }
@@ -1440,6 +1634,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     isProp: true,
     propType: 'lectern',
     actionType: 'theory_bench',
+    theoryType: 'pitch_recognition_1',
     dialogue: [
       "Welcome to the Sonora Music Conservatory! Test your knowledge across 8 progressive curriculum tiers from Pitch Recognition to Orchestral Acoustics."
     ]
@@ -1593,6 +1788,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       xp: 50
     },
     actionType: 'competition_stage',
+    rivalId: 'rival_novice_buskers',
     dialogue: [
       "Hey there! Want to enter a friendly Busking Showcase to earn your first Reputation Star?"
     ]
@@ -1710,7 +1906,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     ]
   },
 
-  // Woodwind Woods
+  // ==================== WOODWIND WOODS (WILDERNESS & CANOPY) ====================
   {
     id: 'npc_oliver_world',
     name: 'Oliver',
@@ -1721,6 +1917,34 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     musicianData: RECRUITABLE_MUSICIANS[1],
     actionType: 'audition_battle',
     dialogue: RECRUITABLE_MUSICIANS[1].dialogue || []
+  },
+  {
+    id: 'npc_sylvan_grove',
+    name: 'Master Sylvan',
+    title: 'Canopy Trio Bandleader [SPACE to Compete]',
+    x: 1500,
+    y: 950,
+    zone: 'woodwind_woods',
+    actionType: 'competition_stage',
+    rivalId: 'rival_woodwind_trio',
+    dialogue: [
+      "Greetings! We are The Whispering Canopy Trio. Do your woodwinds have the phrasing and syncopation to match our Bossa Nova groove?"
+    ]
+  },
+  {
+    id: 'npc_theory_woods',
+    name: 'Forest Druid Lectern',
+    title: 'Woodwind Theory Exam (Intervals) [SPACE]',
+    x: 900,
+    y: 400,
+    zone: 'woodwind_woods',
+    isProp: true,
+    propType: 'lectern',
+    actionType: 'theory_bench',
+    theoryType: 'intervals_ear_training',
+    dialogue: [
+      "Study the natural overtones of the forest canopy to master interval recognition and harmonic skips!"
+    ]
   },
   {
     id: 'npc_music_stand_woods',
@@ -1738,6 +1962,36 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     ]
   },
   {
+    id: 'npc_vista_woods_bellflower',
+    name: 'Bellflower Basin Vista',
+    title: 'Acoustic Inspiration Vista [SPACE to Attune]',
+    x: 1400,
+    y: 1100,
+    zone: 'woodwind_woods',
+    isProp: true,
+    propType: 'vista_monolith',
+    actionType: 'inspiration_vista',
+    vistaId: 'vista_bellflower',
+    dialogue: [
+      "You sit amidst the resonant bellflowers. Tone Quality permanently increased by +5! (+10 Inspiration Sparks ✨)"
+    ]
+  },
+  {
+    id: 'npc_vista_woods_waterfall',
+    name: 'Verdant Cascade Vista',
+    title: 'Acoustic Inspiration Vista [SPACE to Attune]',
+    x: 500,
+    y: 1200,
+    zone: 'woodwind_woods',
+    isProp: true,
+    propType: 'vista_monolith',
+    actionType: 'inspiration_vista',
+    vistaId: 'vista_verdant_waterfall',
+    dialogue: [
+      "You meditate beside the roaring waterfall. Sight-Reading permanently increased by +5! (+10 Inspiration Sparks ✨)"
+    ]
+  },
+  {
     id: 'npc_signpost_woods_exit',
     name: 'Vivace Canopy Exit Signpost',
     title: '🗺️ Road Sign: ⬅️ Back to Cavatina Village [SPACE]',
@@ -1750,11 +2004,55 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     dialogue: [
       "🌲 VIVACE CANOPY TRAILHEAD:",
       "• ⬅️ WEST TRAIL: Follow the winding forest path back to Cavatina Village Plaza.",
-      "• ➡️ EAST GLADE: Leads toward Flutist Oliver and the Bellflower Basin."
+      "• ➡️ EAST GLADE: Leads toward Flutist Oliver, Master Sylvan, and the Bellflower Basin."
+    ]
+  },
+  {
+    id: 'npc_wild_otter',
+    name: 'Wild Cantabile Otter',
+    title: 'Wild Harmonipet (Oboe) [SPACE to Harmonize]',
+    x: 1550,
+    y: 850,
+    zone: 'woodwind_woods',
+    actionType: 'wild_harmonipet',
+    wildPetData: {
+      id: 'pet_otter_wild',
+      name: 'Lento',
+      species: 'Cantabile Otter',
+      sprite: 'otter',
+      section: 'woodwinds',
+      instrumentName: 'Oboe',
+      leitmotifSound: 'oboe_melody',
+      color: '#10b981'
+    },
+    dialogue: [
+      "A graceful Cantabile Otter is piping warm lyrical melodies by the brook! Match its cadence to bond with it!"
+    ]
+  },
+  {
+    id: 'npc_wild_finch',
+    name: 'Wild Piccolo Finch',
+    title: 'Wild Harmonipet (Silver Flute) [SPACE to Harmonize]',
+    x: 600,
+    y: 550,
+    zone: 'woodwind_woods',
+    actionType: 'wild_harmonipet',
+    wildPetData: {
+      id: 'pet_finch_wild',
+      name: 'Cadenza',
+      species: 'Piccolo Finch',
+      sprite: 'finch',
+      section: 'woodwinds',
+      instrumentName: 'Silver Flute',
+      leitmotifSound: 'flute_chirp',
+      color: '#38bdf8'
+    },
+    dialogue: [
+      "A chirping Piccolo Finch flutters between branches singing rapid trills! Match its cadence to bond with it!"
     ]
   },
 
-  // Brass Citadel
+  // ==================== THE BRASS CITADEL (FORTRESS & HIGHWAY) ====================
   {
     id: 'npc_baron_world',
     name: 'Baron Von Brass',
@@ -1765,6 +2063,34 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     musicianData: RECRUITABLE_MUSICIANS[2],
     actionType: 'audition_battle',
     dialogue: RECRUITABLE_MUSICIANS[2].dialogue || []
+  },
+  {
+    id: 'npc_vesta_amphitheater',
+    name: 'Baroness Vesta',
+    title: 'Citadel Fanfare Bandleader [SPACE to Compete]',
+    x: 1000,
+    y: 400,
+    zone: 'brass_citadel',
+    actionType: 'competition_stage',
+    rivalId: 'rival_brass_quartet',
+    dialogue: [
+      "Welcome to the Gilded Amphitheater! The Citadel Fanfare Quartet challenges you to match our regal volume and soaring four-part harmony!"
+    ]
+  },
+  {
+    id: 'npc_theory_citadel',
+    name: 'Citadel Golden Lectern',
+    title: 'Royal Harmony Exam (Chords & Triads) [SPACE]',
+    x: 600,
+    y: 750,
+    zone: 'brass_citadel',
+    isProp: true,
+    propType: 'lectern',
+    actionType: 'theory_bench',
+    theoryType: 'triads_chords',
+    dialogue: [
+      "Master triad inversions and chord analysis to command royal fanfare authority!"
+    ]
   },
   {
     id: 'npc_music_stand_citadel',
@@ -1782,6 +2108,36 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     ]
   },
   {
+    id: 'npc_vista_citadel_echo',
+    name: 'Echo Rampart Vista',
+    title: 'Acoustic Inspiration Vista [SPACE to Attune]',
+    x: 1400,
+    y: 1200,
+    zone: 'brass_citadel',
+    isProp: true,
+    propType: 'vista_monolith',
+    actionType: 'inspiration_vista',
+    vistaId: 'vista_echo_falls',
+    dialogue: [
+      "The echoing ramparts sharpen your sonic projection. Tone Quality permanently increased by +5! (+10 Inspiration Sparks ✨)"
+    ]
+  },
+  {
+    id: 'npc_vista_citadel_pinnacle',
+    name: 'Sunlit Brass Pinnacle',
+    title: 'Acoustic Inspiration Vista [SPACE to Attune]',
+    x: 400,
+    y: 400,
+    zone: 'brass_citadel',
+    isProp: true,
+    propType: 'vista_monolith',
+    actionType: 'inspiration_vista',
+    vistaId: 'vista_sunlit_pinnacle',
+    dialogue: [
+      "Sunlight gleaming on polished brass inspires effortless dexterity. Technique permanently increased by +5! (+10 Inspiration Sparks ✨)"
+    ]
+  },
+  {
     id: 'npc_signpost_citadel_exit',
     name: 'Allegro Citadel Exit Marker',
     title: '🗺️ Road Sign: ⬇️ Back to Cavatina Village [SPACE]',
@@ -1794,11 +2150,55 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     dialogue: [
       "🎺 ALLEGRO CITADEL HIGHWAY POST:",
       "• ⬇️ SOUTH HIGHWAY: Descends the Gilded Ramparts back to Cavatina Village Plaza.",
-      "• ⬆️ NORTH CONCOURSE: Leads to the Echo Amphitheater and Captain Baron."
+      "• ⬆️ NORTH CONCOURSE: Leads to Baroness Vesta and the Echo Amphitheater."
+    ]
+  },
+  {
+    id: 'npc_wild_ram',
+    name: 'Wild Alpine Ram',
+    title: 'Wild Harmonipet (French Horn) [SPACE to Harmonize]',
+    x: 1600,
+    y: 700,
+    zone: 'brass_citadel',
+    actionType: 'wild_harmonipet',
+    wildPetData: {
+      id: 'pet_ram_wild',
+      name: 'Rondo',
+      species: 'Alpine Ram',
+      sprite: 'ram',
+      section: 'brass',
+      instrumentName: 'French Horn',
+      leitmotifSound: 'horn_call',
+      color: '#f97316'
+    },
+    dialogue: [
+      "A noble Alpine Ram calls out with rich horn echoes! Match its cadence to bond with it!"
+    ]
+  },
+  {
+    id: 'npc_wild_hound',
+    name: 'Wild Fanfare Hound',
+    title: 'Wild Harmonipet (Trumpet) [SPACE to Harmonize]',
+    x: 500,
+    y: 1100,
+    zone: 'brass_citadel',
+    actionType: 'wild_harmonipet',
+    wildPetData: {
+      id: 'pet_hound_wild',
+      name: 'Major',
+      species: 'Fanfare Hound',
+      sprite: 'hound',
+      section: 'brass',
+      instrumentName: 'Herald Trumpet',
+      leitmotifSound: 'trumpet_fanfare',
+      color: '#eab308'
+    },
+    dialogue: [
+      "A loyal Fanfare Hound barks bright brass intervals! Match its cadence to bond with it!"
     ]
   },
 
-  // Percussion Peaks
+  // ==================== PERCUSSION PEAKS (MOUNTAIN VALLEYS & GHATS) ====================
   {
     id: 'npc_rita_world',
     name: 'Rhythm Rita',
@@ -1809,6 +2209,79 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     musicianData: RECRUITABLE_MUSICIANS[3],
     actionType: 'audition_battle',
     dialogue: RECRUITABLE_MUSICIANS[3].dialogue || []
+  },
+  {
+    id: 'npc_korath_summit',
+    name: 'Chief Korath',
+    title: 'Thunder Corps Chieftain [SPACE to Compete]',
+    x: 1000,
+    y: 650,
+    zone: 'percussion_peaks',
+    actionType: 'competition_stage',
+    rivalId: 'rival_thunder_chamber',
+    dialogue: [
+      "Boom! The Mountain Thunder Corps holds the summit. Can your ensemble maintain flawless tempo against our thundering stone bells?"
+    ]
+  },
+  {
+    id: 'npc_theory_peaks',
+    name: 'Sonic Caldera Lectern',
+    title: 'Peaks Acoustics & Dynamics Exam [SPACE]',
+    x: 600,
+    y: 950,
+    zone: 'percussion_peaks',
+    isProp: true,
+    propType: 'lectern',
+    actionType: 'theory_bench',
+    theoryType: 'tempo_dynamics_terms',
+    dialogue: [
+      "Master polyrhythms, tempo markings, and acoustic decay across the mountain valleys!"
+    ]
+  },
+  {
+    id: 'npc_music_stand_peaks',
+    name: 'Basalt Standing Ledger',
+    title: 'Study Sheet Music [SPACE]',
+    x: 1400,
+    y: 450,
+    zone: 'percussion_peaks',
+    isProp: true,
+    propType: 'ancient_stone_stand',
+    actionType: 'sheet_music_stand',
+    sheetMusicReward: 'piece_mountain_rondo',
+    dialogue: [
+      "You discovered the sheet music for 'Mountain Rondo & Thunder Bell' (Chamber Suite)!"
+    ]
+  },
+  {
+    id: 'npc_vista_peaks_monolith',
+    name: 'High Ridge Monolith Vista',
+    title: 'Acoustic Inspiration Vista [SPACE to Attune]',
+    x: 1000,
+    y: 400,
+    zone: 'percussion_peaks',
+    isProp: true,
+    propType: 'vista_monolith',
+    actionType: 'inspiration_vista',
+    vistaId: 'vista_monolith_peak',
+    dialogue: [
+      "Metronomic pulses from the monolith steady your heartbeat. Tempo Stability permanently increased by +5! (+10 Inspiration Sparks ✨)"
+    ]
+  },
+  {
+    id: 'npc_vista_peaks_thunder',
+    name: 'Thunder Bell Gorge Vista',
+    title: 'Acoustic Inspiration Vista [SPACE to Attune]',
+    x: 1600,
+    y: 1100,
+    zone: 'percussion_peaks',
+    isProp: true,
+    propType: 'vista_monolith',
+    actionType: 'inspiration_vista',
+    vistaId: 'vista_thunder_gorge',
+    dialogue: [
+      "Deep sub-bass tremors anchor your inner rhythmic pocket. Tempo Stability permanently increased by +5! (+10 Inspiration Sparks ✨)"
+    ]
   },
   {
     id: 'npc_signpost_peaks_exit',
@@ -1823,11 +2296,55 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     dialogue: [
       "🥁 RONDO CALDERA BRIDGE POST:",
       "• ⬆️ NORTH BRIDGE: Crosses the Resonant Gorge back to Cavatina Village Plaza.",
-      "• ⬇️ SOUTH RIDGE: Leads down the Stepped Ghats toward Rhythm Rita's summit."
+      "• ⬇️ SOUTH RIDGE: Leads down the Stepped Ghats toward Chief Korath and Rhythm Rita."
+    ]
+  },
+  {
+    id: 'npc_wild_squirrel',
+    name: 'Wild Marimba Squirrel',
+    title: 'Wild Harmonipet (Rosewood Marimba) [SPACE to Harmonize]',
+    x: 1400,
+    y: 850,
+    zone: 'percussion_peaks',
+    actionType: 'wild_harmonipet',
+    wildPetData: {
+      id: 'pet_squirrel_wild',
+      name: 'Click',
+      species: 'Marimba Squirrel',
+      sprite: 'squirrel',
+      section: 'percussion',
+      instrumentName: 'Marimba',
+      leitmotifSound: 'marimba_roll',
+      color: '#ec4899'
+    },
+    dialogue: [
+      "A nimble Marimba Squirrel is tapping energetic triplets on polished rosewood bars! Match its cadence to bond with it!"
+    ]
+  },
+  {
+    id: 'npc_wild_badger',
+    name: 'Wild Thunder Badger',
+    title: 'Wild Harmonipet (Timpani) [SPACE to Harmonize]',
+    x: 1500,
+    y: 1200,
+    zone: 'percussion_peaks',
+    actionType: 'wild_harmonipet',
+    wildPetData: {
+      id: 'pet_badger_wild',
+      name: 'Basso',
+      species: 'Thunder Badger',
+      sprite: 'badger',
+      section: 'percussion',
+      instrumentName: 'Caldera Timpani',
+      leitmotifSound: 'timpani_boom',
+      color: '#8b5cf6'
+    },
+    dialogue: [
+      "A fierce Thunder Badger rumbles powerful subterranean beats on rock timpani! Match its cadence to bond with it!"
     ]
   },
 
-  // Grand Symphony Hall
+  // ==================== THE GRAND SYMPHONY HALL (CLIMAX) ====================
   {
     id: 'npc_maestro_valerius',
     name: 'Maestro Valerius',
@@ -1836,6 +2353,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     y: 550,
     zone: 'grand_hall',
     actionType: 'competition_stage',
+    rivalId: 'rival_grand_orchestra',
     dialogue: [
       "Welcome, Maestro! Has your ensemble mastered all 4 sections? If so, let us perform the Ode to Harmony for the world!"
     ]
@@ -1857,7 +2375,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     ]
   },
 
-  // Vistas & Quests
+  // ==================== CAVATINA VILLAGE EXPLORATION & QUESTS ====================
   {
     id: 'npc_vista_cavatina',
     name: 'Canyon of Thirds Vista',
@@ -1870,7 +2388,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     actionType: 'inspiration_vista',
     vistaId: 'vista_canyon_thirds',
     dialogue: [
-      "You sit and listen to the natural third intervals echoing across the canyon. Technique permanently increased by +5!"
+      "You sit and listen to the natural third intervals echoing across the canyon. Technique permanently increased by +5! (+10 Inspiration Sparks ✨)"
     ]
   },
   {
@@ -1885,8 +2403,6 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       "Oh my! My grandfather's music box lost its cylinder pins. If you can gather brass pins from the luthier, I'll reward you handsomely with 150 Notes (♪)!"
     ]
   },
-
-  // Wild Harmonipets for Bonding
   {
     id: 'npc_wild_hare',
     name: 'Wild Vivace Hare',
@@ -1899,7 +2415,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       id: 'pet_hare_wild',
       name: 'Vivace',
       species: 'Vivace Hare',
-      sprite: '🐇',
+      sprite: 'hare',
       section: 'strings',
       instrumentName: 'Acoustic Guitar',
       leitmotifSound: 'guitar_strum',
@@ -1907,72 +2423,6 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     },
     dialogue: [
       "A wild Vivace Hare is strumming harmonic rhythms on its acoustic guitar! Match its cadence to bond with it!"
-    ]
-  },
-  {
-    id: 'npc_wild_otter',
-    name: 'Wild Cantabile Otter',
-    title: 'Wild Harmonipet (Oboe) [SPACE to Harmonize]',
-    x: 1550,
-    y: 850,
-    zone: 'woodwind_woods',
-    actionType: 'wild_harmonipet',
-    wildPetData: {
-      id: 'pet_otter_wild',
-      name: 'Lento',
-      species: 'Cantabile Otter',
-      sprite: '🦦',
-      section: 'woodwinds',
-      instrumentName: 'Oboe',
-      leitmotifSound: 'oboe_melody',
-      color: '#10b981'
-    },
-    dialogue: [
-      "A graceful Cantabile Otter is piping warm lyrical melodies by the brook! Match its cadence to bond with it!"
-    ]
-  },
-  {
-    id: 'npc_wild_ram',
-    name: 'Wild Alpine Ram',
-    title: 'Wild Harmonipet (French Horn) [SPACE to Harmonize]',
-    x: 1600,
-    y: 700,
-    zone: 'brass_citadel',
-    actionType: 'wild_harmonipet',
-    wildPetData: {
-      id: 'pet_ram_wild',
-      name: 'Rondo',
-      species: 'Alpine Ram',
-      sprite: '🐏',
-      section: 'brass',
-      instrumentName: 'French Horn',
-      leitmotifSound: 'horn_call',
-      color: '#f97316'
-    },
-    dialogue: [
-      "A noble Alpine Ram calls out with rich horn echoes! Match its cadence to bond with it!"
-    ]
-  },
-  {
-    id: 'npc_wild_squirrel',
-    name: 'Wild Marimba Squirrel',
-    title: 'Wild Harmonipet (Rosewood Marimba) [SPACE to Harmonize]',
-    x: 1400,
-    y: 850,
-    zone: 'percussion_peaks',
-    actionType: 'wild_harmonipet',
-    wildPetData: {
-      id: 'pet_squirrel_wild',
-      name: 'Click',
-      species: 'Marimba Squirrel',
-      sprite: '🐿️',
-      section: 'percussion',
-      instrumentName: 'Marimba',
-      leitmotifSound: 'marimba_roll',
-      color: '#ec4899'
-    },
-    dialogue: [
-      "A nimble Marimba Squirrel is tapping energetic triplets on polished rosewood bars! Match its cadence to bond with it!"
     ]
   }
 ];
@@ -2105,6 +2555,17 @@ export const INITIAL_INSPIRATION_VISTAS: InspirationVista[] = [
     visited: false
   },
   {
+    id: 'vista_verdant_waterfall',
+    name: 'Verdant Cascade Basin',
+    zone: 'woodwind_woods',
+    x: 500,
+    y: 1200,
+    description: 'The roaring white noise of the waterfall trains laser-sharp rhythmic sight-reading.',
+    statReward: 'sightReading',
+    statAmount: 5,
+    visited: false
+  },
+  {
     id: 'vista_echo_falls',
     name: 'The Echo Rampart',
     zone: 'brass_citadel',
@@ -2116,12 +2577,34 @@ export const INITIAL_INSPIRATION_VISTAS: InspirationVista[] = [
     visited: false
   },
   {
+    id: 'vista_sunlit_pinnacle',
+    name: 'Sunlit Brass Pinnacle',
+    zone: 'brass_citadel',
+    x: 400,
+    y: 400,
+    description: 'High citadel spires channel golden sunlight and crystalline acoustic projection.',
+    statReward: 'technique',
+    statAmount: 5,
+    visited: false
+  },
+  {
     id: 'vista_monolith_peak',
     name: 'The High Ridge Monolith',
     zone: 'percussion_peaks',
     x: 1000,
     y: 400,
     description: 'Ancient metronomic vibrations stabilize the pulse under pressure.',
+    statReward: 'tempoStability',
+    statAmount: 5,
+    visited: false
+  },
+  {
+    id: 'vista_thunder_gorge',
+    name: 'The Thunder Bell Gorge',
+    zone: 'percussion_peaks',
+    x: 1600,
+    y: 1100,
+    description: 'Deep subterranean bass rumbles instill unflinching tempo stability and pocket.',
     statReward: 'tempoStability',
     statAmount: 5,
     visited: false

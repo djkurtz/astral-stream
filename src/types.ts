@@ -336,6 +336,8 @@ export interface WorldNPC {
   vistaId?: string;
   badgeId?: string;
   wildPetData?: Harmonipet;
+  rivalId?: string;
+  theoryType?: TheoryChallengeType;
 }
 
 export interface GameDialogue {

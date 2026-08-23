@@ -902,7 +902,7 @@ export class HarmoniaGameEngine {
     }
 
     if (target.actionType === 'competition_stage') {
-      this.startConcertCompetition();
+      this.startConcertCompetition(target.rivalId);
       return;
     }
 
@@ -949,7 +949,7 @@ export class HarmoniaGameEngine {
     }
 
     if (target.actionType === 'theory_bench') {
-      this.startTheoryChallenge();
+      this.startTheoryChallenge(target.theoryType);
       return;
     }
 
