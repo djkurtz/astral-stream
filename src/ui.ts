@@ -168,8 +168,8 @@ export class AstralUIManager {
                 <div class="pad-light"></div>
                 <div class="pad-content">
                   <div style="font-weight: 700; font-size: 0.95rem;">[${idx + 1}] ${m.name}</div>
-                  <div style="font-size: 0.75rem; color: var(--accent-yellow); font-weight: 600;">${m.effectiveness || `${m.type.toUpperCase()} STEM`}</div>
-                  <div style="font-size: 0.72rem; opacity: 0.8;">Power: ${m.power}</div>
+                  <div style="font-size: 0.8rem; color: #38bdf8; font-weight: 700;">${m.effectiveness || `${m.type.toUpperCase()} STEM`}</div>
+                  <div style="font-size: 0.74rem; opacity: 0.85;">Power: ${m.power}</div>
                 </div>
               </button>
             `).join('');

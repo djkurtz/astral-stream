@@ -673,57 +673,73 @@ export class AstralRenderer {
 
     // Floating Battle Log with High-Legibility Font
     if (battle.log) {
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
-      ctx.fillRect(w * 0.12, h * 0.04, w * 0.76, 44);
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.95)';
+      ctx.fillRect(w * 0.08, 12, w * 0.84, 40);
       ctx.strokeStyle = '#38bdf8';
       ctx.lineWidth = 2;
-      ctx.strokeRect(w * 0.12, h * 0.04, w * 0.76, 44);
+      ctx.strokeRect(w * 0.08, 12, w * 0.84, 40);
 
       ctx.fillStyle = '#ffffff';
       ctx.font = '700 15px Fredoka, sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(battle.log, w / 2, h * 0.04 + 28);
+      ctx.fillText(battle.log, w / 2, 38);
     }
   }
 
-  private renderRhythmBar(ctx: CanvasRenderingContext2D, w: number, h: number, battle: any): void {
-    const barW = Math.min(500, w * 0.8);
-    const barH = 36;
+  private renderRhythmBar(ctx: CanvasRenderingContext2D, w: number, _h: number, battle: any): void {
+    const barW = Math.min(480, w * 0.82);
+    const barH = 34;
     const barX = (w - barW) / 2;
-    const barY = h * 0.78;
+    const barY = 95; // Placed at top-center, completely unobstructed by the bottom HUD!
 
-    // Track Background
-    ctx.fillStyle = '#0f172a';
-    ctx.fillRect(barX, barY, barW, barH);
+    // High-Contrast Dark Container Frame
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.96)';
+    ctx.fillRect(barX - 16, barY - 30, barW + 32, barH + 68);
     ctx.strokeStyle = '#38bdf8';
-    ctx.lineWidth = 3;
-    ctx.strokeRect(barX, barY, barW, barH);
+    ctx.lineWidth = 2.5;
+    ctx.strokeRect(barX - 16, barY - 30, barW + 32, barH + 68);
 
-    // Target Window (Green / Cyan Perfect Zone)
+    // Target Helper Label (Top of Bar)
+    ctx.fillStyle = '#4ade80';
+    ctx.font = '800 13px Fredoka, sans-serif';
+    ctx.textAlign = 'center';
     const winX = barX + battle.targetWindowStart * barW;
     const winW = (battle.targetWindowEnd - battle.targetWindowStart) * barW;
-    ctx.fillStyle = 'rgba(16, 185, 129, 0.65)';
-    ctx.fillRect(winX, barY + 2, winW, barH - 4);
+    ctx.fillText('▼ HIT HERE! ▼', winX + winW / 2, barY - 10);
 
-    // Beat Cursor
+    // Track Background
+    ctx.fillStyle = '#090d16';
+    ctx.fillRect(barX, barY, barW, barH);
+    ctx.strokeStyle = '#64748b';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(barX, barY, barW, barH);
+
+    // Target Window (Glowing Green Zone)
+    ctx.fillStyle = '#10b981';
+    ctx.shadowColor = '#10b981';
+    ctx.shadowBlur = 12;
+    ctx.fillRect(winX, barY + 2, winW, barH - 4);
+    ctx.shadowBlur = 0;
+
+    // Beat Cursor (Bright White with Cyan Glow)
     const curX = barX + battle.rhythmCursor * barW;
     ctx.fillStyle = '#ffffff';
-    ctx.shadowColor = '#ffffff';
-    ctx.shadowBlur = 12;
+    ctx.shadowColor = '#06b6d4';
+    ctx.shadowBlur = 15;
     ctx.fillRect(curX - 4, barY - 4, 8, barH + 8);
     ctx.shadowBlur = 0;
 
-    // Instruction Banner
-    ctx.fillStyle = '#fbbf24';
-    ctx.font = '800 16px Fredoka, sans-serif';
+    // High-Contrast White Instruction Banner
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '800 14px Fredoka, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('⚡ HIT [SPACE] OR CLICK WHEN CURSOR IS IN THE GREEN ZONE! ⚡', w / 2, barY - 12);
+    ctx.fillText('⚡ PRESS [SPACE] OR CLICK WHEN CURSOR IS IN GREEN! ⚡', w / 2, barY + barH + 24);
 
-    // Rhythm Result Popup
+    // Rhythm Result Feedback
     if (battle.rhythmResult) {
-      ctx.font = '800 24px Fredoka, sans-serif';
-      ctx.fillStyle = battle.rhythmResult === 'PERFECT' ? '#10b981' : (battle.rhythmResult === 'GREAT' ? '#38bdf8' : '#ef4444');
-      ctx.fillText(`✨ ${battle.rhythmResult}! ✨`, w / 2, barY + barH + 28);
+      ctx.font = '800 22px Fredoka, sans-serif';
+      ctx.fillStyle = battle.rhythmResult === 'PERFECT' ? '#34d399' : (battle.rhythmResult === 'GREAT' ? '#38bdf8' : '#f87171');
+      ctx.fillText(`✨ ${battle.rhythmResult}! ✨`, w / 2, barY + barH + 24);
     }
   }
 
