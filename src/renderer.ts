@@ -199,7 +199,7 @@ export class AstralRenderer {
     // 16. Wild Static Glitches & Roaming Monsters
     for (const g of state.wildGlitches) {
       if (!g.defeated) {
-        this.drawWildGlitch(ctx, g.x, g.y, g.spirit, t);
+        this.drawWildGlitch(ctx, g.x, g.y, g.spirit, t, !!g.isAlerted);
       }
     }
 
@@ -1679,16 +1679,35 @@ export class AstralRenderer {
     ctx.restore();
   }
 
-  private drawWildGlitch(ctx: CanvasRenderingContext2D, x: number, y: number, spirit: StreamSpirit, t: number): void {
+  private drawWildGlitch(ctx: CanvasRenderingContext2D, x: number, y: number, spirit: StreamSpirit, t: number, isAlerted: boolean = false): void {
     ctx.save();
     ctx.translate(x, y);
 
-    // Drop Shadow
+    // Drop Shadow & Danger Ring if Alerted
     const shadowColor = spirit.type === 'static' ? 'rgba(239, 68, 68, 0.35)' : 'rgba(16, 185, 129, 0.35)';
     ctx.fillStyle = shadowColor;
     ctx.beginPath();
     ctx.ellipse(0, 8, 16, 6, 0, 0, Math.PI * 2);
     ctx.fill();
+
+    if (isAlerted) {
+      ctx.strokeStyle = `rgba(239, 68, 68, ${0.6 + Math.sin(t * 10) * 0.3})`;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.ellipse(0, 8, 22 + Math.sin(t * 8) * 3, 9, 0, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Alert Exclamation Badge
+      ctx.fillStyle = '#ef4444';
+      ctx.beginPath();
+      ctx.arc(0, -32 + Math.sin(t * 12) * 2, 8, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '900 11px Fredoka, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('!', 0, -32 + Math.sin(t * 12) * 2);
+    }
 
     // Jitter & Levitation
     const jitterX = spirit.type === 'static' ? (Math.random() - 0.5) * 3 : 0;

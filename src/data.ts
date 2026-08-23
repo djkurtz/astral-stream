@@ -705,7 +705,9 @@ export const TOWN_WILD_GLITCHES: WildGlitchEntity[] = [
     x: 400,
     y: 2100,
     spirit: BIT_BUG_SPIRIT,
-    defeated: false
+    defeated: false,
+    spawnOrigin: { x: 400, y: 2100, radius: 180 },
+    wanderTimer: 0
   },
   {
     id: 'glitch_beach_2',
@@ -713,7 +715,9 @@ export const TOWN_WILD_GLITCHES: WildGlitchEntity[] = [
     x: 450,
     y: 550,
     spirit: NOISE_MOTE_SPIRIT,
-    defeated: false
+    defeated: false,
+    spawnOrigin: { x: 450, y: 550, radius: 180 },
+    wanderTimer: 0
   },
   {
     id: 'glitch_pier',
@@ -721,7 +725,9 @@ export const TOWN_WILD_GLITCHES: WildGlitchEntity[] = [
     x: 750,
     y: 2050,
     spirit: STEEL_PANDA_SPIRIT,
-    defeated: false
+    defeated: false,
+    spawnOrigin: { x: 750, y: 2050, radius: 200 },
+    wanderTimer: 0
   },
   {
     id: 'glitch_grove',
@@ -729,7 +735,9 @@ export const TOWN_WILD_GLITCHES: WildGlitchEntity[] = [
     x: 2550,
     y: 1650,
     spirit: KORA_GAZELLE_SPIRIT,
-    defeated: false
+    defeated: false,
+    spawnOrigin: { x: 2550, y: 1650, radius: 200 },
+    wanderTimer: 0
   },
   {
     id: 'glitch_ruins',
@@ -737,7 +745,58 @@ export const TOWN_WILD_GLITCHES: WildGlitchEntity[] = [
     x: 2550,
     y: 500,
     spirit: GLITCH_GOLEM_SPIRIT,
-    defeated: false
+    defeated: false,
+    spawnOrigin: { x: 2550, y: 500, radius: 200 },
+    wanderTimer: 0
+  }
+];
+
+export interface WildSpawnZone {
+  id: string;
+  name: string;
+  minX: number;
+  maxX: number;
+  minY: number;
+  maxY: number;
+  possibleSpirits: StreamSpirit[];
+}
+
+export const WILD_SPAWN_ZONES: WildSpawnZone[] = [
+  {
+    id: 'zone_beach',
+    name: 'Port Resonata Tidal Dunes',
+    minX: 250,
+    maxX: 850,
+    minY: 1950,
+    maxY: 2150,
+    possibleSpirits: [BIT_BUG_SPIRIT, STEEL_PANDA_SPIRIT]
+  },
+  {
+    id: 'zone_grove',
+    name: 'Whispering Bamboo Thickets',
+    minX: 2300,
+    maxX: 2900,
+    minY: 1400,
+    maxY: 1800,
+    possibleSpirits: [NOISE_MOTE_SPIRIT, KORA_GAZELLE_SPIRIT]
+  },
+  {
+    id: 'zone_ruins',
+    name: 'Ancient Sound Ruins',
+    minX: 2400,
+    maxX: 2900,
+    minY: 350,
+    maxY: 750,
+    possibleSpirits: [GLITCH_GOLEM_SPIRIT, BIT_BUG_SPIRIT]
+  },
+  {
+    id: 'zone_ridge',
+    name: 'Desolation Ridge',
+    minX: 350,
+    maxX: 850,
+    minY: 450,
+    maxY: 700,
+    possibleSpirits: [NOISE_MOTE_SPIRIT, BIT_BUG_SPIRIT]
   }
 ];
 

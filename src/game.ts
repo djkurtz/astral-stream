@@ -1,5 +1,5 @@
 import { soundEngine } from './audio';
-import { BOSS_SIGNAL_OVERLORD, FUSED_CHIMERA, JAX_SPIRIT, RIVAL_JAX, STARTER_SPIRIT, TOWN_ITEMS, TOWN_NPCS, TOWN_SOUND_RIPPLES, TOWN_WILD_GLITCHES, WORLD_OBSTACLES } from './data';
+import { BOSS_SIGNAL_OVERLORD, FUSED_CHIMERA, JAX_SPIRIT, RIVAL_JAX, STARTER_SPIRIT, TOWN_ITEMS, TOWN_NPCS, TOWN_SOUND_RIPPLES, TOWN_WILD_GLITCHES, WILD_SPAWN_ZONES, WORLD_OBSTACLES } from './data';
 import { CollectibleItem, GameState, Move, NPCEntity, SoundRipple, WildGlitchEntity } from './types';
 
 export class AstralGameEngine {
@@ -117,9 +117,10 @@ export class AstralGameEngine {
 
     this.state.time += dt;
 
-    // Exploration Movement & Proximity
+    // Exploration Movement, AI & Proximity
     if (this.state.mode === 'exploration') {
       this.updatePlayerMovement(dt);
+      this.updateWildMonsters(dt);
       this.updateProximity();
     }
 
@@ -235,6 +236,84 @@ export class AstralGameEngine {
 
   public checkBuildingCollision(x: number, y: number): boolean {
     return this.checkObstacleCollision(x, y);
+  }
+
+  private updateWildMonsters(dt: number): void {
+    const px = this.state.player.x;
+    const py = this.state.player.y;
+
+    for (const g of this.state.wildGlitches) {
+      if (g.defeated) {
+        g.respawnTimer = (g.respawnTimer || 0) + dt;
+        if (g.respawnTimer > 20) {
+          g.defeated = false;
+          g.respawnTimer = 0;
+          if (g.spawnOrigin) {
+            const angle = Math.random() * Math.PI * 2;
+            const dist = Math.random() * g.spawnOrigin.radius * 0.8;
+            g.x = g.spawnOrigin.x + Math.cos(angle) * dist;
+            g.y = g.spawnOrigin.y + Math.sin(angle) * dist;
+          } else {
+            const zone = WILD_SPAWN_ZONES.find(z => z.possibleSpirits.some(s => s.id === g.spirit.id)) || WILD_SPAWN_ZONES[0];
+            g.x = zone.minX + Math.random() * (zone.maxX - zone.minX);
+            g.y = zone.minY + Math.random() * (zone.maxY - zone.minY);
+          }
+        }
+        continue;
+      }
+
+      const dist = Math.hypot(px - g.x, py - g.y);
+
+      // Active Pursuit AI when player is within 220px
+      if (dist < 220 && !this.state.dialogue) {
+        g.isAlerted = true;
+        const dx = (px - g.x) / dist;
+        const dy = (py - g.y) / dist;
+        const speed = g.spirit.id === 'spirit_glitch_golem' ? 55 : (g.spirit.id === 'spirit_steel_panda' ? 65 : 85);
+
+        const nextX = g.x + dx * speed * dt;
+        const nextY = g.y + dy * speed * dt;
+
+        if (!this.checkObstacleCollision(nextX, nextY)) {
+          g.x = nextX;
+          g.y = nextY;
+        }
+
+        // Direct Touch Battle Encounter
+        if (dist < 34 && this.state.mode === 'exploration' && !this.state.dialogue) {
+          this.startWildBattle(g);
+          return;
+        }
+      } else {
+        g.isAlerted = false;
+        // Wandering / Patrol around spawn origin
+        g.wanderTimer = (g.wanderTimer || 0) - dt;
+        if (g.wanderTimer <= 0) {
+          g.wanderTimer = 3 + Math.random() * 3;
+          const originX = g.spawnOrigin ? g.spawnOrigin.x : g.x;
+          const originY = g.spawnOrigin ? g.spawnOrigin.y : g.y;
+          const maxR = g.spawnOrigin ? g.spawnOrigin.radius * 0.7 : 100;
+          const angle = Math.random() * Math.PI * 2;
+          const r = Math.random() * maxR;
+          g.wanderTarget = { x: originX + Math.cos(angle) * r, y: originY + Math.sin(angle) * r };
+        }
+
+        if (g.wanderTarget) {
+          const tDist = Math.hypot(g.wanderTarget.x - g.x, g.wanderTarget.y - g.y);
+          if (tDist > 5) {
+            const wdx = (g.wanderTarget.x - g.x) / tDist;
+            const wdy = (g.wanderTarget.y - g.y) / tDist;
+            const wSpeed = 25;
+            const nextX = g.x + wdx * wSpeed * dt;
+            const nextY = g.y + wdy * wSpeed * dt;
+            if (!this.checkObstacleCollision(nextX, nextY)) {
+              g.x = nextX;
+              g.y = nextY;
+            }
+          }
+        }
+      }
+    }
   }
 
   public updateProximity(): void {

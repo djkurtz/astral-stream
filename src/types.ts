@@ -81,6 +81,11 @@ export interface WildGlitchEntity {
   y: number;
   spirit: StreamSpirit;
   defeated: boolean;
+  spawnOrigin?: { x: number; y: number; radius: number };
+  isAlerted?: boolean;
+  wanderTimer?: number;
+  wanderTarget?: { x: number; y: number };
+  respawnTimer?: number;
 }
 
 export interface CollectibleItem {
