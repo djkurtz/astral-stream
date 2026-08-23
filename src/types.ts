@@ -51,6 +51,8 @@ export interface StreamSpirit {
   speed: number;
   moves: Move[];
   isFused?: boolean;
+  harmonicEnrichment?: number;
+  isEvolved?: boolean;
 }
 
 export interface NPCEntity {
@@ -63,16 +65,27 @@ export interface NPCEntity {
   color: string;
   dialogue: string[];
   actionType?: 'talk' | 'battle_jax' | 'audio_match';
+  pet?: {
+    name: string;
+    species: string;
+    sprite: 'bird' | 'pup' | 'fawn' | 'gull';
+    instrument: string;
+  };
 }
 
-export interface SoundRipple {
+export interface MusicalShrine {
   id: string;
+  name: string;
+  tradition: string;
+  biome: string;
   x: number;
   y: number;
   challengeType: AudioChallengeType;
   spirit: StreamSpirit;
   discovered: boolean;
 }
+
+export type SoundRipple = MusicalShrine;
 
 export interface WildGlitchEntity {
   id: string;

@@ -1,4 +1,4 @@
-import { CollectibleItem, NPCEntity, SoundRipple, StreamSpirit, WildGlitchEntity, WorldObstacle } from './types';
+import { CollectibleItem, NPCEntity, MusicalShrine, StreamSpirit, WildGlitchEntity, WorldObstacle } from './types';
 
 export const STARTER_SPIRIT: StreamSpirit = {
   id: 'spirit_chime_cat',
@@ -548,11 +548,17 @@ export const TOWN_NPCS: NPCEntity[] = [
     sprite: 'aria',
     color: '#38bdf8',
     actionType: 'talk',
+    pet: {
+      name: 'Latte-Chirp',
+      species: 'Melody Songbird',
+      sprite: 'bird',
+      instrument: 'Flute / Piccolo Whistle'
+    },
     dialogue: [
       "Welcome to Cadence Plaza! ☕ Notice how our Harmonimals are living, breathing instruments?",
-      "To reach Desolation Ridge in the northwest, you must overcome the impenetrable Sonic Vines blocking the mountain path.",
+      "To reach Desolation Ridge in the northwest, you must overcome the impenetrable Sonic Vines blocking the mountain pass.",
       "The vines resonate with discordant static. You'll need high-resonance global harmonies to dissolve them!",
-      "Visit Barnaby down at Port Resonata to the south, and explore the Whispering Bamboo Grove to the east.",
+      "Seek out the 3 ancient Musical Tradition Shrines across the island: on the southern Tidal Sands, deep in the Bamboo Grove, and inside the Sound Ruins.",
       "Here is how the Global Genre wheel turns:",
       "🎻 SYMPHONIC (Violin) overpowers 🎹 SYNTH (Chiptune)!",
       "🎹 SYNTH overpowers 🪕 GLOBAL (Sitar & Taiko)!",
@@ -568,13 +574,20 @@ export const TOWN_NPCS: NPCEntity[] = [
     sprite: 'dj_otter',
     color: '#fbbf24',
     actionType: 'talk',
+    pet: {
+      name: 'Vinyl-Pup',
+      species: 'Groove Terrier',
+      sprite: 'pup',
+      instrument: 'Turntable Scratch'
+    },
     dialogue: [
       "Yo! Welcome to the Vinyl Den! 💽",
-      "If you want to clear the rogue static, tune into the 3 cultural sound stations in town:",
-      "🎻 Allegro-Owl (Violin-Winged Owl) near the cafe terrace,",
-      "🪕 Sitar-Swan (Gourd-Bodied Veena Swan) at the center fountain,",
-      "🥁 Taiko-Tanuki (Belly-Drum Matsuri Raccoon) in the Eastern Bamboo Grove!",
-      "Master their frequencies to build the ultimate world playlist!"
+      "When Dead Channel attacked, our pets' connections were severed into static... but your visiting Chime-Cat is immune!",
+      "Seek the 3 ancient Shrines across the island:",
+      "🪕 Sacred Sitar Shrine on the southern beach sandbars,",
+      "🥁 Matsuri Taiko Shrine in the Eastern Bamboo Forest,",
+      "🎻 Symphonic Violin Shrine in the Northeast Sound Ruins!",
+      "Attune at the shrines to sample their archetypes, then battle wild monsters to enrich your playlist toward Harmonic Evolution!"
     ]
   },
   {
@@ -616,11 +629,17 @@ export const TOWN_NPCS: NPCEntity[] = [
     sprite: 'maestro_owl',
     color: '#a855f7',
     actionType: 'talk',
+    pet: {
+      name: 'Cello-Fawn',
+      species: 'Sonata Fawn',
+      sprite: 'fawn',
+      instrument: 'Baroque Cello'
+    },
     dialogue: [
       "Hoo-hoo! The acoustic balance of our world is severely disturbed by the Dead Channel.",
-      "I am testing the harmonic mastery of all traveling Streamers. Have you tuned into the Baroque Violin and Indian Sitar stations here in town?",
-      "To breach the static barriers, seek the Harmonic Tuning Fork and the Frequency Crystals hidden across the realm.",
-      "Once your playlist resonates with multiple cultural traditions, even the ancient colossus in the Northeast Ruins will yield!"
+      "My beloved Cello-Fawn was muted by the static desync. Only your Chime-Cat holds an uncorrupted carrier wave.",
+      "Visit the 3 ancient musical shrines across the cultural biomes. Solve their acoustic tuning puzzles to sample their archetypes!",
+      "Once an archetype is bonded to your cat's frequency, sample defeated wild monsters in battle to trigger glorious Harmonic Evolutions!"
     ]
   },
   {
@@ -632,11 +651,17 @@ export const TOWN_NPCS: NPCEntity[] = [
     sprite: 'pelican',
     color: '#38bdf8',
     actionType: 'talk',
+    pet: {
+      name: 'Accordion-Gull',
+      species: 'Sea Gull',
+      sprite: 'gull',
+      instrument: 'Squeeze-Box Accordion'
+    },
     dialogue: [
       "Squawk! Welcome to Port Resonata and the Tidal Dunes!",
+      "The Sacred Sitar Shrine is resting out on the western sandbar just past my dock! 🪕",
       "Keep an ear out along the shoreline sands. Word is a legendary Golden Vinyl washed ashore nearby—it gives a massive Max HP boost!",
-      "Wild Steel-Pandas and Bit-Bugs roam the southern coastline. Battling them will sharpen your squad's frequency before you head north!",
-      "If you're aiming for the Ancient Ruins or the Ridge, make sure your lead Harmonimal is well-tuned."
+      "Wild Steel-Pandas and Bit-Bugs roam the southern coastline. Sample their harmonic stems in battle to supercharge your squad!"
     ]
   },
   {
@@ -651,7 +676,7 @@ export const TOWN_NPCS: NPCEntity[] = [
     dialogue: [
       "Check 1-2, check 1-2! Signals are peaking in the red across the Whispering Bamboo Grove! ⚡",
       "I'm patching heavy-gauge audio cables to shield the eastern sound grid from Dead Channel's desync waves.",
-      "The ancient stone lanterns here illuminate hidden harmonic frequencies. Tune into the Taiko drum circle nearby!",
+      "Deep in the bamboo thickets to the east lies the ancient Matsuri Taiko Drum Shrine. Solve its pulse rhythm to awaken Taiko-Tanuki!",
       "Head further northeast to the Sound Ruins if you dare—there's an Overdrive Energy Battery waiting for a worthy streamer."
     ]
   },
@@ -666,9 +691,9 @@ export const TOWN_NPCS: NPCEntity[] = [
     actionType: 'talk',
     dialogue: [
       "Greetings, traveler. You stand within the Ancient Sound Ruins, where the realm's primordial chords were first etched into stone.",
-      "The floating monoliths above us hum in sympathy with cosmic frequencies, but Dead Channel 000's static has corrupted the central sanctuary.",
-      "A massive Wild Glitch-Golem roams these ruins, projecting thorny Sonic Vines that blockade the mountain pass to Desolation Ridge.",
-      "Take the Overdrive Energy Battery on the eastern terrace, and defeat the Glitch-Golem to purify the frequency stream and dissolve the vines!"
+      "The Symphonic Violin Shrine rests upon our northern stone terrace! Attune its harmonic wave slider to sample Allegro-Owl.",
+      "A massive Wild Glitch-Golem roams the central altar, projecting thorny Sonic Vines that blockade the pass to Desolation Ridge.",
+      "Take the Overdrive Energy Battery on the eastern terrace, sample the shrine archetype, and defeat the Glitch-Golem to dissolve the vines!"
     ]
   }
 ];
@@ -678,37 +703,45 @@ export const RIVAL_JAX = {
   title: 'The Underground Punk',
   dialogueDefeat: [
     "Whoa... okay, your timing is clean and your rhythm is sharp. I respect that!",
-    "My Sub-Woofer Bass-Hound and I are officially joining your active squad! 🐶🎸",
-    "We're linked and ready, but Dead Channel 000 is a massive anomaly. Take time to explore Cadence Plaza!",
-    "Battle wild static glitches on the beach to level up your squad, and discover the 3 cultural sound stations in town.",
+    "My Sub-Woofer Bass-Hound track is officially added to your master playlist! 🐶🎸",
+    "We're linked and ready. In battle, you can sample my overdrive bass stem or trigger our Multipart Harmony Fusion!",
     "Whenever you're ready for the final battle, step up to the Glitch Gate to breach the static storm together!"
   ]
 };
 
-// 3 Distinct Cultural Sound Ripples across the Realm
-export const TOWN_SOUND_RIPPLES: SoundRipple[] = [
+// 3 Ancient Musical Tradition Shrines across the Realm
+export const TOWN_SOUND_RIPPLES: MusicalShrine[] = [
   {
-    id: 'ripple_cafe',
-    x: 1350,
-    y: 1500,
-    challengeType: 'waveform_slider',
-    spirit: ALLEGRO_OWL_SPIRIT, // European Baroque Classical (Violin-Winged Owl)
-    discovered: false
-  },
-  {
-    id: 'ripple_fountain',
-    x: 1600,
-    y: 1560,
+    id: 'shrine_sitar',
+    name: 'Sacred Sitar & Raga Shrine',
+    tradition: 'Indian Classical Veena/Sitar',
+    biome: 'Port Resonata Tidal Sands',
+    x: 450,
+    y: 2050,
     challengeType: 'call_response',
     spirit: SITAR_SWAN_SPIRIT, // Indian Classical (Gourd-Bodied Sitar Swan)
     discovered: false
   },
   {
-    id: 'ripple_vinyl',
-    x: 2600,
-    y: 1400,
+    id: 'shrine_taiko',
+    name: 'Matsuri Taiko Drum Shrine',
+    tradition: 'Japanese Festival Matsuri',
+    biome: 'Whispering Bamboo Grove',
+    x: 2850,
+    y: 1550,
     challengeType: 'rhythm_pulse',
     spirit: TAIKO_TANUKI_SPIRIT, // Japanese Matsuri (Belly-Drum Taiko Tanuki)
+    discovered: false
+  },
+  {
+    id: 'shrine_violin',
+    name: 'Symphonic Violin Shrine',
+    tradition: 'European Baroque Classical',
+    biome: 'Ancient Sound Ruins',
+    x: 2700,
+    y: 360,
+    challengeType: 'waveform_slider',
+    spirit: ALLEGRO_OWL_SPIRIT, // European Baroque Classical (Violin-Winged Owl)
     discovered: false
   }
 ];

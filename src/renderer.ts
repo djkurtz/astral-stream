@@ -1,4 +1,4 @@
-import { GameState, StreamSpirit } from './types';
+import { GameState, StreamSpirit, MusicalShrine, NPCEntity } from './types';
 
 export class AstralRenderer {
   private canvas: HTMLCanvasElement;
@@ -188,11 +188,9 @@ export class AstralRenderer {
     // 13. Musical Centerpiece Fountain (Harmony Fountain)
     this.drawMusicalFountain(ctx, 1600, 1450, t);
 
-    // 14. Sound Ripples (The 3 Discovery Stations)
-    for (const rip of state.soundRipples) {
-      if (!rip.discovered) {
-        this.drawSoundRipple(ctx, rip.x, rip.y, rip.challengeType, t);
-      }
+    // 14. Ancient Musical Tradition Shrines (Cultural Biome Sanctuaries)
+    for (const shrine of state.soundRipples) {
+      this.drawMusicalShrine(ctx, shrine, t);
     }
 
     // 15. Floating Collectible Items
@@ -211,9 +209,9 @@ export class AstralRenderer {
       }
     }
 
-    // 17. NPCs
+    // 17. NPCs & Musical Pets (Active in prologue & restored in victory)
     for (const npc of state.npcs) {
-      this.drawPixelNPC(ctx, npc.x, npc.y, npc.sprite, t, npc.name);
+      this.drawPixelNPC(ctx, npc, t, state.questStage);
     }
 
     // 18. Player Character
@@ -278,7 +276,7 @@ export class AstralRenderer {
     if (state.nearbyInteractable) {
       const target = state.nearbyInteractable;
       const tx = target.x;
-      const ty = 'name' in target ? target.y - 54 : target.y - 44;
+      const ty = target.y - 50;
 
       let promptText = '';
       let subText = '';
@@ -292,6 +290,12 @@ export class AstralRenderer {
         promptText = `✨ [SPACE] Collect ${(target as any).name}`;
         subText = (target as any).effect || 'Valuable Audio Artifact';
         accentColor = '#fbbf24';
+      } else if ('tradition' in target) {
+        const s = target as any;
+        const icon = s.challengeType === 'waveform_slider' ? '🎻' : (s.challengeType === 'call_response' ? '🪕' : '🥁');
+        promptText = `${icon} [SPACE] Attune at ${s.name}`;
+        subText = `${s.tradition} • ${s.biome}`;
+        accentColor = '#f59e0b';
       } else if ('name' in target) {
         if (target.id === 'npc_gate') {
           promptText = state.activeCompanion === 'jax' ? '⚠️ [SPACE] Breach Glitch Gate' : '⚠️ [SPACE] Inspect Gate';
@@ -303,23 +307,8 @@ export class AstralRenderer {
           accentColor = '#c084fc';
         } else {
           promptText = `💬 [SPACE] Talk to ${target.name}`;
-          subText = (target as any).role || 'Cadence Plaza Resident';
+          subText = (target as any).title || 'Cadence Plaza Resident';
           accentColor = '#38bdf8';
-        }
-      } else {
-        const cType = (target as any).challengeType;
-        if (cType === 'waveform_slider') {
-          promptText = '🎻 [SPACE] Baroque Violin Ripple';
-          subText = 'Tune frequencies to stream Allegro-Owl';
-          accentColor = '#f59e0b';
-        } else if (cType === 'call_response') {
-          promptText = '🪕 [SPACE] Indian Sitar Jam';
-          subText = 'Repeat melody notes to stream Sitar-Swan';
-          accentColor = '#f59e0b';
-        } else {
-          promptText = '🥁 [SPACE] Matsuri Taiko Circle';
-          subText = 'Lock rhythm pulses to stream Taiko-Tanuki';
-          accentColor = '#f59e0b';
         }
       }
 
@@ -1689,23 +1678,119 @@ export class AstralRenderer {
     }
   }
 
-  private drawSoundRipple(ctx: CanvasRenderingContext2D, x: number, y: number, challengeType: string, t: number): void {
-    const pulse = (t * 40) % 32;
-    ctx.strokeStyle = `rgba(251, 191, 36, ${1 - pulse / 32})`;
-    ctx.lineWidth = 2.5;
+  private drawMusicalShrine(ctx: CanvasRenderingContext2D, shrine: MusicalShrine, t: number): void {
+    const x = shrine.x;
+    const y = shrine.y;
+    const isDiscovered = shrine.discovered;
+    const bob = Math.sin(t * 4) * 4;
+    const glow = Math.sin(t * 5) * 0.3 + 0.7;
+
+    ctx.save();
+    ctx.translate(x, y);
+
+    // 1. Drop Shadow
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
     ctx.beginPath();
-    ctx.arc(x, y, pulse + 12, 0, Math.PI * 2);
-    ctx.stroke();
+    ctx.ellipse(0, 16, 32, 14, 0, 0, Math.PI * 2);
+    ctx.fill();
 
-    // Ripple Icon in Center (Identity shown via Proximity Card)
-    let icon = '🪕';
-    if (challengeType === 'waveform_slider') { icon = '🎻'; }
-    else if (challengeType === 'rhythm_pulse') { icon = '🥁'; }
+    if (shrine.id === 'shrine_sitar') {
+      // --- SACRED SITAR & RAGA SHRINE (Port Resonata Beach Sandbar) ---
+      // Tiered Sandstone Lotus Base
+      ctx.fillStyle = '#b45309';
+      ctx.fillRect(-28, 4, 56, 12);
+      ctx.fillStyle = '#f59e0b';
+      ctx.fillRect(-22, -2, 44, 8);
+      // Terracotta Lotus Petals
+      ctx.fillStyle = '#d97706';
+      for (let p = -3; p <= 3; p++) {
+        ctx.beginPath();
+        ctx.ellipse(p * 7, 0, 6, 10, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      // Glowing Turquoise Beacon Brazier
+      ctx.fillStyle = '#06b6d4';
+      ctx.shadowColor = '#06b6d4';
+      ctx.shadowBlur = isDiscovered ? 20 : 12 * glow;
+      ctx.fillRect(-10, -14, 20, 14);
 
-    ctx.font = '24px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(icon, x, y);
+      // Holographic Floating Sitar Rune
+      ctx.font = '28px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(isDiscovered ? '✨🪕✨' : '🪕', 0, -32 + bob);
+
+    } else if (shrine.id === 'shrine_taiko') {
+      // --- MATSURI TAIKO DRUM SHRINE (Whispering Bamboo Grove) ---
+      // Vermilion Japanese Torii Pillars
+      ctx.fillStyle = '#dc2626';
+      ctx.fillRect(-26, -30, 8, 44);
+      ctx.fillRect(18, -30, 8, 44);
+      // Torii Roof Arch
+      ctx.fillStyle = '#b91c1c';
+      ctx.fillRect(-34, -36, 68, 8);
+      ctx.fillRect(-30, -28, 60, 6);
+      // Gold Shimenawa Sacred Rope
+      ctx.fillStyle = '#fbbf24';
+      ctx.fillRect(-24, -22, 48, 4);
+
+      // Sacred Taiko Drum Pedestal
+      ctx.fillStyle = '#78350f';
+      ctx.fillRect(-16, -6, 32, 20);
+      ctx.fillStyle = '#fef08a';
+      ctx.beginPath();
+      ctx.ellipse(0, -6, 16, 6, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Floating Taiko Spirit Rune
+      ctx.shadowColor = '#ef4444';
+      ctx.shadowBlur = isDiscovered ? 25 : 15 * glow;
+      ctx.font = '28px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(isDiscovered ? '✨🥁✨' : '🥁', 0, -18 + bob);
+
+    } else {
+      // --- SYMPHONIC VIOLIN SHRINE (Ancient Sound Ruins) ---
+      // Classical Fluted Marble Columns
+      ctx.fillStyle = '#94a3b8';
+      ctx.fillRect(-28, -24, 8, 38);
+      ctx.fillRect(20, -24, 8, 38);
+      // Marble Pedestal & Arch
+      ctx.fillStyle = '#cbd5e1';
+      ctx.fillRect(-34, -30, 68, 8);
+      ctx.fillRect(-22, 8, 44, 10);
+
+      // Sapphire Harmonic Crystal
+      ctx.fillStyle = '#38bdf8';
+      ctx.shadowColor = '#38bdf8';
+      ctx.shadowBlur = isDiscovered ? 25 : 15 * glow;
+      ctx.beginPath();
+      ctx.moveTo(0, -20 + bob);
+      ctx.lineTo(12, -4 + bob);
+      ctx.lineTo(0, 10 + bob);
+      ctx.lineTo(-12, -4 + bob);
+      ctx.closePath();
+      ctx.fill();
+
+      // Floating Violin Rune
+      ctx.font = '26px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(isDiscovered ? '✨🎻✨' : '🎻', 0, -28 + bob);
+    }
+
+    // Floating Tradition Pulsing Rings if undiscovered
+    if (!isDiscovered) {
+      const pulse = (t * 30) % 36;
+      ctx.strokeStyle = `rgba(251, 191, 36, ${1 - pulse / 36})`;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.ellipse(0, 12, pulse + 18, (pulse + 18) * 0.45, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    ctx.restore();
   }
 
   /* ---------------- DETAILED PIXEL SPRITES ---------------- */
@@ -2216,7 +2301,11 @@ export class AstralRenderer {
     ctx.restore();
   }
 
-  private drawPixelNPC(ctx: CanvasRenderingContext2D, x: number, y: number, sprite: string, t: number, _name: string): void {
+  private drawPixelNPC(ctx: CanvasRenderingContext2D, npc: NPCEntity, t: number, questStage: string): void {
+    const x = npc.x;
+    const y = npc.y;
+    const sprite = npc.sprite;
+
     ctx.save();
     ctx.translate(x, y);
 
@@ -2310,6 +2399,88 @@ export class AstralRenderer {
     }
 
     ctx.restore();
+
+    // Render NPC Musical Pet (Active in Prologue & Restored in Cleansing Victory)
+    if (npc.pet && (questStage === 'intro' || questStage === 'cleansed')) {
+      this.drawPixelNPCPet(ctx, x + 24, y + 2, npc.pet, t);
+    }
+  }
+
+  private drawPixelNPCPet(ctx: CanvasRenderingContext2D, px: number, py: number, pet: { name: string; species: string; sprite: 'bird' | 'pup' | 'fawn' | 'gull'; instrument: string }, t: number): void {
+    ctx.save();
+    ctx.translate(px, py);
+    const bob = Math.sin(t * 6 + px) * 2;
+
+    // Pet Shadow
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+    ctx.beginPath();
+    ctx.ellipse(0, 4, 8, 3, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    if (pet.sprite === 'bird') {
+      // Aria's Latte-Chirp (Melody Songbird)
+      ctx.fillStyle = '#38bdf8';
+      ctx.beginPath();
+      ctx.arc(0, -6 + bob, 6, 0, Math.PI * 2);
+      ctx.fill();
+      // Golden Flute Beak
+      ctx.fillStyle = '#f59e0b';
+      ctx.fillRect(4, -7 + bob, 4, 2);
+      // Wing
+      ctx.fillStyle = '#0284c7';
+      ctx.fillRect(-4, -5 + bob, 4, 4);
+      // Musical Note
+      ctx.fillStyle = '#fbbf24';
+      ctx.font = '10px sans-serif';
+      ctx.fillText('♪', 2, -14 + bob);
+
+    } else if (pet.sprite === 'pup') {
+      // DJ Otter's Vinyl-Pup (Groove Terrier)
+      ctx.fillStyle = '#d97706';
+      ctx.fillRect(-6, -8 + bob, 12, 8);
+      // Head
+      ctx.fillStyle = '#f59e0b';
+      ctx.fillRect(2, -14 + bob, 8, 8);
+      // Mini Headphones
+      ctx.fillStyle = '#fbbf24';
+      ctx.fillRect(4, -16 + bob, 4, 2);
+      ctx.fillRect(2, -14 + bob, 2, 4);
+      ctx.fillRect(8, -14 + bob, 2, 4);
+      // Tail
+      ctx.fillStyle = '#92400e';
+      ctx.fillRect(-8, -10 + bob + Math.sin(t * 12) * 2, 3, 3);
+
+    } else if (pet.sprite === 'fawn') {
+      // Maestro Owl's Cello-Fawn (Sonata Fawn)
+      ctx.fillStyle = '#c084fc';
+      ctx.fillRect(-6, -10 + bob, 12, 10);
+      // Dainty Legs
+      ctx.fillStyle = '#7e22ce';
+      ctx.fillRect(-5, 0, 2, 4);
+      ctx.fillRect(3, 0, 2, 4);
+      // Head & Cello Antlers
+      ctx.fillStyle = '#e9d5ff';
+      ctx.fillRect(2, -16 + bob, 6, 7);
+      ctx.fillStyle = '#78350f';
+      ctx.fillRect(4, -20 + bob, 2, 5); // Cello Scroll
+
+    } else if (pet.sprite === 'gull') {
+      // Barnaby's Accordion-Gull
+      ctx.fillStyle = '#f8fafc';
+      ctx.fillRect(-6, -8 + bob, 12, 7);
+      // Accordion Pleat Wings
+      ctx.fillStyle = '#ef4444';
+      ctx.fillRect(-3, -7 + bob, 2, 5);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(-1, -7 + bob, 2, 5);
+      ctx.fillStyle = '#ef4444';
+      ctx.fillRect(1, -7 + bob, 2, 5);
+      // Orange Beak
+      ctx.fillStyle = '#ea580c';
+      ctx.fillRect(6, -8 + bob, 4, 2);
+    }
+
+    ctx.restore();
   }
 
   private drawCollectibleItem(ctx: CanvasRenderingContext2D, x: number, y: number, icon: string, _name: string, t: number): void {
@@ -2400,7 +2571,7 @@ export class AstralRenderer {
       this.drawSpiritBattleSprite(ctx, px + 36, py + Math.sin(t * 4 + 1.5) * 5, bassHound, 1.2);
       
       // Jax standing behind the squad
-      this.drawPixelNPC(ctx, px - 75, py - 20, 'jax', t, 'Jax');
+      this.drawPixelNPC(ctx, { id: 'npc_jax', name: 'Jax', title: 'The Underground Punk', x: px - 75, y: py - 20, sprite: 'jax', color: '#c084fc', dialogue: [] }, t, state.questStage);
     } else {
       ctx.fillStyle = 'rgba(6, 182, 212, 0.3)';
       ctx.beginPath();

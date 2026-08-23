@@ -563,13 +563,13 @@ export class AstralGameEngine {
     if (this.emergencyTriggered) return;
     this.emergencyTriggered = true;
     this.showDialogue('⚠️ EMERGENCY BROADCAST ⚠️', '📳', [
-      "[CRACKLE... BZZZT...] ATTENTION ALL STREAMERS & CITIZENS IN CADENCE REALM!",
-      "A catastrophic rogue anomaly known as DEAD CHANNEL 000 has hijacked the northern broadcast tower!",
-      "Dense analog static is leaking through the Glitch Gate on Desolation Ridge, threatening to corrupt world harmonies and mute all Harmonimals!",
-      "[Aria ☕] Streamer! Your live stream transmitter is the only signal cutting through the static storm!",
-      "With Chime-Cat's unique resonance, you can tune into the realm's acoustic traditions to fight back.",
-      "Beware: dense Sonic Vines block the mountain pass to Desolation Ridge. Seek out traditions and harmonic gear across Port Resonata, the Bamboo Grove, and Sound Ruins.",
-      "First, gather squad members across the realm, then confront Jax at Desolation Ridge to breach the Glitch Gate!"
+      "[CRACKLE... BZZZT...] ALL LOCAL FREQUENCY CONNECTIONS SEVERED! THE ISLANDERS' HARMONIMALS ARE DISSOLVING INTO ANALOG STATIC!",
+      "A catastrophic rogue anomaly known as DEAD CHANNEL 000 has hijacked the northern broadcast tower on Desolation Ridge!",
+      "[Aria ☕] Latte-Chirp! My sweet songbird... the connection vanished into static! 😭",
+      "Streamer, your Chime-Cat is visiting from another land... its carrier wave is completely immune to the distortion!",
+      "Our only hope is to seek out the 3 ancient Musical Tradition Shrines across the island's cultural biomes: on the Tidal Sands, in the Bamboo Grove, and inside the Sound Ruins.",
+      "Sample the sacred archetypes at each shrine and bond them with Chime-Cat's frequency to protect them from the static.",
+      "Once you gather all the island's traditions, breach the Glitch Gate to defeat Dead Channel 000 and restore all our music pets!"
     ], () => {
       this.state.questStage = 'seek_traditions';
     });
@@ -698,10 +698,10 @@ export class AstralGameEngine {
       this.state.audioMatch = null;
       this.state.mode = 'exploration';
       this.showDialogue(unlocked.name, unlocked.avatar, [
-        `🎉 AUDIO MATCH VERIFIED! Streamed: ${unlocked.name} [${unlocked.vibeTag}]!`,
-        `Biological Instrument: ${unlocked.instrument}!`,
-        `Origin Tradition: ${unlocked.originTradition}. Added to your living playlist queue!`,
-        `💡 Tip: Click its badge at the top (or press [Q]) to switch your active lead Harmonimal!`
+        `✨ SACRED TRADITION SAMPLED! Attuned to ${unlocked.name} [${unlocked.vibeTag}]!`,
+        `Origin Tradition: ${unlocked.originTradition} (${unlocked.instrument}).`,
+        `The ${unlocked.name} archetype has bonded with Chime-Cat's uncorrupted carrier frequency, shielding it from Dead Channel 000!`,
+        `💡 Added to your master playlist! In battle, sample defeated ${unlocked.type} monsters to enrich this archetype toward Harmonic Evolution!`
       ]);
     }, 1000);
   }
@@ -923,6 +923,89 @@ export class AstralGameEngine {
 
       // Frequency Resonance XP & Level Up
       const activeSpirit = this.state.streamQueue[this.state.activeSpiritIndex] || this.state.streamQueue[0];
+
+      // Sample Harmonic Stems & Archetype Evolution
+      const targetSpirit = this.state.streamQueue.find(s => s.type === b.enemySpirit?.type) || activeSpirit;
+      targetSpirit.harmonicEnrichment = (targetSpirit.harmonicEnrichment || 0) + 1;
+      let evolutionMsg = '';
+      if (targetSpirit.harmonicEnrichment >= 3 && !targetSpirit.isEvolved) {
+        targetSpirit.isEvolved = true;
+        if (targetSpirit.id === 'spirit_chime_cat') {
+          targetSpirit.name = 'Polyphonic Synth-Cat';
+          targetSpirit.title = 'Prism Spectrum Synthesizer';
+          targetSpirit.maxHp += 30;
+          targetSpirit.attack += 8;
+          targetSpirit.moves.push({
+            id: 'move_cat_evo',
+            name: 'PRISM SPECTRUM ARPEGGIO',
+            type: 'synth',
+            power: 45,
+            cost: 20,
+            description: 'Cascading polyphonic chord progression piercing static.',
+            soundType: 'arpeggio'
+          });
+        } else if (targetSpirit.id === 'spirit_allegro_owl') {
+          targetSpirit.name = 'Virtuoso Violin-Owl';
+          targetSpirit.title = 'Concertmaster of the Grand Hall';
+          targetSpirit.maxHp += 35;
+          targetSpirit.attack += 10;
+          targetSpirit.moves.push({
+            id: 'move_owl_evo',
+            name: 'BAROQUE CONCERTO FINALE',
+            type: 'symphonic',
+            power: 50,
+            cost: 25,
+            description: 'Furious double-stop violin bowings pierce discordant waves.',
+            soundType: 'violin_staccato'
+          });
+        } else if (targetSpirit.id === 'spirit_sitar_swan') {
+          targetSpirit.name = 'Raga Maharaja-Swan';
+          targetSpirit.title = 'Transcendental Veena Sovereign';
+          targetSpirit.maxHp += 35;
+          targetSpirit.attack += 10;
+          targetSpirit.moves.push({
+            id: 'move_swan_evo',
+            name: 'TRANSCENDENTAL RAGA GLIDE',
+            type: 'global',
+            power: 48,
+            cost: 22,
+            description: 'Microtonal meend glides resonate with celestial harmony.',
+            soundType: 'sitar_twang'
+          });
+        } else if (targetSpirit.id === 'spirit_taiko_tanuki') {
+          targetSpirit.name = 'O-Daiko Thunder-Tanuki';
+          targetSpirit.title = 'Matsuri Thunder Master';
+          targetSpirit.maxHp += 40;
+          targetSpirit.defense += 8;
+          targetSpirit.moves.push({
+            id: 'move_tanuki_evo',
+            name: 'THUNDER FESTIVAL CRESCENDO',
+            type: 'global',
+            power: 52,
+            cost: 25,
+            description: 'Seismic barrage of taiko thunder booms that shatters static.',
+            soundType: 'taiko_boom'
+          });
+        } else if (targetSpirit.id === 'spirit_bass_hound') {
+          targetSpirit.name = 'Sub-Zero Mega-Hound';
+          targetSpirit.title = 'Seismic Overdrive Colossus';
+          targetSpirit.maxHp += 45;
+          targetSpirit.attack += 12;
+          targetSpirit.moves.push({
+            id: 'move_hound_evo',
+            name: 'SEISMIC 808 EARTHQUAKE',
+            type: 'bass',
+            power: 55,
+            cost: 25,
+            description: 'Sub-bass pressure wave that levels all static interference.',
+            soundType: 'bass_drop'
+          });
+        }
+        targetSpirit.hp = targetSpirit.maxHp;
+        evolutionMsg = ` 🌟 HARMONIC EVOLUTION! ${targetSpirit.name} absorbed the wild stems and evolved!`;
+      }
+
+      // Frequency Resonance XP & Level Up
       activeSpirit.xp += 50;
       let levelUpMsg = '';
       if (activeSpirit.xp >= activeSpirit.maxXp) {
@@ -936,9 +1019,10 @@ export class AstralGameEngine {
       }
 
       this.showDialogue('Battle Victory', '✨🎉', [
-        `✨ You cleansed the ${b.enemySpirit?.name || 'Wild Glitch'}!`,
+        `✨ You cleansed the ${b.enemySpirit?.name || 'Wild Glitch'} and sampled its harmonic stem!`,
+        `🎶 ${targetSpirit.name} gained +1 Harmonic Resonance (${targetSpirit.harmonicEnrichment}/3 stems)${evolutionMsg}`,
         `${activeSpirit.name} gained +50 Frequency Resonance (XP)!${levelUpMsg}`,
-        `Keep exploring Cadence Plaza to strengthen your team before facing Dead Channel 000!`
+        `Keep attuning at the cultural shrines to unlock all archetype traditions!`
       ]);
     } else if (b.type === 'rival') {
       soundEngine.playLockChime();

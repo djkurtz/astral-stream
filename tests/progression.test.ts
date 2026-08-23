@@ -94,6 +94,37 @@ describe('Story Progression & Tag-Team Fusion', () => {
     expect(playerSpirit.attack).toBeGreaterThan(18);
   });
 
+  it('should sample harmonic stems from defeated wild monsters and trigger evolution after 3 stems', () => {
+    const state = engine.getState();
+    const cat = state.streamQueue[0];
+    expect(cat.name).toBe('Chime-Cat');
+    expect(cat.isEvolved).toBeFalsy();
+
+    // Battle 1 (Synth Bit-Bug) -> 1/3 stems
+    const glitch1 = state.wildGlitches[0];
+    engine.startWildBattle(glitch1);
+    state.battle!.enemySpirit!.hp = 0;
+    (engine as any).handleBattleVictory();
+    expect(cat.harmonicEnrichment).toBe(1);
+    expect(cat.isEvolved).toBeFalsy();
+
+    // Battle 2 -> 2/3 stems
+    engine.startWildBattle(glitch1);
+    state.battle!.enemySpirit!.hp = 0;
+    (engine as any).handleBattleVictory();
+    expect(cat.harmonicEnrichment).toBe(2);
+    expect(cat.isEvolved).toBeFalsy();
+
+    // Battle 3 -> 3/3 stems -> HARMONIC EVOLUTION!
+    engine.startWildBattle(glitch1);
+    state.battle!.enemySpirit!.hp = 0;
+    (engine as any).handleBattleVictory();
+    expect(cat.harmonicEnrichment).toBe(3);
+    expect(cat.isEvolved).toBe(true);
+    expect(cat.name).toBe('Polyphonic Synth-Cat');
+    expect(cat.moves.some(m => m.name === 'PRISM SPECTRUM ARPEGGIO')).toBe(true);
+  });
+
   it('should start with festival morning prologue and trigger emergency broadcast on exploration', () => {
     const freshEngine = new GameEngine();
     const freshState = freshEngine.getState();
