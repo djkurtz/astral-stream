@@ -20,12 +20,15 @@ export class AstralUIManager {
       this.updateUI();
     });
 
-    // Canvas click: either interact with nearby NPC or resolve rhythm hit!
+    // Canvas click: interact or rhythm hit
     const canvas = document.getElementById('game-canvas');
     canvas?.addEventListener('click', () => {
       const state = this.engine.getState();
       if (state.mode === 'battle' && state.battle?.turn === 'rhythm_timing') {
         this.engine.resolveRhythmHit();
+        this.updateUI();
+      } else if (state.mode === 'audio_match_scan' && state.audioMatch?.stage === 3) {
+        this.engine.hitRhythmPulse();
         this.updateUI();
       } else if (state.mode === 'exploration' && state.nearbyInteractable) {
         this.engine.interactWithNearby();
@@ -33,9 +36,26 @@ export class AstralUIManager {
       }
     });
 
-    // Audio Match Radar Pulse Button
-    document.getElementById('radar-scan-btn')?.addEventListener('click', () => {
-      this.engine.pulseRadarScan();
+    // Stage 1: Frequency Slider
+    const slider = document.getElementById('freq-slider') as HTMLInputElement;
+    slider?.addEventListener('input', (e) => {
+      const val = parseFloat((e.target as HTMLInputElement).value);
+      this.engine.setPlayerFrequency(val);
+      this.updateUI();
+    });
+
+    // Stage 2: Melody Buttons
+    document.querySelectorAll('.melody-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const pad = parseInt((e.currentTarget as HTMLElement).dataset.pad || '0', 10);
+        this.engine.inputMelodyPad(pad);
+        this.updateUI();
+      });
+    });
+
+    // Stage 3: Rhythm Pulse Hit Button
+    document.getElementById('rhythm-hit-btn')?.addEventListener('click', () => {
+      this.engine.hitRhythmPulse();
       this.updateUI();
     });
 
@@ -68,14 +88,32 @@ export class AstralUIManager {
       }
     }
 
-    // 2. Audio Match Radar Panel
+    // 2. Audio Match Radar Panel (3 Stages)
     const scanPanel = document.getElementById('audio-scan-panel');
     if (scanPanel) {
       if (state.mode === 'audio_match_scan' && state.audioMatch) {
         scanPanel.classList.remove('hidden');
         const m = state.audioMatch;
-        document.getElementById('scan-sync-display')!.textContent = `${m.currentSync}%`;
-        document.getElementById('scan-target-display')!.textContent = `${m.spiritToUnlock.name} (${m.spiritToUnlock.vibeTag})`;
+        document.getElementById('scan-stage-title')!.textContent = `🔍 STAGE ${m.stage} OF 3: ${m.stage === 1 ? 'WAVEFORM ALIGN' : (m.stage === 2 ? 'CALL & RESPONSE' : 'RHYTHM LOCK')}`;
+
+        // Toggle Stage Controls
+        const s1 = document.getElementById('stage-1-controls');
+        const s2 = document.getElementById('stage-2-controls');
+        const s3 = document.getElementById('stage-3-controls');
+        
+        if (m.stage === 1) {
+          s1?.classList.remove('hidden');
+          s2?.classList.add('hidden');
+          s3?.classList.add('hidden');
+        } else if (m.stage === 2) {
+          s1?.classList.add('hidden');
+          s2?.classList.remove('hidden');
+          s3?.classList.add('hidden');
+        } else if (m.stage === 3) {
+          s1?.classList.add('hidden');
+          s2?.classList.add('hidden');
+          s3?.classList.remove('hidden');
+        }
       } else {
         scanPanel.classList.add('hidden');
       }

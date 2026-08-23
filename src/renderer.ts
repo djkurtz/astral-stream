@@ -532,61 +532,139 @@ export class AstralRenderer {
     ctx.restore();
   }
 
-  /* ---------------- AUDIO MATCH RADAR ---------------- */
+  /* ---------------- 3-STAGE AUDIO MATCH RADAR ---------------- */
   private renderAudioMatchRadar(state: GameState, w: number, h: number): void {
     const ctx = this.ctx;
     const t = state.time;
     const match = state.audioMatch!;
+    const centerX = w / 2;
+    const centerY = h * 0.40;
 
     ctx.fillStyle = '#090d16';
     ctx.fillRect(0, 0, w, h);
 
-    const centerX = w / 2;
-    const centerY = h * 0.42;
+    // Header Badge
+    ctx.fillStyle = '#fde047';
+    ctx.font = '800 16px Rajdhani';
+    ctx.textAlign = 'center';
+    ctx.fillText(`STAGE ${match.stage} OF 3: ${match.stage === 1 ? '🎛️ WAVEFORM ALIGNMENT' : (match.stage === 2 ? '🎹 CALL & RESPONSE JAM' : '🎯 RHYTHM PULSE LOCK')}`, centerX, 45);
 
-    for (let r = 40; r <= 180; r += 35) {
-      ctx.strokeStyle = 'rgba(6, 182, 212, 0.25)';
-      ctx.lineWidth = 2;
+    if (match.stage === 1) {
+      // ---------------- STAGE 1: WAVEFORM ALIGN ----------------
+      const isAligned = Math.abs(match.playerFreq - match.targetFreq) < 7;
+      
+      // Target Waveform (Cyan / Green)
+      ctx.strokeStyle = isAligned ? '#10b981' : 'rgba(6, 182, 212, 0.4)';
+      ctx.lineWidth = isAligned ? 4 : 2;
       ctx.beginPath();
-      ctx.arc(centerX, centerY, r, 0, Math.PI * 2);
+      for (let x = 60; x < w - 60; x += 4) {
+        const y = centerY + Math.sin(x * 0.04 + t * 5) * 45;
+        if (x === 60) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
       ctx.stroke();
+
+      // Player Waveform (Magenta / Green)
+      ctx.strokeStyle = isAligned ? '#10b981' : '#ec4899';
+      ctx.lineWidth = isAligned ? 4 : 3;
+      ctx.beginPath();
+      const pScale = 0.015 + (match.playerFreq / 100) * 0.05;
+      for (let x = 60; x < w - 60; x += 4) {
+        const y = centerY + Math.sin(x * pScale + t * 6) * 50;
+        if (x === 60) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+
+      // Hold Progress Meter
+      if (isAligned) {
+        const holdPct = Math.min(1.0, match.holdTime / 1.2);
+        ctx.fillStyle = '#10b981';
+        ctx.font = '700 16px Rajdhani';
+        ctx.fillText(`✨ HOLDING FREQUENCY... (${Math.floor(holdPct * 100)}%) ✨`, centerX, centerY - 80);
+        
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(centerX - 100, centerY - 65, 200, 10);
+        ctx.fillStyle = '#10b981';
+        ctx.fillRect(centerX - 100, centerY - 65, 200 * holdPct, 10);
+      } else {
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '600 14px Rajdhani';
+        ctx.fillText('👉 Drag the slider below until the waveforms overlap and turn GREEN!', centerX, centerY - 80);
+      }
+
+    } else if (match.stage === 2) {
+      // ---------------- STAGE 2: CALL & RESPONSE ----------------
+      ctx.fillStyle = match.isListeningToPlayer ? '#38bdf8' : '#fbbf24';
+      ctx.font = '700 16px Rajdhani';
+      ctx.fillText(match.isListeningToPlayer ? `🎵 YOUR TURN: Repeat the tune on the pads! (${match.playerSequence.length}/4)` : '👂 LISTEN CAREFULLY TO THE CREATURE...', centerX, centerY - 90);
+
+      // Render 3 Visual Launchpads
+      const padColors = ['#f43f5e', '#fbbf24', '#38bdf8'];
+      const padLabels = ['🔴 LOW (C)', '🟡 MID (E)', '🔵 HIGH (G)'];
+      const padW = 110;
+      const padH = 70;
+      const startX = centerX - (3 * padW + 2 * 20) / 2;
+
+      for (let i = 0; i < 3; i++) {
+        const px = startX + i * (padW + 20);
+        const py = centerY - 30;
+        const isActive = match.activeDemoNote === i || (match.playerSequence[match.playerSequence.length - 1] === i && match.isListeningToPlayer);
+
+        ctx.fillStyle = isActive ? '#ffffff' : 'rgba(30, 41, 59, 0.9)';
+        ctx.strokeStyle = padColors[i];
+        ctx.lineWidth = isActive ? 5 : 3;
+        ctx.shadowColor = isActive ? padColors[i] : 'transparent';
+        ctx.shadowBlur = isActive ? 20 : 0;
+        
+        ctx.beginPath();
+        ctx.roundRect(px, py, padW, padH, 10);
+        ctx.fill();
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        ctx.fillStyle = isActive ? '#0f172a' : '#ffffff';
+        ctx.font = '700 13px Rajdhani';
+        ctx.fillText(padLabels[i], px + padW / 2, py + padH / 2 + 5);
+      }
+
+    } else if (match.stage === 3) {
+      // ---------------- STAGE 3: RHYTHM PULSE RING ----------------
+      // Target Ring (Cyan / Green)
+      ctx.strokeStyle = '#06b6d4';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, match.targetRadius, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Expanding Pulse Ring
+      const diff = Math.abs(match.pulseRadius - match.targetRadius);
+      ctx.strokeStyle = diff < 18 ? '#10b981' : 'rgba(236, 72, 153, 0.7)';
+      ctx.lineWidth = diff < 18 ? 6 : 3;
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, match.pulseRadius, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Combo & Feedback
+      ctx.fillStyle = '#fbbf24';
+      ctx.font = '800 22px Rajdhani';
+      ctx.fillText(`🔥 COMBO: ${match.combo} / 3 🔥`, centerX, centerY - 130);
+
+      if (match.feedback) {
+        ctx.fillStyle = match.feedback.includes('ON BEAT') ? '#10b981' : '#ef4444';
+        ctx.font = '700 16px Rajdhani';
+        ctx.fillText(match.feedback, centerX, centerY + match.targetRadius + 30);
+      }
     }
 
-    const sweepAngle = t * 3;
-    ctx.save();
-    ctx.translate(centerX, centerY);
-    ctx.rotate(sweepAngle);
-    const beamGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, 180);
-    beamGrad.addColorStop(0, 'rgba(6, 182, 212, 0.4)');
-    beamGrad.addColorStop(1, 'rgba(6, 182, 212, 0)');
-    ctx.fillStyle = beamGrad;
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.arc(0, 0, 180, 0, Math.PI * 0.25);
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
-
-    if (match.isMatched) {
-      ctx.fillStyle = '#10b981';
-      ctx.font = '700 24px Rajdhani';
-      ctx.textAlign = 'center';
-      ctx.fillText('✨ AUDIO MATCH 100%! STREAMING SPIRIT... ✨', centerX, centerY - 110);
-    } else {
-      ctx.fillStyle = '#06b6d4';
-      ctx.font = '700 20px Rajdhani';
-      ctx.textAlign = 'center';
-      ctx.fillText(`SONIC RADAR: SYNCING WITH WAVEFORM... (${match.currentSync}%)`, centerX, centerY - 110);
-    }
-
+    // Creature Badge (Bottom)
     const spirit = match.spiritToUnlock;
     ctx.fillStyle = '#ffffff';
-    ctx.font = '700 20px Rajdhani';
-    ctx.textAlign = 'center';
-    ctx.fillText(`${spirit.name} • ${spirit.vibeTag}`, centerX, h * 0.84);
+    ctx.font = '700 18px Rajdhani';
+    ctx.fillText(`${spirit.name} • ${spirit.vibeTag}`, centerX, h * 0.86);
 
-    ctx.font = '46px sans-serif';
-    ctx.fillText(spirit.avatar || '🎷', centerX, centerY);
+    ctx.font = '40px sans-serif';
+    ctx.fillText(spirit.avatar || '🎷', centerX, centerY + (match.stage === 2 ? 80 : 0));
   }
 
   private renderGlitchOverlay(w: number, h: number): void {

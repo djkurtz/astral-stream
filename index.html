@@ -37,20 +37,33 @@
           🎮 <b>[W,A,S,D / Arrow Keys]</b> Walk &bull; <b>[SPACE / E]</b> Interact
         </div>
 
-        <!-- Floating Audio Match Radar Panel (Shazam / Sound Scan) -->
+        <!-- Floating 3-Stage Audio Match Panel -->
         <div id="audio-scan-panel" class="overlay-panel hidden">
-          <div class="panel-header">🔍 SONIC RADAR: AUDIO-MATCH</div>
-          <div class="freq-readout">
-            <div>TRACK: <span id="scan-target-display" class="highlight-cyan">Chime-Cat (#ChiptunePop)</span></div>
-            <div>SYNC: <span id="scan-sync-display" class="highlight-pink">15%</span></div>
+          <div id="scan-stage-title" class="panel-header">🔍 SONIC RADAR: AUDIO-MATCH</div>
+          
+          <!-- Stage 1: Waveform Slider -->
+          <div id="stage-1-controls" class="stage-container">
+            <div class="slider-hint">🎛️ Slide to match the creature's waveform:</div>
+            <input type="range" id="freq-slider" min="0" max="100" value="15" class="modern-slider" />
           </div>
-          <div class="radar-action-container">
-            <button id="radar-scan-btn" class="pulse-scan-btn">
-              <span class="pulse-ring"></span>
-              <span class="btn-text">📡 TAP TO MATCH VIBE! 📡</span>
+
+          <!-- Stage 2: Call & Response Pads -->
+          <div id="stage-2-controls" class="stage-container hidden">
+            <div class="slider-hint">🎹 Tap the pads to repeat the creature's melody:</div>
+            <div class="melody-pads-grid">
+              <button class="melody-btn pad-red" data-pad="0">🔴 LOW</button>
+              <button class="melody-btn pad-yellow" data-pad="1">🟡 MID</button>
+              <button class="melody-btn pad-blue" data-pad="2">🔵 HIGH</button>
+            </div>
+          </div>
+
+          <!-- Stage 3: Rhythm Pulse Lock Button -->
+          <div id="stage-3-controls" class="stage-container hidden">
+            <div class="slider-hint">🎯 Hit [SPACE] or Click on the beat when rings align:</div>
+            <button id="rhythm-hit-btn" class="pulse-scan-btn">
+              <span class="btn-text">🎯 SYNC ON THE BEAT! [SPACE] 🎯</span>
             </button>
           </div>
-          <div class="tuning-hint">👉 Tap the radar button to sync with the ambient soundwaves!</div>
         </div>
 
         <!-- Floating Battle Launchpad Panel -->

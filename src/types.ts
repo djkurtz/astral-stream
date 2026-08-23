@@ -78,7 +78,7 @@ export interface BattleState {
   };
   turn: 'player' | 'rhythm_timing' | 'enemy' | 'animating';
   pendingMoveIndex: number | null;
-  rhythmCursor: number; // 0 to 1
+  rhythmCursor: number;
   rhythmSpeed: number;
   targetWindowStart: number;
   targetWindowEnd: number;
@@ -89,11 +89,26 @@ export interface BattleState {
 }
 
 export interface AudioMatchState {
-  targetWaveformSync: number;
-  currentSync: number;
-  scanPulses: number;
-  isMatched: boolean;
+  stage: 1 | 2 | 3;
   spiritToUnlock: StreamSpirit;
+  isComplete: boolean;
+
+  // Stage 1: Waveform Alignment
+  targetFreq: number; // 0 to 100
+  playerFreq: number; // 0 to 100
+  holdTime: number; // seconds held aligned (needs 1.5s)
+
+  // Stage 2: Call & Response Melody Mimic
+  melodySequence: number[]; // e.g. [0, 2, 1, 2] (Pads: 0=Low, 1=Mid, 2=High)
+  playerSequence: number[];
+  activeDemoNote: number | null; // index of currently sounding note during demo
+  isListeningToPlayer: boolean;
+
+  // Stage 3: Rhythm Pulse Ring
+  pulseRadius: number; // 0 to 140
+  targetRadius: number; // 110
+  combo: number; // Needs 3
+  feedback: string | null;
 }
 
 export interface PlayerPosition {
@@ -109,7 +124,7 @@ export interface GameState {
   player: PlayerPosition;
   npcs: NPCEntity[];
   soundRipples: SoundRipple[];
-  activeCompanion: string | null; // 'jax'
+  activeCompanion: string | null;
   streamQueue: StreamSpirit[];
   activeSpiritIndex: number;
   nearbyInteractable: NPCEntity | SoundRipple | null;

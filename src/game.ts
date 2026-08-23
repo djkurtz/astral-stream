@@ -96,6 +96,29 @@ export class AstralGameEngine {
       }
     }
 
+    // 3-Stage Audio Match Update
+    if (this.state.mode === 'audio_match_scan' && this.state.audioMatch) {
+      const match = this.state.audioMatch;
+      if (match.stage === 1) {
+        if (Math.abs(match.playerFreq - match.targetFreq) < 7) {
+          match.holdTime += dt;
+          if (match.holdTime >= 1.2) {
+            soundEngine.playSuccessDing();
+            match.stage = 2;
+            match.holdTime = 0;
+            this.playMelodyDemo();
+          }
+        } else {
+          match.holdTime = Math.max(0, match.holdTime - dt * 2);
+        }
+      } else if (match.stage === 3 && !match.isComplete) {
+        match.pulseRadius += dt * 140;
+        if (match.pulseRadius > 150) {
+          match.pulseRadius = 0;
+        }
+      }
+    }
+
     // Cleansing Cinematic Progress
     if (this.state.mode === 'cleansing_cinematic') {
       this.state.cleansingProgress += dt * 0.5;
@@ -224,45 +247,124 @@ export class AstralGameEngine {
     this.state.dialogue = { speaker, avatar, text, index: 0, onComplete };
   }
 
-  /* ---------------- AUDIO MATCH SCANNER ---------------- */
+  /* ---------------- 3-STAGE AUDIO MATCH SCANNER ---------------- */
   public startAudioMatchScan(ripple: SoundRipple): void {
     this.state.mode = 'audio_match_scan';
     this.state.audioMatch = {
-      targetWaveformSync: 100,
-      currentSync: 15,
-      scanPulses: 0,
-      isMatched: false,
-      spiritToUnlock: JSON.parse(JSON.stringify(ripple.spirit))
+      stage: 1,
+      spiritToUnlock: JSON.parse(JSON.stringify(ripple.spirit)),
+      isComplete: false,
+      targetFreq: 65,
+      playerFreq: 15,
+      holdTime: 0,
+      melodySequence: [0, 2, 1, 2], // Low, High, Mid, High
+      playerSequence: [],
+      activeDemoNote: null,
+      isListeningToPlayer: false,
+      pulseRadius: 0,
+      targetRadius: 110,
+      combo: 0,
+      feedback: null
     };
   }
 
-  public pulseRadarScan(): void {
+  public setPlayerFrequency(val: number): void {
     const match = this.state.audioMatch;
-    if (!match || match.isMatched) return;
+    if (!match || match.stage !== 1) return;
+    match.playerFreq = val;
+    soundEngine.playTone(200 + val * 5, 'sine', 0.04, 0.04);
+  }
 
-    match.scanPulses++;
-    match.currentSync = Math.min(100, match.currentSync + 30);
-    soundEngine.playTuningClick();
+  public playMelodyDemo(): void {
+    const match = this.state.audioMatch;
+    if (!match || match.stage !== 2) return;
 
-    if (match.currentSync >= 100) {
-      match.isMatched = true;
-      soundEngine.playLockChime();
+    match.playerSequence = [];
+    match.isListeningToPlayer = false;
 
+    match.melodySequence.forEach((note, idx) => {
       setTimeout(() => {
-        const unlocked = match.spiritToUnlock;
-        this.state.streamQueue.push(unlocked);
-        // Mark ripple discovered
-        const rip = this.state.soundRipples.find(r => r.spirit.id === unlocked.id);
-        if (rip) rip.discovered = true;
+        if (this.state.audioMatch?.stage === 2) {
+          this.state.audioMatch.activeDemoNote = note;
+          soundEngine.playPadTone(note);
+          setTimeout(() => {
+            if (this.state.audioMatch) this.state.audioMatch.activeDemoNote = null;
+          }, 250);
+        }
+      }, idx * 500 + 400);
+    });
 
-        this.state.audioMatch = null;
-        this.state.mode = 'exploration';
-        this.showDialogue(unlocked.name, '🎷', [
-          `New Harmonimal Streamed: ${unlocked.name} [${unlocked.vibeTag}]!`,
-          "Its golden brass leads have been added to your living playlist!"
-        ]);
-      }, 1200);
+    setTimeout(() => {
+      if (this.state.audioMatch?.stage === 2) {
+        this.state.audioMatch.isListeningToPlayer = true;
+      }
+    }, match.melodySequence.length * 500 + 600);
+  }
+
+  public inputMelodyPad(padIndex: number): void {
+    const match = this.state.audioMatch;
+    if (!match || match.stage !== 2 || !match.isListeningToPlayer) return;
+
+    soundEngine.playPadTone(padIndex);
+    match.playerSequence.push(padIndex);
+
+    const curStep = match.playerSequence.length - 1;
+    if (match.playerSequence[curStep] !== match.melodySequence[curStep]) {
+      soundEngine.playTone(120, 'sawtooth', 0.3, 0.15);
+      match.playerSequence = [];
+      setTimeout(() => this.playMelodyDemo(), 600);
+      return;
     }
+
+    if (match.playerSequence.length === match.melodySequence.length) {
+      soundEngine.playSuccessDing();
+      match.stage = 3;
+      match.combo = 0;
+      match.pulseRadius = 0;
+      match.feedback = "Stage 2 Cleared! Hit on the beat!";
+    }
+  }
+
+  public hitRhythmPulse(): void {
+    const match = this.state.audioMatch;
+    if (!match || match.stage !== 3 || match.isComplete) return;
+
+    const diff = Math.abs(match.pulseRadius - match.targetRadius);
+    if (diff < 18) {
+      match.combo++;
+      match.feedback = `✨ ON BEAT! (${match.combo}/3) ✨`;
+      soundEngine.playRhythmHit('PERFECT');
+
+      if (match.combo >= 3) {
+        this.completeAudioMatch();
+      }
+    } else {
+      match.combo = Math.max(0, match.combo - 1);
+      match.feedback = '❌ OFF BEAT! Try again';
+      soundEngine.playRhythmHit('MISS');
+    }
+  }
+
+  public completeAudioMatch(): void {
+    const match = this.state.audioMatch;
+    if (!match || match.isComplete) return;
+
+    match.isComplete = true;
+    soundEngine.playLockChime();
+
+    setTimeout(() => {
+      const unlocked = match.spiritToUnlock;
+      this.state.streamQueue.push(unlocked);
+      const rip = this.state.soundRipples.find(r => r.spirit.id === unlocked.id);
+      if (rip) rip.discovered = true;
+
+      this.state.audioMatch = null;
+      this.state.mode = 'exploration';
+      this.showDialogue(unlocked.name, '🎷', [
+        `🎉 100% AUDIO MATCH VERIFIED! Streamed: ${unlocked.name} [${unlocked.vibeTag}]!`,
+        "Its golden saxophone riffs have joined your active playlist!"
+      ]);
+    }, 1200);
   }
 
   /* ---------------- BATTLE & RHYTHM TIMING SYSTEM ---------------- */

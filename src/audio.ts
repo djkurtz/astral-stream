@@ -107,6 +107,18 @@ export class AudioEngine {
     }
   }
 
+  public playPadTone(padIndex: number): void {
+    const freqs = [261.63, 329.63, 392.00]; // C4 (Low), E4 (Mid), G4 (High)
+    const freq = freqs[padIndex] || 300;
+    this.playTone(freq, 'triangle', 0.28, 0.22);
+    this.playTone(freq * 2, 'sine', 0.2, 0.08);
+  }
+
+  public playSuccessDing(): void {
+    this.playTone(880, 'sine', 0.15, 0.15); // A5
+    setTimeout(() => this.playTone(1046.5, 'triangle', 0.3, 0.2), 80); // C6
+  }
+
   public playTuningClick(): void {
     this.playTone(700 + Math.random() * 250, 'sine', 0.05, 0.08);
   }
