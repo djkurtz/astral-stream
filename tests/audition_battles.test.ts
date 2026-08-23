@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { HarmoniaGameEngine } from '../src/game';
-import { RECRUITABLE_MUSICIANS } from '../src/data';
+import { RECRUITABLE_MUSICIANS, getBattleMovesForMusician } from '../src/data';
 
 describe('Harmonia: Audition Battles & NPC Recruitment', () => {
   let engine: HarmoniaGameEngine;
@@ -24,7 +24,32 @@ describe('Harmonia: Audition Battles & NPC Recruitment', () => {
     expect(state.auditionBattle?.playerHarmonyMeter).toBe(20);
   });
 
-  it('should execute battle moves, consume Harmony Points, and surge the Harmony Meter', () => {
+  it('should provide battle moves matching the combatants actual instrument', () => {
+    const player = engine.getState().ensemble.members[0];
+    const violinMoves = getBattleMovesForMusician(player);
+    expect(violinMoves[0].name).toBe('Spiccato Bounce');
+    expect(violinMoves[1].name).toBe('Vibrato Charm');
+    expect(violinMoves[2].name).toBe('Pianissimo Shield');
+    expect(violinMoves[3].name).toBe('Fortissimo Surge');
+
+    // Flute starter
+    const fluteEngine = new HarmoniaGameEngine();
+    fluteEngine.chooseStarter('silver_flute', 'Maestro');
+    const flutePlayer = fluteEngine.getState().ensemble.members[0];
+    const fluteMoves = getBattleMovesForMusician(flutePlayer);
+    expect(fluteMoves[0].name).toBe('Overtone Flutter');
+    expect(fluteMoves[1].name).toBe('Trill Mirage');
+
+    // Trumpet starter
+    const trumpetEngine = new HarmoniaGameEngine();
+    trumpetEngine.chooseStarter('pocket_trumpet', 'Maestro');
+    const trumpetPlayer = trumpetEngine.getState().ensemble.members[0];
+    const trumpetMoves = getBattleMovesForMusician(trumpetPlayer);
+    expect(trumpetMoves[0].name).toBe('Herald Fanfare');
+    expect(trumpetMoves[1].name).toBe('Fortissimo Blast');
+  });
+
+  it('should execute battle moves by index or ID, consume Harmony Points, and surge the Harmony Meter', () => {
     const claraNpc = engine.getState().npcs.find(n => n.id === 'npc_clara_world')!;
     engine.startAuditionBattle(claraNpc);
 
@@ -32,11 +57,12 @@ describe('Harmonia: Audition Battles & NPC Recruitment', () => {
     const initialHP = battle.harmonyPoints;
     const initialHarmony = battle.playerHarmonyMeter;
 
-    engine.executeBattleMove('counterpoint_weave');
+    engine.executeBattleMove(0); // Spiccato Bounce for violin
 
     expect(battle.harmonyPoints).toBeLessThan(initialHP);
     expect(battle.playerHarmonyMeter).toBeGreaterThan(initialHarmony);
     expect(battle.log.length).toBeGreaterThan(2);
+    expect(battle.log[battle.log.length - 1]).toContain('Spiccato Bounce');
   });
 
   it('should resolve victory upon reaching 100% Harmony and recruit the musician into the ensemble', () => {
@@ -46,7 +72,7 @@ describe('Harmonia: Audition Battles & NPC Recruitment', () => {
     const battle = engine.getState().auditionBattle!;
     battle.playerHarmonyMeter = 95;
 
-    engine.executeBattleMove('vibrato_charm');
+    engine.executeBattleMove(1); // Vibrato Charm
 
     const state = engine.getState();
     expect(battle.concluded).toBe(true);

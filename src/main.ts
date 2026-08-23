@@ -43,13 +43,12 @@ window.addEventListener('DOMContentLoaded', () => {
       if (e.code === 'Digit4') engine.chooseStarter(STARTER_OPTIONS[3].id);
     }
 
-    // Audition Battle Move Selection via keyboard 1-4
+    // Audition Battle Move Selection via keyboard 1-4 (matching active combatant's instrument)
     if (engine.getState().mode === 'audition_battle') {
-      const battleMoves = ['counterpoint_weave', 'vibrato_charm', 'pianissimo_shield', 'fortissimo_surge'];
-      if (e.code === 'Digit1') engine.executeBattleMove(battleMoves[0]);
-      if (e.code === 'Digit2') engine.executeBattleMove(battleMoves[1]);
-      if (e.code === 'Digit3') engine.executeBattleMove(battleMoves[2]);
-      if (e.code === 'Digit4') engine.executeBattleMove(battleMoves[3]);
+      if (e.code === 'Digit1') engine.executeBattleMove(0);
+      if (e.code === 'Digit2') engine.executeBattleMove(1);
+      if (e.code === 'Digit3') engine.executeBattleMove(2);
+      if (e.code === 'Digit4') engine.executeBattleMove(3);
     }
 
     // Theory Challenge Answer Selection via keyboard 1-4
@@ -113,18 +112,17 @@ window.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Battle move clicks (4 Tactical Cards)
+    // Battle move clicks (4 Tactical Cards matching active combatant's instrument)
     if (state.mode === 'audition_battle') {
-      const battleMoves = ['counterpoint_weave', 'vibrato_charm', 'pianissimo_shield', 'fortissimo_surge'];
-      const moveW = 240;
-      const moveH = 80;
+      const moveW = 250;
+      const moveH = 68;
       const moveStartX = (1280 - (moveW * 4 + 45)) / 2;
-      const moveY = 460;
+      const moveY = 475;
 
-      battleMoves.forEach((mKey, idx) => {
+      [0, 1, 2, 3].forEach((idx) => {
         const mx = moveStartX + idx * (moveW + 15);
         if (clickX >= mx && clickX <= mx + moveW && clickY >= moveY && clickY <= moveY + moveH) {
-          engine.executeBattleMove(mKey);
+          engine.executeBattleMove(idx);
         }
       });
       return;

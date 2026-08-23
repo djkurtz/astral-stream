@@ -40,17 +40,11 @@ describe('Harmonia: Theory Challenges, Customization & Tactical Street Battles',
 
     const initialRdg = state.ensemble.members[0].stats.sightReading;
 
-    // Answer Q1: Concert A (Index 1)
-    engine.answerTheoryQuestion(1);
-    while (state.dialogue) engine.advanceDialogue();
-
-    // Answer Q2: Major Third (Index 1)
-    engine.answerTheoryQuestion(1);
-    while (state.dialogue) engine.advanceDialogue();
-
-    // Answer Q3: Octave (Index 2)
-    engine.answerTheoryQuestion(2);
-    while (state.dialogue) engine.advanceDialogue();
+    while (state.theoryChallenge && !state.theoryChallenge.completed) {
+      const q = state.theoryChallenge.questions[state.theoryChallenge.currentQuestionIndex];
+      engine.answerTheoryQuestion(q.correctIndex);
+      while (state.dialogue) engine.advanceDialogue();
+    }
 
     expect(state.mode).toBe('exploration');
     expect(state.theoryChallenge).toBeNull();

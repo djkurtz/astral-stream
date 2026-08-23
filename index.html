@@ -10,14 +10,17 @@
   <div id="game-container">
     <canvas id="game-canvas"></canvas>
 
-    <!-- Floating Action Toolbar -->
+    <!-- Floating Action Toolbar with Tooltips -->
     <div class="floating-toolbar">
-      <button id="btn-practice" class="tool-btn" title="Practice your instrument">🎹 [P] Practice Shed</button>
-      <button id="btn-repertoire" class="tool-btn" title="View sheet music repertoire">📜 [R] Repertoire</button>
-      <button id="btn-ensemble" class="tool-btn" title="Inspect ensemble members">🐾 [E] Ensemble</button>
-      <button id="btn-quests" class="tool-btn" title="View Active Quests and Scores">🗺️ [Q] Quests</button>
-      <button id="btn-dex" class="tool-btn" title="Open HarmoniDex Bestiary">📖 [H] HarmoniDex</button>
-      <button id="btn-badges" class="tool-btn" title="View Conservatory Badges">🏆 [B] Badges</button>
+      <button id="btn-practice" class="tool-btn" data-tooltip="Practice Shed [P]">🎹</button>
+      <button id="btn-repertoire" class="tool-btn" data-tooltip="Sheet Music Repertoire [R]">📜</button>
+      <button id="btn-ensemble" class="tool-btn" data-tooltip="Ensemble Roster & Pets [E]">🐾</button>
+      <button id="btn-customization" class="tool-btn" data-tooltip="Styling Studio & Colors [C]">🎨</button>
+      <button id="btn-map" class="tool-btn" data-tooltip="Sonora Overworld Atlas [M]">🗺️</button>
+      <button id="btn-quests" class="tool-btn" data-tooltip="Quest Journal & Scores [Q]">🧭</button>
+      <button id="btn-dex" class="tool-btn" data-tooltip="HarmoniDex Bestiary [H]">📖</button>
+      <button id="btn-badges" class="tool-btn" data-tooltip="Conservatory Clef Badges [B]">🏆</button>
+      <button id="btn-system" class="tool-btn" data-tooltip="System Menu & Settings [ESC]">⚙️</button>
     </div>
 
     <!-- Repertoire Sheet Music Modal -->
@@ -50,7 +53,7 @@
     <div id="modal-quests" class="modal-overlay hidden">
       <div class="modal-content">
         <div class="modal-header">
-          <div class="modal-title">🗺️ Sonora Quest Journal & Lost Scores</div>
+          <div class="modal-title">🧭 Sonora Quest Journal & Lost Scores</div>
           <button id="btn-close-quests" class="btn-close">&times;</button>
         </div>
         <div id="quests-list" class="modal-body">
@@ -80,6 +83,45 @@
           <button id="btn-close-badges" class="btn-close">&times;</button>
         </div>
         <div id="badges-list" class="modal-body">
+          <!-- Populated by ui.ts -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Character Customization & Styling Mirror Modal -->
+    <div id="modal-customization" class="modal-overlay hidden">
+      <div class="modal-content" style="max-width: 680px;">
+        <div class="modal-header">
+          <div class="modal-title">🎨 Maestro Styling Mirror & Character Studio</div>
+          <button id="btn-close-customization" class="btn-close">&times;</button>
+        </div>
+        <div id="customization-body" class="modal-body">
+          <!-- Populated by ui.ts -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Sonora Overworld Atlas (World Map Modal) -->
+    <div id="modal-map" class="modal-overlay hidden">
+      <div class="modal-content" style="max-width: 860px;">
+        <div class="modal-header">
+          <div class="modal-title">🗺️ Sonora Overworld Atlas & Regional Navigation</div>
+          <button id="btn-close-map" class="btn-close">&times;</button>
+        </div>
+        <div id="map-body" class="modal-body">
+          <!-- Populated by ui.ts -->
+        </div>
+      </div>
+    </div>
+
+    <!-- System, Save/Load & Settings Menu Modal -->
+    <div id="modal-system" class="modal-overlay hidden">
+      <div class="modal-content" style="max-width: 620px;">
+        <div class="modal-header">
+          <div class="modal-title">⚙️ Maestro System & Settings Menu</div>
+          <button id="btn-close-system" class="btn-close">&times;</button>
+        </div>
+        <div id="system-body" class="modal-body">
           <!-- Populated by ui.ts -->
         </div>
       </div>

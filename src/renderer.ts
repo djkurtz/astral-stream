@@ -1,7 +1,5 @@
-// Harmonia: Opus of the Ensemble - 2D Canvas Renderer
-
-import { GameState, Harmonipet, Musician, PlayerCustomization } from './types';
-import { WORLD_ZONES, STARTER_OPTIONS, BATTLE_MOVES } from './data';
+import { GameState, Harmonipet, Musician, PlayerCustomization, WorldObstacle, WorldNPC } from './types';
+import { WORLD_ZONES, STARTER_OPTIONS, getBattleMovesForMusician } from './data';
 
 export class HarmoniaRenderer {
   private ctx: CanvasRenderingContext2D;
@@ -295,8 +293,8 @@ export class HarmoniaRenderer {
     ctx.font = 'bold 22px "Inter", sans-serif';
     ctx.textAlign = 'left';
     ctx.fillText(`${player.name} (${player.instrumentName})`, 100, 120);
-    this.drawPixelMusician(ctx, 180, 260, player, state.time);
-    this.drawPixelPet(ctx, 280, 280, player.pet, state.time);
+    this.drawPixelMusician(ctx, 180, 260, player, state.time, state.customization, 'right');
+    this.drawPixelPet(ctx, 280, 280, player.pet, state.time, state.customization?.petTint, 'right');
 
     // Player Harmony Meter
     this.drawBar(ctx, 100, 140, 300, 24, battle.playerHarmonyMeter, 100, '#38bdf8', 'Harmony: ' + battle.playerHarmonyMeter + '%');
@@ -316,8 +314,8 @@ export class HarmoniaRenderer {
     ctx.font = 'bold 22px "Inter", sans-serif';
     ctx.textAlign = 'right';
     ctx.fillText(`${opp.name} (${opp.instrumentName})`, this.width - 100, 120);
-    this.drawPixelMusician(ctx, this.width - 240, 260, opp, state.time);
-    this.drawPixelPet(ctx, this.width - 340, 280, opp.pet, state.time);
+    this.drawPixelMusician(ctx, this.width - 240, 260, opp, state.time, undefined, 'left');
+    this.drawPixelPet(ctx, this.width - 340, 280, opp.pet, state.time, undefined, 'left');
 
     // Opponent Resonance Meter
     this.drawBar(ctx, this.width - 400, 140, 300, 24, battle.opponentHarmonyMeter, 100, opp.paletteColor, 'Resonance: ' + battle.opponentHarmonyMeter + '%');
@@ -328,13 +326,8 @@ export class HarmoniaRenderer {
       ctx.fillText(`⚠️ [STANCE: ${battle.opponentStance.toUpperCase().replace('_', ' ')}]`, this.width - 400, 205);
     }
 
-    // Middle: Battle Move Action Bar (4 Tactical Actions)
-    const moves = [
-      BATTLE_MOVES.counterpoint_weave,
-      BATTLE_MOVES.vibrato_charm,
-      BATTLE_MOVES.pianissimo_shield,
-      BATTLE_MOVES.fortissimo_surge
-    ];
+    // Middle: Battle Move Action Bar (4 Tactical Actions matching player's actual instrument)
+    const moves = getBattleMovesForMusician(player);
     const moveW = 250;
     const moveH = 68;
     const moveStartX = (this.width - (moveW * 4 + 45)) / 2;
@@ -430,51 +423,157 @@ export class HarmoniaRenderer {
     const comp = state.competition;
     if (!comp) return;
 
-    // Concert Hall Red Carpet & Stage
-    ctx.fillStyle = '#2b0918';
+    // Concert Hall Red Velvet Backdrop & Proscenium Stage
+    const bgGrad = ctx.createLinearGradient(0, 0, 0, this.height);
+    bgGrad.addColorStop(0, '#1c0512');
+    bgGrad.addColorStop(1, '#3b0d23');
+    ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, this.width, this.height);
 
-    ctx.fillStyle = '#f8fafc';
-    ctx.font = 'bold 30px "Cinzel", serif';
+    ctx.fillStyle = '#fef08a';
+    ctx.font = 'bold 28px "Cinzel", serif';
     ctx.textAlign = 'center';
-    ctx.fillText(`🏆 CONCERT COMPETITION: VS ${comp.rival.name.toUpperCase()}`, this.width / 2, 60);
+    ctx.fillText(`🏆 CONCERT COMPETITION: VS ${comp.rival.name.toUpperCase()}`, this.width / 2, 50);
 
     ctx.fillStyle = '#fbbf24';
-    ctx.font = '18px "Inter", sans-serif';
-    ctx.fillText(`Piece: "${comp.playerPiece.title}" (${comp.playerPiece.genre})`, this.width / 2, 95);
-
-    // Measure Progress
-    ctx.fillStyle = '#94a3b8';
     ctx.font = '16px "Inter", sans-serif';
-    ctx.fillText(`Measure: ${comp.currentMeasure} / ${comp.totalMeasures}`, this.width / 2, 130);
+    ctx.fillText(`Piece: "${comp.playerPiece.title}" (${comp.playerPiece.genre} • ${comp.playerPiece.bpm || 120} BPM)`, this.width / 2, 80);
+
+    // Audience Applause & Tug-of-War Gauge
+    const barW = 420;
+    const barH = 14;
+    const barX = this.width / 2 - barW / 2;
+    const barY = 100;
+    ctx.fillStyle = '#0f172a';
+    ctx.beginPath();
+    ctx.roundRect(barX, barY, barW, barH, 7);
+    ctx.fill();
+    ctx.strokeStyle = '#d4af37';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    const applauseFill = (comp.audienceApplause / 100) * barW;
+    const appGrad = ctx.createLinearGradient(barX, barY, barX + barW, barY);
+    appGrad.addColorStop(0, '#f43f5e'); // Rival side
+    appGrad.addColorStop(0.5, '#fbbf24');
+    appGrad.addColorStop(1, '#38bdf8'); // Player side
+    ctx.fillStyle = appGrad;
+    ctx.beginPath();
+    ctx.roundRect(barX, barY, Math.max(8, applauseFill), barH, 7);
+    ctx.fill();
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 12px "Inter", sans-serif';
+    ctx.fillText(`Audience Favor: ${comp.audienceApplause}%  |  Measure ${comp.currentMeasure} / ${comp.totalMeasures}`, this.width / 2, 130);
 
     // Left Stage: Player's Ensemble
     ctx.fillStyle = '#38bdf8';
-    ctx.font = 'bold 22px "Inter", sans-serif';
+    ctx.font = 'bold 20px "Inter", sans-serif';
     ctx.textAlign = 'left';
-    ctx.fillText(`Your Ensemble (Score: ${comp.playerScore})`, 120, 180);
+    ctx.fillText(`Your Ensemble (Score: ${comp.playerScore})`, 100, 165);
 
     state.ensemble.members.forEach((m, idx) => {
-      this.drawPixelMusician(ctx, 140 + idx * 80, 280, m, state.time);
-      this.drawPixelPet(ctx, 160 + idx * 80, 320, m.pet, state.time);
+      this.drawPixelMusician(ctx, 120 + idx * 75, 260, m, state.time, idx === 0 ? state.customization : undefined, 'right');
+      this.drawPixelPet(ctx, 140 + idx * 75, 300, m.pet, state.time, idx === 0 ? state.customization?.petTint : undefined, 'right');
     });
 
     // Right Stage: Rival Ensemble
     ctx.fillStyle = '#f43f5e';
-    ctx.font = 'bold 22px "Inter", sans-serif';
+    ctx.font = 'bold 20px "Inter", sans-serif';
     ctx.textAlign = 'right';
-    ctx.fillText(`${comp.rival.name} (Score: ${comp.rivalScore})`, this.width - 120, 180);
+    ctx.fillText(`${comp.rival.name} (Score: ${comp.rivalScore})`, this.width - 100, 165);
 
     comp.rival.members.forEach((m, idx) => {
-      this.drawPixelMusician(ctx, this.width - 200 - idx * 80, 280, m, state.time);
-      this.drawPixelPet(ctx, this.width - 220 - idx * 80, 320, m.pet, state.time);
+      this.drawPixelMusician(ctx, this.width - 180 - idx * 75, 260, m, state.time, undefined, 'left');
+      this.drawPixelPet(ctx, this.width - 200 - idx * 75, 300, m.pet, state.time, undefined, 'left');
     });
+
+    // 🎵 DYNAMIC RHYTHMIC CADENCE METER
+    const meterW = 540;
+    const meterH = 26;
+    const meterX = this.width / 2 - meterW / 2;
+    const meterY = this.height - 130;
+
+    // Track Housing
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+    ctx.beginPath();
+    ctx.roundRect(meterX - 10, meterY - 36, meterW + 20, meterH + 52, 14);
+    ctx.fill();
+    ctx.strokeStyle = '#475569';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Meter Background Groove
+    ctx.fillStyle = '#1e293b';
+    ctx.beginPath();
+    ctx.roundRect(meterX, meterY, meterW, meterH, 6);
+    ctx.fill();
+    ctx.strokeStyle = '#334155';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Golden Harmonic Sweet Spot Zone
+    const sweetCenter = comp.sweetSpotCenter || 0.5;
+    const sweetW = (comp.sweetSpotWidth || 0.16) * meterW;
+    const sweetX = meterX + sweetCenter * meterW - sweetW / 2;
+
+    const sweetGrad = ctx.createLinearGradient(sweetX, meterY, sweetX + sweetW, meterY);
+    sweetGrad.addColorStop(0, 'rgba(234, 179, 8, 0.3)');
+    sweetGrad.addColorStop(0.5, 'rgba(250, 204, 21, 0.85)');
+    sweetGrad.addColorStop(1, 'rgba(234, 179, 8, 0.3)');
+    ctx.fillStyle = sweetGrad;
+    ctx.fillRect(sweetX, meterY, sweetW, meterH);
+    ctx.strokeStyle = '#fef08a';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(sweetX, meterY, sweetW, meterH);
+
+    // Sweet Spot Label
+    ctx.fillStyle = '#fef08a';
+    ctx.font = 'bold 10px "Inter", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('HARMONIC SWEET SPOT', sweetX + sweetW / 2, meterY + 17);
+
+    // Sweeping Metronome Needle
+    const tempoBPM = comp.playerPiece.bpm || 120;
+    const sweep = Math.abs(((state.time * (tempoBPM / 60) * 0.8) % 2) - 1);
+    const needleX = meterX + sweep * meterW;
+
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(needleX, meterY - 8);
+    ctx.lineTo(needleX, meterY + meterH + 8);
+    ctx.stroke();
+
+    // Needle Cursor Diamond
+    ctx.fillStyle = '#38bdf8';
+    ctx.beginPath();
+    ctx.moveTo(needleX, meterY - 12);
+    ctx.lineTo(needleX + 6, meterY - 6);
+    ctx.lineTo(needleX - 6, meterY - 6);
+    ctx.closePath();
+    ctx.fill();
+
+    // Feedback Text & Streak
+    if (comp.lastFeedbackText) {
+      const isGood = comp.lastFeedback === 'PERFECT' || comp.lastFeedback === 'GREAT';
+      ctx.fillStyle = isGood ? '#fef08a' : (comp.lastFeedback === 'OK' ? '#fde047' : '#fca5a5');
+      ctx.font = 'bold 16px "Inter", sans-serif';
+      ctx.textAlign = 'center';
+      const streakStr = comp.comboStreak > 1 ? ` (Streak: ${comp.comboStreak}🔥)` : '';
+      ctx.fillText(`${comp.lastFeedbackText}${streakStr}`, this.width / 2, meterY - 14);
+    } else {
+      ctx.fillStyle = '#cbd5e1';
+      ctx.font = 'bold 14px "Inter", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('🎵 Watch the Metronome Tempo Needle!', this.width / 2, meterY - 14);
+    }
 
     // Action Prompt
     ctx.fillStyle = '#f8fafc';
-    ctx.font = 'bold 20px "Inter", sans-serif';
+    ctx.font = 'bold 16px "Inter", sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('Press [SPACE] to Perform the Next Measure with Technical Precision!', this.width / 2, 540);
+    ctx.fillText('⏱️ Press [SPACE] when the Metronome Needle enters the Golden Zone!', this.width / 2, this.height - 35);
   }
 
   /* ---------------- WORLD OVERWORLD MAP ---------------- */
@@ -487,102 +586,535 @@ export class HarmoniaRenderer {
     const camX = state.camera.x;
     const camY = state.camera.y;
 
-    // Grass & Terrain Base
-    ctx.fillStyle = state.currentZone === 'woodwind_woods' ? '#14532d' : (state.currentZone === 'brass_citadel' ? '#78350f' : (state.currentZone === 'percussion_peaks' ? '#3b0764' : '#064e3b'));
-    ctx.fillRect(0, 0, this.width, this.height);
+    // 1. Rich Layered 2.5D Terrain Base
+    if (state.currentZone === 'woodwind_woods') {
+      ctx.fillStyle = '#064e3b'; // Deep emerald forest base
+      ctx.fillRect(0, 0, this.width, this.height);
+      ctx.fillStyle = '#047857'; // Lush foliage underlayer
+    } else if (state.currentZone === 'brass_citadel') {
+      ctx.fillStyle = '#451a03'; // Warm stone base
+      ctx.fillRect(0, 0, this.width, this.height);
+      ctx.fillStyle = '#78350f'; // Gilded terracotta tiles
+    } else if (state.currentZone === 'percussion_peaks') {
+      ctx.fillStyle = '#1e1b4b'; // Deep amethyst caldera base
+      ctx.fillRect(0, 0, this.width, this.height);
+      ctx.fillStyle = '#3b0764'; // Volcanic basalt
+    } else if (state.currentZone === 'grand_hall') {
+      ctx.fillStyle = '#0f172a'; // Deep slate velvet foundation
+      ctx.fillRect(0, 0, this.width, this.height);
+      ctx.fillStyle = '#1e293b'; // Polished parquet wood flooring
+    } else {
+      // Cavatina Village (Vibrant Meadow)
+      ctx.fillStyle = '#064e3b'; // Deep woodland edge
+      ctx.fillRect(0, 0, this.width, this.height);
+      ctx.fillStyle = '#047857'; // Lush grass lawn
+    }
 
-    // Draw Cobblestone Paths
-    ctx.fillStyle = 'rgba(241, 245, 249, 0.15)';
-    ctx.fillRect(0 - camX, 760 - camY, zone.width, 80);
-    ctx.fillRect(960 - camX, 0 - camY, 80, zone.height);
+    // Grid Shading / Subtle Elevation Depth
+    const tileSize = 64;
+    const startTileX = Math.floor(camX / tileSize) * tileSize;
+    const startTileY = Math.floor(camY / tileSize) * tileSize;
+    const endTileX = startTileX + this.width + tileSize * 2;
+    const endTileY = startTileY + this.height + tileSize * 2;
 
-    // Draw Obstacles
-    for (const obs of zone.obstacles) {
-      if (obs.type === 'box' && obs.w && obs.h) {
-        ctx.fillStyle = '#1e293b';
-        ctx.strokeStyle = '#475569';
-        ctx.lineWidth = 2;
-        ctx.fillRect(obs.x - camX, obs.y - camY, obs.w, obs.h);
-        ctx.strokeRect(obs.x - camX, obs.y - camY, obs.w, obs.h);
+    for (let gx = startTileX; gx < endTileX; gx += tileSize) {
+      for (let gy = startTileY; gy < endTileY; gy += tileSize) {
+        if (gx < 0 || gx >= zone.width || gy < 0 || gy >= zone.height) continue;
+        const screenX = gx - camX;
+        const screenY = gy - camY;
 
-        // Nameplate
-        if (obs.name) {
-          ctx.fillStyle = '#94a3b8';
-          ctx.font = '12px "Inter", sans-serif';
-          ctx.textAlign = 'center';
-          ctx.fillText(obs.name, obs.x + obs.w / 2 - camX, obs.y + obs.h / 2 - camY);
+        // Pseudo-random deterministic hash for environmental details
+        const seed = Math.sin(gx * 12.9898 + gy * 78.233) * 43758.5453;
+        const hash = seed - Math.floor(seed);
+
+        if (state.currentZone === 'grand_hall') {
+          // Indoor Parquet Wood Panels
+          ctx.fillStyle = (Math.floor(gx / tileSize) + Math.floor(gy / tileSize)) % 2 === 0 ? '#1e293b' : '#334155';
+          ctx.fillRect(screenX, screenY, tileSize - 1, tileSize - 1);
+        } else {
+          // Outdoor Grass Variation
+          ctx.fillStyle = hash > 0.5 ? 'rgba(16, 185, 129, 0.08)' : 'rgba(5, 150, 105, 0.04)';
+          ctx.fillRect(screenX, screenY, tileSize, tileSize);
+
+          // Wildflowers, Clover, and Grass Tufts in Cavatina and Woods
+          if (hash > 0.82 && (state.currentZone === 'cavatina_village' || state.currentZone === 'woodwind_woods')) {
+            // Blooming Wildflowers
+            ctx.fillStyle = hash > 0.94 ? '#f43f5e' : (hash > 0.88 ? '#fbbf24' : '#38bdf8');
+            ctx.beginPath();
+            ctx.arc(screenX + 18, screenY + 22, 3, 0, Math.PI * 2);
+            ctx.arc(screenX + 24, screenY + 26, 2.5, 0, Math.PI * 2);
+            ctx.fill();
+            // Tiny green stem
+            ctx.fillStyle = '#10b981';
+            ctx.fillRect(screenX + 17, screenY + 25, 2, 4);
+          } else if (hash > 0.70 && hash <= 0.82) {
+            // Grass Tufts
+            ctx.fillStyle = 'rgba(52, 211, 153, 0.4)';
+            ctx.fillRect(screenX + 30, screenY + 34, 2, 6);
+            ctx.fillRect(screenX + 33, screenY + 32, 2, 8);
+            ctx.fillRect(screenX + 36, screenY + 35, 2, 5);
+          } else if (hash < 0.12 && state.currentZone === 'percussion_peaks') {
+            // Basalt Pebbles
+            ctx.fillStyle = '#4c1d95';
+            ctx.beginPath();
+            ctx.arc(screenX + 20, screenY + 30, 4, 0, Math.PI * 2);
+            ctx.fill();
+          }
         }
-      } else if (obs.type === 'circle' && obs.radius) {
-        ctx.fillStyle = '#0284c7';
-        ctx.beginPath();
-        ctx.arc(obs.x - camX, obs.y - camY, obs.radius, 0, Math.PI * 2);
-        ctx.fill();
       }
     }
 
-    // Draw Transitions
-    for (const tr of zone.transitions) {
-      ctx.fillStyle = 'rgba(56, 189, 248, 0.2)';
-      ctx.strokeStyle = '#38bdf8';
+    // 2. Zone-Specific Pathways (No Paths Leading to Nowhere; Ponds Separate from Roads)
+    if (state.currentZone === 'cavatina_village') {
+      const px = 1000 - camX;
+      const py = 720 - camY;
+      const r = 180;
+
+      // 1. Solid Slate Cobblestone Paving (Continuous avenues eliminate gaps & green wedges)
+      ctx.fillStyle = '#334155';
+      ctx.fillRect(940 - camX, 0 - camY, 120, 1600); // North-South Avenue
+      ctx.fillRect(0 - camX, 660 - camY, 2000, 120); // West-East Promenade
+      ctx.beginPath();
+      ctx.arc(px, py, r, 0, Math.PI * 2); // Central Clef Plaza
+      ctx.fill();
+
+      // 2. Seamless Corner Flares (Smooth architectural fillets at avenue intersections)
+      // Top-Left Corner
+      ctx.beginPath();
+      ctx.moveTo(940 - camX, 550 - camY);
+      ctx.quadraticCurveTo(940 - camX, 660 - camY, 830 - camX, 660 - camY);
+      ctx.lineTo(940 - camX, 660 - camY);
+      ctx.closePath();
+      ctx.fill();
+      // Top-Right Corner
+      ctx.beginPath();
+      ctx.moveTo(1060 - camX, 550 - camY);
+      ctx.quadraticCurveTo(1060 - camX, 660 - camY, 1170 - camX, 660 - camY);
+      ctx.lineTo(1060 - camX, 660 - camY);
+      ctx.closePath();
+      ctx.fill();
+      // Bottom-Left Corner
+      ctx.beginPath();
+      ctx.moveTo(830 - camX, 780 - camY);
+      ctx.quadraticCurveTo(940 - camX, 780 - camY, 940 - camX, 890 - camY);
+      ctx.lineTo(940 - camX, 780 - camY);
+      ctx.closePath();
+      ctx.fill();
+      // Bottom-Right Corner
+      ctx.beginPath();
+      ctx.moveTo(1170 - camX, 780 - camY);
+      ctx.quadraticCurveTo(1060 - camX, 780 - camY, 1060 - camX, 890 - camY);
+      ctx.lineTo(1060 - camX, 780 - camY);
+      ctx.closePath();
+      ctx.fill();
+
+      // 3. Decorative Plaza Concentric Pavers
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
       ctx.lineWidth = 2;
-      ctx.fillRect(tr.bounds.x - camX, tr.bounds.y - camY, tr.bounds.w, tr.bounds.h);
-      ctx.strokeRect(tr.bounds.x - camX, tr.bounds.y - camY, tr.bounds.w, tr.bounds.h);
-      ctx.fillStyle = '#f8fafc';
-      ctx.font = 'bold 12px "Inter", sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(tr.promptText, tr.bounds.x + tr.bounds.w / 2 - camX, tr.bounds.y + tr.bounds.h / 2 - camY);
+      ctx.beginPath();
+      ctx.arc(px, py, 140, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(px, py, 100, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // 4. Curbs & Borders (Aligned strictly along outer edges)
+      ctx.strokeStyle = '#94a3b8';
+      ctx.lineWidth = 3;
+
+      // North Road Curbs
+      ctx.beginPath();
+      ctx.moveTo(940 - camX, 0 - camY);
+      ctx.lineTo(940 - camX, 550 - camY);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(1060 - camX, 0 - camY);
+      ctx.lineTo(1060 - camX, 550 - camY);
+      ctx.stroke();
+
+      // South Road Curbs
+      ctx.beginPath();
+      ctx.moveTo(940 - camX, 890 - camY);
+      ctx.lineTo(940 - camX, 1600 - camY);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(1060 - camX, 890 - camY);
+      ctx.lineTo(1060 - camX, 1600 - camY);
+      ctx.stroke();
+
+      // West Road Curbs
+      ctx.beginPath();
+      ctx.moveTo(0 - camX, 660 - camY);
+      ctx.lineTo(830 - camX, 660 - camY);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(0 - camX, 780 - camY);
+      ctx.lineTo(830 - camX, 780 - camY);
+      ctx.stroke();
+
+      // East Road Curbs
+      ctx.beginPath();
+      ctx.moveTo(1170 - camX, 660 - camY);
+      ctx.lineTo(2000 - camX, 660 - camY);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(1170 - camX, 780 - camY);
+      ctx.lineTo(2000 - camX, 780 - camY);
+      ctx.stroke();
+
+      // Plaza Outer Arcs (Between avenue mouths)
+      ctx.beginPath();
+      ctx.arc(px, py, r, -Math.PI / 2 - 0.34, -Math.PI + 0.34, true);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(px, py, r, -Math.PI / 2 + 0.34, -0.34, false);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(px, py, r, Math.PI - 0.34, Math.PI / 2 + 0.34, false);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(px, py, r, 0.34, Math.PI / 2 - 0.34, false);
+      ctx.stroke();
+
+    } else if (state.currentZone === 'woodwind_woods') {
+      // Meandering Forest Trail (West Gate x: 0, y: 720 -> Oliver x: 900, y: 850 -> Stand x: 1300, y: 650)
+      ctx.fillStyle = 'rgba(120, 53, 15, 0.35)'; // Earthy dirt path
+      ctx.beginPath();
+      ctx.moveTo(0 - camX, 660 - camY);
+      ctx.lineTo(400 - camX, 680 - camY);
+      ctx.lineTo(900 - camX, 810 - camY);
+      ctx.lineTo(1350 - camX, 630 - camY);
+      ctx.lineTo(1350 - camX, 710 - camY);
+      ctx.lineTo(900 - camX, 890 - camY);
+      ctx.lineTo(400 - camX, 760 - camY);
+      ctx.lineTo(0 - camX, 780 - camY);
+      ctx.closePath();
+      ctx.fill();
+
+    } else if (state.currentZone === 'brass_citadel') {
+      // Grand Gilded Concourse (South Gate y: 1600 -> Amphitheater y: 650)
+      ctx.fillStyle = 'rgba(234, 179, 8, 0.25)';
+      ctx.fillRect(920 - camX, 650 - camY, 160, 950);
+      ctx.fillStyle = '#ca8a04';
+      ctx.fillRect(914 - camX, 650 - camY, 6, 950);
+      ctx.fillRect(1080 - camX, 650 - camY, 6, 950);
+
+    } else if (state.currentZone === 'percussion_peaks') {
+      // Mountain Stone Pass (North Bridge y: 0 -> Rita Summit y: 1050)
+      ctx.fillStyle = 'rgba(139, 92, 246, 0.28)';
+      ctx.fillRect(920 - camX, 0 - camY, 160, 1050);
+      ctx.fillStyle = '#7c3aed';
+      ctx.fillRect(914 - camX, 0 - camY, 6, 1050);
+      ctx.fillRect(1080 - camX, 0 - camY, 6, 1050);
+
+    } else if (state.currentZone === 'grand_hall') {
+      // Luxurious Crimson Velvet Runner (South Foyer y: 1600 -> Grand Stage y: 600)
+      ctx.fillStyle = '#991b1b';
+      ctx.fillRect(920 - camX, 600 - camY, 160, 1000);
+      ctx.fillStyle = '#fbbf24'; // Gold braided fringe
+      ctx.fillRect(914 - camX, 600 - camY, 6, 1000);
+      ctx.fillRect(1080 - camX, 600 - camY, 6, 1000);
     }
 
-    // Draw NPCs
+    // 3. Draw Transitions (Ground Exit Thresholds - Clean, non-intrusive road markings)
+    for (const tr of zone.transitions) {
+      ctx.save();
+      ctx.strokeStyle = 'rgba(251, 191, 36, 0.35)';
+      ctx.lineWidth = 2.5;
+      ctx.setLineDash([8, 6]);
+      ctx.strokeRect(tr.bounds.x - camX, tr.bounds.y - camY, tr.bounds.w, tr.bounds.h);
+      ctx.restore();
+    }
+
+    // 4. Depth-Sorted Scene Queue (Prevents entities clipping through building roofs)
+    interface DioramaEntity {
+      depthY: number;
+      draw: () => void;
+    }
+    const sceneQueue: DioramaEntity[] = [];
+
+    // Obstacles (Buildings, Gates, Fountains, Willows, Pillars)
+    for (const obs of zone.obstacles) {
+      const bottomY = obs.type === 'circle' ? obs.y + (obs.radius || 0) : obs.y + (obs.h || 0);
+      sceneQueue.push({
+        depthY: bottomY,
+        draw: () => {
+          if (obs.type === 'building') {
+            this.drawBuilding(ctx, obs, camX, camY, state.time);
+          } else if (obs.type === 'gate' || obs.type === 'arch' || obs.buildingType === 'bridge') {
+            this.drawGate(ctx, obs, camX, camY);
+          } else if (obs.type === 'box' && obs.w && obs.h) {
+            ctx.fillStyle = state.currentZone === 'woodwind_woods' ? '#064e3b' : '#1e293b';
+            ctx.strokeStyle = state.currentZone === 'woodwind_woods' ? '#047857' : '#475569';
+            ctx.lineWidth = 2;
+            ctx.fillRect(obs.x - camX, obs.y - camY, obs.w, obs.h);
+            ctx.strokeRect(obs.x - camX, obs.y - camY, obs.w, obs.h);
+          } else if (obs.type === 'circle' && obs.radius) {
+            this.drawCircularObstacle(ctx, obs, camX, camY, state.time);
+          }
+        }
+      });
+    }
+
+    // NPCs & Harmonipets
     for (const npc of state.npcs) {
       if (npc.zone === state.currentZone) {
-        const nx = npc.x - camX;
-        const ny = npc.y - camY;
-
-        if (npc.musicianData) {
-          this.drawPixelMusician(ctx, nx, ny, npc.musicianData, state.time);
-          this.drawPixelPet(ctx, nx + 24, ny + 4, npc.musicianData.pet, state.time);
-        } else {
-          // Prop NPC (Practice Shed or Music Stand)
-          ctx.fillStyle = '#fbbf24';
-          ctx.beginPath();
-          ctx.arc(nx, ny, 16, 0, Math.PI * 2);
-          ctx.fill();
-        }
-
-        ctx.fillStyle = '#f8fafc';
-        ctx.font = 'bold 13px "Inter", sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(npc.name, nx, ny - 24);
+        sceneQueue.push({
+          depthY: npc.y,
+          draw: () => this.drawNPCEntity(ctx, npc, camX, camY, state.time)
+        });
       }
     }
 
-    // Draw Player and Active Harmonipet Familiar (No conga train)
-    const px = state.player.x - camX;
-    const py = state.player.y - camY;
-
+    // Player & Active Pet
     if (state.ensemble.members.length > 0) {
-      const player = state.ensemble.members[0];
-      this.drawPixelMusician(ctx, px, py, player, state.time, state.customization);
-      this.drawPixelPet(ctx, px + 24, py + 4, player.pet, state.time, state.customization?.petTint);
+      sceneQueue.push({
+        depthY: state.player.y,
+        draw: () => this.drawPlayerEntity(ctx, state, camX, camY)
+      });
     }
 
-    // Proximity Prompt Banner
+    // Sort by depthY ascending and execute draw
+    sceneQueue.sort((a, b) => a.depthY - b.depthY);
+    for (const entity of sceneQueue) {
+      entity.draw();
+    }
+
+    // 7. Proximity Action Prompt
     if (state.nearbyInteractable) {
       const target = state.nearbyInteractable;
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
       ctx.strokeStyle = '#38bdf8';
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.roundRect(this.width / 2 - 200, this.height - 100, 400, 44, 12);
+      ctx.roundRect(this.width / 2 - 220, this.height - 85, 440, 44, 12);
       ctx.fill();
       ctx.stroke();
 
       ctx.fillStyle = '#38bdf8';
       ctx.font = 'bold 15px "Inter", sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(target.title, this.width / 2, this.height - 72);
+      ctx.fillText(target.title, this.width / 2, this.height - 58);
     }
+  }
+
+  private drawCircularObstacle(ctx: CanvasRenderingContext2D, obs: WorldObstacle, camX: number, camY: number, t: number): void {
+    const fx = obs.x - camX;
+    const fy = obs.y - camY;
+    const r = obs.radius || 40;
+    const obsName = obs.name || '';
+
+    if (obsName.includes('Fountain')) {
+      // ⛲ Clef Fountain Pond (Cavatina Plaza)
+      ctx.fillStyle = '#065f46';
+      ctx.beginPath();
+      ctx.arc(fx, fy, r + 16, 0, Math.PI * 2);
+      ctx.fill();
+
+      for (let a = 0; a < Math.PI * 2; a += Math.PI / 8) {
+        const flx = fx + Math.cos(a) * (r + 10);
+        const fly = fy + Math.sin(a) * (r + 10);
+        ctx.fillStyle = (Math.floor(a * 10) % 2 === 0) ? '#f43f5e' : '#fbbf24';
+        ctx.beginPath();
+        ctx.arc(flx, fly, 3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.fillStyle = '#64748b';
+      ctx.strokeStyle = '#475569';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(fx, fy, r + 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#0284c7';
+      ctx.beginPath();
+      ctx.arc(fx, fy, r, 0, Math.PI * 2);
+      ctx.fill();
+
+      const rip1 = (t * 18) % r;
+      const rip2 = (t * 18 + r * 0.5) % r;
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(fx, fy, rip1, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(fx, fy, rip2, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.fillStyle = '#fbbf24';
+      ctx.font = 'bold 38px "Cinzel", serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('𝄞', fx, fy + 14);
+
+    } else if (obsName.includes('Willow') || obsName.includes('Grove')) {
+      // 🌳 Ancient Resonant Willow / Piccolo Grove
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+      ctx.beginPath();
+      ctx.ellipse(fx + 8, fy + r - 4, r * 1.1, r * 0.45, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#451a03';
+      ctx.fillRect(fx - 14, fy - 10, 28, r + 10);
+      ctx.fillStyle = '#78350f';
+      ctx.fillRect(fx - 10, fy - 8, 20, r + 8);
+
+      const sway = Math.sin(t * 2 + fx * 0.01) * 4;
+      ctx.fillStyle = '#064e3b';
+      ctx.beginPath();
+      ctx.arc(fx + sway, fy - 22, r + 10, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#047857';
+      ctx.beginPath();
+      ctx.arc(fx - 12 + sway, fy - 28, r - 4, 0, Math.PI * 2);
+      ctx.arc(fx + 14 + sway, fy - 26, r - 4, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#10b981';
+      ctx.beginPath();
+      ctx.arc(fx + sway, fy - 36, r - 12, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = 'rgba(52, 211, 153, 0.6)';
+      ctx.lineWidth = 2;
+      for (let i = -2; i <= 2; i++) {
+        ctx.beginPath();
+        ctx.moveTo(fx + i * 16 + sway, fy - 10);
+        ctx.quadraticCurveTo(fx + i * 18 + sway + Math.sin(t * 3 + i) * 6, fy + 20, fx + i * 12 + sway, fy + 35);
+        ctx.stroke();
+      }
+
+    } else if (obsName.includes('Pillar')) {
+      // 🏛️ Gilded Herald Pillar (Brass Citadel)
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+      ctx.beginPath();
+      ctx.ellipse(fx + 6, fy + r - 4, r, r * 0.4, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(fx - 18, fy - 60, 36, r + 60);
+      ctx.strokeStyle = '#ca8a04';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(fx - 18, fy - 60, 36, r + 60);
+
+      ctx.fillStyle = '#eab308';
+      ctx.fillRect(fx - 24, fy - 70, 48, 12);
+      ctx.fillRect(fx - 24, fy + r - 8, 48, 12);
+      ctx.fillStyle = '#fbbf24';
+      ctx.font = '16px "Inter", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('🎺', fx, fy - 25);
+
+    } else if (obsName.includes('Monolith')) {
+      // 🪨 Basalt Sonic Monolith (Percussion Peaks)
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+      ctx.beginPath();
+      ctx.ellipse(fx + 8, fy + r - 6, r * 1.1, r * 0.5, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#1e1b4b';
+      ctx.beginPath();
+      ctx.moveTo(fx - 24, fy + r);
+      ctx.lineTo(fx - 18, fy - 70);
+      ctx.lineTo(fx, fy - 95);
+      ctx.lineTo(fx + 18, fy - 70);
+      ctx.lineTo(fx + 24, fy + r);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = '#6b21a8';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      const pulse = 0.5 + Math.sin(t * 3.5 + fx) * 0.5;
+      ctx.fillStyle = `rgba(216, 180, 254, ${0.4 + pulse * 0.6})`;
+      ctx.font = 'bold 18px "Cinzel", serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('🥁', fx, fy - 35);
+      ctx.font = 'bold 12px "Cinzel", serif';
+      ctx.fillText('𝄢 𝄡', fx, fy - 10);
+    }
+  }
+
+  private drawNPCEntity(ctx: CanvasRenderingContext2D, npc: WorldNPC, camX: number, camY: number, t: number): void {
+    const nx = npc.x - camX;
+    const ny = npc.y - camY;
+
+    if (npc.musicianData) {
+      this.drawPixelMusician(ctx, nx, ny, npc.musicianData, t, undefined, 'down');
+      if (npc.musicianData.pet) {
+        this.drawPixelPet(ctx, nx + 24, ny + 4, npc.musicianData.pet, t, undefined, 'down');
+      }
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+      ctx.beginPath();
+      ctx.roundRect(nx - 45, ny - 38, 90, 20, 4);
+      ctx.fill();
+      ctx.fillStyle = '#f8fafc';
+      ctx.font = 'bold 12px "Inter", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(npc.name, nx, ny - 24);
+
+    } else if (npc.actionType === 'wild_harmonipet' && npc.wildPetData) {
+      this.drawPixelPet(ctx, nx, ny, npc.wildPetData, t, undefined, 'down');
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+      ctx.beginPath();
+      ctx.roundRect(nx - 50, ny - 34, 100, 20, 4);
+      ctx.fill();
+      ctx.fillStyle = '#fbbf24';
+      ctx.font = 'bold 11px "Inter", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(`✨ ${npc.wildPetData.name}`, nx, ny - 20);
+
+    } else if (npc.isProp || npc.actionType === 'sheet_music_stand' || npc.actionType === 'signpost' || npc.actionType === 'inspiration_vista' || npc.actionType === 'practice_bench' || npc.actionType === 'theory_bench' || npc.actionType === 'customization_mirror') {
+      let pType = npc.propType || 'music_stand';
+      if (npc.actionType === 'inspiration_vista') pType = 'vista_monolith';
+      if (npc.name.includes('Ancient')) pType = 'ancient_stone_stand';
+      if (npc.name.includes('Golden')) pType = 'golden_music_stand';
+      this.drawProp(ctx, nx, ny, pType, t, npc);
+
+    } else {
+      this.drawPixelMusician(ctx, nx, ny, {
+        id: npc.id,
+        name: npc.name,
+        title: npc.title,
+        avatar: '👤',
+        paletteColor: '#0284c7',
+        instrumentId: 'violin',
+        instrumentName: 'Acoustic Instrument',
+        section: 'strings',
+        stats: { technique: 10, toneQuality: 10, tempoStability: 10, sightReading: 10 },
+        level: 1,
+        xp: 0
+      } as any, t);
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+      ctx.beginPath();
+      ctx.roundRect(nx - 45, ny - 38, 90, 20, 4);
+      ctx.fill();
+      ctx.fillStyle = '#f8fafc';
+      ctx.font = 'bold 12px "Inter", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(npc.name, nx, ny - 24);
+    }
+  }
+
+  private drawPlayerEntity(ctx: CanvasRenderingContext2D, state: GameState, camX: number, camY: number): void {
+    const px = state.player.x - camX;
+    const py = state.player.y - camY;
+    const player = state.ensemble.members[0];
+    if (!player) return;
+
+    this.drawPixelMusician(ctx, px, py, player, state.time, state.customization, state.player.dir);
+
+    let petX = px + 22;
+    let petY = py + 4;
+    if (state.player.dir === 'left') { petX = px + 24; petY = py + 2; }
+    else if (state.player.dir === 'right') { petX = px - 24; petY = py + 2; }
+    else if (state.player.dir === 'up') { petX = px + 18; petY = py + 18; }
+    else if (state.player.dir === 'down') { petX = px + 20; petY = py - 16; }
+
+    this.drawPixelPet(ctx, petX, petY, player.pet, state.time, state.customization?.petTint, state.player.dir);
   }
 
   /* ---------------- HUD OVERLAY ---------------- */
@@ -592,7 +1124,7 @@ export class HarmoniaRenderer {
     const zone = WORLD_ZONES[state.currentZone];
 
     // Top Bar Container
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
     ctx.fillRect(0, 0, this.width, 54);
     ctx.strokeStyle = '#334155';
     ctx.lineWidth = 1;
@@ -611,9 +1143,9 @@ export class HarmoniaRenderer {
     const tierName = state.ensemble.tier.toUpperCase();
     const count = state.ensemble.members.length;
     ctx.fillStyle = '#38bdf8';
-    ctx.font = 'bold 16px "Inter", sans-serif';
+    ctx.font = 'bold 15px "Inter", sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText(`🎼 [${tierName} - ${count} Musician${count > 1 ? 's' : ''}]`, this.width / 2, 34);
+    ctx.fillText(`🎼 [${tierName} • ${count} Musician${count > 1 ? 's' : ''}]`, this.width / 2, 34);
 
     // Currency Wallet & Reputation
     ctx.fillStyle = '#fbbf24';
@@ -624,19 +1156,22 @@ export class HarmoniaRenderer {
     if (stars === '') stars = '☆☆☆☆☆';
     ctx.fillText(`♪ ${state.wallet.gold}  |  ✨ ${state.wallet.inspirationSparks}  |  ★ ${stars}`, this.width - 24, 34);
 
-    // Bottom-Left Movement Helper
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.75)';
-    ctx.strokeStyle = '#334155';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.roundRect(16, this.height - 48, 310, 32, 8);
-    ctx.fill();
-    ctx.stroke();
+    // Transient Onboarding Motion Helper (Only shown during first 8 seconds of play)
+    if (state.time < 8) {
+      const alpha = Math.min(1, (8 - state.time) / 2);
+      ctx.fillStyle = `rgba(15, 23, 42, ${0.85 * alpha})`;
+      ctx.strokeStyle = `rgba(56, 189, 248, ${0.6 * alpha})`;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.roundRect(16, this.height - 48, 280, 32, 8);
+      ctx.fill();
+      ctx.stroke();
 
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = 'bold 12px "Inter", sans-serif';
-    ctx.textAlign = 'left';
-    ctx.fillText('🎮 Move: [W A S D] or [↑ ← ↓ →]', 28, this.height - 27);
+      ctx.fillStyle = `rgba(248, 250, 252, ${alpha})`;
+      ctx.font = 'bold 12px "Inter", sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText('🎮 Move: [W A S D] or [↑ ← ↓ →]', 28, this.height - 27);
+    }
   }
 
   /* ---------------- DIALOGUE OVERLAY ---------------- */
@@ -687,9 +1222,745 @@ export class HarmoniaRenderer {
     ctx.fillText('Press [SPACE] to advance ▸', boxX + boxW - 20, boxY + boxH - 15);
   }
 
+  /* ---------------- DETAILED PROCEDURAL BUILDINGS & GATES ---------------- */
+
+  private drawBuilding(ctx: CanvasRenderingContext2D, obs: WorldObstacle, camX: number, camY: number, t: number): void {
+    const bx = obs.x - camX;
+    const by = obs.y - camY;
+    const bw = obs.w || 200;
+    const bh = obs.h || 150;
+    const bType = obs.buildingType || 'cottage';
+
+    if (bType === 'wall') {
+      // Ancient Fortress Masonry Wall
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(bx, by, bw, bh);
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(bx, by, bw, bh);
+      // Stone block brickwork lines
+      ctx.strokeStyle = 'rgba(71, 85, 105, 0.4)';
+      ctx.lineWidth = 1;
+      for (let y = by + 16; y < by + bh; y += 16) {
+        ctx.beginPath();
+        ctx.moveTo(bx, y);
+        ctx.lineTo(bx + bw, y);
+        ctx.stroke();
+      }
+      return;
+    }
+
+    // 2.5D Building Drop Shadow
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+    ctx.beginPath();
+    ctx.roundRect(bx + 8, by + bh - 6, bw, 14, 6);
+    ctx.fill();
+
+    if (bType === 'academy') {
+      // 🏛️ GRAND CONSERVATORY ACADEMY (Greco-Roman Classical Architecture)
+      const roofH = 50;
+      const wallY = by + roofH;
+      const wallH = bh - roofH;
+
+      // Base Wall (Polished Off-White Marble)
+      ctx.fillStyle = '#f8fafc';
+      ctx.fillRect(bx, wallY, bw, wallH);
+      ctx.strokeStyle = '#cbd5e1';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(bx, wallY, bw, wallH);
+
+      // Triangular Pediment (Gable)
+      ctx.fillStyle = '#f1f5f9';
+      ctx.beginPath();
+      ctx.moveTo(bx - 10, wallY);
+      ctx.lineTo(bx + bw / 2, by);
+      ctx.lineTo(bx + bw + 10, wallY);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = '#94a3b8';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      // Golden Lyre Emblem in Pediment
+      ctx.fillStyle = '#fbbf24';
+      ctx.font = 'bold 28px "Cinzel", serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('𝄞', bx + bw / 2, wallY - 12);
+
+      // 4 Grand Classical Fluted Columns
+      const colW = 16;
+      const colSpacing = (bw - colW * 4) / 5;
+      for (let i = 0; i < 4; i++) {
+        const cx = bx + colSpacing + i * (colW + colSpacing);
+        // Column Capital
+        ctx.fillStyle = '#e2e8f0';
+        ctx.fillRect(cx - 3, wallY, colW + 6, 6);
+        // Column Shaft
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(cx, wallY + 6, colW, wallH - 12);
+        ctx.strokeStyle = '#cbd5e1';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(cx, wallY + 6, colW, wallH - 12);
+        // Base
+        ctx.fillStyle = '#e2e8f0';
+        ctx.fillRect(cx - 3, by + bh - 6, colW + 6, 6);
+      }
+
+      // Grand Arched Double Doors
+      const doorW = 44;
+      const doorH = 56;
+      const doorX = bx + bw / 2 - doorW / 2;
+      const doorY = by + bh - doorH;
+      ctx.fillStyle = '#1e3a8a'; // Royal Blue conservatory doors
+      ctx.beginPath();
+      ctx.roundRect(doorX, doorY, doorW, doorH, [22, 22, 0, 0]);
+      ctx.fill();
+      ctx.strokeStyle = '#fbbf24';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Hanging Brass Sign
+      this.drawBuildingSign(ctx, bx + 24, wallY + 20, '🎼');
+
+    } else if (bType === 'forge') {
+      // 🎻 MASTER LUTHIER'S FORGE & WORKSHOP (Rustic Stone & Timber)
+      const roofH = 55;
+      const wallY = by + roofH;
+      const wallH = bh - roofH;
+
+      // Stone Foundation & Timber Wall
+      ctx.fillStyle = '#475569'; // Slate masonry
+      ctx.fillRect(bx, wallY + wallH * 0.4, bw, wallH * 0.6);
+      ctx.fillStyle = '#b45309'; // Warm amber timber
+      ctx.fillRect(bx, wallY, bw, wallH * 0.4);
+
+      // Heavy Timber Beams
+      ctx.fillStyle = '#78350f';
+      ctx.fillRect(bx, wallY, bw, 6);
+      ctx.fillRect(bx, wallY + wallH * 0.4, bw, 6);
+      ctx.fillRect(bx, by + bh - 6, bw, 6);
+      ctx.fillRect(bx, wallY, 8, wallH);
+      ctx.fillRect(bx + bw - 8, wallY, 8, wallH);
+
+      // Terracotta Shingled Roof
+      ctx.fillStyle = '#b91c1c';
+      ctx.beginPath();
+      ctx.moveTo(bx - 12, wallY);
+      ctx.lineTo(bx + bw / 2, by);
+      ctx.lineTo(bx + bw + 12, wallY);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = '#7f1d1d';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      // Blacksmith & Kiln Chimney with Rising Ember Smoke
+      const chimX = bx + bw - 36;
+      const chimY = by - 16;
+      ctx.fillStyle = '#334155';
+      ctx.fillRect(chimX, chimY, 20, roofH + 16);
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(chimX - 2, chimY, 24, 6);
+      // Floating warm smoke puffs
+      const sBob = (t * 22) % 36;
+      ctx.fillStyle = 'rgba(251, 146, 60, 0.45)';
+      ctx.beginPath();
+      ctx.arc(chimX + 10 + Math.sin(t * 3) * 5, chimY - sBob, 6 + sBob * 0.25, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Open Workshop Stall with Hung Violins
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(bx + 24, wallY + 16, bw * 0.4, wallH - 22);
+      ctx.strokeStyle = '#92400e';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(bx + 24, wallY + 16, bw * 0.4, wallH - 22);
+      // Tiny hung violin bodies
+      ctx.fillStyle = '#fbbf24';
+      ctx.font = '14px "Inter", sans-serif';
+      ctx.fillText('🎻', bx + 36, wallY + 36);
+      ctx.fillText('🎻', bx + 64, wallY + 36);
+
+      // Heavy Workshop Door
+      const doorW = 34;
+      const doorH = 48;
+      const doorX = bx + bw * 0.72 - doorW / 2;
+      const doorY = by + bh - doorH;
+      ctx.fillStyle = '#92400e';
+      ctx.fillRect(doorX, doorY, doorW, doorH);
+      ctx.strokeStyle = '#451a03';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(doorX, doorY, doorW, doorH);
+
+      // Wrought Iron Anvil/Violin Sign
+      this.drawBuildingSign(ctx, bx + bw - 24, wallY + 20, '⚒️');
+
+    } else if (bType === 'library') {
+      // 📖 CONSERVATORY ARCHIVE & LIBRARY (Domed Scholarly Tower)
+      const roofH = 50;
+      const wallY = by + roofH;
+      const wallH = bh - roofH;
+
+      // Ancient Sandstone Masonry
+      ctx.fillStyle = '#334155';
+      ctx.fillRect(bx, wallY, bw, wallH);
+      ctx.strokeStyle = '#1e293b';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(bx, wallY, bw, wallH);
+
+      // Domed Scholarly Roof
+      ctx.fillStyle = '#065f46'; // Emerald Copper Dome
+      ctx.beginPath();
+      ctx.ellipse(bx + bw / 2, wallY, bw / 2 + 8, roofH, 0, Math.PI, 0);
+      ctx.fill();
+      ctx.strokeStyle = '#047857';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      // Cupola / Weather Spire
+      ctx.fillStyle = '#fbbf24';
+      ctx.fillRect(bx + bw / 2 - 4, by - 16, 8, 20);
+      ctx.beginPath();
+      ctx.arc(bx + bw / 2, by - 16, 6, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 3 High Arched Leaded Glass Windows (Candlelit)
+      const winW = 22;
+      const winH = 42;
+      const spacing = (bw - winW * 3) / 4;
+      for (let i = 0; i < 3; i++) {
+        const wx = bx + spacing + i * (winW + spacing);
+        ctx.fillStyle = '#fef08a'; // Golden candlelight glow
+        ctx.beginPath();
+        ctx.roundRect(wx, wallY + 16, winW, winH, [11, 11, 0, 0]);
+        ctx.fill();
+        ctx.strokeStyle = '#0f172a';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+
+      // Archway Entrance
+      const doorW = 36;
+      const doorH = 46;
+      const doorX = bx + bw / 2 - doorW / 2;
+      const doorY = by + bh - doorH;
+      ctx.fillStyle = '#0f172a';
+      ctx.beginPath();
+      ctx.roundRect(doorX, doorY, doorW, doorH, [18, 18, 0, 0]);
+      ctx.fill();
+
+      // Open Book Crest Sign
+      this.drawBuildingSign(ctx, bx + 24, wallY + 20, '📖');
+
+    } else if (bType === 'tavern') {
+      // 🍺 THE MELODIC ROSE TAVERN & INN (Tudor Half-Timbered Gable)
+      const roofH = 60;
+      const wallY = by + roofH;
+      const wallH = bh - roofH;
+
+      // Cream Plaster & Dark Timber Beams
+      ctx.fillStyle = '#fef3c7';
+      ctx.fillRect(bx, wallY, bw, wallH);
+
+      // Diagonal Tudor Timbers
+      ctx.strokeStyle = '#78350f';
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.moveTo(bx, wallY); ctx.lineTo(bx + bw * 0.3, by + bh);
+      ctx.moveTo(bx + bw, wallY); ctx.lineTo(bx + bw * 0.7, by + bh);
+      ctx.stroke();
+
+      // Boundary beams
+      ctx.fillStyle = '#78350f';
+      ctx.fillRect(bx, wallY, bw, 6);
+      ctx.fillRect(bx, by + bh - 6, bw, 6);
+      ctx.fillRect(bx, wallY, 8, wallH);
+      ctx.fillRect(bx + bw - 8, wallY, 8, wallH);
+
+      // Steep Gabled Shingle Roof
+      ctx.fillStyle = '#991b1b';
+      ctx.beginPath();
+      ctx.moveTo(bx - 12, wallY);
+      ctx.lineTo(bx + bw / 2, by);
+      ctx.lineTo(bx + bw + 12, wallY);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = '#450a0a';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      // Glowing Warm Tavern Door
+      const doorW = 34;
+      const doorH = 46;
+      const doorX = bx + bw / 2 - doorW / 2;
+      const doorY = by + bh - doorH;
+      ctx.fillStyle = '#92400e';
+      ctx.fillRect(doorX, doorY, doorW, doorH);
+      // Hanging Lantern
+      ctx.fillStyle = '#fbbf24';
+      ctx.beginPath();
+      ctx.arc(doorX + doorW + 10, doorY + 14, 5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Outdoor Beer Barrels
+      ctx.fillStyle = '#b45309';
+      ctx.beginPath();
+      ctx.ellipse(bx + 26, by + bh - 14, 12, 14, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#451a03';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // Foaming Tankard & Lute Sign
+      this.drawBuildingSign(ctx, bx + 24, wallY + 16, '🍺');
+
+    } else if (bType === 'clocktower') {
+      // ⏰ CAVATINA TOWN HALL & CLOCKTOWER (Stone Spire with Animated Clock)
+      const towerW = bw * 0.45;
+      const towerX = bx + bw / 2 - towerW / 2;
+
+      // Base Hall Wings
+      ctx.fillStyle = '#334155';
+      ctx.fillRect(bx, by + bh * 0.4, bw, bh * 0.6);
+      ctx.strokeStyle = '#1e293b';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(bx, by + bh * 0.4, bw, bh * 0.6);
+
+      // Central Stone Tower
+      ctx.fillStyle = '#475569';
+      ctx.fillRect(towerX, by + 10, towerW, bh - 10);
+      ctx.strokeRect(towerX, by + 10, towerW, bh - 10);
+
+      // Spire Roof
+      ctx.fillStyle = '#4c1d95';
+      ctx.beginPath();
+      ctx.moveTo(towerX - 6, by + 10);
+      ctx.lineTo(bx + bw / 2, by - 24);
+      ctx.lineTo(towerX + towerW + 6, by + 10);
+      ctx.closePath();
+      ctx.fill();
+
+      // Glowing Clock Face with Tempo Markings
+      const clockR = 24;
+      const clockY = by + 46;
+      ctx.fillStyle = '#f8fafc';
+      ctx.beginPath();
+      ctx.arc(bx + bw / 2, clockY, clockR, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#fbbf24';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      // Animated Clock Hands
+      const handAngle = (t * 0.8) % (Math.PI * 2);
+      ctx.strokeStyle = '#0f172a';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(bx + bw / 2, clockY);
+      ctx.lineTo(bx + bw / 2 + Math.cos(handAngle) * 16, clockY + Math.sin(handAngle) * 16);
+      ctx.moveTo(bx + bw / 2, clockY);
+      ctx.lineTo(bx + bw / 2 + Math.cos(handAngle * 0.1) * 10, clockY + Math.sin(handAngle * 0.1) * 10);
+      ctx.stroke();
+
+      // Grand Arch Portal
+      const doorW = 36;
+      const doorH = 46;
+      ctx.fillStyle = '#0f172a';
+      ctx.beginPath();
+      ctx.roundRect(bx + bw / 2 - doorW / 2, by + bh - doorH, doorW, doorH, [18, 18, 0, 0]);
+      ctx.fill();
+
+      // Tempo Sign
+      this.drawBuildingSign(ctx, bx + 24, by + bh * 0.4 + 20, '⏰');
+
+    } else {
+      // 🏡 COZY GABLED COTTAGE
+      const roofH = 50;
+      const wallY = by + roofH;
+      const wallH = bh - roofH;
+
+      ctx.fillStyle = '#fef3c7';
+      ctx.fillRect(bx, wallY, bw, wallH);
+      ctx.fillStyle = '#78350f';
+      ctx.fillRect(bx, wallY, bw, 6);
+      ctx.fillRect(bx, by + bh - 6, bw, 6);
+
+      ctx.fillStyle = obs.roofColor || '#059669';
+      ctx.beginPath();
+      ctx.moveTo(bx - 8, wallY);
+      ctx.lineTo(bx + bw / 2, by);
+      ctx.lineTo(bx + bw + 8, wallY);
+      ctx.closePath();
+      ctx.fill();
+
+      const doorW = 30;
+      const doorH = 42;
+      ctx.fillStyle = '#92400e';
+      ctx.fillRect(bx + bw / 2 - doorW / 2, by + bh - doorH, doorW, doorH);
+
+      // Window with flower box
+      ctx.fillStyle = '#fef08a';
+      ctx.fillRect(bx + 20, wallY + 16, 24, 24);
+      ctx.fillStyle = '#f43f5e';
+      ctx.fillRect(bx + 18, wallY + 38, 28, 6);
+    }
+  }
+
+  private drawBuildingSign(ctx: CanvasRenderingContext2D, x: number, y: number, icon: string): void {
+    // Wrought Iron Arm
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(x - 2, y - 6, 4, 16);
+    // Signboard
+    ctx.fillStyle = '#1e293b';
+    ctx.strokeStyle = '#fbbf24';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(x - 14, y + 8, 28, 28, 6);
+    ctx.fill();
+    ctx.stroke();
+    // Icon
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = '16px "Inter", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(icon, x, y + 28);
+  }
+
+  private drawGate(ctx: CanvasRenderingContext2D, obs: WorldObstacle, camX: number, camY: number): void {
+    const gx = obs.x - camX;
+    const gy = obs.y - camY;
+    const gw = obs.w || 160;
+    const gh = obs.h || 60;
+    const isBridge = obs.buildingType === 'bridge';
+    const isHorizontalRoad = gh > gw; // East/West gates (horizontal road passing through)
+
+    if (isBridge) {
+      // 🌉 Arched Stone Bridge across Melodic River
+      // Cobblestone Bridge Deck
+      ctx.fillStyle = '#334155';
+      ctx.fillRect(gx + 20, gy, gw - 40, gh);
+      ctx.strokeStyle = '#64748b';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(gx + 20, gy, gw - 40, gh);
+
+      // Stone Balustrades / Guard Rails
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(gx + 12, gy, 8, gh);
+      ctx.fillRect(gx + gw - 20, gy, 8, gh);
+
+      // Ornamental Balustrade Finials
+      ctx.fillStyle = '#94a3b8';
+      ctx.fillRect(gx + 10, gy - 2, 12, 6);
+      ctx.fillRect(gx + 10, gy + gh - 4, 12, 6);
+      ctx.fillRect(gx + gw - 22, gy - 2, 12, 6);
+      ctx.fillRect(gx + gw - 22, gy + gh - 4, 12, 6);
+      return;
+    }
+
+    if (isHorizontalRoad) {
+      // 🏛️ West / East Flanking Gateway Pillars (Road passes cleanly through the middle!)
+      // Top Flanking Pillar
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(gx, gy, gw, 26);
+      ctx.strokeStyle = '#cbd5e1';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(gx, gy, gw, 26);
+      ctx.fillStyle = '#ca8a04';
+      ctx.fillRect(gx - 2, gy - 4, gw + 4, 6);
+
+      // Bottom Flanking Pillar
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(gx, gy + gh - 26, gw, 26);
+      ctx.strokeRect(gx, gy + gh - 26, gw, 26);
+      ctx.fillStyle = '#ca8a04';
+      ctx.fillRect(gx - 2, gy + gh - 2, gw + 4, 6);
+
+      // Classical Arch Overhead Archway / Sign Span
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+      ctx.beginPath();
+      ctx.roundRect(gx - 12, gy + gh / 2 - 20, gw + 24, 40, 8);
+      ctx.fill();
+      ctx.strokeStyle = '#d4af37';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.fillStyle = '#fef08a';
+      ctx.font = 'bold 11.5px "Cinzel", serif';
+      ctx.textAlign = 'center';
+      const cleanName = obs.name ? obs.name.split('(')[0].trim() : 'Gateway';
+      ctx.fillText(`${obs.signIcon || '🏛️'} ${cleanName}`, gx + gw / 2, gy + gh / 2 + 4);
+
+    } else {
+      // 🏛️ North / South Gateway (Vertical Road passing through horizontal wall)
+      // Left Flanking Gatepost
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(gx, gy, 26, gh);
+      ctx.strokeStyle = '#cbd5e1';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(gx, gy, 26, gh);
+      ctx.fillStyle = '#ca8a04';
+      ctx.fillRect(gx - 4, gy - 2, 34, 6);
+
+      // Right Flanking Gatepost
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(gx + gw - 26, gy, 26, gh);
+      ctx.strokeRect(gx + gw - 26, gy, 26, gh);
+      ctx.fillStyle = '#ca8a04';
+      ctx.fillRect(gx + gw - 30, gy - 2, 34, 6);
+
+      // Transom Arch Banner
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+      ctx.beginPath();
+      ctx.roundRect(gx + gw / 2 - 100, gy + gh / 2 - 18, 200, 36, 8);
+      ctx.fill();
+      ctx.strokeStyle = '#d4af37';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.fillStyle = '#fef08a';
+      ctx.font = 'bold 12px "Cinzel", serif';
+      ctx.textAlign = 'center';
+      const cleanName = obs.name ? obs.name.split('(')[0].trim() : 'Gateway';
+      ctx.fillText(`${obs.signIcon || '🏛️'} ${cleanName}`, gx + gw / 2, gy + gh / 2 + 4);
+    }
+  }
+
+  private drawProp(ctx: CanvasRenderingContext2D, x: number, y: number, propType: string, t: number = 0, npc?: any): void {
+    if (propType === 'ancient_stone_stand') {
+      // 🪨 Ancient Moss-Covered Rune Altar & Stand
+      ctx.fillStyle = '#334155'; // Dark granite monolith base
+      ctx.beginPath();
+      ctx.roundRect(x - 14, y - 8, 28, 26, 4);
+      ctx.fill();
+      ctx.strokeStyle = '#047857'; // Moss green trim
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Slanted stone ledger
+      ctx.fillStyle = '#475569';
+      ctx.beginPath();
+      ctx.moveTo(x - 18, y - 8);
+      ctx.lineTo(x + 18, y - 8);
+      ctx.lineTo(x + 14, y - 24);
+      ctx.lineTo(x - 14, y - 24);
+      ctx.closePath();
+      ctx.fill();
+
+      // Glowing Cyan Ancient Runes
+      const pulse = 0.5 + Math.sin(t * 3) * 0.5;
+      ctx.fillStyle = `rgba(56, 189, 248, ${0.4 + pulse * 0.6})`;
+      ctx.font = 'bold 12px "Cinzel", serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('𝄡 ♫ 𝄢', x, y - 13);
+
+    } else if (propType === 'golden_music_stand') {
+      // ✨ Gilded Brass Ornate Conservatory Stand
+      ctx.fillStyle = '#ca8a04'; // Polished gold shaft
+      ctx.fillRect(x - 3, y - 16, 6, 32);
+      // Pedestal base
+      ctx.fillStyle = '#eab308';
+      ctx.beginPath();
+      ctx.ellipse(x, y + 16, 12, 5, 0, 0, Math.PI * 2);
+      ctx.fill();
+      // Ornate gilded desk
+      ctx.fillStyle = '#fbbf24';
+      ctx.beginPath();
+      ctx.roundRect(x - 14, y - 28, 28, 16, 3);
+      ctx.fill();
+      ctx.strokeStyle = '#78350f';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      // Radiant star
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '10px "Inter", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('✨ 🎼', x, y - 16);
+
+    } else if (propType === 'vista_monolith') {
+      // 🔮 Acoustic Inspiration Vista Monolith (Resonant Tuning Crystal)
+      ctx.fillStyle = '#1e293b'; // Stepped dais
+      ctx.beginPath();
+      ctx.ellipse(x, y + 14, 24, 8, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Glowing Crystal Tuning Monolith
+      const glow = (Math.sin(t * 2.5) + 1) / 2;
+      ctx.fillStyle = `rgba(168, 85, 247, ${0.7 + glow * 0.3})`;
+      ctx.beginPath();
+      ctx.moveTo(x - 8, y + 12);
+      ctx.lineTo(x - 12, y - 16);
+      ctx.lineTo(x, y - 32);
+      ctx.lineTo(x + 12, y - 16);
+      ctx.lineTo(x + 8, y + 12);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = '#e9d5ff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Shimmering Sonic Ring
+      ctx.strokeStyle = `rgba(216, 180, 254, ${glow * 0.5})`;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.ellipse(x, y - 10, 18 + glow * 8, 8 + glow * 4, 0, 0, Math.PI * 2);
+      ctx.stroke();
+
+    } else if (propType === 'road_sign') {
+      // 🗺️ Directional Road Signpost with Specific Destinations
+      let topText = 'Grand Symphony';
+      let bottomText = 'Cavatina Plaza';
+      let topPointsLeft = true;
+      let bottomPointsLeft = false;
+
+      if (npc?.id === 'npc_signpost_west_arch') {
+        topText = 'Grand Symphony';
+        topPointsLeft = true;
+        bottomText = 'Cavatina Plaza';
+        bottomPointsLeft = false;
+      } else if (npc?.id === 'npc_signpost_east_gate') {
+        topText = 'Woodwind Woods';
+        topPointsLeft = false;
+        bottomText = 'Cavatina Plaza';
+        bottomPointsLeft = true;
+      } else if (npc?.id === 'npc_signpost_north_gate') {
+        topText = 'Brass Citadel';
+        topPointsLeft = false;
+        bottomText = 'Cavatina Plaza';
+        bottomPointsLeft = true;
+      } else if (npc?.id === 'npc_signpost_south_bridge') {
+        topText = 'Percussion Peaks';
+        topPointsLeft = false;
+        bottomText = 'Cavatina Plaza';
+        bottomPointsLeft = true;
+      } else if (npc?.id === 'npc_signpost_woods_exit') {
+        topText = 'Cavatina Village';
+        topPointsLeft = true;
+        bottomText = 'Vivace Glade';
+        bottomPointsLeft = false;
+      } else if (npc?.id === 'npc_signpost_citadel_exit') {
+        topText = 'Cavatina Village';
+        topPointsLeft = true;
+        bottomText = 'Echo Concourse';
+        bottomPointsLeft = false;
+      } else if (npc?.id === 'npc_signpost_peaks_exit') {
+        topText = 'Cavatina Village';
+        topPointsLeft = true;
+        bottomText = 'Rondo Summit';
+        bottomPointsLeft = false;
+      } else if (npc?.id === 'npc_signpost_hall_exit') {
+        topText = 'Cavatina Village';
+        topPointsLeft = true;
+        bottomText = 'Eternal Stage';
+        bottomPointsLeft = false;
+      }
+
+      // Wooden Post
+      ctx.fillStyle = '#451a03';
+      ctx.fillRect(x - 4, y - 28, 8, 52);
+      ctx.fillStyle = '#78350f';
+      ctx.fillRect(x - 3, y - 27, 6, 50);
+
+      // Helper function to draw directional arrow board
+      const drawSignBoard = (by: number, text: string, pointsLeft: boolean, color: string) => {
+        const boardW = 58;
+        const arrowTip = 10;
+        ctx.fillStyle = color;
+        ctx.strokeStyle = '#291004';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        if (pointsLeft) {
+          ctx.moveTo(x - boardW - arrowTip, by);
+          ctx.lineTo(x - boardW, by - 8);
+          ctx.lineTo(x + boardW - 10, by - 8);
+          ctx.lineTo(x + boardW - 10, by + 8);
+          ctx.lineTo(x - boardW, by + 8);
+        } else {
+          ctx.moveTo(x + boardW + arrowTip, by);
+          ctx.lineTo(x + boardW, by - 8);
+          ctx.lineTo(x - boardW + 10, by - 8);
+          ctx.lineTo(x - boardW + 10, by + 8);
+          ctx.lineTo(x + boardW, by + 8);
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Brass Nail on Post
+        ctx.fillStyle = '#fbbf24';
+        ctx.beginPath();
+        ctx.arc(x, by, 2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Text
+        ctx.fillStyle = '#fef08a';
+        ctx.font = 'bold 9.5px "Inter", sans-serif';
+        ctx.textAlign = 'center';
+        const displayLabel = pointsLeft ? `⬅ ${text}` : `${text} ➔`;
+        const textOffset = pointsLeft ? -4 : 4;
+        ctx.fillText(displayLabel, x + textOffset, by + 3.5);
+      };
+
+      // Top Signboard (Outward Destination)
+      drawSignBoard(y - 18, topText, topPointsLeft, '#b45309');
+      // Bottom Signboard (Return Destination)
+      drawSignBoard(y - 2, bottomText, bottomPointsLeft, '#92400e');
+
+    } else if (propType === 'lectern') {
+      // Grand Wooden Theory Lectern
+      ctx.fillStyle = '#78350f';
+      ctx.fillRect(x - 12, y, 24, 20);
+      ctx.fillStyle = '#92400e';
+      ctx.beginPath();
+      ctx.moveTo(x - 20, y);
+      ctx.lineTo(x + 20, y);
+      ctx.lineTo(x + 16, y - 12);
+      ctx.lineTo(x - 16, y - 12);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = '#fef08a';
+      ctx.fillRect(x - 14, y - 16, 28, 12);
+      ctx.fillStyle = '#0f172a';
+      ctx.font = 'bold 10px "Inter", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('♫ 📖', x, y - 7);
+
+    } else if (propType === 'vanity') {
+      // Maestro Styling Vanity Mirror
+      ctx.fillStyle = '#fbbf24';
+      ctx.beginPath();
+      ctx.ellipse(x, y - 8, 14, 20, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#38bdf8';
+      ctx.beginPath();
+      ctx.ellipse(x, y - 8, 10, 16, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#b45309';
+      ctx.fillRect(x - 8, y + 10, 4, 12);
+      ctx.fillRect(x + 4, y + 10, 4, 12);
+
+    } else {
+      // Standard Music stand with sheet
+      ctx.fillStyle = '#475569';
+      ctx.fillRect(x - 2, y - 12, 4, 28);
+      ctx.fillRect(x - 8, y + 14, 16, 3);
+      ctx.fillStyle = '#f8fafc';
+      ctx.fillRect(x - 10, y - 20, 20, 14);
+      ctx.fillStyle = '#0f172a';
+      ctx.font = '10px "Inter", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('🎼', x, y - 9);
+    }
+  }
+
   /* ---------------- PIXEL ART HELPERS ---------------- */
 
-  private drawPixelMusician(ctx: CanvasRenderingContext2D, x: number, y: number, m: Musician, t: number, custom?: PlayerCustomization): void {
+  private drawPixelMusician(
+    ctx: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    m: Musician,
+    t: number,
+    custom?: PlayerCustomization,
+    dir: 'up' | 'down' | 'left' | 'right' = 'down'
+  ): void {
     const bob = Math.sin(t * 6) * 2;
     const outfit = m.isPlayer && custom ? custom.outfitColor : m.paletteColor;
     const hair = m.isPlayer && custom ? custom.hairColor : '#475569';
@@ -703,68 +1974,129 @@ export class HarmoniaRenderer {
 
     // Legs / Boots
     ctx.fillStyle = '#1e293b';
-    ctx.fillRect(x - 6, y + 14 + bob, 4, 10);
-    ctx.fillRect(x + 2, y + 14 - bob, 4, 10);
+    if (dir === 'left' || dir === 'right') {
+      ctx.fillRect(x - 3, y + 14 + bob, 4, 10);
+      ctx.fillRect(x + 1, y + 14 - bob, 4, 10);
+    } else {
+      ctx.fillRect(x - 6, y + 14 + bob, 4, 10);
+      ctx.fillRect(x + 2, y + 14 - bob, 4, 10);
+    }
 
     // Torso / Tunic
     ctx.fillStyle = outfit;
     ctx.beginPath();
-    ctx.roundRect(x - 10, y + bob, 20, 16, 4);
+    if (dir === 'left' || dir === 'right') {
+      ctx.roundRect(x - 8, y + bob, 16, 16, 4);
+    } else {
+      ctx.roundRect(x - 10, y + bob, 20, 16, 4);
+    }
     ctx.fill();
 
-    // Collar
-    ctx.fillStyle = '#ffffff';
-    ctx.beginPath();
-    ctx.roundRect(x - 5, y + bob, 10, 4, 2);
-    ctx.fill();
+    // Collar / Cloak
+    if (dir !== 'up') {
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      if (dir === 'left') {
+        ctx.roundRect(x - 7, y + bob, 6, 4, 2);
+      } else if (dir === 'right') {
+        ctx.roundRect(x + 1, y + bob, 6, 4, 2);
+      } else {
+        ctx.roundRect(x - 5, y + bob, 10, 4, 2);
+      }
+      ctx.fill();
+    }
 
-    // Head / Face
-    ctx.fillStyle = '#fde047';
-    ctx.beginPath();
-    ctx.arc(x, y - 10 + bob, 10, 0, Math.PI * 2);
-    ctx.fill();
+    // Head / Hair / Eyes based on direction
+    if (dir === 'up') {
+      // Walking away / UP -> View from behind! No face/eyes, full hair
+      ctx.fillStyle = hair;
+      ctx.beginPath();
+      ctx.arc(x, y - 10 + bob, 11, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (dir === 'left') {
+      // Walking LEFT -> Profile facing left
+      ctx.fillStyle = '#fde047';
+      ctx.beginPath();
+      ctx.arc(x - 2, y - 10 + bob, 10, 0, Math.PI * 2);
+      ctx.fill();
 
-    // Eyes
-    ctx.fillStyle = '#0f172a';
-    ctx.fillRect(x - 4, y - 11 + bob, 2, 3);
-    ctx.fillRect(x + 2, y - 11 + bob, 2, 3);
+      // Eye looking left
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(x - 8, y - 11 + bob, 2, 3);
 
-    // Hair
-    ctx.fillStyle = hair;
-    ctx.beginPath();
-    ctx.arc(x, y - 13 + bob, 11, Math.PI, 0);
-    ctx.fill();
-    ctx.fillRect(x - 10, y - 12 + bob, 3, 7);
-    ctx.fillRect(x + 7, y - 12 + bob, 3, 7);
+      // Hair covering top & back right
+      ctx.fillStyle = hair;
+      ctx.beginPath();
+      ctx.arc(x - 2, y - 13 + bob, 11, Math.PI * 0.7, Math.PI * 0.1);
+      ctx.fill();
+      ctx.fillRect(x + 2, y - 12 + bob, 6, 9);
+    } else if (dir === 'right') {
+      // Walking RIGHT -> Profile facing right
+      ctx.fillStyle = '#fde047';
+      ctx.beginPath();
+      ctx.arc(x + 2, y - 10 + bob, 10, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Eye looking right
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(x + 6, y - 11 + bob, 2, 3);
+
+      // Hair covering top & back left
+      ctx.fillStyle = hair;
+      ctx.beginPath();
+      ctx.arc(x + 2, y - 13 + bob, 11, Math.PI * 0.9, Math.PI * 0.3);
+      ctx.fill();
+      ctx.fillRect(x - 8, y - 12 + bob, 6, 9);
+    } else {
+      // Walking DOWN / Front facing
+      ctx.fillStyle = '#fde047';
+      ctx.beginPath();
+      ctx.arc(x, y - 10 + bob, 10, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Eyes looking down/forward
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(x - 4, y - 11 + bob, 2, 3);
+      ctx.fillRect(x + 2, y - 11 + bob, 2, 3);
+
+      // Hair bangs
+      ctx.fillStyle = hair;
+      ctx.beginPath();
+      ctx.arc(x, y - 13 + bob, 11, Math.PI, 0);
+      ctx.fill();
+      ctx.fillRect(x - 10, y - 12 + bob, 3, 7);
+      ctx.fillRect(x + 7, y - 12 + bob, 3, 7);
+    }
 
     // Hat / Accessory
+    const hatOffsetX = dir === 'left' ? -3 : (dir === 'right' ? 3 : 0);
     if (hat === 'beret') {
       ctx.fillStyle = '#be123c';
       ctx.beginPath();
-      ctx.ellipse(x + 2, y - 17 + bob, 13, 6, -0.2, 0, Math.PI * 2);
+      ctx.ellipse(x + 2 + hatOffsetX, y - 17 + bob, 13, 6, -0.2, 0, Math.PI * 2);
       ctx.fill();
       ctx.fillStyle = '#9f1239';
-      ctx.fillRect(x + 4, y - 22 + bob, 2, 4);
+      ctx.fillRect(x + 4 + hatOffsetX, y - 22 + bob, 2, 4);
     } else if (hat === 'feather_cap') {
       ctx.fillStyle = '#065f46';
       ctx.beginPath();
-      ctx.ellipse(x, y - 17 + bob, 11, 5, 0, 0, Math.PI * 2);
+      ctx.ellipse(x + hatOffsetX, y - 17 + bob, 11, 5, 0, 0, Math.PI * 2);
       ctx.fill();
       ctx.fillStyle = '#10b981';
       ctx.beginPath();
-      ctx.moveTo(x + 6, y - 17 + bob);
-      ctx.lineTo(x + 12, y - 28 + bob);
-      ctx.lineTo(x + 4, y - 22 + bob);
+      ctx.moveTo(x + 6 + hatOffsetX, y - 17 + bob);
+      ctx.lineTo(x + 12 + hatOffsetX, y - 28 + bob);
+      ctx.lineTo(x + 4 + hatOffsetX, y - 22 + bob);
       ctx.fill();
     } else if (hat === 'maestro') {
       ctx.fillStyle = '#0f172a';
-      ctx.fillRect(x - 11, y - 18 + bob, 22, 4);
-      ctx.fillRect(x - 8, y - 30 + bob, 16, 12);
+      ctx.fillRect(x - 11 + hatOffsetX, y - 18 + bob, 22, 4);
+      ctx.fillRect(x - 8 + hatOffsetX, y - 30 + bob, 16, 12);
       ctx.fillStyle = '#fbbf24';
-      ctx.fillRect(x - 8, y - 20 + bob, 16, 2);
+      ctx.fillRect(x - 8 + hatOffsetX, y - 20 + bob, 16, 2);
     } else if (hat === 'headband') {
       ctx.fillStyle = '#f59e0b';
-      ctx.fillRect(x - 10, y - 14 + bob, 20, 3);
+      ctx.fillRect(x - 10 + hatOffsetX, y - 14 + bob, 20, 3);
     }
 
     // Handheld Instrument
@@ -774,141 +2106,325 @@ export class HarmoniaRenderer {
     if (finish === 'midnight_obsidian') instColor = '#1e1b4b';
     if (finish === 'rosewood') instColor = '#881337';
 
+    const instX = dir === 'left' ? x - 11 : (dir === 'up' ? x - 8 : x + 11);
+
     if (m.section === 'strings') {
       ctx.fillStyle = instColor;
       ctx.beginPath();
-      ctx.ellipse(x + 11, y + 4 + bob, 6, 9, 0.4, 0, Math.PI * 2);
+      ctx.ellipse(instX, y + 4 + bob, 6, 9, dir === 'left' ? -0.4 : 0.4, 0, Math.PI * 2);
       ctx.fill();
       ctx.strokeStyle = '#fef08a';
       ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.moveTo(x + 14, y - 4 + bob);
-      ctx.lineTo(x + 7, y + 14 + bob);
+      if (dir === 'left') {
+        ctx.moveTo(instX - 3, y - 4 + bob);
+        ctx.lineTo(instX + 4, y + 14 + bob);
+      } else {
+        ctx.moveTo(instX + 3, y - 4 + bob);
+        ctx.lineTo(instX - 4, y + 14 + bob);
+      }
       ctx.stroke();
     } else if (m.section === 'woodwinds') {
       ctx.fillStyle = '#e2e8f0';
-      ctx.fillRect(x + 8, y - 2 + bob, 16, 3);
+      if (dir === 'left') ctx.fillRect(x - 24, y - 2 + bob, 16, 3);
+      else if (dir === 'up') ctx.fillRect(x - 3, y - 8 + bob, 6, 18);
+      else ctx.fillRect(x + 8, y - 2 + bob, 16, 3);
     } else if (m.section === 'brass') {
       ctx.fillStyle = '#fbbf24';
-      ctx.fillRect(x + 8, y + 2 + bob, 10, 4);
-      ctx.beginPath();
-      ctx.moveTo(x + 18, y + bob);
-      ctx.lineTo(x + 24, y - 3 + bob);
-      ctx.lineTo(x + 24, y + 7 + bob);
-      ctx.fill();
+      if (dir === 'left') {
+        ctx.fillRect(x - 18, y + 2 + bob, 10, 4);
+        ctx.beginPath();
+        ctx.moveTo(x - 18, y + bob);
+        ctx.lineTo(x - 24, y - 3 + bob);
+        ctx.lineTo(x - 24, y + 7 + bob);
+        ctx.fill();
+      } else if (dir === 'up') {
+        ctx.fillRect(x - 6, y - 6 + bob, 4, 12);
+        ctx.beginPath();
+        ctx.moveTo(x - 8, y - 6 + bob);
+        ctx.lineTo(x - 2, y - 6 + bob);
+        ctx.lineTo(x - 5, y - 12 + bob);
+        ctx.fill();
+      } else {
+        ctx.fillRect(x + 8, y + 2 + bob, 10, 4);
+        ctx.beginPath();
+        ctx.moveTo(x + 18, y + bob);
+        ctx.lineTo(x + 24, y - 3 + bob);
+        ctx.lineTo(x + 24, y + 7 + bob);
+        ctx.fill();
+      }
     } else {
       ctx.fillStyle = '#fde047';
-      ctx.fillRect(x + 8, y + 2 + bob, 8, 2);
-      ctx.fillRect(x + 6, y + 8 + bob, 8, 2);
+      ctx.fillRect(instX - 4, y + 2 + bob, 8, 2);
+      ctx.fillRect(instX - 2, y + 8 + bob, 8, 2);
     }
   }
 
-  private drawPixelPet(ctx: CanvasRenderingContext2D, x: number, y: number, pet: Harmonipet, t: number, tint?: string): void {
+  private drawPixelPet(ctx: CanvasRenderingContext2D, x: number, y: number, pet: Harmonipet, t: number, tint?: string, dir: 'up' | 'down' | 'left' | 'right' = 'down'): void {
     const hop = Math.abs(Math.sin(t * 6)) * 4;
     const bodyColor = tint || pet.color;
 
-    // Soft Shadow
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+    ctx.save();
+    ctx.translate(x, y);
+
+    // Soft Ground Shadow
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.22)';
     ctx.beginPath();
-    ctx.ellipse(x, y + 8, 10, 4, 0, 0, Math.PI * 2);
+    ctx.ellipse(0, 8, 10, 4, 0, 0, Math.PI * 2);
     ctx.fill();
 
     const spriteType = pet.sprite ? pet.sprite.toLowerCase() : '';
 
-    if (spriteType.includes('swan')) {
-      ctx.fillStyle = '#f8fafc';
-      ctx.beginPath();
-      ctx.ellipse(x, y - hop + 2, 9, 6, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = '#f8fafc';
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.moveTo(x + 4, y - hop + 2);
-      ctx.quadraticCurveTo(x + 10, y - hop - 6, x + 6, y - hop - 10);
-      ctx.stroke();
-      ctx.fillStyle = '#f97316';
-      ctx.fillRect(x + 8, y - hop - 10, 4, 2);
-      ctx.fillStyle = '#0f172a';
-      ctx.fillRect(x + 5, y - hop - 11, 2, 2);
-      ctx.fillStyle = bodyColor;
-      ctx.beginPath();
-      ctx.ellipse(x - 2, y - hop + 1, 6, 4, Math.sin(t * 8) * 0.3, 0, Math.PI * 2);
-      ctx.fill();
-    } else if (spriteType.includes('finch')) {
-      ctx.fillStyle = bodyColor;
-      ctx.beginPath();
-      ctx.arc(x, y - hop, 7, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#fef08a';
-      ctx.beginPath();
-      ctx.arc(x + 2, y - hop + 2, 4, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#f59e0b';
-      ctx.beginPath();
-      ctx.moveTo(x + 6, y - hop - 1);
-      ctx.lineTo(x + 11, y - hop);
-      ctx.lineTo(x + 6, y - hop + 2);
-      ctx.fill();
-      ctx.fillStyle = '#0f172a';
-      ctx.fillRect(x + 3, y - hop - 3, 2, 2);
-      ctx.fillStyle = bodyColor;
-      ctx.fillRect(x - 10, y - hop - 2, 5, 3);
-    } else if (spriteType.includes('terrier') || spriteType.includes('hound')) {
-      ctx.fillStyle = bodyColor;
-      ctx.beginPath();
-      ctx.roundRect(x - 8, y - hop - 2, 14, 9, 4);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(x + 6, y - hop - 4, 6, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#78350f';
-      ctx.beginPath();
-      ctx.ellipse(x + 4, y - hop - 2 + Math.sin(t * 8) * 2, 3, 5, 0.4, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#0f172a';
-      ctx.fillRect(x + 10, y - hop - 4, 2, 2);
-      ctx.fillRect(x + 6, y - hop - 6, 2, 2);
-      ctx.strokeStyle = bodyColor;
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(x - 8, y - hop);
-      ctx.lineTo(x - 13, y - hop - 6 + Math.sin(t * 12) * 4);
-      ctx.stroke();
-    } else if (spriteType.includes('raccoon')) {
-      ctx.fillStyle = '#64748b';
-      ctx.beginPath();
-      ctx.arc(x, y - hop, 8, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#0f172a';
-      ctx.fillRect(x - 5, y - hop - 2, 11, 4);
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(x - 3, y - hop - 1, 2, 2);
-      ctx.fillRect(x + 2, y - hop - 1, 2, 2);
-      ctx.fillStyle = '#334155';
-      ctx.fillRect(x - 6, y - hop - 9, 3, 4);
-      ctx.fillRect(x + 3, y - hop - 9, 3, 4);
-      ctx.fillStyle = '#475569';
-      ctx.beginPath();
-      ctx.ellipse(x - 10, y - hop + 2, 6, 4, -0.3, 0, Math.PI * 2);
-      ctx.fill();
+    if (dir === 'left') {
+      ctx.scale(-1, 1);
+    }
+
+    if (dir === 'up') {
+      // 🐾 BACK VIEW (Looking Up / Away)
+      if (spriteType.includes('swan')) {
+        ctx.fillStyle = '#f8fafc';
+        ctx.beginPath();
+        ctx.ellipse(0, -hop + 2, 9, 6, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#f8fafc';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(0, -hop + 2);
+        ctx.lineTo(0, -hop - 8);
+        ctx.stroke();
+        ctx.fillStyle = bodyColor;
+        ctx.beginPath();
+        ctx.ellipse(-5, -hop + 2, 4, 6, 0.2, 0, Math.PI * 2);
+        ctx.ellipse(5, -hop + 2, 4, 6, -0.2, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (spriteType.includes('finch')) {
+        ctx.fillStyle = bodyColor;
+        ctx.beginPath();
+        ctx.arc(0, -hop, 7, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#f59e0b';
+        ctx.fillRect(-6, -hop - 2, 2, 5);
+        ctx.fillRect(4, -hop - 2, 2, 5);
+        ctx.fillStyle = bodyColor;
+        ctx.fillRect(-2, -hop + 6, 4, 4);
+      } else if (spriteType.includes('terrier') || spriteType.includes('hound')) {
+        ctx.fillStyle = bodyColor;
+        ctx.beginPath();
+        ctx.roundRect(-7, -hop - 2, 14, 10, 4);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(0, -hop - 5, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#78350f';
+        ctx.fillRect(-6, -hop - 6, 3, 5);
+        ctx.fillRect(3, -hop - 6, 3, 5);
+        ctx.strokeStyle = bodyColor;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, -hop + 6);
+        ctx.lineTo(Math.sin(t * 12) * 5, -hop + 12);
+        ctx.stroke();
+      } else {
+        ctx.fillStyle = bodyColor;
+        ctx.beginPath();
+        ctx.arc(0, -hop, 8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#334155';
+        ctx.fillRect(-6, -hop - 10, 3, 4);
+        ctx.fillRect(3, -hop - 10, 3, 4);
+        ctx.fillStyle = '#475569';
+        ctx.beginPath();
+        ctx.ellipse(Math.sin(t * 8) * 3, -hop + 8, 4, 6, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+    } else if (dir === 'down') {
+      // 🐾 FRONT VIEW (Looking Down / Facing Player)
+      if (spriteType.includes('swan')) {
+        ctx.fillStyle = '#f8fafc';
+        ctx.beginPath();
+        ctx.ellipse(0, -hop + 2, 9, 6, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = bodyColor;
+        ctx.beginPath();
+        ctx.ellipse(-6, -hop + 2, 4, 5, -0.2, 0, Math.PI * 2);
+        ctx.ellipse(6, -hop + 2, 4, 5, 0.2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#f8fafc';
+        ctx.beginPath();
+        ctx.arc(0, -hop - 6, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#f97316';
+        ctx.fillRect(-2, -hop - 4, 4, 3);
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(-3, -hop - 7, 2, 2);
+        ctx.fillRect(1, -hop - 7, 2, 2);
+      } else if (spriteType.includes('finch')) {
+        ctx.fillStyle = bodyColor;
+        ctx.beginPath();
+        ctx.arc(0, -hop, 7, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#fef08a';
+        ctx.beginPath();
+        ctx.arc(0, -hop + 2, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#f59e0b';
+        ctx.beginPath();
+        ctx.moveTo(0, -hop - 1);
+        ctx.lineTo(3, -hop + 2);
+        ctx.lineTo(-3, -hop + 2);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(-4, -hop - 3, 2, 2);
+        ctx.fillRect(2, -hop - 3, 2, 2);
+      } else if (spriteType.includes('terrier') || spriteType.includes('hound')) {
+        ctx.fillStyle = bodyColor;
+        ctx.beginPath();
+        ctx.roundRect(-7, -hop - 2, 14, 10, 4);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(0, -hop - 5, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#78350f';
+        ctx.beginPath();
+        ctx.ellipse(-6, -hop - 3, 3, 5, -0.3, 0, Math.PI * 2);
+        ctx.ellipse(6, -hop - 3, 3, 5, 0.3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(-3, -hop - 7, 2, 2);
+        ctx.fillRect(1, -hop - 7, 2, 2);
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(-2, -hop - 3, 4, 3);
+      } else if (spriteType.includes('raccoon')) {
+        ctx.fillStyle = '#64748b';
+        ctx.beginPath();
+        ctx.arc(0, -hop, 8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(-6, -hop - 3, 12, 4);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(-4, -hop - 2, 2, 2);
+        ctx.fillRect(2, -hop - 2, 2, 2);
+        ctx.fillStyle = '#f8fafc';
+        ctx.fillRect(-2, -hop + 1, 4, 3);
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(-1, -hop + 1, 2, 2);
+        ctx.fillStyle = '#334155';
+        ctx.fillRect(-6, -hop - 9, 3, 4);
+        ctx.fillRect(3, -hop - 9, 3, 4);
+      } else {
+        ctx.fillStyle = bodyColor;
+        ctx.beginPath();
+        ctx.arc(0, -hop, 8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(-4, -hop - 2, 2, 3);
+        ctx.fillRect(2, -hop - 2, 2, 3);
+        ctx.fillStyle = bodyColor;
+        ctx.fillRect(-6, -hop - 10, 3, 4);
+        ctx.fillRect(3, -hop - 10, 3, 4);
+      }
+
     } else {
-      ctx.fillStyle = bodyColor;
-      ctx.beginPath();
-      ctx.arc(x, y - hop, 8, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#0f172a';
-      ctx.fillRect(x - 4, y - hop - 2, 2, 3);
-      ctx.fillRect(x + 2, y - hop - 2, 2, 3);
-      ctx.fillStyle = bodyColor;
-      ctx.fillRect(x - 6, y - hop - 10, 3, 4);
-      ctx.fillRect(x + 3, y - hop - 10, 3, 4);
+      // 🐾 SIDE PROFILE (Left or Right, flipped via scale(-1, 1) when dir === 'left')
+      if (spriteType.includes('swan')) {
+        ctx.fillStyle = '#f8fafc';
+        ctx.beginPath();
+        ctx.ellipse(0, -hop + 2, 9, 6, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#f8fafc';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(4, -hop + 2);
+        ctx.quadraticCurveTo(10, -hop - 6, 6, -hop - 10);
+        ctx.stroke();
+        ctx.fillStyle = '#f97316';
+        ctx.fillRect(8, -hop - 10, 4, 2);
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(5, -hop - 11, 2, 2);
+        ctx.fillStyle = bodyColor;
+        ctx.beginPath();
+        ctx.ellipse(-2, -hop + 1, 6, 4, Math.sin(t * 8) * 0.3, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (spriteType.includes('finch')) {
+        ctx.fillStyle = bodyColor;
+        ctx.beginPath();
+        ctx.arc(0, -hop, 7, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#fef08a';
+        ctx.beginPath();
+        ctx.arc(2, -hop + 2, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#f59e0b';
+        ctx.beginPath();
+        ctx.moveTo(6, -hop - 1);
+        ctx.lineTo(11, -hop);
+        ctx.lineTo(6, -hop + 2);
+        ctx.fill();
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(3, -hop - 3, 2, 2);
+        ctx.fillStyle = bodyColor;
+        ctx.fillRect(-10, -hop - 2, 5, 3);
+      } else if (spriteType.includes('terrier') || spriteType.includes('hound')) {
+        ctx.fillStyle = bodyColor;
+        ctx.beginPath();
+        ctx.roundRect(-8, -hop - 2, 14, 9, 4);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(6, -hop - 4, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#78350f';
+        ctx.beginPath();
+        ctx.ellipse(4, -hop - 2 + Math.sin(t * 8) * 2, 3, 5, 0.4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(10, -hop - 4, 2, 2);
+        ctx.fillRect(6, -hop - 6, 2, 2);
+        ctx.strokeStyle = bodyColor;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(-8, -hop);
+        ctx.lineTo(-13, -hop - 6 + Math.sin(t * 12) * 4);
+        ctx.stroke();
+      } else if (spriteType.includes('raccoon')) {
+        ctx.fillStyle = '#64748b';
+        ctx.beginPath();
+        ctx.arc(0, -hop, 8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(-5, -hop - 2, 11, 4);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(-3, -hop - 1, 2, 2);
+        ctx.fillRect(2, -hop - 1, 2, 2);
+        ctx.fillStyle = '#334155';
+        ctx.fillRect(-6, -hop - 9, 3, 4);
+        ctx.fillRect(3, -hop - 9, 3, 4);
+        ctx.fillStyle = '#475569';
+        ctx.beginPath();
+        ctx.ellipse(-10, -hop + 2, 6, 4, -0.3, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        ctx.fillStyle = bodyColor;
+        ctx.beginPath();
+        ctx.arc(0, -hop, 8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(-4, -hop - 2, 2, 3);
+        ctx.fillRect(2, -hop - 2, 2, 3);
+        ctx.fillStyle = bodyColor;
+        ctx.fillRect(-6, -hop - 10, 3, 4);
+        ctx.fillRect(3, -hop - 10, 3, 4);
+      }
     }
 
     if (Math.sin(t * 3) > 0.5) {
       ctx.fillStyle = '#fbbf24';
       ctx.font = '10px "Inter", sans-serif';
-      ctx.fillText('♪', x + 8, y - hop - 10);
+      ctx.fillText('♪', 8, -hop - 10);
     }
+
+    ctx.restore();
   }
 
   private drawBar(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, val: number, max: number, color: string, label: string): void {
@@ -1087,22 +2603,26 @@ export class HarmoniaRenderer {
     ctx.strokeStyle = '#38bdf8';
     ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.roundRect(140, 40, this.width - 280, 180, 16);
+    ctx.roundRect(140, 30, this.width - 280, 195, 16);
     ctx.fill();
     ctx.stroke();
 
-    ctx.fillStyle = '#38bdf8';
-    ctx.font = 'bold 26px "Cinzel", serif';
+    ctx.fillStyle = '#fbbf24';
+    ctx.font = 'bold 15px "Cinzel", serif';
     ctx.textAlign = 'center';
-    ctx.fillText(q.prompt, this.width / 2, 85);
+    ctx.fillText(`🎼 ${ch.title ? ch.title.toUpperCase() : 'MUSIC THEORY DRILL'}`, this.width / 2, 58);
+
+    ctx.fillStyle = '#38bdf8';
+    ctx.font = 'bold 24px "Inter", sans-serif';
+    ctx.fillText(q.prompt, this.width / 2, 95);
 
     ctx.fillStyle = '#f8fafc';
-    ctx.font = '18px "Inter", sans-serif';
-    ctx.fillText(q.subtext, this.width / 2, 130);
+    ctx.font = '16px "Inter", sans-serif';
+    ctx.fillText(q.subtext, this.width / 2, 135);
 
-    ctx.fillStyle = '#fbbf24';
-    ctx.font = 'bold 15px "Inter", sans-serif';
-    ctx.fillText(`Question ${ch.currentQuestionIndex + 1} of ${ch.questions.length} | Current Score: ${ch.score} pts`, this.width / 2, 175);
+    ctx.fillStyle = '#34d399';
+    ctx.font = 'bold 14px "Inter", sans-serif';
+    ctx.fillText(`Question ${ch.currentQuestionIndex + 1} of ${ch.questions.length} | Score: ${ch.score} pts | Target Reward: +${ch.rewardSparks || 25} Sparks ✨, +${ch.rewardSightReading || 3} RDG 📖`, this.width / 2, 185);
 
     // If audio drill, show Replay Button
     if (q.notesToPlay && q.notesToPlay.length > 0) {

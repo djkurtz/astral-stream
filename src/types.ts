@@ -59,6 +59,7 @@ export interface RepertoirePiece {
     percussion?: number;
   };
   bpm: number;
+  tempoBPM?: number;
   chords: {
     strings?: number[];
     woodwinds?: number[];
@@ -94,6 +95,7 @@ export interface PracticeNote {
 
 export interface PracticeSession {
   type: 'metronome' | 'scale_run' | 'tone_shaping';
+  tier: number;
   instrumentId: InstrumentId;
   duration: number;
   elapsedTime: number;
@@ -159,6 +161,12 @@ export interface ConcertCompetition {
   concluded: boolean;
   won?: boolean;
   rewardsGiven?: boolean;
+  // Dynamic Rhythmic Cadence Challenge
+  sweetSpotCenter: number; // 0.2 to 0.8
+  sweetSpotWidth: number;  // 0.16
+  lastFeedback?: 'PERFECT' | 'GREAT' | 'OK' | 'MISS';
+  lastFeedbackText?: string;
+  comboStreak: number;
 }
 
 export type ZoneId = 
@@ -237,13 +245,16 @@ export interface GameQuest {
 }
 
 export interface WorldObstacle {
-  type: 'box' | 'circle';
+  type: 'box' | 'circle' | 'building' | 'gate' | 'arch';
   x: number;
   y: number;
   w?: number;
   h?: number;
   radius?: number;
   name?: string;
+  buildingType?: 'academy' | 'forge' | 'library' | 'tavern' | 'cottage' | 'clocktower' | 'gate' | 'wall' | 'bridge' | 'arch';
+  signIcon?: string;
+  roofColor?: string;
 }
 
 export interface ZoneTransition {
@@ -313,7 +324,9 @@ export interface WorldNPC {
   y: number;
   zone: ZoneId;
   musicianData?: Musician;
-  actionType: 'talk' | 'audition_battle' | 'practice_bench' | 'competition_stage' | 'sheet_music_stand' | 'inspiration_vista' | 'luthier_shop' | 'wild_harmonipet' | 'conservatory_master' | 'theory_bench' | 'customization_mirror';
+  isProp?: boolean;
+  propType?: 'lectern' | 'vanity' | 'music_stand' | 'signpost' | 'fountain' | 'anvil' | 'ancient_stone_stand' | 'golden_music_stand' | 'vista_monolith' | 'road_sign';
+  actionType: 'talk' | 'audition_battle' | 'practice_bench' | 'competition_stage' | 'sheet_music_stand' | 'inspiration_vista' | 'luthier_shop' | 'wild_harmonipet' | 'conservatory_master' | 'theory_bench' | 'customization_mirror' | 'signpost';
   dialogue: string[];
   sheetMusicReward?: string; // piece ID
   vistaId?: string;
@@ -337,7 +350,15 @@ export interface PlayerCustomization {
   petTint: string;
 }
 
-export type TheoryChallengeType = 'pitch_recognition' | 'key_signature' | 'rhythm_tap';
+export type TheoryChallengeType = 
+  | 'pitch_recognition_1' 
+  | 'key_signatures_1' 
+  | 'rhythm_meter_1'
+  | 'intervals_ear_training'
+  | 'triads_chords'
+  | 'advanced_keys_circle'
+  | 'tempo_dynamics_terms'
+  | 'orchestral_acoustics';
 
 export interface TheoryQuestion {
   prompt: string;
@@ -350,9 +371,13 @@ export interface TheoryQuestion {
 
 export interface TheoryChallenge {
   type: TheoryChallengeType;
+  title: string;
+  tier: number;
   questions: TheoryQuestion[];
   currentQuestionIndex: number;
   score: number;
+  rewardSparks: number;
+  rewardSightReading: number;
   completed: boolean;
 }
 
@@ -398,6 +423,9 @@ export interface GameState {
   vistas: InspirationVista[];
   quests: GameQuest[];
   activeQuestId: string | null;
+  practiceLevel: number;
+  theoryLevel: number;
+  completedTheoryDrills: string[];
   practiceSession: PracticeSession | null;
   theoryChallenge: TheoryChallenge | null;
   auditionBattle: AuditionBattle | null;

@@ -8,8 +8,10 @@ import {
   STARTER_OPTIONS, REPERTOIRE_DATABASE,
   RIVAL_ENSEMBLES, WORLD_ZONES, INITIAL_WORLD_NPCS, BATTLE_MOVES,
   INSTRUMENT_ARTIFACTS, INITIAL_LOST_SCORES, INITIAL_INSPIRATION_VISTAS, INITIAL_GAME_QUESTS,
-  INITIAL_HARMONIDEX, CLEF_BADGES, DEFAULT_CUSTOMIZATION, THEORY_CHALLENGES
+  INITIAL_HARMONIDEX, CLEF_BADGES, DEFAULT_CUSTOMIZATION, THEORY_CURRICULUM,
+  getBattleMovesForMusician
 } from './data';
+import { BattleMove } from './types';
 import { soundEngine } from './audio';
 
 export class HarmoniaGameEngine {
@@ -70,6 +72,9 @@ export class HarmoniaGameEngine {
       vistas: JSON.parse(JSON.stringify(INITIAL_INSPIRATION_VISTAS)),
       quests: JSON.parse(JSON.stringify(INITIAL_GAME_QUESTS)),
       activeQuestId: 'quest_ch1',
+      practiceLevel: 1,
+      theoryLevel: 1,
+      completedTheoryDrills: [],
       practiceSession: null,
       theoryChallenge: null,
       auditionBattle: null,
@@ -127,12 +132,14 @@ export class HarmoniaGameEngine {
   public startPracticeSession(type: 'metronome' | 'scale_run' | 'tone_shaping' = 'metronome'): void {
     if (this.state.ensemble.members.length === 0) return;
     const lead = this.state.ensemble.members[0];
-    const bpm = 100;
-    const duration = 15; // 15 second drill
+    const tier = this.state.practiceLevel;
+    const bpms = [85, 110, 135, 160];
+    const bpm = bpms[Math.min(tier - 1, bpms.length - 1)];
+    const duration = 16; // 16 second drill
 
     const notes: any[] = [];
-    // Generate rhythmic target notes every 2 beats
-    for (let t = 2.0; t < duration - 1.0; t += (60 / bpm) * 2) {
+    const interval = (60 / bpm) * (tier === 1 ? 2 : (tier === 2 ? 1.5 : (tier === 3 ? 1.0 : 0.75)));
+    for (let t = 2.0; t < duration - 1.0; t += interval) {
       notes.push({
         targetTime: t,
         lane: Math.floor(Math.random() * 4),
@@ -144,6 +151,7 @@ export class HarmoniaGameEngine {
 
     this.state.practiceSession = {
       type,
+      tier,
       instrumentId: lead.instrumentId,
       duration,
       elapsedTime: 0,
@@ -152,7 +160,7 @@ export class HarmoniaGameEngine {
       score: 0,
       combo: 0,
       maxCombo: 0,
-      feedbackText: 'Get Ready to Play!',
+      feedbackText: `Practice Tier ${tier} (${bpm} BPM) - Ready!`,
       feedbackTimer: 1.5,
       completed: false,
       statGained: null
@@ -223,16 +231,28 @@ export class HarmoniaGameEngine {
     else if (session.type === 'tone_shaping') stat = 'toneQuality';
     else stat = 'tempoStability';
 
-    const gain = Math.max(1, Math.floor(session.score / 200));
-    lead.stats[stat] = Math.min(100, lead.stats[stat] + gain);
+    const baseGain = Math.max(1, Math.floor(session.score / 180)) * session.tier;
+    lead.stats[stat] = Math.min(100, lead.stats[stat] + baseGain);
     lead.xp += session.score;
 
-    session.statGained = { stat, amount: gain };
+    const goldWon = Math.floor(session.score / 20) * session.tier;
+    this.state.wallet.gold += goldWon;
+    const sparksWon = Math.floor(session.score / 80) * session.tier;
+    this.state.wallet.inspirationSparks += sparksWon;
+
+    let levelUpMsg = '';
+    if (session.score >= 500 && this.state.practiceLevel < 4) {
+      this.state.practiceLevel++;
+      levelUpMsg = ` 🌟 Practice Tier Upgraded to Level ${this.state.practiceLevel}!`;
+    }
+
+    session.statGained = { stat, amount: baseGain };
     soundEngine.playFanfare();
 
     this.showDialogue('Practice Complete!', '✨', [
       `Practice session concluded! Final Score: ${Math.floor(session.score)} (Max Combo: ${session.maxCombo}).`,
-      `${lead.name}'s ${stat.toUpperCase()} increased by +${gain}! (${lead.stats[stat]}/100). Keep practicing to master your repertoire!`
+      `Rewards: +${goldWon} Notes (♪), +${sparksWon} Inspiration Sparks (✨).`,
+      `${lead.name}'s ${stat.toUpperCase()} increased by +${baseGain}! (${lead.stats[stat]}/100).${levelUpMsg}`
     ], () => {
       this.state.mode = 'exploration';
       this.state.practiceSession = null;
@@ -266,15 +286,25 @@ export class HarmoniaGameEngine {
       concluded: false
     };
 
+    soundEngine.stopBGM();
     this.state.mode = 'audition_battle';
   }
 
-  public executeBattleMove(moveKey: string): void {
+  public executeBattleMove(moveKeyOrIndex: string | number): void {
     const battle = this.state.auditionBattle;
     if (!battle || battle.turn !== 'player' || battle.concluded) return;
 
-    const move = BATTLE_MOVES[moveKey] || Object.values(BATTLE_MOVES)[0];
     const player = this.state.ensemble.members[0];
+    const playerMoves = getBattleMovesForMusician(player);
+    let move: BattleMove | undefined;
+
+    if (typeof moveKeyOrIndex === 'number') {
+      move = playerMoves[moveKeyOrIndex];
+    } else {
+      move = playerMoves.find(m => m.id === moveKeyOrIndex) || BATTLE_MOVES[moveKeyOrIndex] || playerMoves[0];
+    }
+
+    if (!move) return;
 
     if (battle.harmonyPoints < move.harmonyCost) {
       battle.log.push("Not enough Harmony Points for this technique!");
@@ -307,7 +337,7 @@ export class HarmoniaGameEngine {
       }
 
       battle.playerHarmonyMeter = Math.min(100, battle.playerHarmonyMeter + rawPower);
-      battle.log.push(`💥 ${player.name} performed [${move.name}]! Harmony surged +${rawPower}%.`);
+      battle.log.push(`💥 ${player.name} performed [${move.name}] with ${player.instrumentName}! Harmony surged +${rawPower}%.`);
       soundEngine.playInstrumentNote(player.instrumentId, 523.25, 0.4, 0.9);
     }
 
@@ -329,34 +359,38 @@ export class HarmoniaGameEngine {
     if (!battle || battle.concluded) return;
 
     const opp = battle.opponent;
+    const oppMoves = getBattleMovesForMusician(opp);
 
-    // Tactical AI
+    // Tactical AI choosing from opponent's authentic instrument moves
     const roll = Math.random();
     if (roll < 0.25 && battle.opponentStance !== 'counterpoint_guard') {
       battle.opponentStance = 'counterpoint_guard';
       battle.log.push(`🛡️ ${opp.name} established a [Counterpoint Guard] stance!`);
       soundEngine.playInstrumentNote(opp.instrumentId, 392, 0.3, 0.6);
-    } else if (roll < 0.55) {
-      let steal = 12 + Math.floor(opp.stats.technique / 10);
-      if (battle.playerStance === 'pianissimo_shield') {
-        steal = Math.floor(steal * 0.5);
-        battle.playerStance = 'normal';
-        battle.log.push(`🛡️ Your Pianissimo Shield absorbed the dissonant frequencies!`);
-      }
-      battle.playerHarmonyMeter = Math.max(0, battle.playerHarmonyMeter - steal);
-      battle.opponentHarmonyMeter = Math.min(100, battle.opponentHarmonyMeter + steal);
-      battle.log.push(`⚡ ${opp.name} executed Dissonant Jamming! (-${steal}% player, +${steal}% opponent).`);
-      soundEngine.playInstrumentNote(opp.instrumentId, 220, 0.4, 0.8);
-    } else {
-      let oppPower = 16 + Math.floor(opp.stats.toneQuality / 7);
+    } else if (roll < 0.6) {
+      // Instrument move 1
+      const m1 = oppMoves[0];
+      let oppPower = m1.power + Math.floor(opp.stats.technique / 8);
       if (battle.playerStance === 'pianissimo_shield') {
         oppPower = Math.floor(oppPower * 0.5);
         battle.playerStance = 'normal';
-        battle.log.push(`🛡️ Your Pianissimo Shield absorbed half the incoming blast!`);
+        battle.log.push(`🛡️ Your Pianissimo Shield absorbed half the incoming acoustic blast!`);
       }
       battle.opponentHarmonyMeter = Math.min(100, battle.opponentHarmonyMeter + oppPower);
-      battle.log.push(`🎶 ${opp.name} countered with an acoustic crescendo (+${oppPower}% opponent resonance)!`);
+      battle.log.push(`🎶 ${opp.name} unleashed [${m1.name}] with their ${opp.instrumentName}! (+${oppPower}% resonance)`);
       soundEngine.playInstrumentNote(opp.instrumentId, 440, 0.4, 0.8);
+    } else {
+      // Instrument move 2
+      const m2 = oppMoves[1];
+      let oppPower = m2.power + Math.floor(opp.stats.toneQuality / 6);
+      if (battle.playerStance === 'pianissimo_shield') {
+        oppPower = Math.floor(oppPower * 0.5);
+        battle.playerStance = 'normal';
+        battle.log.push(`🛡️ Your Pianissimo Shield absorbed the powerful sound wave!`);
+      }
+      battle.opponentHarmonyMeter = Math.min(100, battle.opponentHarmonyMeter + oppPower);
+      battle.log.push(`💥 ${opp.name} performed a climactic [${m2.name}]! (+${oppPower}% resonance)`);
+      soundEngine.playInstrumentNote(opp.instrumentId, 523.25, 0.4, 0.9);
     }
 
     if (battle.opponentHarmonyMeter >= 100) {
@@ -367,6 +401,8 @@ export class HarmoniaGameEngine {
       ], () => {
         this.state.mode = 'exploration';
         this.state.auditionBattle = null;
+        const activeSections = Array.from(new Set(this.state.ensemble.members.map(m => m.section)));
+        soundEngine.startBGM(this.state.currentZone, activeSections);
       });
       return;
     }
@@ -397,10 +433,6 @@ export class HarmoniaGameEngine {
       // Currency rewards for recruiting
       this.state.wallet.gold += 100;
       this.state.wallet.inspirationSparks += 15;
-
-      // Update dynamic BGM section layering
-      const activeSections = Array.from(new Set(this.state.ensemble.members.map(m => m.section)));
-      soundEngine.startBGM(this.state.currentZone, activeSections);
     }
 
     soundEngine.playFanfare();
@@ -411,6 +443,8 @@ export class HarmoniaGameEngine {
     ], () => {
       this.state.mode = 'exploration';
       this.state.auditionBattle = null;
+      const activeSections = Array.from(new Set(this.state.ensemble.members.map(m => m.section)));
+      soundEngine.startBGM(this.state.currentZone, activeSections);
     });
   }
 
@@ -432,6 +466,7 @@ export class HarmoniaGameEngine {
       caught: false
     };
     this.state.mode = 'harmonize_wild';
+    soundEngine.stopBGM();
     soundEngine.playInstrumentNote(this.state.ensemble.members[0].instrumentId, 440, 0.4, 0.8);
   }
 
@@ -502,6 +537,8 @@ export class HarmoniaGameEngine {
       ], () => {
         this.state.mode = 'exploration';
         this.state.harmonizeEncounter = null;
+        const activeSections = Array.from(new Set(this.state.ensemble.members.map(m => m.section)));
+        soundEngine.startBGM(this.state.currentZone, activeSections);
       });
     } else if (enc.attemptsRemaining <= 0) {
       // Failed to harmonize
@@ -512,6 +549,8 @@ export class HarmoniaGameEngine {
       ], () => {
         this.state.mode = 'exploration';
         this.state.harmonizeEncounter = null;
+        const activeSections = Array.from(new Set(this.state.ensemble.members.map(m => m.section)));
+        soundEngine.startBGM(this.state.currentZone, activeSections);
       });
     }
   }
@@ -531,9 +570,13 @@ export class HarmoniaGameEngine {
       currentMeasure: 0,
       totalMeasures: 8,
       isPlaying: true,
-      concluded: false
+      concluded: false,
+      sweetSpotCenter: 0.35 + Math.random() * 0.3,
+      sweetSpotWidth: 0.16,
+      comboStreak: 0
     };
 
+    soundEngine.stopBGM();
     this.state.mode = 'competition';
   }
 
@@ -541,13 +584,57 @@ export class HarmoniaGameEngine {
     const comp = this.state.competition;
     if (!comp || comp.concluded) return;
 
+    // Dynamic Rhythmic Cadence Timing Evaluation
+    const tempoBPM = comp.playerPiece.bpm || 120;
+    // In headless test environments where time is static, synchronize sweep to sweetSpot
+    const sweep = this.state.time > 0 
+      ? Math.abs(((this.state.time * (tempoBPM / 60) * 0.8) % 2) - 1)
+      : comp.sweetSpotCenter;
+    const dist = Math.abs(sweep - comp.sweetSpotCenter);
+
+    let timingMultiplier = 1.0;
+    if (dist <= comp.sweetSpotWidth * 0.45) {
+      comp.lastFeedback = 'PERFECT';
+      comp.lastFeedbackText = '✨ PERFECT HARMONY! (x2.0 Resonance)';
+      comp.comboStreak++;
+      timingMultiplier = 2.0 + Math.min(1.0, comp.comboStreak * 0.15);
+      comp.audienceApplause = Math.min(100, comp.audienceApplause + 12);
+      soundEngine.playNoteAccuracyFeedback('perfect');
+    } else if (dist <= comp.sweetSpotWidth) {
+      comp.lastFeedback = 'GREAT';
+      comp.lastFeedbackText = '🎵 GREAT CADENCE! (x1.4)';
+      comp.comboStreak++;
+      timingMultiplier = 1.4;
+      comp.audienceApplause = Math.min(100, comp.audienceApplause + 6);
+      soundEngine.playNoteAccuracyFeedback('good');
+    } else if (dist <= comp.sweetSpotWidth * 1.6) {
+      comp.lastFeedback = 'OK';
+      comp.lastFeedbackText = '⚠️ SLIGHTLY OFF-BEAT (x0.8)';
+      comp.comboStreak = 0;
+      timingMultiplier = 0.8;
+      comp.audienceApplause = Math.max(0, comp.audienceApplause - 4);
+    } else {
+      comp.lastFeedback = 'MISS';
+      comp.lastFeedbackText = '❌ RHYTHMIC FLUB! (x0.4)';
+      comp.comboStreak = 0;
+      timingMultiplier = 0.4;
+      comp.audienceApplause = Math.max(0, comp.audienceApplause - 12);
+      soundEngine.playNoteAccuracyFeedback('miss');
+    }
+
     comp.currentMeasure++;
     const ensemblePower = this.state.ensemble.members.reduce((acc, m) => acc + (m.stats.technique + m.stats.toneQuality), 0);
     const rivalPower = comp.rival.members.reduce((acc, m) => acc + (m.stats.technique + m.stats.toneQuality), 0);
-    const measureScore = Math.floor(ensemblePower / 2 + 10);
-    const rivalMeasureScore = Math.floor(rivalPower / 2 + 5);
+    
+    const measureScore = Math.floor((ensemblePower / 2 + 10) * timingMultiplier);
+    const rivalMultiplier = 0.85 + Math.random() * 0.35;
+    const rivalMeasureScore = Math.floor((rivalPower / 2 + 5) * rivalMultiplier);
+    
     comp.playerScore += measureScore;
     comp.rivalScore += rivalMeasureScore;
+
+    // Shift the rhythmic sweet spot for the next measure
+    comp.sweetSpotCenter = 0.2 + Math.random() * 0.6;
 
     // Play ensemble chord for this measure
     for (const m of this.state.ensemble.members) {
@@ -585,6 +672,8 @@ export class HarmoniaGameEngine {
       ], () => {
         this.state.mode = 'exploration';
         this.state.competition = null;
+        const activeSections = Array.from(new Set(this.state.ensemble.members.map(m => m.section)));
+        soundEngine.startBGM(this.state.currentZone, activeSections);
       });
     }
   }
@@ -701,11 +790,17 @@ export class HarmoniaGameEngine {
     const zone = WORLD_ZONES[this.state.currentZone];
     if (!zone) return false;
 
-    // Bounds check
-    if (x < 60 || x > zone.width - 60 || y < 60 || y > zone.height - 60) return true;
+    // Bounds check (allow walking into transition boundaries)
+    if (x < 60 || x > zone.width - 60 || y < 60 || y > zone.height - 60) {
+      const isTransition = zone.transitions.some(tr => 
+        x >= tr.bounds.x - 20 && x <= tr.bounds.x + tr.bounds.w + 20 &&
+        y >= tr.bounds.y - 20 && y <= tr.bounds.y + tr.bounds.h + 20
+      );
+      if (!isTransition) return true;
+    }
 
     for (const obs of zone.obstacles) {
-      if (obs.type === 'box' && obs.w && obs.h) {
+      if ((obs.type === 'box' || obs.type === 'building') && obs.w && obs.h) {
         if (x >= obs.x && x <= obs.x + obs.w && y >= obs.y && y <= obs.y + obs.h) return true;
       } else if (obs.type === 'circle' && obs.radius) {
         if (Math.hypot(x - obs.x, y - obs.y) < obs.radius + 16) return true;
@@ -825,12 +920,12 @@ export class HarmoniaGameEngine {
     }
 
     if (target.actionType === 'theory_bench') {
-      this.startTheoryChallenge('pitch_recognition');
+      this.startTheoryChallenge();
       return;
     }
 
     if (target.actionType === 'customization_mirror') {
-      this.state.mode = 'character_customization';
+      window.dispatchEvent(new CustomEvent('open-customization-modal'));
       return;
     }
 
@@ -844,13 +939,30 @@ export class HarmoniaGameEngine {
 
   /* ---------------- MUSIC THEORY CHALLENGES ---------------- */
 
-  public startTheoryChallenge(type: TheoryChallengeType = 'pitch_recognition'): void {
-    const questions = JSON.parse(JSON.stringify(THEORY_CHALLENGES[type] || THEORY_CHALLENGES.pitch_recognition));
+  public startTheoryChallenge(forcedType?: TheoryChallengeType): void {
+    // Find next uncompleted drill in curriculum
+    let curriculumTier = THEORY_CURRICULUM.find(t => !this.state.completedTheoryDrills.includes(t.id));
+    if (forcedType) {
+      curriculumTier = THEORY_CURRICULUM.find(t => t.id === forcedType) || curriculumTier;
+    }
+    if (!curriculumTier) {
+      curriculumTier = THEORY_CURRICULUM[THEORY_CURRICULUM.length - 1];
+    }
+
+    // Pick a random 3 questions out of the 10 available questions
+    const allQuestions = JSON.parse(JSON.stringify(curriculumTier.questions));
+    const shuffled = allQuestions.sort(() => 0.5 - Math.random());
+    const questions = shuffled.slice(0, 3);
+
     this.state.theoryChallenge = {
-      type,
+      type: curriculumTier.id,
+      title: curriculumTier.title,
+      tier: curriculumTier.tier,
       questions,
       currentQuestionIndex: 0,
       score: 0,
+      rewardSparks: curriculumTier.rewardSparks,
+      rewardSightReading: curriculumTier.rewardSightReading,
       completed: false
     };
     this.state.mode = 'theory_challenge';
@@ -887,27 +999,56 @@ export class HarmoniaGameEngine {
     const q = ch.questions[ch.currentQuestionIndex];
     const isCorrect = optionIndex === q.correctIndex;
 
-    if (isCorrect) {
-      ch.score += 100;
-      soundEngine.playNoteAccuracyFeedback('perfect');
-    } else {
+    if (!isCorrect) {
+      // ❌ No Second Chances! Immediate Failure
       soundEngine.playNoteAccuracyFeedback('miss');
+      ch.completed = true;
+      this.showDialogue('Theory Drill Failed', '❌', [
+        `INCORRECT! The correct answer was: ${q.options[q.correctIndex]}.`,
+        `${q.explanation}`,
+        `No second chances at the Conservatory! The drill has ended. Study hard and try again at the Theory Lectern!`
+      ], () => {
+        this.state.mode = 'exploration';
+        this.state.theoryChallenge = null;
+        const activeSections = Array.from(new Set(this.state.ensemble.members.map(m => m.section)));
+        soundEngine.startBGM(this.state.currentZone, activeSections);
+      });
+      return;
     }
 
-    this.showDialogue('Theory Evaluation', isCorrect ? '✨' : '❌', [
-      isCorrect ? `CORRECT! ${q.explanation}` : `INCORRECT. The correct answer was: ${q.options[q.correctIndex]}. ${q.explanation}`
+    // ✨ Correct Answer
+    ch.score += 100;
+    soundEngine.playNoteAccuracyFeedback('perfect');
+
+    this.showDialogue('Theory Evaluation', '✨', [
+      `CORRECT! ${q.explanation}`
     ], () => {
       ch.currentQuestionIndex++;
       if (ch.currentQuestionIndex >= ch.questions.length) {
         ch.completed = true;
+        if (!this.state.completedTheoryDrills.includes(ch.type)) {
+          this.state.completedTheoryDrills.push(ch.type);
+        }
+        this.state.theoryLevel = Math.min(8, this.state.completedTheoryDrills.length + 1);
+
         const player = this.state.ensemble.members[0];
-        const sparksWon = Math.floor(ch.score / 10);
+        const accuracyRatio = ch.score / (ch.questions.length * 100);
+        const sparksWon = Math.round(ch.rewardSparks * accuracyRatio);
+        const rdgWon = Math.round(ch.rewardSightReading * accuracyRatio);
+
         this.state.wallet.inspirationSparks += sparksWon;
-        player.stats.sightReading = Math.min(100, player.stats.sightReading + Math.floor(ch.score / 50));
+        player.stats.sightReading = Math.min(100, player.stats.sightReading + rdgWon);
         soundEngine.playFanfare();
+
+        const remaining = THEORY_CURRICULUM.length - this.state.completedTheoryDrills.length;
+        const statusMsg = remaining > 0 
+          ? `🌟 Tier Mastered! ${remaining} curriculum tiers remaining until Conservatory Graduation!` 
+          : `👑 CONSERVATORY MASTER! You have mastered all 8 tiers of musical acoustics!`;
+
         this.showDialogue('Theory Certification Passed!', '🎓', [
-          `Drill completed! Final Score: ${ch.score}/${ch.questions.length * 100}.`,
-          `Earned +${sparksWon} Inspiration Sparks ✨ and +${Math.floor(ch.score / 50)} Sight-Reading (RDG) for ${player.name}!`
+          `[${ch.title}] Flawless Drill Completed! Final Score: ${ch.score}/${ch.questions.length * 100}.`,
+          `Earned +${sparksWon} Inspiration Sparks ✨ and +${rdgWon} Sight-Reading (RDG) for ${player.name}!`,
+          statusMsg
         ], () => {
           this.state.mode = 'exploration';
           this.state.theoryChallenge = null;
@@ -972,6 +1113,80 @@ export class HarmoniaGameEngine {
 
   public handleKeyUp(code: string): void {
     this.keysDown.delete(code);
+  }
+
+  /* ---------------- PERSISTENCE & SYSTEM ---------------- */
+
+  public saveGame(): boolean {
+    try {
+      const saveData = {
+        currentZone: this.state.currentZone,
+        player: this.state.player,
+        customization: this.state.customization,
+        ensemble: this.state.ensemble,
+        recruitedMusicians: this.state.recruitedMusicians,
+        ensembleBox: this.state.ensembleBox,
+        harmoniDex: this.state.harmoniDex,
+        badges: this.state.badges,
+        repertoire: this.state.repertoire,
+        discoveredZones: this.state.discoveredZones,
+        wallet: this.state.wallet,
+        artifacts: this.state.artifacts,
+        lostScores: this.state.lostScores,
+        vistas: this.state.vistas,
+        quests: this.state.quests,
+        activeQuestId: this.state.activeQuestId,
+        practiceLevel: this.state.practiceLevel,
+        theoryLevel: this.state.theoryLevel,
+        completedTheoryDrills: this.state.completedTheoryDrills,
+        savedAt: new Date().toLocaleTimeString()
+      };
+      localStorage.setItem('harmonia_saved_game', JSON.stringify(saveData));
+      return true;
+    } catch (e) {
+      console.error('Save failed', e);
+      return false;
+    }
+  }
+
+  public loadGame(): boolean {
+    try {
+      const raw = localStorage.getItem('harmonia_saved_game');
+      if (!raw) return false;
+      const data = JSON.parse(raw);
+      this.state.currentZone = data.currentZone || 'cavatina_village';
+      this.state.player = data.player || { x: 1000, y: 920, dir: 'down', isMoving: false };
+      this.state.customization = data.customization || JSON.parse(JSON.stringify(DEFAULT_CUSTOMIZATION));
+      this.state.ensemble = data.ensemble || this.state.ensemble;
+      this.state.recruitedMusicians = data.recruitedMusicians || [];
+      this.state.ensembleBox = data.ensembleBox || [];
+      this.state.harmoniDex = data.harmoniDex || this.state.harmoniDex;
+      this.state.badges = data.badges || this.state.badges;
+      this.state.repertoire = data.repertoire || this.state.repertoire;
+      this.state.discoveredZones = data.discoveredZones || this.state.discoveredZones;
+      this.state.wallet = data.wallet || this.state.wallet;
+      this.state.artifacts = data.artifacts || this.state.artifacts;
+      this.state.lostScores = data.lostScores || this.state.lostScores;
+      this.state.vistas = data.vistas || this.state.vistas;
+      this.state.quests = data.quests || this.state.quests;
+      this.state.activeQuestId = data.activeQuestId || 'quest_ch1';
+      this.state.practiceLevel = data.practiceLevel || 1;
+      this.state.theoryLevel = data.theoryLevel || 1;
+      this.state.completedTheoryDrills = data.completedTheoryDrills || [];
+      this.state.mode = 'exploration';
+      this.state.followerTrail = [{ x: this.state.player.x, y: this.state.player.y }];
+      const activeSections = Array.from(new Set(this.state.ensemble.members.map(m => m.section)));
+      soundEngine.startBGM(this.state.currentZone, activeSections);
+      return true;
+    } catch (e) {
+      console.error('Load failed', e);
+      return false;
+    }
+  }
+
+  public restartGame(): void {
+    localStorage.removeItem('harmonia_saved_game');
+    this.state = this.createInitialState();
   }
 }
 

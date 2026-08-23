@@ -41,6 +41,12 @@ export class HarmoniaSoundEngine {
     }
   }
 
+  public setMasterVolume(volume: number): void {
+    if (this.masterGain && this.ctx) {
+      this.masterGain.gain.setValueAtTime(Math.max(0, Math.min(1, volume)), this.ctx.currentTime);
+    }
+  }
+
   public getCurrentBgm(): string {
     return this.currentBgm;
   }
