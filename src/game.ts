@@ -226,6 +226,14 @@ export class AstralGameEngine {
     const onWestPier = (x >= 140 && x <= 320 && y >= 2040 && y <= 2260);
     const onEastPier = (x >= 800 && x <= 1400 && y >= 2120 && y <= 2220);
 
+    // Sonic Vines Barrier (Blocks northwest mountain pass to Desolation Ridge until dissolved)
+    const vinesActive = this.state.questStage !== 'ridge_breach' && 
+                        this.state.questStage !== 'gate_ready' && 
+                        this.state.questStage !== 'cleansed';
+    if (vinesActive && x >= 500 && x <= 1100 && y >= 800 && y <= 860) {
+      return true;
+    }
+
     for (const obs of WORLD_OBSTACLES) {
       if (obs.type === 'water') {
         if (obs.direction === 'south') {

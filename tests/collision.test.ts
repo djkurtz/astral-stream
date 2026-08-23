@@ -158,4 +158,14 @@ describe('World Collision & Camera Tracking System', () => {
     expect(engine.checkObstacleCollision(200, 2240)).toBe(false); // Walkable on pier deck
     expect(engine.checkObstacleCollision(500, 2240)).toBe(true);  // Blocked in open ocean
   });
+
+  it('should physically block passage at Sonic Vines until dissolved by quest progression', () => {
+    // Before defeating Glitch-Golem in ruins (intro/seek_traditions)
+    engine.getState().questStage = 'seek_traditions';
+    expect(engine.checkObstacleCollision(800, 830)).toBe(true);
+
+    // After defeating Glitch-Golem (ridge_breach)
+    engine.getState().questStage = 'ridge_breach';
+    expect(engine.checkObstacleCollision(800, 830)).toBe(false);
+  });
 });
