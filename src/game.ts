@@ -1000,6 +1000,36 @@ export class HarmoniaGameEngine {
       return;
     }
 
+    if (target.id === 'npc_barkeep_barnaby' || target.id === 'npc_door_tavern') {
+      soundEngine.playInstrumentNote('harp', 523.25, 0.4, 0.9);
+      setTimeout(() => soundEngine.playInstrumentNote('harp', 659.25, 0.4, 0.9), 120);
+      setTimeout(() => soundEngine.playInstrumentNote('harp', 783.99, 0.5, 0.9), 240);
+
+      this.showDialogue('Barkeep Barnaby', '🍺', [
+        "Welcome to The Melodic Rose Tavern & Inn! Pull up a chair by the warm hearth and rest your weary feet.",
+        "💡 Local Lore: Elder Timothy by the Clocktower needs brass pins for his antique music box. Master Marco at the Forge can machine them!",
+        "🌲 Exploration Gossip: In Woodwind Woods, you'll find the Bellflower Basin and Verdant Cascade vistas — listening there permanently elevates your stats!",
+        "*You enjoy a warm flagon of sparkling spiced cider and take a relaxing rest. Harmony and spirits fully restored!*"
+      ]);
+      return;
+    }
+
+    if (target.id === 'npc_door_library') {
+      window.dispatchEvent(new CustomEvent('open-repertoire-modal'));
+      this.showDialogue('Conservatory Head Librarian', '📖', [
+        "Welcome inside the Conservatory Library & Archives! Here is our comprehensive collection of sheet music repertoire and discovered folios."
+      ]);
+      return;
+    }
+
+    if (target.id === 'npc_door_townhall') {
+      window.dispatchEvent(new CustomEvent('open-quests-modal'));
+      this.showDialogue('Town Hall Administrator', '🏛️', [
+        "Welcome to Cavatina Town Hall! Review your active regional commissions, quest log, and lost score manuscripts."
+      ]);
+      return;
+    }
+
     if (target.actionType === 'luthier_shop') {
       window.dispatchEvent(new CustomEvent('open-luthier-shop'));
       this.showDialogue('Master Luthier Marco', '🔨', [

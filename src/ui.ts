@@ -174,6 +174,20 @@ export class HarmoniaUI {
       modalLuthier?.classList.remove('hidden');
     });
 
+    window.addEventListener('open-repertoire-modal', () => {
+      if (modalRepertoire) {
+        this.renderRepertoireList();
+        modalRepertoire.classList.remove('hidden');
+      }
+    });
+
+    window.addEventListener('open-quests-modal', () => {
+      if (modalQuests) {
+        this.renderQuestsList();
+        modalQuests.classList.remove('hidden');
+      }
+    });
+
     if (btnCloseLuthier && modalLuthier) {
       btnCloseLuthier.addEventListener('click', () => {
         modalLuthier.classList.add('hidden');

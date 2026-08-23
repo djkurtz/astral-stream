@@ -1773,6 +1773,116 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     ]
   },
   {
+    id: 'npc_barkeep_barnaby',
+    name: 'Barkeep Barnaby',
+    title: '🍺 Barkeep Barnaby (The Melodic Rose Tavern) [SPACE]',
+    x: 480,
+    y: 1200,
+    zone: 'cavatina_village',
+    musicianData: {
+      id: 'barkeep_barnaby',
+      name: 'Barnaby',
+      title: 'Tavern Host & Storyteller',
+      avatar: '🍺',
+      paletteColor: '#b45309',
+      instrumentId: 'acoustic_guitar',
+      instrumentName: 'Tavern Mandolin',
+      section: 'strings',
+      pet: {
+        id: 'pet_cat_barnaby',
+        name: 'Mead',
+        species: 'Fiddle Tabby',
+        sprite: 'hare',
+        section: 'strings',
+        instrumentName: 'Tavern Mandolin',
+        leitmotifSound: 'guitar_strum',
+        color: '#b45309'
+      },
+      stats: { technique: 45, toneQuality: 55, tempoStability: 50, sightReading: 40 },
+      level: 5,
+      xp: 400
+    },
+    actionType: 'talk',
+    dialogue: [
+      "Welcome, weary traveler, to The Melodic Rose Tavern & Inn! I'm Barnaby, your host.",
+      "Looking for village gossip? Word is that a rare Vivace Hare strums wild guitar chords out in the eastern meadow!",
+      "If you're heading north to the Brass Citadel, make sure your ensemble has strong brass or percussion — Baroness Vesta's fanfare hits like a sonic wall.",
+      "Take a seat by the hearth, rest your ears, and enjoy the warm tavern hospitality!"
+    ]
+  },
+  {
+    id: 'npc_door_tavern',
+    name: 'The Melodic Rose Tavern Door',
+    title: '🚪 Enter The Melodic Rose Tavern & Inn [SPACE to Rest]',
+    x: 540,
+    y: 1180,
+    zone: 'cavatina_village',
+    isProp: true,
+    propType: 'door_trigger',
+    actionType: 'talk',
+    dialogue: [
+      "You push open the warm oak door of The Melodic Rose Tavern & Inn. The cozy aroma of roasted apples and mulled cider fills the air!",
+      "Barkeep Barnaby waves from behind the polished mahogany counter."
+    ]
+  },
+  {
+    id: 'npc_door_forge',
+    name: "Master Luthier's Forge Door",
+    title: "🚪 Enter Master Luthier's Forge [SPACE]",
+    x: 730,
+    y: 500,
+    zone: 'cavatina_village',
+    isProp: true,
+    propType: 'door_trigger',
+    actionType: 'luthier_shop',
+    dialogue: [
+      "You step inside the Artisan Forge. The rhythmic clinking of chisels and sweet scent of amber varnish welcome you!"
+    ]
+  },
+  {
+    id: 'npc_door_academy',
+    name: 'Cavatina Music Academy Door',
+    title: '🚪 Enter Cavatina Music Academy [SPACE to Study]',
+    x: 380,
+    y: 500,
+    zone: 'cavatina_village',
+    isProp: true,
+    propType: 'door_trigger',
+    actionType: 'theory_bench',
+    theoryType: 'pitch_recognition_1',
+    dialogue: [
+      "You walk into the grand marble atrium of Cavatina Music Academy. Progressive theory lecterns line the halls!"
+    ]
+  },
+  {
+    id: 'npc_door_library',
+    name: 'Conservatory Library Door',
+    title: '🚪 Enter Conservatory Library & Archives [SPACE]',
+    x: 1370,
+    y: 500,
+    zone: 'cavatina_village',
+    isProp: true,
+    propType: 'door_trigger',
+    actionType: 'talk',
+    dialogue: [
+      "You enter the silent, towering shelves of the Conservatory Library. Ancient musical manuscripts glow with faint acoustic resonance."
+    ]
+  },
+  {
+    id: 'npc_door_townhall',
+    name: 'Cavatina Town Hall Door',
+    title: '🚪 Enter Town Hall & Clocktower [SPACE]',
+    x: 1400,
+    y: 1180,
+    zone: 'cavatina_village',
+    isProp: true,
+    propType: 'door_trigger',
+    actionType: 'talk',
+    dialogue: [
+      "You enter Cavatina Town Hall beneath the echoing chimes of the Great Clocktower. The regional quest bulletin board is prominently displayed."
+    ]
+  },
+  {
     id: 'npc_village_signpost',
     name: 'Village Directional Signpost',
     title: 'Read Map Guide [SPACE]',

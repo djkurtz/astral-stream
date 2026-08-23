@@ -57,4 +57,30 @@ describe('Harmonia: World Exploration & Zone Navigation', () => {
 
     expect(state.player.y).toBeGreaterThan(initialY);
   });
+
+  it('should interact with Barkeep Barnaby at the Tavern and trigger tavern rest/gossip', () => {
+    const state = engine.getState();
+    const barnaby = state.npcs.find(n => n.id === 'npc_barkeep_barnaby')!;
+    expect(barnaby).toBeDefined();
+
+    state.player.x = barnaby.x;
+    state.player.y = barnaby.y;
+    engine.updateProximity();
+    engine.interactWithNearby();
+
+    expect(state.dialogue).toBeDefined();
+    expect(state.dialogue?.speaker).toBe('Barkeep Barnaby');
+    expect(state.dialogue?.text[0]).toContain('The Melodic Rose Tavern & Inn');
+  });
+
+  it('should trigger building door interaction prompts', () => {
+    const state = engine.getState();
+    const tavernDoor = state.npcs.find(n => n.id === 'npc_door_tavern')!;
+    expect(tavernDoor).toBeDefined();
+
+    state.player.x = tavernDoor.x;
+    state.player.y = tavernDoor.y;
+    engine.updateProximity();
+    expect(state.nearbyInteractable?.id).toBe('npc_door_tavern');
+  });
 });

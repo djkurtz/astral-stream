@@ -340,7 +340,7 @@ export interface WorldNPC {
   zone: ZoneId;
   musicianData?: Musician;
   isProp?: boolean;
-  propType?: 'lectern' | 'vanity' | 'music_stand' | 'signpost' | 'fountain' | 'anvil' | 'ancient_stone_stand' | 'golden_music_stand' | 'vista_monolith' | 'road_sign';
+  propType?: 'lectern' | 'vanity' | 'music_stand' | 'signpost' | 'fountain' | 'anvil' | 'ancient_stone_stand' | 'golden_music_stand' | 'vista_monolith' | 'road_sign' | 'door_trigger';
   actionType: 'talk' | 'audition_battle' | 'practice_bench' | 'competition_stage' | 'sheet_music_stand' | 'inspiration_vista' | 'luthier_shop' | 'wild_harmonipet' | 'conservatory_master' | 'theory_bench' | 'customization_mirror' | 'signpost';
   dialogue: string[];
   sheetMusicReward?: string; // piece ID

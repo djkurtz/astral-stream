@@ -1348,6 +1348,10 @@ export class HarmoniaRenderer {
       ctx.lineWidth = 2;
       ctx.stroke();
 
+      // Welcome Entrance Step
+      ctx.fillStyle = '#fbbf24';
+      ctx.fillRect(doorX - 4, by + bh - 4, doorW + 8, 5);
+
       // Hanging Brass Sign
       this.drawBuildingSign(ctx, bx + 24, wallY + 20, '🎼');
 
@@ -1420,6 +1424,10 @@ export class HarmoniaRenderer {
       ctx.lineWidth = 2;
       ctx.strokeRect(doorX, doorY, doorW, doorH);
 
+      // Welcome Entrance Step
+      ctx.fillStyle = '#f59e0b';
+      ctx.fillRect(doorX - 4, by + bh - 4, doorW + 8, 5);
+
       // Wrought Iron Anvil/Violin Sign
       this.drawBuildingSign(ctx, bx + bw - 24, wallY + 20, '⚒️');
 
@@ -1477,6 +1485,10 @@ export class HarmoniaRenderer {
       ctx.roundRect(doorX, doorY, doorW, doorH, [18, 18, 0, 0]);
       ctx.fill();
 
+      // Welcome Entrance Step
+      ctx.fillStyle = '#10b981';
+      ctx.fillRect(doorX - 4, by + bh - 4, doorW + 8, 5);
+
       // Open Book Crest Sign
       this.drawBuildingSign(ctx, bx + 24, wallY + 20, '📖');
 
@@ -1524,6 +1536,11 @@ export class HarmoniaRenderer {
       const doorY = by + bh - doorH;
       ctx.fillStyle = '#92400e';
       ctx.fillRect(doorX, doorY, doorW, doorH);
+
+      // Welcome Entrance Step
+      ctx.fillStyle = '#ef4444';
+      ctx.fillRect(doorX - 4, by + bh - 4, doorW + 8, 5);
+
       // Hanging Lantern
       ctx.fillStyle = '#fbbf24';
       ctx.beginPath();
@@ -1593,10 +1610,15 @@ export class HarmoniaRenderer {
       // Grand Arch Portal
       const doorW = 36;
       const doorH = 46;
+      const doorX = bx + bw / 2 - doorW / 2;
       ctx.fillStyle = '#0f172a';
       ctx.beginPath();
-      ctx.roundRect(bx + bw / 2 - doorW / 2, by + bh - doorH, doorW, doorH, [18, 18, 0, 0]);
+      ctx.roundRect(doorX, by + bh - doorH, doorW, doorH, [18, 18, 0, 0]);
       ctx.fill();
+
+      // Welcome Entrance Step
+      ctx.fillStyle = '#8b5cf6';
+      ctx.fillRect(doorX - 4, by + bh - 4, doorW + 8, 5);
 
       // Tempo Sign
       this.drawBuildingSign(ctx, bx + 24, by + bh * 0.4 + 20, '⏰');
@@ -1974,6 +1996,14 @@ export class HarmoniaRenderer {
       ctx.fillStyle = '#b45309';
       ctx.fillRect(x - 8, y + 10, 4, 12);
       ctx.fillRect(x + 4, y + 10, 4, 12);
+
+    } else if (propType === 'door_trigger') {
+      // Subtle glowing ambient entrance beacon at doorway
+      const pulse = 0.5 + Math.sin(t * 3) * 0.5;
+      ctx.fillStyle = `rgba(251, 191, 36, ${0.15 + pulse * 0.15})`;
+      ctx.beginPath();
+      ctx.ellipse(x, y, 16, 6, 0, 0, Math.PI * 2);
+      ctx.fill();
 
     } else {
       // Standard Music stand with sheet
