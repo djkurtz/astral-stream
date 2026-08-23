@@ -47,6 +47,24 @@ export class HarmoniaUI {
       });
     }
 
+    // Quests Journal Modal Toggle Button
+    const btnQuests = document.getElementById('btn-quests');
+    const modalQuests = document.getElementById('modal-quests');
+    const btnCloseQuests = document.getElementById('btn-close-quests');
+
+    if (btnQuests && modalQuests) {
+      btnQuests.addEventListener('click', () => {
+        this.renderQuestsList();
+        modalQuests.classList.remove('hidden');
+      });
+    }
+
+    if (btnCloseQuests && modalQuests) {
+      btnCloseQuests.addEventListener('click', () => {
+        modalQuests.classList.add('hidden');
+      });
+    }
+
     // HarmoniDex Modal Toggle Button
     const btnDex = document.getElementById('btn-dex');
     const modalDex = document.getElementById('modal-dex');
@@ -106,6 +124,12 @@ export class HarmoniaUI {
         modalEnsemble?.classList.toggle('hidden');
         if (modalEnsemble && !modalEnsemble.classList.contains('hidden')) {
           this.renderEnsembleRoster();
+        }
+      }
+      if (e.code === 'KeyQ') {
+        modalQuests?.classList.toggle('hidden');
+        if (modalQuests && !modalQuests.classList.contains('hidden')) {
+          this.renderQuestsList();
         }
       }
       if (e.code === 'KeyH') {
@@ -192,6 +216,68 @@ export class HarmoniaUI {
       `;
 
       rosterContainer.appendChild(card);
+    });
+  }
+
+  public renderQuestsList(): void {
+    const questsContainer = document.getElementById('quests-list');
+    if (!questsContainer) return;
+
+    const state = this.engine.getState();
+    questsContainer.innerHTML = '';
+
+    const header = document.createElement('div');
+    header.style.color = '#38bdf8';
+    header.style.fontWeight = 'bold';
+    header.style.marginBottom = '12px';
+    header.innerText = `Active Commissions & Lost Scores | Track your path to musical renown`;
+    questsContainer.appendChild(header);
+
+    // Active Quests
+    state.quests.forEach((q) => {
+      const card = document.createElement('div');
+      card.className = 'repertoire-card';
+      card.style.borderColor = q.completed ? '#10b981' : '#38bdf8';
+
+      let typeBadge = '📖 Main Story';
+      if (q.type === 'side') typeBadge = '🤝 Local Favor';
+      if (q.type === 'gig') typeBadge = '🎭 Festival Gig';
+      if (q.type === 'rescue') typeBadge = '🐾 Familiar Rescue';
+      if (q.type === 'restoration') typeBadge = '✨ Shrine Restoration';
+
+      card.innerHTML = `
+        <div class="piece-header">
+          <span class="piece-title">${q.title} <span style="font-size:12px; color:#94a3b8;">[${typeBadge} - Ch.${q.chapter}]</span></span>
+          <span style="font-size:13px; font-weight:bold; color:${q.completed ? '#10b981' : '#fbbf24'};">${q.completed ? 'COMPLETED ✓' : 'ACTIVE'}</span>
+        </div>
+        <div class="piece-desc">${q.description}</div>
+        <div class="piece-reqs">Objective: <strong>${q.objective}</strong> | Rewards: +${q.rewardGold} ♪, +${q.rewardSparks} ✨, +${q.rewardStars} ★</div>
+      `;
+      questsContainer.appendChild(card);
+    });
+
+    // Lost Scores Section
+    const scoreHeader = document.createElement('div');
+    scoreHeader.style.color = '#fbbf24';
+    scoreHeader.style.fontWeight = 'bold';
+    scoreHeader.style.margin = '18px 0 10px 0';
+    scoreHeader.innerText = `📜 Ancient Lost Scores & Fragment Collection:`;
+    questsContainer.appendChild(scoreHeader);
+
+    state.lostScores.forEach((s) => {
+      const card = document.createElement('div');
+      card.className = 'repertoire-card';
+      card.style.opacity = s.unlocked ? '1.0' : '0.6';
+
+      card.innerHTML = `
+        <div class="piece-header">
+          <span class="piece-title">🎼 ${s.title}</span>
+          <span style="font-size:13px; font-weight:bold; color:${s.unlocked ? '#10b981' : '#fbbf24'};">${s.unlocked ? 'UNLOCKED ✓' : 'FRAGMENTS: ' + s.fragmentsFound + '/' + s.totalFragments}</span>
+        </div>
+        <div class="piece-composer">Composer: ${s.composer}</div>
+        <div class="piece-desc">Collect all manuscript fragments scattered across Sonora's shrines and vistas to reconstruct this masterwork.</div>
+      `;
+      questsContainer.appendChild(card);
     });
   }
 

@@ -2,13 +2,13 @@
 
 import {
   GameState, Musician, WorldNPC,
-  AuditionBattle, InstrumentId, EnsembleTier, ZoneId
+  AuditionBattle, InstrumentId, EnsembleTier, ZoneId, TheoryChallengeType, PlayerCustomization
 } from './types';
 import {
   STARTER_OPTIONS, REPERTOIRE_DATABASE,
   RIVAL_ENSEMBLES, WORLD_ZONES, INITIAL_WORLD_NPCS, BATTLE_MOVES,
   INSTRUMENT_ARTIFACTS, INITIAL_LOST_SCORES, INITIAL_INSPIRATION_VISTAS, INITIAL_GAME_QUESTS,
-  INITIAL_HARMONIDEX, CLEF_BADGES
+  INITIAL_HARMONIDEX, CLEF_BADGES, DEFAULT_CUSTOMIZATION, THEORY_CHALLENGES
 } from './data';
 import { soundEngine } from './audio';
 
@@ -35,6 +35,7 @@ export class HarmoniaGameEngine {
         dir: 'down',
         isMoving: false
       },
+      customization: JSON.parse(JSON.stringify(DEFAULT_CUSTOMIZATION)),
       followerTrail: [{ x: 1000, y: 940 }],
       camera: { x: 360, y: 440 },
       ensemble: {
@@ -70,6 +71,7 @@ export class HarmoniaGameEngine {
       quests: JSON.parse(JSON.stringify(INITIAL_GAME_QUESTS)),
       activeQuestId: 'quest_ch1',
       practiceSession: null,
+      theoryChallenge: null,
       auditionBattle: null,
       harmonizeEncounter: null,
       competition: null,
@@ -249,13 +251,16 @@ export class HarmoniaGameEngine {
       opponent,
       playerHarmonyMeter: 20,
       opponentHarmonyMeter: 20,
-      harmonyPoints: 50,
+      harmonyPoints: 60,
       maxHarmonyPoints: 100,
+      playerStance: 'normal',
+      opponentStance: 'normal',
       turn: 'player',
       turnTimer: 0,
+      cadencePromptActive: false,
       log: [
-        `Audition Duel started against ${opponent.name} (${opponent.instrumentName})!`,
-        `Fill the Harmony Meter to 100% to convince ${opponent.name} to join your ensemble!`
+        `⚔️ Audition Clash started against ${opponent.name} (${opponent.instrumentName})!`,
+        `Tactics: Use Pianissimo Shield to deflect dissonance, or Fortissimo Surge to double your next strike!`
       ],
       selectedMoveIndex: 0,
       concluded: false
@@ -277,11 +282,34 @@ export class HarmoniaGameEngine {
     }
 
     battle.harmonyPoints -= move.harmonyCost;
-    const power = move.power + Math.floor(player.stats.toneQuality / 5);
-    battle.playerHarmonyMeter = Math.min(100, battle.playerHarmonyMeter + power);
-    battle.log.push(`${player.name} performed [${move.name}]! Harmony surged +${power}%.`);
 
-    soundEngine.playInstrumentNote(player.instrumentId, 523.25, 0.4, 0.9);
+    if (move.effect === 'pianissimo_shield') {
+      battle.playerStance = 'pianissimo_shield';
+      battle.harmonyPoints = Math.min(battle.maxHarmonyPoints, battle.harmonyPoints + 25);
+      battle.log.push(`🛡️ ${player.name} raised [Pianissimo Shield]! Restored +25 HP and prepared to absorb dissonance.`);
+      soundEngine.playInstrumentNote(player.instrumentId, 330, 0.4, 0.7);
+    } else if (move.effect === 'fortissimo_surge') {
+      battle.playerStance = 'fortissimo_surge';
+      battle.log.push(`⚡ ${player.name} charged [Fortissimo Surge]! Next attack power is DOUBLED!`);
+      soundEngine.playInstrumentNote(player.instrumentId, 659.25, 0.5, 1.0);
+    } else {
+      let multiplier = 1.0;
+      if (battle.playerStance === 'fortissimo_surge') {
+        multiplier = 2.0;
+        battle.playerStance = 'normal';
+      }
+
+      let rawPower = Math.round((move.power + Math.floor(player.stats.toneQuality / 5)) * multiplier);
+      if (battle.opponentStance === 'counterpoint_guard') {
+        rawPower = Math.floor(rawPower * 0.5);
+        battle.opponentStance = 'normal';
+        battle.log.push(`🛡️ Opponent guarded against the sound wave!`);
+      }
+
+      battle.playerHarmonyMeter = Math.min(100, battle.playerHarmonyMeter + rawPower);
+      battle.log.push(`💥 ${player.name} performed [${move.name}]! Harmony surged +${rawPower}%.`);
+      soundEngine.playInstrumentNote(player.instrumentId, 523.25, 0.4, 0.9);
+    }
 
     if (battle.playerHarmonyMeter >= 100) {
       this.resolveBattleVictory(battle);
@@ -293,7 +321,7 @@ export class HarmoniaGameEngine {
     setTimeout(() => {
       if (!this.state.auditionBattle || this.state.auditionBattle.concluded) return;
       this.executeOpponentTurn();
-    }, 800);
+    }, 700);
   }
 
   private executeOpponentTurn(): void {
@@ -301,11 +329,48 @@ export class HarmoniaGameEngine {
     if (!battle || battle.concluded) return;
 
     const opp = battle.opponent;
-    const oppPower = 15 + Math.floor(opp.stats.toneQuality / 8);
-    battle.opponentHarmonyMeter = Math.min(100, battle.opponentHarmonyMeter + oppPower);
-    battle.log.push(`${opp.name} countered with an acoustic flourish (+${oppPower}% opponent resonance)!`);
 
-    soundEngine.playInstrumentNote(opp.instrumentId, 440, 0.4, 0.8);
+    // Tactical AI
+    const roll = Math.random();
+    if (roll < 0.25 && battle.opponentStance !== 'counterpoint_guard') {
+      battle.opponentStance = 'counterpoint_guard';
+      battle.log.push(`🛡️ ${opp.name} established a [Counterpoint Guard] stance!`);
+      soundEngine.playInstrumentNote(opp.instrumentId, 392, 0.3, 0.6);
+    } else if (roll < 0.55) {
+      let steal = 12 + Math.floor(opp.stats.technique / 10);
+      if (battle.playerStance === 'pianissimo_shield') {
+        steal = Math.floor(steal * 0.5);
+        battle.playerStance = 'normal';
+        battle.log.push(`🛡️ Your Pianissimo Shield absorbed the dissonant frequencies!`);
+      }
+      battle.playerHarmonyMeter = Math.max(0, battle.playerHarmonyMeter - steal);
+      battle.opponentHarmonyMeter = Math.min(100, battle.opponentHarmonyMeter + steal);
+      battle.log.push(`⚡ ${opp.name} executed Dissonant Jamming! (-${steal}% player, +${steal}% opponent).`);
+      soundEngine.playInstrumentNote(opp.instrumentId, 220, 0.4, 0.8);
+    } else {
+      let oppPower = 16 + Math.floor(opp.stats.toneQuality / 7);
+      if (battle.playerStance === 'pianissimo_shield') {
+        oppPower = Math.floor(oppPower * 0.5);
+        battle.playerStance = 'normal';
+        battle.log.push(`🛡️ Your Pianissimo Shield absorbed half the incoming blast!`);
+      }
+      battle.opponentHarmonyMeter = Math.min(100, battle.opponentHarmonyMeter + oppPower);
+      battle.log.push(`🎶 ${opp.name} countered with an acoustic crescendo (+${oppPower}% opponent resonance)!`);
+      soundEngine.playInstrumentNote(opp.instrumentId, 440, 0.4, 0.8);
+    }
+
+    if (battle.opponentHarmonyMeter >= 100) {
+      battle.concluded = true;
+      battle.won = false;
+      this.showDialogue('Audition Clash Defeat', '💔', [
+        `${opp.name}'s acoustic resonance overwhelmed the plaza! Practice your Technique and return when ready.`
+      ], () => {
+        this.state.mode = 'exploration';
+        this.state.auditionBattle = null;
+      });
+      return;
+    }
+
     battle.harmonyPoints = Math.min(battle.maxHarmonyPoints, battle.harmonyPoints + 20);
     battle.turn = 'player';
   }
@@ -759,12 +824,112 @@ export class HarmoniaGameEngine {
       return;
     }
 
+    if (target.actionType === 'theory_bench') {
+      this.startTheoryChallenge('pitch_recognition');
+      return;
+    }
+
+    if (target.actionType === 'customization_mirror') {
+      this.state.mode = 'character_customization';
+      return;
+    }
+
     if (target.actionType === 'wild_harmonipet') {
       this.startHarmonizeEncounter(target);
       return;
     }
 
     this.showDialogue(target.name, '💬', target.dialogue);
+  }
+
+  /* ---------------- MUSIC THEORY CHALLENGES ---------------- */
+
+  public startTheoryChallenge(type: TheoryChallengeType = 'pitch_recognition'): void {
+    const questions = JSON.parse(JSON.stringify(THEORY_CHALLENGES[type] || THEORY_CHALLENGES.pitch_recognition));
+    this.state.theoryChallenge = {
+      type,
+      questions,
+      currentQuestionIndex: 0,
+      score: 0,
+      completed: false
+    };
+    this.state.mode = 'theory_challenge';
+
+    // Play initial audio question note if available
+    const q = questions[0];
+    if (q && q.notesToPlay && q.notesToPlay.length > 0) {
+      soundEngine.stopBGM();
+      q.notesToPlay.forEach((freq: number, idx: number) => {
+        setTimeout(() => {
+          soundEngine.playInstrumentNote('glockenspiel', freq, 0.5, 0.8);
+        }, idx * 400);
+      });
+    }
+  }
+
+  public replayTheoryAudio(): void {
+    const ch = this.state.theoryChallenge;
+    if (!ch || ch.completed) return;
+    const q = ch.questions[ch.currentQuestionIndex];
+    if (q && q.notesToPlay && q.notesToPlay.length > 0) {
+      q.notesToPlay.forEach((freq: number, idx: number) => {
+        setTimeout(() => {
+          soundEngine.playInstrumentNote('glockenspiel', freq, 0.5, 0.8);
+        }, idx * 400);
+      });
+    }
+  }
+
+  public answerTheoryQuestion(optionIndex: number): void {
+    const ch = this.state.theoryChallenge;
+    if (!ch || ch.completed) return;
+
+    const q = ch.questions[ch.currentQuestionIndex];
+    const isCorrect = optionIndex === q.correctIndex;
+
+    if (isCorrect) {
+      ch.score += 100;
+      soundEngine.playNoteAccuracyFeedback('perfect');
+    } else {
+      soundEngine.playNoteAccuracyFeedback('miss');
+    }
+
+    this.showDialogue('Theory Evaluation', isCorrect ? '✨' : '❌', [
+      isCorrect ? `CORRECT! ${q.explanation}` : `INCORRECT. The correct answer was: ${q.options[q.correctIndex]}. ${q.explanation}`
+    ], () => {
+      ch.currentQuestionIndex++;
+      if (ch.currentQuestionIndex >= ch.questions.length) {
+        ch.completed = true;
+        const player = this.state.ensemble.members[0];
+        const sparksWon = Math.floor(ch.score / 10);
+        this.state.wallet.inspirationSparks += sparksWon;
+        player.stats.sightReading = Math.min(100, player.stats.sightReading + Math.floor(ch.score / 50));
+        soundEngine.playFanfare();
+        this.showDialogue('Theory Certification Passed!', '🎓', [
+          `Drill completed! Final Score: ${ch.score}/${ch.questions.length * 100}.`,
+          `Earned +${sparksWon} Inspiration Sparks ✨ and +${Math.floor(ch.score / 50)} Sight-Reading (RDG) for ${player.name}!`
+        ], () => {
+          this.state.mode = 'exploration';
+          this.state.theoryChallenge = null;
+          const activeSections = Array.from(new Set(this.state.ensemble.members.map(m => m.section)));
+          soundEngine.startBGM(this.state.currentZone, activeSections);
+        });
+      } else {
+        this.state.mode = 'theory_challenge';
+        const nextQ = ch.questions[ch.currentQuestionIndex];
+        if (nextQ && nextQ.notesToPlay) {
+          nextQ.notesToPlay.forEach((freq: number, idx: number) => {
+            setTimeout(() => {
+              soundEngine.playInstrumentNote('glockenspiel', freq, 0.5, 0.8);
+            }, idx * 400);
+          });
+        }
+      }
+    });
+  }
+
+  public setCustomization(partial: Partial<PlayerCustomization>): void {
+    this.state.customization = { ...this.state.customization, ...partial };
   }
 
   /* ---------------- DIALOGUE SYSTEM ---------------- */

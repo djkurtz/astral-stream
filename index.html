@@ -15,6 +15,7 @@
       <button id="btn-practice" class="tool-btn" title="Practice your instrument">🎹 [P] Practice Shed</button>
       <button id="btn-repertoire" class="tool-btn" title="View sheet music repertoire">📜 [R] Repertoire</button>
       <button id="btn-ensemble" class="tool-btn" title="Inspect ensemble members">🐾 [E] Ensemble</button>
+      <button id="btn-quests" class="tool-btn" title="View Active Quests and Scores">🗺️ [Q] Quests</button>
       <button id="btn-dex" class="tool-btn" title="Open HarmoniDex Bestiary">📖 [H] HarmoniDex</button>
       <button id="btn-badges" class="tool-btn" title="View Conservatory Badges">🏆 [B] Badges</button>
     </div>
@@ -40,6 +41,19 @@
           <button id="btn-close-ensemble" class="btn-close">&times;</button>
         </div>
         <div id="ensemble-roster-list" class="modal-body">
+          <!-- Populated by ui.ts -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Quests Journal Modal -->
+    <div id="modal-quests" class="modal-overlay hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="modal-title">🗺️ Sonora Quest Journal & Lost Scores</div>
+          <button id="btn-close-quests" class="btn-close">&times;</button>
+        </div>
+        <div id="quests-list" class="modal-body">
           <!-- Populated by ui.ts -->
         </div>
       </div>

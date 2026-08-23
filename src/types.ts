@@ -111,10 +111,10 @@ export interface PracticeSession {
 export interface BattleMove {
   id: string;
   name: string;
-  section: InstrumentSection;
+  section: InstrumentSection | 'all';
   power: number;
   harmonyCost: number;
-  effect: 'resonance_boost' | 'tempo_lock' | 'vibrato_charm' | 'fortissimo_burst';
+  effect: 'resonance_boost' | 'tempo_lock' | 'vibrato_charm' | 'fortissimo_burst' | 'pianissimo_shield' | 'fortissimo_surge';
   description: string;
 }
 
@@ -124,8 +124,11 @@ export interface AuditionBattle {
   opponentHarmonyMeter: number; // 0 to 100
   harmonyPoints: number;      // Resource for moves (0 to 100)
   maxHarmonyPoints: number;
+  playerStance: 'normal' | 'pianissimo_shield' | 'fortissimo_surge';
+  opponentStance: 'normal' | 'crescendo' | 'counterpoint_guard';
   turn: 'player' | 'opponent';
   turnTimer: number;
+  cadencePromptActive: boolean;
   log: string[];
   selectedMoveIndex: number;
   concluded: boolean;
@@ -310,7 +313,7 @@ export interface WorldNPC {
   y: number;
   zone: ZoneId;
   musicianData?: Musician;
-  actionType: 'talk' | 'audition_battle' | 'practice_bench' | 'competition_stage' | 'sheet_music_stand' | 'inspiration_vista' | 'luthier_shop' | 'wild_harmonipet' | 'conservatory_master';
+  actionType: 'talk' | 'audition_battle' | 'practice_bench' | 'competition_stage' | 'sheet_music_stand' | 'inspiration_vista' | 'luthier_shop' | 'wild_harmonipet' | 'conservatory_master' | 'theory_bench' | 'customization_mirror';
   dialogue: string[];
   sheetMusicReward?: string; // piece ID
   vistaId?: string;
@@ -326,10 +329,38 @@ export interface GameDialogue {
   onComplete?: () => void;
 }
 
+export interface PlayerCustomization {
+  outfitColor: string;
+  hairColor: string;
+  hatStyle: 'beret' | 'feather_cap' | 'maestro' | 'headband' | 'none';
+  instrumentFinish: 'classic_amber' | 'gilded_gold' | 'midnight_obsidian' | 'rosewood';
+  petTint: string;
+}
+
+export type TheoryChallengeType = 'pitch_recognition' | 'key_signature' | 'rhythm_tap';
+
+export interface TheoryQuestion {
+  prompt: string;
+  subtext: string;
+  notesToPlay?: number[];
+  options: string[];
+  correctIndex: number;
+  explanation: string;
+}
+
+export interface TheoryChallenge {
+  type: TheoryChallengeType;
+  questions: TheoryQuestion[];
+  currentQuestionIndex: number;
+  score: number;
+  completed: boolean;
+}
+
 export type GameMode = 
   | 'character_customization' 
   | 'exploration' 
   | 'practice' 
+  | 'theory_challenge'
   | 'audition_battle' 
   | 'competition' 
   | 'dialogue' 
@@ -349,6 +380,7 @@ export interface GameState {
     dir: 'up' | 'down' | 'left' | 'right';
     isMoving: boolean;
   };
+  customization: PlayerCustomization;
   followerTrail: { x: number; y: number }[];
   camera: { x: number; y: number };
   ensemble: Ensemble;
@@ -367,6 +399,7 @@ export interface GameState {
   quests: GameQuest[];
   activeQuestId: string | null;
   practiceSession: PracticeSession | null;
+  theoryChallenge: TheoryChallenge | null;
   auditionBattle: AuditionBattle | null;
   harmonizeEncounter: HarmonizeEncounter | null;
   competition: ConcertCompetition | null;

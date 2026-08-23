@@ -1,8 +1,16 @@
 import {
   Harmonipet, Musician, RepertoirePiece, RivalEnsemble, WorldZone, WorldNPC, BattleMove, InstrumentId,
   InstrumentArtifact, LostScore, InspirationVista, PerformanceVenue, GameQuest,
-  HarmoniDexEntry, ClefBadge
+  HarmoniDexEntry, ClefBadge, PlayerCustomization, TheoryChallengeType, TheoryQuestion
 } from './types';
+
+export const DEFAULT_CUSTOMIZATION: PlayerCustomization = {
+  outfitColor: '#38bdf8',
+  hairColor: '#78350f',
+  hatStyle: 'beret',
+  instrumentFinish: 'classic_amber',
+  petTint: '#ffffff'
+};
 
 /* ---------------- STARTER INSTRUMENTS & PETS ---------------- */
 
@@ -172,7 +180,104 @@ export const BATTLE_MOVES: Record<string, BattleMove> = {
     harmonyCost: 25,
     effect: 'fortissimo_burst',
     description: 'Deep resonant percussion strikes that reverberate across the stage.'
+  },
+
+  // Tactical Stances
+  pianissimo_shield: {
+    id: 'pianissimo_shield',
+    name: 'Pianissimo Shield',
+    section: 'all',
+    power: 0,
+    harmonyCost: 10,
+    effect: 'pianissimo_shield',
+    description: 'Adopts a gentle dynamic stance, absorbing 50% dissonance and restoring 20 Harmony Points.'
+  },
+  fortissimo_surge: {
+    id: 'fortissimo_surge',
+    name: 'Fortissimo Surge',
+    section: 'all',
+    power: 0,
+    harmonyCost: 20,
+    effect: 'fortissimo_surge',
+    description: 'Builds massive acoustic tension, doubling the resonance of your next harmony attack!'
   }
+};
+
+/* ---------------- MUSIC THEORY CHALLENGES ---------------- */
+
+export const THEORY_CHALLENGES: Record<TheoryChallengeType, TheoryQuestion[]> = {
+  pitch_recognition: [
+    {
+      prompt: '🎵 Pitch Ear-Training Drill',
+      subtext: 'Identify the pitch being sounded by the tuning crystal:',
+      notesToPlay: [440.0], // Concert A
+      options: ['C4 (Middle C)', 'A4 (Concert Pitch)', 'E4 (Fifth of A)', 'G4 (Dominant of C)'],
+      correctIndex: 1,
+      explanation: '440 Hz corresponds to standard orchestral Concert A4!'
+    },
+    {
+      prompt: '🎵 Interval Recognition Drill',
+      subtext: 'Two pitches sound in succession (C4 then E4). What interval is this?',
+      notesToPlay: [261.63, 329.63],
+      options: ['Minor Second (1 semitone)', 'Major Third (4 semitones)', 'Perfect Fifth (7 semitones)', 'Octave (12 semitones)'],
+      correctIndex: 1,
+      explanation: 'C to E is a Major Third, the foundational harmonic building block of major chords!'
+    },
+    {
+      prompt: '🎵 Octave Leap Drill',
+      subtext: 'A pitch jumps from C4 up to C5. What is this interval relationship?',
+      notesToPlay: [261.63, 523.25],
+      options: ['Tritone', 'Major Seventh', 'Perfect Octave (2:1 frequency ratio)', 'Minor Sixth'],
+      correctIndex: 2,
+      explanation: 'A doubling in fundamental frequency produces a Perfect Octave!'
+    }
+  ],
+  key_signature: [
+    {
+      prompt: '🎼 Key Signature Identification',
+      subtext: 'A piece of sheet music has exactly ONE SHARP (F#) in its clef. What major key is this?',
+      options: ['C Major (Natural)', 'G Major (1 Sharp: F#)', 'D Major (2 Sharps)', 'F Major (1 Flat)'],
+      correctIndex: 1,
+      explanation: 'Following the Circle of Fifths, G Major contains one sharp: F sharp!'
+    },
+    {
+      prompt: '🎼 Key Signature Identification',
+      subtext: 'A sonata score has TWO SHARPS (F# and C#). What major key is this?',
+      options: ['D Major', 'A Major', 'E Major', 'B Major'],
+      correctIndex: 0,
+      explanation: 'D Major features F# and C# as its diatonic leading tones!'
+    },
+    {
+      prompt: '🎼 Key Signature Identification',
+      subtext: 'A pastoral waltz has ONE FLAT (Bb) in its signature. What major key is this?',
+      options: ['G Major', 'Eb Major', 'F Major', 'Ab Major'],
+      correctIndex: 2,
+      explanation: 'F Major is the first key in the flat direction on the Circle of Fifths with Bb!'
+    }
+  ],
+  rhythm_tap: [
+    {
+      prompt: '🥁 Time Signature & Meter Drill',
+      subtext: 'In 4/4 Common Time, how many quarter notes (crotchets) constitute a complete measure?',
+      options: ['2 Beats', '3 Beats', '4 Beats', '6 Beats'],
+      correctIndex: 2,
+      explanation: 'The top number (4) specifies 4 beats, and the bottom (4) designates quarter notes!'
+    },
+    {
+      prompt: '🥁 Note Value & Subdivision',
+      subtext: 'How many sixteenth notes (semiquavers) fit inside a single half note (minim)?',
+      options: ['4 Sixteenths', '6 Sixteenths', '8 Sixteenths', '16 Sixteenths'],
+      correctIndex: 2,
+      explanation: 'A half note is 2 beats = 8 sixteenth notes (4 per quarter note)!'
+    },
+    {
+      prompt: '🥁 Syncopation Concept',
+      subtext: 'What musical phenomenon occurs when accents deliberately fall on weak beats or off-beats?',
+      options: ['Staccato', 'Syncopation', 'Fermata', 'Glissando'],
+      correctIndex: 1,
+      explanation: 'Syncopation creates driving rhythmic energy by emphasizing unexpected off-beats!'
+    }
+  ]
 };
 
 /* ---------------- REPERTOIRE PIECES ---------------- */
@@ -623,6 +728,30 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     actionType: 'practice_bench',
     dialogue: [
       "Welcome to the Practice Shed! Regular practice sharpens Technique, Tone Quality, and Tempo Stability."
+    ]
+  },
+  {
+    id: 'npc_theory_academy',
+    name: 'Academy Theory Lectern',
+    title: 'Music Theory Drills & Challenges [SPACE]',
+    x: 750,
+    y: 540,
+    zone: 'cavatina_village',
+    actionType: 'theory_bench',
+    dialogue: [
+      "Welcome to the Sonora Music Conservatory! Test your knowledge of pitches, key signatures, and rhythm metrics."
+    ]
+  },
+  {
+    id: 'npc_customization_mirror',
+    name: 'Maestro Styling Vanity',
+    title: 'Customize Avatar & Instrument [SPACE]',
+    x: 1250,
+    y: 540,
+    zone: 'cavatina_village',
+    actionType: 'customization_mirror',
+    dialogue: [
+      "Welcome to the Maestro Styling Mirror! Change your outfit, hair, hat, and instrument finish."
     ]
   },
   {

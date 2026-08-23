@@ -4,7 +4,7 @@ import './style.css';
 import { HarmoniaGameEngine } from './game';
 import { HarmoniaRenderer } from './renderer';
 import { HarmoniaUI } from './ui';
-import { STARTER_OPTIONS, BATTLE_MOVES } from './data';
+import { STARTER_OPTIONS } from './data';
 import { soundEngine } from './audio';
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -43,12 +43,22 @@ window.addEventListener('DOMContentLoaded', () => {
       if (e.code === 'Digit4') engine.chooseStarter(STARTER_OPTIONS[3].id);
     }
 
-    // Audition Battle Move Selection via keyboard 1-3
+    // Audition Battle Move Selection via keyboard 1-4
     if (engine.getState().mode === 'audition_battle') {
-      const moves = Object.keys(BATTLE_MOVES);
-      if (e.code === 'Digit1' && moves[0]) engine.executeBattleMove(moves[0]);
-      if (e.code === 'Digit2' && moves[1]) engine.executeBattleMove(moves[1]);
-      if (e.code === 'Digit3' && moves[2]) engine.executeBattleMove(moves[2]);
+      const battleMoves = ['counterpoint_weave', 'vibrato_charm', 'pianissimo_shield', 'fortissimo_surge'];
+      if (e.code === 'Digit1') engine.executeBattleMove(battleMoves[0]);
+      if (e.code === 'Digit2') engine.executeBattleMove(battleMoves[1]);
+      if (e.code === 'Digit3') engine.executeBattleMove(battleMoves[2]);
+      if (e.code === 'Digit4') engine.executeBattleMove(battleMoves[3]);
+    }
+
+    // Theory Challenge Answer Selection via keyboard 1-4
+    if (engine.getState().mode === 'theory_challenge') {
+      if (e.code === 'Digit1') engine.answerTheoryQuestion(0);
+      if (e.code === 'Digit2') engine.answerTheoryQuestion(1);
+      if (e.code === 'Digit3') engine.answerTheoryQuestion(2);
+      if (e.code === 'Digit4') engine.answerTheoryQuestion(3);
+      if (e.code === 'KeyR') engine.replayTheoryAudio();
     }
 
     // Harmonize Encounter Cadence Selection via keyboard 1-4
@@ -91,20 +101,47 @@ window.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Battle move clicks
+    // Battle move clicks (4 Tactical Cards)
     if (state.mode === 'audition_battle') {
-      const moveW = 260;
+      const battleMoves = ['counterpoint_weave', 'vibrato_charm', 'pianissimo_shield', 'fortissimo_surge'];
+      const moveW = 240;
       const moveH = 80;
-      const moveStartX = (1280 - (moveW * 3 + 40)) / 2;
+      const moveStartX = (1280 - (moveW * 4 + 45)) / 2;
       const moveY = 460;
-      const moves = Object.keys(BATTLE_MOVES);
 
-      moves.slice(0, 3).forEach((mKey, idx) => {
-        const mx = moveStartX + idx * (moveW + 20);
+      battleMoves.forEach((mKey, idx) => {
+        const mx = moveStartX + idx * (moveW + 15);
         if (clickX >= mx && clickX <= mx + moveW && clickY >= moveY && clickY <= moveY + moveH) {
           engine.executeBattleMove(mKey);
         }
       });
+      return;
+    }
+
+    // Theory challenge clicks
+    if (state.mode === 'theory_challenge' && state.theoryChallenge) {
+      const ch = state.theoryChallenge;
+      const q = ch.questions[ch.currentQuestionIndex];
+      if (q && q.notesToPlay && clickX >= 1280 / 2 - 120 && clickX <= 1280 / 2 + 120 && clickY >= 240 && clickY <= 284) {
+        engine.replayTheoryAudio();
+        return;
+      }
+
+      const optW = 460;
+      const optH = 75;
+      const startY = q && q.notesToPlay ? 310 : 250;
+      const gapY = 20;
+
+      for (let idx = 0; idx < (q ? q.options.length : 0); idx++) {
+        const col = idx % 2;
+        const row = Math.floor(idx / 2);
+        const ox = col === 0 ? 1280 / 2 - optW - 15 : 1280 / 2 + 15;
+        const oy = startY + row * (optH + gapY);
+        if (clickX >= ox && clickX <= ox + optW && clickY >= oy && clickY <= oy + optH) {
+          engine.answerTheoryQuestion(idx);
+          break;
+        }
+      }
       return;
     }
 
