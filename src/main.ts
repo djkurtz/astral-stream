@@ -60,13 +60,15 @@ window.addEventListener('DOMContentLoaded', () => {
       if (e.code === 'KeyR') engine.replayTheoryAudio();
     }
 
-    // Harmonize Encounter Cadence Selection via keyboard 1-4 & [R] Replay
+    // Harmonize Encounter Cadence Selection via keyboard 1-4, [R] Replay, [Space]/[Enter] Performance, [T] Tuning
     if (engine.getState().mode === 'harmonize_wild') {
       if (e.code === 'Digit1') engine.playHarmonizeNote(0);
       if (e.code === 'Digit2') engine.playHarmonizeNote(1);
       if (e.code === 'Digit3') engine.playHarmonizeNote(2);
       if (e.code === 'Digit4') engine.playHarmonizeNote(3);
       if (e.code === 'KeyR') engine.replayHarmonizeMelody();
+      if (e.code === 'Space' || e.code === 'Enter') engine.startPerformancePhase();
+      if (e.code === 'KeyT') engine.startTuningPhase();
     }
   });
 
@@ -158,20 +160,33 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // Harmonize encounter clicks
     if (state.mode === 'harmonize_wild') {
-      const repW = 240;
-      const repH = 38;
-      const repX = (1280 - repW) / 2;
-      const repY = 445;
-      if (clickX >= repX && clickX <= repX + repW && clickY >= repY && clickY <= repY + repH) {
+      const btnW = 230;
+      const btnH = 36;
+      const gapBtn = 20;
+      const totalBtnW = btnW * 2 + gapBtn;
+      const repX = (1280 - totalBtnW) / 2;
+      const repY = 415;
+      const phaseX = repX + btnW + gapBtn;
+
+      if (clickX >= repX && clickX <= repX + btnW && clickY >= repY && clickY <= repY + btnH) {
         engine.replayHarmonizeMelody();
         return;
       }
 
+      if (clickX >= phaseX && clickX <= phaseX + btnW && clickY >= repY && clickY <= repY + btnH) {
+        if (state.harmonizeEncounter?.phase === 'tuning') {
+          engine.startPerformancePhase();
+        } else {
+          engine.startTuningPhase();
+        }
+        return;
+      }
+
       const cardW = 190;
-      const cardH = 80;
+      const cardH = 75;
       const gap = 16;
       const startX = (1280 - (cardW * 4 + gap * 3)) / 2;
-      const cardY = 490;
+      const cardY = 512;
 
       for (let i = 0; i < 4; i++) {
         const cx = startX + i * (cardW + gap);

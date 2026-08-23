@@ -18,6 +18,8 @@ export interface Harmonipet {
   instrumentId?: InstrumentId;
   leitmotifSound: string;
   color: string;
+  level?: number;
+  rarity?: 'common' | 'rare' | 'legendary' | 'exotic';
 }
 
 export interface MusicianStats {
@@ -284,6 +286,7 @@ export interface GameQuest {
   rewardSparks: number;
   rewardStars: number;
   completed: boolean;
+  requiredTheoryTier?: number;
 }
 
 export interface WorldObstacle {
@@ -334,6 +337,10 @@ export interface HarmoniDexEntry {
   evolutionStage: 1 | 2 | 3;
   evolvesTo?: string;
   evolutionLevel?: number;
+  evolvedSprite?: string;
+  evolvedLore?: string;
+  evolvedStatsBonus?: Partial<MusicianStats>;
+  rarity?: 'common' | 'rare' | 'legendary' | 'exotic';
 }
 
 export interface ClefBadge {
@@ -356,7 +363,11 @@ export interface HarmonizeEncounter {
   resonanceMeter: number;
   catchThreshold: number;
   attemptsRemaining: number;
-  lastFeedback?: 'PERFECT' | 'DISSONANCE';
+  phase?: 'tuning' | 'performance';
+  noteAccuracy?: number;
+  timingAccuracy?: number;
+  sweetSpotCenter?: number;
+  lastFeedback?: 'PERFECT' | 'GREAT' | 'GOOD' | 'DISSONANCE';
   lastFeedbackText?: string;
   revealedSteps?: boolean[];
   isPlayingMelody?: boolean;
@@ -503,6 +514,14 @@ export interface GameState {
   pianistBuskingWins: number;
   hasPianoAccompaniment: boolean;
   dialogue: GameDialogue | null;
+  lastEvolvedPet?: {
+    prevSpecies: string;
+    prevSprite: string;
+    newSpecies: string;
+    newSprite: string;
+    petName: string;
+    lore: string;
+  } | null;
   time: number;
 }
 

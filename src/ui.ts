@@ -90,6 +90,15 @@ export class HarmoniaUI {
       });
     }
 
+    // Pet Evolution Modal Close Button
+    const modalEvolution = document.getElementById('modal-evolution');
+    const btnCloseEvolution = document.getElementById('btn-close-evolution');
+    if (btnCloseEvolution && modalEvolution) {
+      btnCloseEvolution.addEventListener('click', () => {
+        modalEvolution.classList.add('hidden');
+      });
+    }
+
     // Clef Badges Modal Toggle Button
     const btnBadges = document.getElementById('btn-badges');
     const modalBadges = document.getElementById('modal-badges');
@@ -682,15 +691,25 @@ export class HarmoniaUI {
       card.className = 'musician-card';
       card.style.borderColor = musician.paletteColor;
 
+      const nextLevel = musician.level + 1;
+      const nextLevelXp = this.engine.getXpForLevel(nextLevel);
+      const reqTheory = this.engine.getRequiredTheoryTierForLevel(nextLevel);
+      const isGated = reqTheory !== null && !this.engine.hasPassedTheoryTier(reqTheory) && musician.xp >= nextLevelXp;
+      const petDex = state.harmoniDex.find(d => d.id === musician.pet.id || d.species === musician.pet.species || d.name === musician.pet.name);
+
       card.innerHTML = `
         <div class="musician-header">
           <span class="musician-avatar">${musician.avatar}</span>
           <div>
             <div class="musician-name">${musician.name} ${musician.isPlayer ? '(Leader)' : ''}</div>
             <div class="musician-inst">${musician.instrumentName} (${musician.section.toUpperCase()})</div>
+            <div style="font-size:12px; color:#fbbf24; font-weight:bold; margin-top:2px;">
+              Lv.${musician.level} (XP: ${musician.xp}/${nextLevelXp})
+              ${isGated ? `<span style="color:#f87171; font-size:11px; margin-left:6px;">🔒 [Theory Tier ${reqTheory} Exam Required]</span>` : ''}
+            </div>
           </div>
         </div>
-        <div class="pet-info">🐾 Familiar: <strong>${musician.pet.name}</strong> (${musician.pet.species})</div>
+        <div class="pet-info">🐾 Familiar: <strong>${musician.pet.name}</strong> (${musician.pet.species}) ${petDex && petDex.evolutionStage >= 2 ? '<span style="color:#34d399; font-size:11px;">[Ascended Stage 2]</span>' : ''}</div>
         <div class="stats-grid">
           <div>TEC: ${musician.stats.technique}</div>
           <div>TON: ${musician.stats.toneQuality}</div>
@@ -698,6 +717,30 @@ export class HarmoniaUI {
           <div>RDG: ${musician.stats.sightReading}</div>
         </div>
       `;
+
+      if (petDex && petDex.evolutionStage === 1 && petDex.evolvesTo) {
+        const evoBtn = document.createElement('button');
+        evoBtn.className = 'btn-evolve-action';
+        evoBtn.style.marginTop = '8px';
+        evoBtn.style.fontSize = '11px';
+        evoBtn.style.padding = '4px 12px';
+        evoBtn.innerHTML = `✨ Evolve to ${petDex.evolvesTo} ✨`;
+        evoBtn.addEventListener('click', () => {
+          const check = this.engine.canEvolvePet(petDex.id);
+          if (check.canEvolve) {
+            this.triggerPetEvolution(petDex.id);
+          } else {
+            this.engine.showDialogue('Evolution Ceremony Registrar', '🐾', [
+              `${petDex.name} (${petDex.species}) cannot evolve just yet!`,
+              `${check.reason || 'Requirements not met.'}`,
+              check.requiresTheory 
+                ? 'Visit an academic theory lectern in any village to complete your Conservatory Theory exam!' 
+                : 'Practice together in the shed or participate in concerts to raise your musician level!'
+            ]);
+          }
+        });
+        card.appendChild(evoBtn);
+      }
 
       rosterContainer.appendChild(card);
     });
@@ -856,13 +899,19 @@ export class HarmoniaUI {
       if (q.type === 'rescue') typeBadge = '🐾 Familiar Rescue';
       if (q.type === 'restoration') typeBadge = '✨ Shrine Restoration';
 
+      let theoryBadge = '';
+      if (q.requiredTheoryTier) {
+        const hasPassed = this.engine.hasPassedTheoryTier(q.requiredTheoryTier);
+        theoryBadge = ` | Theory Prerequisite: <strong style="color:${hasPassed ? '#10b981' : '#f87171'};">${hasPassed ? `Tier ${q.requiredTheoryTier} Passed ✓` : `Tier ${q.requiredTheoryTier} Required 🔒`}</strong>`;
+      }
+
       card.innerHTML = `
         <div class="piece-header">
           <span class="piece-title">${q.title} <span style="font-size:12px; color:#94a3b8;">[${typeBadge} - Ch.${q.chapter}]</span></span>
           <span style="font-size:13px; font-weight:bold; color:${q.completed ? '#10b981' : '#fbbf24'};">${q.completed ? 'COMPLETED ✓' : 'ACTIVE'}</span>
         </div>
         <div class="piece-desc">${q.description}</div>
-        <div class="piece-reqs">Objective: <strong>${q.objective}</strong> | Rewards: +${q.rewardGold} ♪, +${q.rewardSparks} ✨, +${q.rewardStars} ★</div>
+        <div class="piece-reqs">Objective: <strong>${q.objective}</strong>${theoryBadge} | Rewards: +${q.rewardGold} ♪, +${q.rewardSparks} ✨, +${q.rewardStars} ★</div>
       `;
       questsContainer.appendChild(card);
     });
@@ -946,6 +995,28 @@ export class HarmoniaUI {
           <div class="piece-desc">Explore the outerworld to encounter and bond with this Harmonipet familiar.</div>
         `;
       } else {
+        const owner = state.ensemble.members.find(m => m.pet.id === entry.id || m.pet.species === entry.species || m.pet.name === entry.name);
+        const petLevel = owner ? owner.level : (state.ensemble.members[0]?.level || 1);
+        
+        let evolutionHtml = '';
+        if (entry.evolutionStage >= 2) {
+          evolutionHtml = `<div style="font-size:12px; color:#34d399; font-weight:bold; margin-top:6px;">🌟 Mastered Evolution (Stage ${entry.evolutionStage} Peak Form)</div>`;
+        } else if (entry.evolvesTo) {
+          const reqLv = entry.evolutionLevel || 3;
+          const meetsLevel = petLevel >= reqLv;
+          const meetsTheory = state.completedTheoryDrills.length >= 1;
+          const statusColor = (meetsLevel && meetsTheory) ? '#34d399' : '#f59e0b';
+          
+          evolutionHtml = `
+            <div style="font-size:12px; color:${statusColor}; margin-top:6px; background:rgba(15,23,42,0.6); padding:6px 10px; border-radius:6px; border:1px solid rgba(236,72,153,0.3);">
+              ✨ <strong>Evolution Pathway:</strong> Evolves to <strong>${entry.evolvesTo}</strong> (Req: Lv.${reqLv} • Theory Exam Tier 1)
+              <div style="font-size:11px; color:#94a3b8; margin-top:2px;">
+                Pet Level: <strong style="color:${meetsLevel ? '#34d399' : '#ef4444'};">Lv.${petLevel}/${reqLv}</strong> | Theory Exam: <strong style="color:${meetsTheory ? '#34d399' : '#ef4444'};">${meetsTheory ? 'Passed ✓' : 'Exam Required 🔒'}</strong>
+              </div>
+            </div>
+          `;
+        }
+
         card.innerHTML = `
           <div class="musician-header">
             <span class="musician-avatar">${entry.sprite}</span>
@@ -955,12 +1026,126 @@ export class HarmoniaUI {
             </div>
           </div>
           <div class="piece-desc">${entry.description}</div>
-          ${entry.evolvesTo ? `<div style="font-size:12px; color:#a78bfa; margin-top:4px;">✨ Evolution: Evolves to <strong>${entry.evolvesTo}</strong> at Lv.${entry.evolutionLevel}</div>` : ''}
+          ${evolutionHtml}
         `;
+
+        // If bonded and has an evolution available, add the Evolve button
+        if (entry.bonded && entry.evolutionStage === 1 && entry.evolvesTo) {
+          const btnContainer = document.createElement('div');
+          btnContainer.style.marginTop = '8px';
+          
+          const evolveBtn = document.createElement('button');
+          evolveBtn.className = 'btn-evolve-action';
+          evolveBtn.innerHTML = `✨ Evolve to ${entry.evolvesTo}! ✨`;
+          
+          const check = this.engine.canEvolvePet(entry.id);
+          if (!check.canEvolve) {
+            evolveBtn.style.opacity = '0.85';
+          }
+          
+          evolveBtn.addEventListener('click', () => {
+            if (check.canEvolve) {
+              this.triggerPetEvolution(entry.id);
+            } else {
+              this.engine.showDialogue('Evolution Ceremony Registrar', '🐾', [
+                `${entry.name} (${entry.species}) cannot evolve just yet!`,
+                `${check.reason || 'Requirements not met.'}`,
+                check.requiresTheory 
+                  ? 'Visit an academic theory lectern in any village to complete your Conservatory Theory exam!' 
+                  : 'Practice together in the shed or participate in concerts to raise your musician level!'
+              ]);
+            }
+          });
+
+          btnContainer.appendChild(evolveBtn);
+          card.appendChild(btnContainer);
+        }
       }
 
       dexContainer.appendChild(card);
     });
+  }
+
+  public renderEvolutionModal(): void {
+    const evoBody = document.getElementById('evolution-body');
+    if (!evoBody) return;
+
+    const state = this.engine.getState();
+    const evo = state.lastEvolvedPet;
+    if (!evo) return;
+
+    evoBody.innerHTML = `
+      <div class="evolution-sparkles-layer">
+        <span class="sparkle-particle" style="top:10%; left:12%; animation-delay:0s;">✨</span>
+        <span class="sparkle-particle" style="top:20%; right:15%; animation-delay:0.5s;">🌟</span>
+        <span class="sparkle-particle" style="top:75%; left:18%; animation-delay:1s;">💖</span>
+        <span class="sparkle-particle" style="top:80%; right:20%; animation-delay:1.5s;">💫</span>
+        <span class="sparkle-particle" style="top:40%; left:8%; animation-delay:0.7s;">🎵</span>
+        <span class="sparkle-particle" style="top:48%; right:8%; animation-delay:1.2s;">🎶</span>
+      </div>
+
+      <div style="font-size:24px; font-weight:bold; font-family:'Cinzel', serif; color:#f472b6; text-shadow:0 0 16px rgba(244,114,182,0.8); margin-bottom:6px;">
+        🎉 Harmonipet Ascended! 🎉
+      </div>
+      <div style="font-size:14px; color:#e2e8f0; margin-bottom:18px;">
+        Through deep Conservatory Theory training and harmonic bonding, <strong>${evo.petName}</strong> has evolved!
+      </div>
+
+      <div class="evolution-stage-container">
+        <div class="sprite-card sprite-card-prev">
+          <div class="sprite-display">${evo.prevSprite}</div>
+          <div style="font-size:13px; color:#94a3b8; font-weight:600;">${evo.prevSpecies}</div>
+          <div style="font-size:11px; color:#64748b;">Stage 1</div>
+        </div>
+
+        <div class="evolution-arrow-container">
+          <div class="evolution-arrow">➔</div>
+          <div style="font-size:11px; color:#f472b6; font-weight:700;">EVOLVED</div>
+        </div>
+
+        <div class="sprite-card sprite-card-new">
+          <div class="sprite-display">${evo.newSprite}</div>
+          <div style="font-size:15px; color:#f472b6; font-weight:700; text-shadow:0 0 8px rgba(244,114,182,0.6);">${evo.newSpecies}</div>
+          <div style="font-size:11px; color:#34d399; font-weight:600;">Stage 2 (Ascended)</div>
+        </div>
+      </div>
+
+      <div class="evolution-lore-box">
+        <div style="font-weight:700; color:#fbbf24; margin-bottom:6px; font-size:14px;">🐾 Harmonious Lore & New Abilities:</div>
+        <div>"${evo.lore}"</div>
+        <div class="evolution-stats-bonus">
+          <span>✨ Technique & Tone Amplified</span>
+          <span>🎵 Harmonic Resonance Boosted</span>
+        </div>
+      </div>
+
+      <div style="margin-top:22px; position:relative; z-index:5;">
+        <button id="btn-celebrate-done" class="btn-evolve-action" style="padding:10px 28px; font-size:15px;">
+          💖 Commend ${evo.petName}! 💖
+        </button>
+      </div>
+    `;
+
+    const doneBtn = evoBody.querySelector('#btn-celebrate-done');
+    if (doneBtn) {
+      doneBtn.addEventListener('click', () => {
+        const modal = document.getElementById('modal-evolution');
+        if (modal) modal.classList.add('hidden');
+      });
+    }
+  }
+
+  public triggerPetEvolution(petId: string): boolean {
+    const success = this.engine.evolvePet(petId);
+    if (success) {
+      this.renderEvolutionModal();
+      const modal = document.getElementById('modal-evolution');
+      if (modal) modal.classList.remove('hidden');
+      this.renderHarmoniDex();
+      this.renderEnsembleRoster();
+      return true;
+    }
+    return false;
   }
 
   public renderBadgesList(): void {
@@ -1901,6 +2086,18 @@ export class HarmoniaUI {
           </div>
         </div>
 
+        <!-- Harmonipet Evolution Studio Card -->
+        <div class="sandbox-section">
+          <div class="sandbox-section-title">✨ Harmonipet Evolution Studio</div>
+          <div style="font-size: 12px; color: #cbd5e1;">Trigger and preview adorable pet evolutions with celebratory fanfare, before-and-after sprites, and lore descriptions.</div>
+          <div class="sandbox-row">
+            <select id="sb-select-evo" class="sandbox-select">
+              ${this.engine.getState().harmoniDex.filter(d => d.evolvesTo).map(d => `<option value="${d.id}">${d.sprite} ${d.species} ➔ ${d.evolvedSprite || '✨'} ${d.evolvesTo}</option>`).join('')}
+            </select>
+            <button id="sb-btn-evolve" class="sandbox-btn-action" style="background: linear-gradient(135deg, #ec4899, #8b5cf6);">✨ Trigger Evolution</button>
+          </div>
+        </div>
+
         <!-- Practice Shed & Busking Duel Grid -->
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
           <div class="sandbox-section">
@@ -1954,6 +2151,22 @@ export class HarmoniaUI {
       const id = (document.getElementById('sb-select-theory') as HTMLSelectElement).value;
       modalSandbox?.classList.add('hidden');
       this.engine.startTheoryChallenge(id as TheoryChallengeType);
+    });
+
+    document.getElementById('sb-btn-evolve')?.addEventListener('click', () => {
+      const id = (document.getElementById('sb-select-evo') as HTMLSelectElement).value;
+      modalSandbox?.classList.add('hidden');
+      const entry = this.engine.getState().harmoniDex.find(d => d.id === id);
+      if (entry) {
+        entry.bonded = true;
+        if (this.engine.getState().completedTheoryDrills.length === 0) {
+          this.engine.getState().completedTheoryDrills.push('pitch_recognition_1');
+          this.engine.getState().theoryLevel = 2;
+        }
+        const lead = this.engine.getState().ensemble.members[0];
+        if (lead) lead.level = Math.max(lead.level, 3);
+        this.triggerPetEvolution(id);
+      }
     });
 
     document.getElementById('sb-btn-practice')?.addEventListener('click', () => {
@@ -2226,6 +2439,8 @@ export class HarmoniaUI {
             <button id="sb-cheat-repertoire" class="sandbox-btn-action">📜 Unlock All Sheet Music (Mastered)</button>
             <button id="sb-cheat-badges" class="sandbox-btn-action">🏆 Unlock All 8 Conservatory Badges</button>
             <button id="sb-cheat-quests" class="sandbox-btn-action">🧭 Complete All Story Quests</button>
+            <button id="sb-cheat-theory" class="sandbox-btn-action">🎓 Pass All Theory Exams (Tier 1-8)</button>
+            <button id="sb-cheat-evolve-pet" class="sandbox-btn-action" style="background: linear-gradient(135deg, #ec4899, #8b5cf6);">✨ Evolve Active Harmonipet</button>
           </div>
         </div>
 
@@ -2291,6 +2506,25 @@ export class HarmoniaUI {
     document.getElementById('sb-cheat-quests')?.addEventListener('click', () => {
       this.engine.cheatCompleteAllQuests();
       this.showToast('🧭 All quests marked as completed!');
+    });
+
+    document.getElementById('sb-cheat-theory')?.addEventListener('click', () => {
+      this.engine.cheatCompleteAllTheory();
+      this.showToast('🎓 All 8 Conservatory Theory tiers passed!');
+      this.renderSandboxCheats(container);
+    });
+
+    document.getElementById('sb-cheat-evolve-pet')?.addEventListener('click', () => {
+      const success = this.engine.cheatEvolveActivePet();
+      if (success) {
+        document.getElementById('modal-sandbox')?.classList.add('hidden');
+        this.renderEvolutionModal();
+        document.getElementById('modal-evolution')?.classList.remove('hidden');
+        this.renderHarmoniDex();
+        this.renderEnsembleRoster();
+      } else {
+        this.showToast('⚠️ Active pet cannot evolve further.');
+      }
     });
 
     document.getElementById('sb-cheat-piano')?.addEventListener('click', () => {

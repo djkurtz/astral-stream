@@ -3,7 +3,7 @@
 import {
   GameState, Musician, Harmonipet, WorldNPC, RivalEnsemble,
   AuditionBattle, InstrumentId, EnsembleTier, ZoneId, TheoryChallengeType, PlayerCustomization,
-  RepertoirePiece, HarmoniaSaveExport, HarmoniaSavePayload
+  RepertoirePiece, HarmoniaSaveExport, HarmoniaSavePayload, HarmoniDexEntry
 } from './types';
 import {
   STARTER_OPTIONS, REPERTOIRE_DATABASE,
@@ -14,6 +14,73 @@ import {
 } from './data';
 import { BattleMove } from './types';
 import { soundEngine } from './audio';
+
+export function generateHarmonizeMelody(pet: Harmonipet, dexEntry?: HarmoniDexEntry): { noteIndices: number[]; targetMelody: number[] } {
+  const FREQS = [261.63, 329.63, 392.00, 523.25]; // C4, E4, G4, C5
+  const rarity = pet.rarity || dexEntry?.rarity;
+  let len = 4;
+  if (rarity === 'common') {
+    len = 4;
+  } else if (rarity === 'rare') {
+    len = (pet.species.includes('Badger') || pet.species.includes('Lion') || pet.species.includes('Owl')) ? 6 : 5;
+  } else if (rarity === 'legendary' || rarity === 'exotic') {
+    len = (pet.species.includes('Fox') || pet.species.includes('Elephant') || pet.species.includes('Beetle') || pet.species.includes('Bombardier')) ? 8 : 7;
+  } else {
+    // Name-based fallback
+    const s = pet.species.toLowerCase();
+    if (s.includes('chameleon') || s.includes('hedgehog') || s.includes('typewriter') || s.includes('woodpecker')) len = 7;
+    else if (s.includes('sax') || s.includes('elephant') || s.includes('cannon') || s.includes('bombardier')) len = 8;
+    else if (s.includes('dolphin') || s.includes('lynx') || s.includes('bear')) len = 5;
+    else if (s.includes('badger') || s.includes('lion') || s.includes('owl')) len = 6;
+    else len = 4;
+  }
+
+  let noteIndices: number[] = [];
+  if (pet.section === 'woodwinds') {
+    const patterns: Record<number, number[]> = {
+      4: [0, 2, 1, 3],
+      5: [0, 2, 1, 2, 3],
+      6: [0, 2, 3, 2, 1, 0],
+      7: [0, 2, 1, 3, 2, 1, 0],
+      8: [0, 2, 1, 3, 0, 2, 1, 3]
+    };
+    noteIndices = patterns[len] || [0, 2, 1, 3];
+  } else if (pet.section === 'brass') {
+    const patterns: Record<number, number[]> = {
+      4: [0, 2, 3, 2],
+      5: [0, 0, 2, 3, 2],
+      6: [0, 2, 0, 2, 3, 2],
+      7: [0, 2, 3, 2, 3, 2, 0],
+      8: [0, 2, 3, 2, 0, 2, 3, 0]
+    };
+    noteIndices = patterns[len] || [0, 2, 3, 2];
+  } else if (pet.section === 'percussion') {
+    const patterns: Record<number, number[]> = {
+      4: [0, 1, 2, 3],
+      5: [0, 1, 0, 2, 3],
+      6: [0, 1, 0, 1, 2, 3],
+      7: [0, 0, 1, 1, 2, 2, 3],
+      8: [0, 1, 2, 3, 0, 1, 2, 3]
+    };
+    noteIndices = patterns[len] || [0, 1, 2, 3];
+  } else {
+    // strings (default)
+    const patterns: Record<number, number[]> = {
+      4: [0, 1, 2, 3],
+      5: [0, 1, 2, 1, 3],
+      6: [0, 1, 2, 3, 2, 0],
+      7: [0, 1, 2, 3, 2, 1, 0],
+      8: [0, 1, 2, 3, 0, 1, 2, 3]
+    };
+    noteIndices = patterns[len] || [0, 1, 2, 3];
+  }
+
+  const targetMelody = pet.section === 'percussion' 
+    ? [...noteIndices] 
+    : noteIndices.map(i => FREQS[i]);
+
+  return { noteIndices, targetMelody };
+}
 
 export class HarmoniaGameEngine {
   private state: GameState;
@@ -302,7 +369,8 @@ export class HarmoniaGameEngine {
 
     const baseGain = Math.max(1, Math.floor(session.score / 180)) * session.tier;
     lead.stats[stat] = Math.min(100, lead.stats[stat] + baseGain);
-    lead.xp += session.score;
+    
+    const xpResult = this.awardMusicianXp(lead, session.score);
 
     const goldWon = Math.floor(session.score / 20) * session.tier;
     this.state.wallet.gold += goldWon;
@@ -312,7 +380,12 @@ export class HarmoniaGameEngine {
     let levelUpMsg = '';
     if (session.score >= 500 && this.state.practiceLevel < 4) {
       this.state.practiceLevel++;
-      levelUpMsg = ` 🌟 Practice Tier Upgraded to Level ${this.state.practiceLevel}!`;
+      levelUpMsg += ` 🌟 Practice Tier Upgraded to Level ${this.state.practiceLevel}!`;
+    }
+    if (xpResult.leveledUp) {
+      levelUpMsg += ` 🎓 ${lead.name} promoted to Musician Level ${xpResult.newLevel}!`;
+    } else if (xpResult.gated) {
+      levelUpMsg += ` 🔒 Promotion Gated: Pass Theory Curriculum Tier ${xpResult.requiredTheoryTier} to unlock Level ${lead.level + 1}!`;
     }
 
     session.statGained = { stat, amount: baseGain };
@@ -503,6 +576,10 @@ export class HarmoniaGameEngine {
       this.state.wallet.gold += 100;
       this.state.wallet.inspirationSparks += 15;
 
+      this.state.ensemble.members.forEach(m => {
+        this.awardMusicianXp(m, 150);
+      });
+
       // Unlock recruited musician's instrument and boost section proficiency
       if (!this.state.proficiency.unlockedInstruments.includes(recruited.instrumentId)) {
         this.state.proficiency.unlockedInstruments.push(recruited.instrumentId);
@@ -549,14 +626,8 @@ export class HarmoniaGameEngine {
   public startHarmonizeEncounter(npc: WorldNPC): void {
     if (!npc.wildPetData) return;
     const pet = npc.wildPetData;
-    const FREQS = [261.63, 329.63, 392.00, 523.25]; // C4, E4, G4, C5
-
-    let noteIndices = [0, 1, 2, 3]; // Major Arpeggio default
-    if (pet.section === 'woodwinds') noteIndices = [0, 2, 1, 3];
-    else if (pet.section === 'brass') noteIndices = [0, 2, 3, 2];
-    else if (pet.section === 'percussion') noteIndices = [0, 0, 2, 3];
-
-    const targetMelody = noteIndices.map(i => FREQS[i]);
+    const dexEntry = this.state.harmoniDex.find(d => d.species === pet.species || d.id.includes(pet.id));
+    const { noteIndices, targetMelody } = generateHarmonizeMelody(pet, dexEntry);
 
     this.state.harmonizeEncounter = {
       pet,
@@ -564,14 +635,18 @@ export class HarmoniaGameEngine {
       targetMelody,
       targetNoteIndices: noteIndices,
       currentStep: 0,
-      revealedSteps: [false, false, false, false],
+      revealedSteps: new Array(noteIndices.length).fill(false),
       isPlayingMelody: false,
       playerInputs: [],
       resonanceMeter: 20,
       catchThreshold: 80,
       attemptsRemaining: 5,
+      phase: 'tuning',
+      noteAccuracy: 100,
+      timingAccuracy: 100,
+      sweetSpotCenter: 0.5,
       lastFeedback: undefined,
-      lastFeedbackText: undefined,
+      lastFeedbackText: '🔧 Tuning mode: Test and find matching tones freely with no penalty!',
       concluded: false,
       caught: false
     };
@@ -582,24 +657,60 @@ export class HarmoniaGameEngine {
     this.replayHarmonizeMelody();
   }
 
+  public startPerformancePhase(): void {
+    const enc = this.state.harmonizeEncounter;
+    if (!enc || enc.concluded) return;
+    enc.phase = 'performance';
+    enc.currentStep = 0;
+    enc.revealedSteps = new Array(enc.targetNoteIndices.length).fill(false);
+    enc.sweetSpotCenter = 0.5;
+    enc.lastFeedback = undefined;
+    enc.lastFeedbackText = '⚡ Performance Started! Play the full phrase in rhythm!';
+  }
+
+  public startTuningPhase(): void {
+    const enc = this.state.harmonizeEncounter;
+    if (!enc || enc.concluded) return;
+    enc.phase = 'tuning';
+    enc.currentStep = 0;
+    enc.lastFeedback = undefined;
+    enc.lastFeedbackText = '🔧 Tuning mode: Explore and discover tones freely.';
+  }
+
   public replayHarmonizeMelody(): void {
     const enc = this.state.harmonizeEncounter;
     if (!enc || enc.concluded || enc.isPlayingMelody) return;
 
     enc.isPlayingMelody = true;
-    enc.targetMelody.forEach((freq, idx) => {
-      setTimeout(() => {
-        if (!this.state.harmonizeEncounter || this.state.harmonizeEncounter.concluded) return;
-        soundEngine.playInstrumentNote(enc.instrumentId, freq, 0.35, 0.8);
-        if (idx === enc.targetMelody.length - 1) {
-          setTimeout(() => {
-            if (this.state.harmonizeEncounter) {
-              this.state.harmonizeEncounter.isPlayingMelody = false;
-            }
-          }, 350);
-        }
-      }, (idx + 1) * 350);
-    });
+    if (enc.pet.section === 'percussion') {
+      enc.targetNoteIndices.forEach((nIdx, idx) => {
+        setTimeout(() => {
+          if (!this.state.harmonizeEncounter || this.state.harmonizeEncounter.concluded) return;
+          soundEngine.playHarmonizePercussion(nIdx, 0.85, enc.pet.instrumentId);
+          if (idx === enc.targetNoteIndices.length - 1) {
+            setTimeout(() => {
+              if (this.state.harmonizeEncounter) {
+                this.state.harmonizeEncounter.isPlayingMelody = false;
+              }
+            }, 350);
+          }
+        }, (idx + 1) * 350);
+      });
+    } else {
+      enc.targetMelody.forEach((freq, idx) => {
+        setTimeout(() => {
+          if (!this.state.harmonizeEncounter || this.state.harmonizeEncounter.concluded) return;
+          soundEngine.playInstrumentNote(enc.instrumentId, freq, 0.35, 0.8);
+          if (idx === enc.targetMelody.length - 1) {
+            setTimeout(() => {
+              if (this.state.harmonizeEncounter) {
+                this.state.harmonizeEncounter.isPlayingMelody = false;
+              }
+            }, 350);
+          }
+        }, (idx + 1) * 350);
+      });
+    }
   }
 
   public playHarmonizeNote(noteIndex: number = 0): void {
@@ -614,40 +725,112 @@ export class HarmoniaGameEngine {
     const tech = player?.stats?.technique || 25;
     const tone = player?.stats?.toneQuality || 25;
 
+    // --- 1. TUNING PHASE (Free experimentation with zero penalties) ---
+    if (enc.phase === 'tuning') {
+      if (enc.pet.section === 'percussion') {
+        soundEngine.playHarmonizePercussion(noteIndex, 0.85, enc.pet.instrumentId);
+      } else {
+        soundEngine.playInstrumentNote(playerInstrument, playedFreq, 0.35, 0.85);
+      }
+
+      const expectedIndex = enc.targetNoteIndices[enc.currentStep];
+      if (!enc.revealedSteps) {
+        enc.revealedSteps = new Array(enc.targetNoteIndices.length).fill(false);
+      }
+
+      if (noteIndex === expectedIndex) {
+        enc.revealedSteps[enc.currentStep] = true;
+        enc.currentStep++;
+        enc.lastFeedback = 'PERFECT';
+        if (enc.currentStep >= enc.targetNoteIndices.length) {
+          enc.lastFeedbackText = '✨ All phrase tones discovered! Press [SPACE] or click "Begin Performance" to bond!';
+          enc.currentStep = 0;
+        } else {
+          enc.lastFeedbackText = `🔍 Discovered tone ${enc.currentStep} / ${enc.targetNoteIndices.length}!`;
+        }
+      } else {
+        // Safe exploration - no penalty
+        enc.lastFeedbackText = `🎵 Testing tone... (No penalty in tuning phase)`;
+      }
+      return;
+    }
+
+    // --- 2. PERFORMANCE PHASE (Timed execution & score on note/timing accuracy) ---
+    let timingGrade: 'PERFECT' | 'GREAT' | 'GOOD' | 'OK' = 'PERFECT';
+    let timingMultiplier = 1.4;
+
+    if (this.state.time > 0) {
+      const tempoBPM = 120;
+      const sweep = Math.abs(((this.state.time * (tempoBPM / 60) * 0.8) % 2) - 1);
+      const sweetCenter = enc.sweetSpotCenter ?? 0.5;
+      const dist = Math.abs(sweep - sweetCenter);
+      if (dist <= 0.15) {
+        timingGrade = 'PERFECT';
+        timingMultiplier = 1.5;
+      } else if (dist <= 0.3) {
+        timingGrade = 'GREAT';
+        timingMultiplier = 1.2;
+      } else if (dist <= 0.5) {
+        timingGrade = 'GOOD';
+        timingMultiplier = 1.0;
+      } else {
+        timingGrade = 'OK';
+        timingMultiplier = 0.7;
+      }
+      enc.sweetSpotCenter = 0.2 + Math.random() * 0.6;
+    }
+    enc.timingAccuracy = Math.round(timingMultiplier * 66.6);
+
     const expectedIndex = enc.targetNoteIndices[enc.currentStep];
     if (noteIndex === expectedIndex) {
-      // ✅ Correct pitch in sequence!
-      soundEngine.playInstrumentNote(playerInstrument, playedFreq, 0.35, 0.85);
-      if (!enc.revealedSteps) enc.revealedSteps = [false, false, false, false];
+      // ✅ Correct pitch/timbre in sequence!
+      if (enc.pet.section === 'percussion') {
+        soundEngine.playHarmonizePercussion(noteIndex, 0.85, enc.pet.instrumentId);
+      } else {
+        soundEngine.playInstrumentNote(playerInstrument, playedFreq, 0.35, 0.85);
+      }
+      soundEngine.playNoteAccuracyFeedback(timingGrade === 'PERFECT' ? 'perfect' : 'good');
+
+      if (!enc.revealedSteps) enc.revealedSteps = new Array(enc.targetNoteIndices.length).fill(false);
       enc.revealedSteps[enc.currentStep] = true;
       enc.currentStep++;
-      const noteGain = Math.floor(20 + (tech + tone) / 10);
+      enc.noteAccuracy = 100;
+
+      const baseGain = Math.floor(75 / enc.targetNoteIndices.length);
+      const noteGain = Math.floor((baseGain + (tech + tone) / 10) * (timingMultiplier / 1.2));
       enc.resonanceMeter = Math.min(100, enc.resonanceMeter + noteGain);
 
       if (enc.currentStep >= enc.targetNoteIndices.length) {
         // Complete phrase matched!
-        const bonusGain = 15;
+        const bonusGain = 20;
         enc.resonanceMeter = Math.min(100, enc.resonanceMeter + bonusGain);
         enc.lastFeedback = 'PERFECT';
         enc.lastFeedbackText = `✨ HARMONIC RESONANCE! Phrase completed! (+${noteGain + bonusGain}%)`;
         enc.currentStep = 0;
-        enc.revealedSteps = [false, false, false, false];
+        enc.revealedSteps = new Array(enc.targetNoteIndices.length).fill(false);
         if (enc.resonanceMeter < enc.catchThreshold) {
           setTimeout(() => this.replayHarmonizeMelody(), 1000);
         }
       } else {
-        enc.lastFeedback = 'PERFECT';
-        enc.lastFeedbackText = `♪ Clean Note! (${enc.currentStep} / ${enc.targetNoteIndices.length}) (+${noteGain}%)`;
+        enc.lastFeedback = timingGrade === 'PERFECT' ? 'PERFECT' : (timingGrade === 'GREAT' ? 'GREAT' : 'GOOD');
+        enc.lastFeedbackText = `♪ Clean Note! (${enc.currentStep} / ${enc.targetNoteIndices.length}) [${timingGrade} Timing] (+${noteGain}%)`;
       }
     } else {
       // ❌ Dissonance / Miss
-      soundEngine.playInstrumentNote(playerInstrument, playedFreq * 0.94, 0.35, 0.85);
+      if (enc.pet.section === 'percussion') {
+        soundEngine.playHarmonizePercussion(noteIndex, 0.4, enc.pet.instrumentId);
+      } else {
+        soundEngine.playInstrumentNote(playerInstrument, playedFreq * 0.94, 0.35, 0.85);
+      }
+      soundEngine.playNoteAccuracyFeedback('miss');
+
       enc.attemptsRemaining--;
       enc.resonanceMeter = Math.max(0, enc.resonanceMeter - 15);
       enc.currentStep = 0;
-      enc.revealedSteps = [false, false, false, false];
+      enc.revealedSteps = new Array(enc.targetNoteIndices.length).fill(false);
+      enc.noteAccuracy = 0;
       enc.lastFeedback = 'DISSONANCE';
-      enc.lastFeedbackText = `⚠️ DISSONANT NOTE! Phrase reset. Press [R] to listen again.`;
+      enc.lastFeedbackText = `⚠️ DISSONANT NOTE! Phrase reset. (Attempts left: ${enc.attemptsRemaining})`;
     }
 
     if (enc.resonanceMeter >= enc.catchThreshold) {
@@ -663,6 +846,8 @@ export class HarmoniaGameEngine {
       }
       const qRescue = this.state.quests.find(q => q.id === 'quest_rescue_harmonidex');
       if (qRescue) qRescue.completed = true;
+
+      this.awardMusicianXp(this.state.ensemble.members[0], 120);
 
       // Create new musician partner
       const newMusician: Musician = {
@@ -1052,6 +1237,10 @@ export class HarmoniaGameEngine {
         this.state.wallet.reputationStars += comp.rival.rewardStars;
         this.state.ensemble.reputationStars = this.state.wallet.reputationStars;
         this.state.ensemble.fameLevel = 1 + Math.floor(this.state.ensemble.reputationStars / 2);
+
+        this.state.ensemble.members.forEach(m => {
+          this.awardMusicianXp(m, 250 + comp.rival.rewardStars * 50);
+        });
 
         // Record festival event completion & quest
         if (comp.rival.id.startsWith('rival_event_')) {
@@ -1749,6 +1938,7 @@ export class HarmoniaGameEngine {
           this.state.completedTheoryDrills.push(ch.type);
         }
         this.state.theoryLevel = Math.min(8, this.state.completedTheoryDrills.length + 1);
+        this.checkLevelUps();
         if (this.state.completedTheoryDrills.length >= 3) {
           const qTheory = this.state.quests.find(q => q.id === 'quest_side_theory_scholar');
           if (qTheory) qTheory.completed = true;
@@ -1794,6 +1984,163 @@ export class HarmoniaGameEngine {
 
   public setCustomization(partial: Partial<PlayerCustomization>): void {
     this.state.customization = { ...this.state.customization, ...partial };
+  }
+
+  /* ---------------- MUSIC THEORY PROGRESSION & PET EVOLUTION ---------------- */
+
+  public getXpForLevel(level: number): number {
+    if (level <= 1) return 0;
+    // Level 2: 100, Level 3: 250, Level 4: 450, Level 5: 700, Level 6: 1000, Level 7: 1350, Level 8: 1750, Level 9: 2200, Level 10: 2700
+    return Math.round((level - 1) * 100 + ((level - 1) * (level - 2) / 2) * 50);
+  }
+
+  public getRequiredTheoryTierForLevel(targetLevel: number): number | null {
+    if (targetLevel === 4) return 1; // Lv.3 -> 4 requires Tier 1
+    if (targetLevel === 7) return 2; // Lv.6 -> 7 requires Tier 2
+    if (targetLevel === 10) return 3; // Lv.9 -> 10 requires Tier 3
+    return null;
+  }
+
+  public hasPassedTheoryTier(tierNum: number): boolean {
+    const tier = THEORY_CURRICULUM.find(t => t.tier === tierNum);
+    if (!tier) return false;
+    return this.state.completedTheoryDrills.includes(tier.id);
+  }
+
+  public awardMusicianXp(
+    musician: Musician,
+    xpAmount: number
+  ): { leveledUp: boolean; oldLevel: number; newLevel: number; gated: boolean; requiredTheoryTier?: number } {
+    const oldLevel = musician.level;
+    musician.xp += xpAmount;
+    let gated = false;
+    let requiredTier: number | undefined;
+
+    while (musician.level < 20) {
+      const nextLevel = musician.level + 1;
+      const reqXp = this.getXpForLevel(nextLevel);
+      if (musician.xp < reqXp) break;
+
+      const reqTheory = this.getRequiredTheoryTierForLevel(nextLevel);
+      if (reqTheory && !this.hasPassedTheoryTier(reqTheory)) {
+        gated = true;
+        requiredTier = reqTheory;
+        break;
+      }
+
+      musician.level = nextLevel;
+    }
+
+    const leveledUp = musician.level > oldLevel;
+    return { leveledUp, oldLevel, newLevel: musician.level, gated, requiredTheoryTier: requiredTier };
+  }
+
+  public checkLevelUps(): void {
+    const allMusicians = [...this.state.ensemble.members];
+    this.state.recruitedMusicians.forEach(rm => {
+      if (!allMusicians.some(m => m.id === rm.id)) {
+        allMusicians.push(rm);
+      }
+    });
+
+    allMusicians.forEach(m => {
+      this.awardMusicianXp(m, 0);
+    });
+  }
+
+  public canEvolvePet(petId: string): { canEvolve: boolean; reason?: string; requiresTheory?: boolean; requiredTheoryTier?: number } {
+    const entry = this.state.harmoniDex.find(d => d.id === petId || d.species === petId || d.name === petId);
+    if (!entry) {
+      return { canEvolve: false, reason: "Harmonipet not registered in HarmoniDex." };
+    }
+    if (!entry.bonded) {
+      return { canEvolve: false, reason: "Must bond with this Harmonipet before evolving." };
+    }
+    if (entry.evolutionStage >= 2 || !entry.evolvesTo) {
+      return { canEvolve: false, reason: `${entry.species} has already attained its maximum evolution stage!` };
+    }
+
+    // Determine pet level from bonded musician or active party lead
+    const owner = this.state.ensemble.members.find(m => m.pet.id === entry.id || m.pet.species === entry.species || m.pet.name === entry.name);
+    const petLevel = owner ? owner.level : (this.state.ensemble.members[0]?.level || 1);
+    const reqLevel = entry.evolutionLevel || 3;
+
+    if (petLevel < reqLevel) {
+      return {
+        canEvolve: false,
+        reason: `${entry.name} (${entry.species}) must reach Level ${reqLevel} to evolve (Current Lv.${petLevel}).`
+      };
+    }
+
+    // Music theory prerequisite: passing Conservatory Theory Exam (Tier 1 Certification)
+    const passedExam = this.state.completedTheoryDrills.length >= 1;
+    if (!passedExam) {
+      return {
+        canEvolve: false,
+        requiresTheory: true,
+        requiredTheoryTier: 1,
+        reason: `Passing a Conservatory Theory Exam (Tier 1 Certification) is required to unlock pet evolution!`
+      };
+    }
+
+    return { canEvolve: true };
+  }
+
+  public evolvePet(petId: string): boolean {
+    const check = this.canEvolvePet(petId);
+    if (!check.canEvolve) return false;
+
+    const entry = this.state.harmoniDex.find(d => d.id === petId || d.species === petId || d.name === petId)!;
+    const prevSpecies = entry.species;
+    const prevSprite = entry.sprite;
+    const newSpecies = entry.evolvesTo!;
+    const newSprite = entry.evolvedSprite || '✨';
+
+    entry.species = newSpecies;
+    entry.sprite = newSprite;
+    entry.evolutionStage = 2;
+    if (entry.evolvedLore) {
+      entry.description = entry.evolvedLore;
+    }
+
+    // Apply stat boosts to bonded musicians
+    const owners = this.state.ensemble.members.filter(m => m.pet.id === entry.id || m.pet.species === prevSpecies || m.pet.name === entry.name);
+    owners.forEach(owner => {
+      owner.pet.species = newSpecies;
+      owner.pet.sprite = newSprite;
+      if (entry.evolvedStatsBonus) {
+        if (entry.evolvedStatsBonus.technique) owner.stats.technique = Math.min(100, owner.stats.technique + entry.evolvedStatsBonus.technique);
+        if (entry.evolvedStatsBonus.toneQuality) owner.stats.toneQuality = Math.min(100, owner.stats.toneQuality + entry.evolvedStatsBonus.toneQuality);
+        if (entry.evolvedStatsBonus.tempoStability) owner.stats.tempoStability = Math.min(100, owner.stats.tempoStability + entry.evolvedStatsBonus.tempoStability);
+        if (entry.evolvedStatsBonus.sightReading) owner.stats.sightReading = Math.min(100, owner.stats.sightReading + entry.evolvedStatsBonus.sightReading);
+      }
+    });
+
+    // Also update recruited musicians
+    this.state.recruitedMusicians.forEach(rm => {
+      if (rm.pet.id === entry.id || rm.pet.species === prevSpecies || rm.pet.name === entry.name) {
+        rm.pet.species = newSpecies;
+        rm.pet.sprite = newSprite;
+      }
+    });
+
+    this.state.lastEvolvedPet = {
+      prevSpecies,
+      prevSprite,
+      newSpecies,
+      newSprite,
+      petName: entry.name,
+      lore: entry.evolvedLore || entry.description
+    };
+
+    soundEngine.playFanfare();
+    return true;
+  }
+
+  public checkQuestTheoryPrerequisites(questId: string): boolean {
+    const q = this.state.quests.find(quest => quest.id === questId);
+    if (!q || !q.requiredTheoryTier) return true;
+    return this.hasPassedTheoryTier(q.requiredTheoryTier);
   }
 
   /* ---------------- DIALOGUE SYSTEM ---------------- */
@@ -2255,16 +2602,11 @@ export class HarmoniaGameEngine {
       instrumentName: dexEntry.instrumentName,
       instrumentId: dexEntry.instrumentId,
       leitmotifSound: dexEntry.instrumentId,
-      color: dexEntry.section === 'strings' ? '#ec4899' : (dexEntry.section === 'woodwinds' ? '#10b981' : (dexEntry.section === 'brass' ? '#eab308' : '#8b5cf6'))
+      color: dexEntry.section === 'strings' ? '#ec4899' : (dexEntry.section === 'woodwinds' ? '#10b981' : (dexEntry.section === 'brass' ? '#eab308' : '#8b5cf6')),
+      rarity: dexEntry.rarity
     };
 
-    const FREQS = [261.63, 329.63, 392.00, 523.25];
-    let noteIndices = [0, 1, 2, 3];
-    if (pet.section === 'woodwinds') noteIndices = [0, 2, 1, 3];
-    else if (pet.section === 'brass') noteIndices = [0, 2, 3, 2];
-    else if (pet.section === 'percussion') noteIndices = [0, 0, 2, 3];
-
-    const targetMelody = noteIndices.map(i => FREQS[i]);
+    const { noteIndices, targetMelody } = generateHarmonizeMelody(pet, dexEntry);
 
     this.state.harmonizeEncounter = {
       pet,
@@ -2272,14 +2614,18 @@ export class HarmoniaGameEngine {
       targetMelody,
       targetNoteIndices: noteIndices,
       currentStep: 0,
-      revealedSteps: [false, false, false, false],
+      revealedSteps: new Array(noteIndices.length).fill(false),
       isPlayingMelody: false,
       playerInputs: [],
       resonanceMeter: 20,
       catchThreshold: 80,
       attemptsRemaining: 5,
+      phase: 'tuning',
+      noteAccuracy: 100,
+      timingAccuracy: 100,
+      sweetSpotCenter: 0.5,
       lastFeedback: undefined,
-      lastFeedbackText: undefined,
+      lastFeedbackText: '🔧 Tuning mode: Test and find matching tones freely with no penalty!',
       concluded: false,
       caught: false
     };
@@ -2343,6 +2689,32 @@ export class HarmoniaGameEngine {
 
   public cheatCompleteAllQuests(): void {
     this.state.quests.forEach(q => { q.completed = true; });
+  }
+
+  public cheatCompleteAllTheory(): void {
+    THEORY_CURRICULUM.forEach(t => {
+      if (!this.state.completedTheoryDrills.includes(t.id)) {
+        this.state.completedTheoryDrills.push(t.id);
+      }
+    });
+    this.state.theoryLevel = 8;
+    this.checkLevelUps();
+  }
+
+  public cheatEvolveActivePet(): boolean {
+    const lead = this.state.ensemble.members[0];
+    if (!lead) return false;
+    // ensure theory prerequisite
+    if (this.state.completedTheoryDrills.length === 0) {
+      this.state.completedTheoryDrills.push(THEORY_CURRICULUM[0].id);
+      this.state.theoryLevel = 2;
+    }
+    // ensure level
+    lead.level = Math.max(lead.level, 3);
+    const petEntry = this.state.harmoniDex.find(d => d.id === lead.pet.id || d.species === lead.pet.species || d.name === lead.pet.name);
+    if (!petEntry) return false;
+    petEntry.bonded = true;
+    return this.evolvePet(petEntry.id);
   }
 
   public cheatClearResetData(): void {

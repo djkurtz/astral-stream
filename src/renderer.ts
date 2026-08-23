@@ -710,71 +710,71 @@ export class HarmoniaRenderer {
     // 2. Zone-Specific Pathways (Audited & Aligned; No Dead Ends)
     if (state.currentZone === 'cavatina_village') {
       const px = 1000 - camX;
-      const py = 720 - camY;
+      const py = 800 - camY;
       const r = 160;
 
-      // Solid Slate Cobblestone Plaza
+      // Solid Slate Cobblestone Plaza precisely centered at (1000, 800)
       ctx.fillStyle = '#334155';
       ctx.beginPath();
       ctx.arc(px, py, r, 0, Math.PI * 2);
       ctx.fill();
 
-      // East Promenade: Straight from Central Plaza to East Gate (No dead ends!)
-      ctx.fillRect(1000 - camX, 840 - camY, 1000, 120);
+      // East Promenade: Straight horizontal conduit from Central Plaza to East Gate at y: 740..860 (Center y=800)
+      ctx.fillRect(1000 - camX, 740 - camY, 1000, 120);
 
-      // Northwest Walkway to Academy & Forge
+      // Northwest Walkway to Academy & Forge (Symmetrically anchored to (1000, 800))
       ctx.beginPath();
-      ctx.moveTo(920 - camX, 640 - camY);
+      ctx.moveTo(920 - camX, 720 - camY);
       ctx.lineTo(380 - camX, 500 - camY);
       ctx.lineTo(730 - camX, 500 - camY);
-      ctx.lineTo(980 - camX, 600 - camY);
+      ctx.lineTo(980 - camX, 680 - camY);
       ctx.closePath();
       ctx.fill();
 
-      // Southwest Walkway to Melodic Rose Tavern
+      // Southwest Walkway to Melodic Rose Tavern (Symmetrically anchored to (1000, 800))
       ctx.beginPath();
-      ctx.moveTo(920 - camX, 800 - camY);
+      ctx.moveTo(920 - camX, 880 - camY);
       ctx.lineTo(540 - camX, 1180 - camY);
       ctx.lineTo(620 - camX, 1220 - camY);
-      ctx.lineTo(980 - camX, 840 - camY);
+      ctx.lineTo(980 - camX, 920 - camY);
       ctx.closePath();
       ctx.fill();
 
-      // Northeast Walkway to Conservatory Library
+      // Northeast Walkway to Conservatory Library (Symmetrically anchored to (1000, 800))
       ctx.beginPath();
-      ctx.moveTo(1080 - camX, 640 - camY);
+      ctx.moveTo(1080 - camX, 720 - camY);
       ctx.lineTo(1370 - camX, 500 - camY);
       ctx.lineTo(1450 - camX, 540 - camY);
-      ctx.lineTo(1020 - camX, 600 - camY);
+      ctx.lineTo(1020 - camX, 680 - camY);
       ctx.closePath();
       ctx.fill();
 
-      // Southeast Walkway to Town Hall & Clocktower
+      // Southeast Walkway to Town Hall & Clocktower (Symmetrically anchored to (1000, 800))
       ctx.beginPath();
-      ctx.moveTo(1080 - camX, 800 - camY);
+      ctx.moveTo(1080 - camX, 880 - camY);
       ctx.lineTo(1400 - camX, 1180 - camY);
       ctx.lineTo(1480 - camX, 1220 - camY);
-      ctx.lineTo(1020 - camX, 840 - camY);
+      ctx.lineTo(1020 - camX, 920 - camY);
       ctx.closePath();
       ctx.fill();
 
-      // Plaza Concentric Pavers
+      // Plaza Concentric Pavers centered at (1000, 800)
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.arc(px, py, 120, 0, Math.PI * 2);
       ctx.stroke();
 
-      // East Road Curbs
+      // East Road Curbs at y: 740 and y: 860
       ctx.strokeStyle = '#94a3b8';
       ctx.lineWidth = 3;
       ctx.beginPath();
-      ctx.moveTo(1000 - camX, 840 - camY);
-      ctx.lineTo(2000 - camX, 840 - camY);
+      ctx.moveTo(1000 - camX, 740 - camY);
+      ctx.lineTo(2000 - camX, 740 - camY);
       ctx.stroke();
       ctx.beginPath();
-      ctx.moveTo(1000 - camX, 960 - camY);
-      ctx.lineTo(2000 - camX, 960 - camY);
+      ctx.moveTo(1000 - camX, 860 - camY);
+      ctx.lineTo(2000 - camX, 860 - camY);
       ctx.stroke();
 
     } else if (state.currentZone === 'woodwind_woods') {
@@ -2744,70 +2744,99 @@ export class HarmoniaRenderer {
     const enc = state.harmonizeEncounter;
     if (!enc) return;
 
+    const isTuning = enc.phase === 'tuning';
+    const isPercussion = enc.pet.section === 'percussion';
+
     // Background Gradient
     const bgGrad = ctx.createRadialGradient(this.width / 2, this.height / 2, 50, this.width / 2, this.height / 2, 700);
-    bgGrad.addColorStop(0, '#064e3b');
-    bgGrad.addColorStop(1, '#022c22');
+    if (isTuning) {
+      bgGrad.addColorStop(0, '#064e3b');
+      bgGrad.addColorStop(1, '#022c22');
+    } else {
+      bgGrad.addColorStop(0, '#1e1b4b');
+      bgGrad.addColorStop(1, '#0f172a');
+    }
     ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, this.width, this.height);
 
-    // Title
-    ctx.fillStyle = '#6ee7b7';
-    ctx.font = 'bold 30px "Cinzel", serif';
+    // Title & Phase Badge
+    ctx.fillStyle = isTuning ? '#6ee7b7' : '#fbbf24';
+    ctx.font = 'bold 24px "Cinzel", serif';
     ctx.textAlign = 'center';
-    ctx.fillText('🐾 Wild Harmonipet Encounter!', this.width / 2, 60);
+    ctx.fillText(isTuning ? '🐾 Harmonipet Tuning & Ear Training' : '⚡ Harmonipet Rhythm Performance', this.width / 2, 88);
 
-    ctx.fillStyle = '#a7f3d0';
-    ctx.font = '16px "Inter", sans-serif';
-    ctx.fillText(`Play harmonic intervals to attune with ${enc.pet.name} the ${enc.pet.species}!`, this.width / 2, 95);
+    // Phase Tag
+    const tagW = 220;
+    const tagH = 24;
+    const tagX = (this.width - tagW) / 2;
+    const tagY = 98;
+    ctx.fillStyle = isTuning ? 'rgba(56, 189, 248, 0.2)' : 'rgba(245, 158, 11, 0.25)';
+    ctx.strokeStyle = isTuning ? '#38bdf8' : '#fbbf24';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(tagX, tagY, tagW, tagH, 12);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = isTuning ? '#38bdf8' : '#fbbf24';
+    ctx.font = 'bold 12px "Inter", sans-serif';
+    ctx.fillText(isTuning ? '🔧 TUNING PHASE (No Penalty)' : '⚡ PERFORMANCE (Timed Rhythm)', this.width / 2, tagY + 16);
+
+    ctx.fillStyle = '#cbd5e1';
+    ctx.font = '13px "Inter", sans-serif';
+    ctx.fillText(isTuning 
+      ? `Test notes freely to discover matching tones for ${enc.pet.name} the ${enc.pet.species}!`
+      : `Play the full ${enc.targetNoteIndices.length}-note phrase in tempo with perfect timing!`,
+      this.width / 2, 136);
 
     // Opponent Wild Creature Platform
     ctx.fillStyle = 'rgba(6, 78, 59, 0.6)';
     ctx.beginPath();
-    ctx.ellipse(880, 280, 160, 50, 0, 0, Math.PI * 2);
+    ctx.ellipse(880, 260, 160, 48, 0, 0, Math.PI * 2);
     ctx.fill();
 
     ctx.font = '72px "Inter", sans-serif';
     ctx.textAlign = 'center';
     const bounce = Math.sin(state.time * 4) * 8;
-    ctx.fillText(enc.pet.sprite, 880, 270 + bounce);
+    ctx.fillText(enc.pet.sprite, 880, 250 + bounce);
 
     // Wild Creature Nameplate
     ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
     ctx.strokeStyle = enc.pet.color;
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.roundRect(720, 120, 320, 75, 12);
+    ctx.roundRect(720, 130, 320, 75, 12);
     ctx.fill();
     ctx.stroke();
 
     ctx.fillStyle = '#f8fafc';
     ctx.font = 'bold 18px "Inter", sans-serif';
     ctx.textAlign = 'left';
-    ctx.fillText(`Wild ${enc.pet.name}`, 740, 150);
+    ctx.fillText(`Wild ${enc.pet.name}`, 740, 160);
 
     ctx.fillStyle = enc.pet.color;
     ctx.font = '14px "Inter", sans-serif';
-    ctx.fillText(`${enc.pet.species} (${enc.pet.section.toUpperCase()})`, 740, 175);
+    const rarityLabel = enc.pet.rarity ? ` • ${enc.pet.rarity.toUpperCase()}` : '';
+    ctx.fillText(`${enc.pet.species} (${enc.pet.section.toUpperCase()}${rarityLabel})`, 740, 185);
 
     // Player Platform
     ctx.fillStyle = 'rgba(6, 78, 59, 0.6)';
     ctx.beginPath();
-    ctx.ellipse(360, 420, 160, 50, 0, 0, Math.PI * 2);
+    ctx.ellipse(360, 380, 160, 48, 0, 0, Math.PI * 2);
     ctx.fill();
 
     const player = state.ensemble.members[0];
     ctx.font = '64px "Inter", sans-serif';
-    ctx.fillText(player.avatar, 340, 410);
+    ctx.fillText(player.avatar, 340, 370);
     ctx.font = '48px "Inter", sans-serif';
-    ctx.fillText(player.pet.sprite, 410, 415 + Math.cos(state.time * 4) * 6);
+    ctx.fillText(player.pet.sprite, 410, 375 + Math.cos(state.time * 4) * 6);
 
     // Central Resonance Meter
-    const barW = 500;
+    const barW = 520;
     const barH = 26;
     const barX = (this.width - barW) / 2;
-    const barY = 350;
-    this.drawBar(ctx, barX, barY, barW, barH, enc.resonanceMeter, 100, '#10b981', `Resonance: ${enc.resonanceMeter}% (Threshold: ${enc.catchThreshold}%)`);
+    const barY = 320;
+    this.drawBar(ctx, barX, barY, barW, barH, enc.resonanceMeter, 100, isTuning ? '#10b981' : '#f59e0b', `Resonance: ${enc.resonanceMeter}% (Threshold: ${enc.catchThreshold}%)`);
 
     // Threshold Marker
     const threshX = barX + (enc.catchThreshold / 100) * barW;
@@ -2818,36 +2847,41 @@ export class HarmoniaRenderer {
     ctx.lineTo(threshX, barY + barH + 4);
     ctx.stroke();
 
-    // Melody Sequence Call & Response Display (Hidden, challenging, ear-training!)
-    const noteNames = ['C4', 'E4', 'G4', 'C5'];
+    // Melody Sequence Call & Response Display (Adapts to variable note count & percussion vs pitch)
+    const noteNames = isPercussion 
+      ? ['Snare', 'Bass Drum', 'Marimba', 'Bell / Crash']
+      : ['C4', 'E4', 'G4', 'C5'];
+    
     const targetPills = enc.targetNoteIndices.map((nIdx, idx) => {
       const isRevealed = enc.revealedSteps && enc.revealedSteps[idx];
       const isCurrent = idx === enc.currentStep;
-      const text = isRevealed ? `Note ${idx + 1}: ${noteNames[nIdx]} ♪` : (isCurrent ? `Note ${idx + 1}: [ ? ]` : `Note ${idx + 1}: ?`);
+      const text = isRevealed 
+        ? `${noteNames[nIdx]} ♪` 
+        : (isCurrent ? `[ ? ]` : `?`);
       return { text, isRevealed, isCurrent };
     });
 
-    const seqW = 620;
+    const seqW = Math.max(640, enc.targetNoteIndices.length * 85 + 120);
     const seqH = 44;
     const seqX = (this.width - seqW) / 2;
-    const seqY = 390;
+    const seqY = 360;
 
     ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
-    ctx.strokeStyle = '#34d399';
+    ctx.strokeStyle = isTuning ? '#34d399' : '#f59e0b';
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.roundRect(seqX, seqY, seqW, seqH, 8);
     ctx.fill();
     ctx.stroke();
 
-    ctx.fillStyle = '#6ee7b7';
+    ctx.fillStyle = isTuning ? '#6ee7b7' : '#fbbf24';
     ctx.font = 'bold 13px "Inter", sans-serif';
     ctx.textAlign = 'left';
-    ctx.fillText('🎵 Melody:', seqX + 16, seqY + 27);
+    ctx.fillText(isPercussion ? '🥁 Phrase:' : '🎵 Melody:', seqX + 14, seqY + 27);
 
-    const pillStartX = seqX + 100;
-    const pillGap = 8;
-    const pillW = (seqW - 115 - (targetPills.length - 1) * pillGap) / targetPills.length;
+    const pillStartX = seqX + 90;
+    const pillGap = 6;
+    const pillW = (seqW - 105 - (targetPills.length - 1) * pillGap) / targetPills.length;
 
     targetPills.forEach((p, idx) => {
       const px = pillStartX + idx * (pillW + pillGap);
@@ -2865,39 +2899,96 @@ export class HarmoniaRenderer {
       ctx.fillText(p.text, px + pillW / 2, seqY + 26);
     });
 
-    // Replay Melody / Status Button
-    const repW = 240;
-    const repH = 36;
-    const repX = (this.width - repW) / 2;
-    const repY = 442;
+    // Control Buttons Row (Replay & Phase Switch)
+    const btnW = 230;
+    const btnH = 36;
+    const gapBtn = 20;
+    const totalBtnW = btnW * 2 + gapBtn;
+    const repX = (this.width - totalBtnW) / 2;
+    const repY = 415;
+    const phaseX = repX + btnW + gapBtn;
+
+    // [R] Replay Button
     ctx.fillStyle = enc.isPlayingMelody ? 'rgba(245, 158, 11, 0.25)' : 'rgba(14, 165, 233, 0.25)';
     ctx.strokeStyle = enc.isPlayingMelody ? '#f59e0b' : '#38bdf8';
     ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.roundRect(repX, repY, repW, repH, 8);
+    ctx.roundRect(repX, repY, btnW, btnH, 8);
     ctx.fill();
     ctx.stroke();
 
     ctx.fillStyle = enc.isPlayingMelody ? '#fbbf24' : '#38bdf8';
     ctx.font = 'bold 13px "Inter", sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText(enc.isPlayingMelody ? '🎶 Playing Creature Call...' : '👂 [R] Replay Melody Tune', repX + repW / 2, repY + 23);
+    ctx.fillText(enc.isPlayingMelody ? '🎶 Playing Call...' : '👂 [R] Replay Tune', repX + btnW / 2, repY + 23);
 
-    // Feedback or Attempts Banner
+    // Phase Switch Button
+    ctx.fillStyle = isTuning ? 'rgba(16, 185, 129, 0.3)' : 'rgba(56, 189, 248, 0.25)';
+    ctx.strokeStyle = isTuning ? '#34d399' : '#38bdf8';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(phaseX, repY, btnW, btnH, 8);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = isTuning ? '#6ee7b7' : '#38bdf8';
+    ctx.font = 'bold 13px "Inter", sans-serif';
+    ctx.fillText(isTuning ? '✨ [SPACE] Begin Performance' : '🔧 [T] Back to Tuning', phaseX + btnW / 2, repY + 23);
+
+    // Timing Bar (Performance Phase only)
+    if (!isTuning) {
+      const rhythmW = 400;
+      const rhythmH = 14;
+      const rhythmX = (this.width - rhythmW) / 2;
+      const rhythmY = 460;
+
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+      ctx.strokeStyle = '#475569';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.roundRect(rhythmX, rhythmY, rhythmW, rhythmH, 7);
+      ctx.fill();
+      ctx.stroke();
+
+      // Sweet spot center
+      const swCenter = enc.sweetSpotCenter ?? 0.5;
+      const swW = rhythmW * 0.3;
+      const swX = rhythmX + (swCenter * rhythmW) - (swW / 2);
+      ctx.fillStyle = 'rgba(16, 185, 129, 0.4)';
+      ctx.fillRect(Math.max(rhythmX, swX), rhythmY, Math.min(swW, rhythmW), rhythmH);
+
+      // Sweep indicator
+      const tempoBPM = 120;
+      const sweepPos = state.time > 0 ? Math.abs(((state.time * (tempoBPM / 60) * 0.8) % 2) - 1) : 0.5;
+      const sweepX = rhythmX + sweepPos * rhythmW;
+      ctx.fillStyle = '#fbbf24';
+      ctx.fillRect(sweepX - 2, rhythmY - 3, 4, rhythmH + 6);
+    }
+
+    // Feedback or Status Banner
+    const statusY = isTuning ? 470 : 495;
     if (enc.lastFeedbackText) {
-      ctx.fillStyle = enc.lastFeedback === 'PERFECT' ? '#34d399' : '#f87171';
+      ctx.fillStyle = enc.lastFeedback === 'PERFECT' ? '#34d399' : (enc.lastFeedback === 'DISSONANCE' ? '#f87171' : '#38bdf8');
       ctx.font = 'bold 14px "Inter", sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(enc.lastFeedbackText, this.width / 2, 492);
+      ctx.fillText(enc.lastFeedbackText, this.width / 2, statusY);
     } else {
       ctx.fillStyle = '#94a3b8';
       ctx.font = '13px "Inter", sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(`Auditory Attempts: ${enc.attemptsRemaining} / 5  •  Match pitch sequence by ear!`, this.width / 2, 492);
+      ctx.fillText(isTuning 
+        ? 'Tuning Mode: Press 1-4 to discover notes freely.' 
+        : `Attempts Remaining: ${enc.attemptsRemaining} / 5  •  Execute full phrase in rhythm!`, 
+        this.width / 2, statusY);
     }
 
-    // Note Action Buttons (Uniform, no target giveaway!)
-    const notes = [
+    // Note Action Buttons (Distinct percussions vs melodic pitches)
+    const notes = isPercussion ? [
+      { label: '[1] Snare Tap', sub: 'Crisp Snare Snap 🥁' },
+      { label: '[2] Bass Drum', sub: 'Low-End Thud 🪘' },
+      { label: '[3] Marimba', sub: 'Rosewood Mallet 🪵' },
+      { label: '[4] Crash / Bell', sub: 'Resonant Chime 🔔' }
+    ] : [
       { label: '[1] C4 (Root)', sub: 'Foundation' },
       { label: '[2] E4 (Third)', sub: 'Harmonic Warmth' },
       { label: '[3] G4 (Fifth)', sub: 'Consonance' },
@@ -2913,14 +3004,14 @@ export class HarmoniaRenderer {
     notes.forEach((n, idx) => {
       const cx = startX + idx * (cardW + gap);
       ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
-      ctx.strokeStyle = '#34d399';
+      ctx.strokeStyle = isTuning ? '#38bdf8' : '#34d399';
       ctx.lineWidth = 1.5;
       ctx.beginPath();
       ctx.roundRect(cx, cardY, cardW, cardH, 10);
       ctx.fill();
       ctx.stroke();
 
-      ctx.fillStyle = '#6ee7b7';
+      ctx.fillStyle = isTuning ? '#7dd3fc' : '#6ee7b7';
       ctx.font = 'bold 16px "Inter", sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText(n.label, cx + cardW / 2, cardY + 32);

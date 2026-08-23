@@ -37,11 +37,11 @@ describe('Harmonia: Pokémon-Style Arc (HarmoniDex, Wild Bonding & League Badges
     expect(state.harmonizeEncounter).not.toBeNull();
     expect(state.harmonizeEncounter?.pet.species).toBe('Vivace Hare');
 
-    // Play cadence notes to fill resonance meter
+    // Play cadence notes in performance phase to fill resonance meter
+    engine.startPerformancePhase();
     state.harmonizeEncounter!.isPlayingMelody = false;
-    engine.playHarmonizeNote(0);
-    engine.playHarmonizeNote(1);
-    engine.playHarmonizeNote(2);
+    const targetNotes = state.harmonizeEncounter!.targetNoteIndices;
+    targetNotes.forEach(idx => engine.playHarmonizeNote(idx));
 
     expect(state.harmonizeEncounter?.concluded).toBe(true);
     expect(state.harmonizeEncounter?.caught).toBe(true);

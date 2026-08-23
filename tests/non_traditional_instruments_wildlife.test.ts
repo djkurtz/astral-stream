@@ -106,9 +106,11 @@ describe('Non-Traditional Instruments & Wild Harmonipet Encounters', () => {
     expect(state.harmonizeEncounter?.instrumentId).toBe('cannon');
     expect(state.harmonizeEncounter?.pet.species).toBe('Bombardier Beetle');
 
-    // Complete cadence to bond with the pet
+    // Complete cadence in performance phase to bond with the pet
+    engine.startPerformancePhase();
     state.harmonizeEncounter!.isPlayingMelody = false;
     const targetSteps = state.harmonizeEncounter!.targetNoteIndices;
+    expect(targetSteps.length).toBe(8); // Legendary/Exotic has 8 notes
     targetSteps.forEach(noteIdx => {
       engine.playHarmonizeNote(noteIdx);
     });

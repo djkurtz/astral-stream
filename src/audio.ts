@@ -507,6 +507,40 @@ export class HarmoniaSoundEngine {
     osc.stop(t + (accuracy === 'perfect' ? 0.2 : 0.15));
   }
 
+  /**
+   * Synthesize distinct percussion timbres for Harmonipet encounters (no pitch frequencies)
+   * 0: Snare Tap (snare_kit)
+   * 1: Bass Drum Thud (timpani / kick)
+   * 2: Marimba Strike (marimba)
+   * 3: Crash Cymbal / Cannon / Bell (glockenspiel or cannon)
+   */
+  public playHarmonizePercussion(index: number, velocity: number = 0.85, specialInstrument?: InstrumentId): void {
+    if (this.isMuted || !this.ensureContext()) return;
+    switch (index) {
+      case 0:
+        // Snare Tap
+        this.playInstrumentNote('snare_kit', 200, 0.15, velocity);
+        break;
+      case 1:
+        // Bass Drum Thud (deep punchy kettledrum fundamental)
+        this.playInstrumentNote('timpani', 75, 0.45, velocity * 1.1);
+        break;
+      case 2:
+        // Marimba Strike (woody resonance)
+        this.playInstrumentNote('marimba', 440, 0.25, velocity);
+        break;
+      case 3:
+      default:
+        // Crash Cymbal / Cannon / Bell
+        if (specialInstrument === 'cannon') {
+          this.playInstrumentNote('cannon', 60, 0.6, velocity * 1.2);
+        } else {
+          this.playInstrumentNote('glockenspiel', 1760, 0.5, velocity);
+        }
+        break;
+    }
+  }
+
   public playFanfare(): void {
     if (this.isMuted || !this.ensureContext()) return;
     const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6

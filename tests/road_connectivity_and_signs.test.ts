@@ -200,12 +200,12 @@ describe('Road Connectivity, Bidirectional Transitions & Signpost Topology', () 
     });
 
     it('should verify transition bounds correspond with physical wall gaps or gate openings', () => {
-      // Cavatina Village -> East Gate (x: 1920..2000, y: 820..980)
+      // Cavatina Village -> East Gate (x: 1920..2000, y: 720..880)
       const cavatinaEastTr = WORLD_ZONES.cavatina_village.transitions.find(tr => tr.targetZone === 'west_wilderness')!;
-      expect(cavatinaEastTr.bounds).toEqual({ x: 1920, y: 820, w: 80, h: 160 });
+      expect(cavatinaEastTr.bounds).toEqual({ x: 1920, y: 720, w: 80, h: 160 });
       const cavatinaGate = WORLD_ZONES.cavatina_village.obstacles.find(o => o.type === 'gate');
       expect(cavatinaGate).toBeDefined();
-      expect(cavatinaGate?.y).toBe(820);
+      expect(cavatinaGate?.y).toBe(720);
       expect(cavatinaGate?.h).toBe(160);
 
       // Woodwind Woods -> West Gate (x: 0..80, y: 820..980)

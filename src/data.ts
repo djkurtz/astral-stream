@@ -1747,22 +1747,22 @@ export const WORLD_ZONES: Record<string, WorldZone> = {
     themeColor: '#38bdf8',
     defaultSpawn: { x: 1000, y: 920, dir: 'down' },
     transitions: [
-      { id: 'tr_cavatina_to_west_wilds', targetZone: 'west_wilderness', targetSpawn: { x: 120, y: 900, dir: 'right' }, bounds: { x: 1920, y: 820, w: 80, h: 160 }, promptText: '➡️ East Gate: Into Lyre Valley (West Wilderness)' }
+      { id: 'tr_cavatina_to_west_wilds', targetZone: 'west_wilderness', targetSpawn: { x: 120, y: 800, dir: 'right' }, bounds: { x: 1920, y: 720, w: 80, h: 160 }, promptText: '➡️ East Gate: Into Lyre Valley (West Wilderness)' }
     ],
     obstacles: [
       { type: 'building', buildingType: 'wall', x: 0, y: 0, w: 2000, h: 60, name: 'North Village Wall' },
       { type: 'building', buildingType: 'wall', x: 0, y: 1540, w: 2000, h: 60, name: 'South Melodic River' },
       { type: 'building', buildingType: 'wall', x: 0, y: 0, w: 60, h: 1600, name: 'West Colonnade Cliff' },
-      { type: 'building', buildingType: 'wall', x: 1940, y: 0, w: 60, h: 820, name: 'East Boundary Woods Top' },
-      { type: 'building', buildingType: 'wall', x: 1940, y: 980, w: 60, h: 620, name: 'East Boundary Woods Bottom' },
-      { type: 'gate', buildingType: 'gate', x: 1940, y: 820, w: 60, h: 160, name: 'East Forest Gate', signIcon: '➡️' },
+      { type: 'building', buildingType: 'wall', x: 1940, y: 0, w: 60, h: 720, name: 'East Boundary Woods Top' },
+      { type: 'building', buildingType: 'wall', x: 1940, y: 880, w: 60, h: 720, name: 'East Boundary Woods Bottom' },
+      { type: 'gate', buildingType: 'gate', x: 1940, y: 720, w: 60, h: 160, name: 'East Forest Gate', signIcon: '➡️' },
       // Village Buildings
       { type: 'building', buildingType: 'academy', x: 220, y: 280, w: 320, h: 220, name: 'Cavatina Music Academy', signIcon: '🎼', roofColor: '#1e3a8a' },
       { type: 'building', buildingType: 'forge', x: 600, y: 280, w: 260, h: 220, name: "Master Luthier Marco's Forge", signIcon: '🎻', roofColor: '#b45309' },
       { type: 'building', buildingType: 'library', x: 1200, y: 280, w: 340, h: 220, name: 'Conservatory Library & Archives', signIcon: '📖', roofColor: '#065f46' },
       { type: 'building', buildingType: 'tavern', x: 380, y: 960, w: 320, h: 220, name: 'The Melodic Rose Tavern & Inn', signIcon: '🍺', roofColor: '#991b1b' },
       { type: 'building', buildingType: 'clocktower', x: 1240, y: 960, w: 320, h: 220, name: 'Cavatina Town Hall & Clocktower', signIcon: '⏰', roofColor: '#4c1d95' },
-      { type: 'circle', x: 1000, y: 720, radius: 64, name: 'Clef Fountain' }
+      { type: 'circle', x: 1000, y: 800, radius: 64, name: 'Clef Fountain' }
     ]
   },
 
@@ -1775,16 +1775,16 @@ export const WORLD_ZONES: Record<string, WorldZone> = {
     height: 1800,
     ambientBgm: 'west_wilderness',
     themeColor: '#0ea5e9',
-    defaultSpawn: { x: 120, y: 900, dir: 'right' },
+    defaultSpawn: { x: 120, y: 800, dir: 'right' },
     transitions: [
-      { id: 'tr_ww_to_cavatina', targetZone: 'cavatina_village', targetSpawn: { x: 1860, y: 900, dir: 'left' }, bounds: { x: 0, y: 820, w: 80, h: 160 }, promptText: '⬅️ West Trail: Back to Cavatina Village' },
+      { id: 'tr_ww_to_cavatina', targetZone: 'cavatina_village', targetSpawn: { x: 1860, y: 800, dir: 'left' }, bounds: { x: 0, y: 720, w: 80, h: 160 }, promptText: '⬅️ West Trail: Back to Cavatina Village' },
       { id: 'tr_ww_to_grand_hall', targetZone: 'grand_hall', targetSpawn: { x: 140, y: 1000, dir: 'right' }, bounds: { x: 720, y: 820, w: 80, h: 160 }, promptText: '➡️ East Highway: To The Central City (Grand Symphony Hub)' }
     ],
     obstacles: [
       { type: 'box', x: 0, y: 0, w: 800, h: 60, name: 'Northern Valley Ridge' },
       { type: 'box', x: 0, y: 1740, w: 800, h: 60, name: 'Southern Valley Stream' },
-      { type: 'box', x: 0, y: 0, w: 60, h: 820, name: 'West Valley Thicket Top' },
-      { type: 'box', x: 0, y: 980, w: 60, h: 820, name: 'West Valley Thicket Bottom' },
+      { type: 'box', x: 0, y: 0, w: 60, h: 720, name: 'West Valley Thicket Top' },
+      { type: 'box', x: 0, y: 880, w: 60, h: 920, name: 'West Valley Thicket Bottom' },
       { type: 'box', x: 740, y: 0, w: 60, h: 820, name: 'East Grand Archwoods Top' },
       { type: 'box', x: 740, y: 980, w: 60, h: 820, name: 'East Grand Archwoods Bottom' },
       // North & South Exploration Obstacles
@@ -2239,7 +2239,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     name: 'Village Directional Signpost',
     title: 'Read Map Guide [SPACE]',
     x: 1000,
-    y: 830,
+    y: 890,
     zone: 'cavatina_village',
     isProp: true,
     propType: 'signpost',
@@ -4704,67 +4704,72 @@ export const PERFORMANCE_VENUES: PerformanceVenue[] = [
 export const INITIAL_GAME_QUESTS: GameQuest[] = [
   {
     id: 'quest_ch1',
-    title: 'Chapter: The Western Strings Mastery',
+    title: 'Chapter 1: The Western Strings Mastery',
     chapter: 1,
     type: 'main',
     section: 'strings',
-    description: 'Master the expressive bowings and lyrical cantabile of Strings in Cavatina Village. Hone your technique in the Practice Shed, recruit a local prodigy (Clara or Maya) to form your Duet, and triumph at the Village Gazebo against Busker Timmy.',
-    objective: 'Recruit Clara or Maya in Cavatina Village and defeat Busker Timmy at the Village Gazebo.',
+    description: 'Master the expressive bowings and lyrical cantabile of Strings in Cavatina Village. Pass Conservatory Theory Tier 1 (Pitch Fundamentals) at the academy lectern, recruit a local prodigy (Clara or Maya) to form your Duet, and triumph at the Village Gazebo against Busker Timmy.',
+    objective: 'Pass Theory Tier 1 (Pitch Fundamentals), recruit Clara or Maya, and defeat Busker Timmy at the Village Gazebo.',
     rewardGold: 200,
     rewardSparks: 20,
     rewardStars: 1,
-    completed: false
+    completed: false,
+    requiredTheoryTier: 1
   },
   {
     id: 'quest_ch2',
-    title: 'Chapter: The Sylvan Woodwind Mastery',
+    title: 'Chapter 2: The Sylvan Woodwind Mastery',
     chapter: 2,
     type: 'main',
     section: 'woodwinds',
-    description: 'Traverse the eastern wilderness of Breeze Glade into the sylvan canopies of Woodwind Woods. Master rapid woodwind staccato and breath control, recruit a woodwind prodigy (Oliver, Chloe, or Devon), and prove your syncopation against Leo’s Whispering Canopy Trio.',
-    objective: 'Recruit Oliver or Chloe in the East and defeat Leo’s Whispering Canopy Trio in Woodwind Woods.',
+    description: 'Traverse the eastern wilderness into Woodwind Woods. Pass Conservatory Theory Tier 2 (Key Signatures), recruit a woodwind prodigy (Oliver, Chloe, or Devon), and prove your syncopation against Leo’s Whispering Canopy Trio.',
+    objective: 'Pass Theory Tier 2 (Key Signatures), recruit Oliver or Chloe, and defeat Leo’s Whispering Canopy Trio in Woodwind Woods.',
     rewardGold: 450,
     rewardSparks: 35,
     rewardStars: 2,
-    completed: false
+    completed: false,
+    requiredTheoryTier: 2
   },
   {
     id: 'quest_ch3',
-    title: 'Chapter: The Gilded Brass Mastery',
+    title: 'Chapter 3: The Gilded Brass Mastery',
     chapter: 3,
     type: 'main',
     section: 'brass',
-    description: 'March north through the red-rock steppes of Echo Canyon into the fortified ramparts of The Brass Citadel. Master embouchure and heroic fanfare projection, recruit a brass prodigy (Jax or Sam), and conquer Baroness Vesta’s Citadel Fanfare.',
-    objective: 'Recruit Jax or Sam and defeat Baroness Vesta’s Gilded Citadel Fanfare in The Brass Citadel.',
+    description: 'March north into the fortified ramparts of The Brass Citadel. Pass Conservatory Theory Tier 3 (Time Signatures & Subdivisions), recruit a brass prodigy (Jax or Sam), and conquer Baroness Vesta’s Citadel Fanfare.',
+    objective: 'Pass Theory Tier 3 (Time Signatures), recruit Jax or Sam, and defeat Baroness Vesta’s Gilded Citadel Fanfare in The Brass Citadel.',
     rewardGold: 750,
     rewardSparks: 50,
     rewardStars: 3,
-    completed: false
+    completed: false,
+    requiredTheoryTier: 3
   },
   {
     id: 'quest_ch4',
-    title: 'Chapter: The Mountain Percussion Mastery',
+    title: 'Chapter 4: The Mountain Percussion Mastery',
     chapter: 4,
     type: 'main',
     section: 'percussion',
-    description: 'Descend south into the volcanic caldera of Rumble Gorge and the stepped ghats of Percussion Peaks. Master polyrhythms and lock into an unbreakable pocket, recruit a rhythm prodigy (Rita or Ren), and conquer Chieftain Ronin’s Mountain Thunder Corps.',
-    objective: 'Recruit Rita or Ren and defeat Chieftain Ronin’s Mountain Thunder Corps at the Mountbeat Caldera Stage.',
+    description: 'Descend south into Rumble Gorge and Percussion Peaks. Pass Conservatory Theory Tier 4 (Advanced Intervals & Tritones), recruit a rhythm prodigy (Rita or Ren), and conquer Chieftain Ronin’s Mountain Thunder Corps.',
+    objective: 'Pass Theory Tier 4 (Intervals & Tritones), recruit Rita or Ren, and defeat Chieftain Ronin’s Mountain Thunder Corps.',
     rewardGold: 1200,
     rewardSparks: 75,
     rewardStars: 4,
-    completed: false
+    completed: false,
+    requiredTheoryTier: 4
   },
   {
     id: 'quest_ch5',
     title: 'Grand Finale: The Solstice Symphony',
     chapter: 5,
     type: 'main',
-    description: 'With all four cardinal section masteries conquered, enter The Central City (The Grand Symphony Hub). Meet Conservatory Arranger Nico at The Maestro’s Forum, assemble an 8-piece chamber orchestra uniting all 4 instrument families, and perform the Ode to Harmony for the Solstice Council.',
-    objective: 'Recruit Nico in Central City and defeat Aurelius & The Harmonia Youth Symphony at The Grand Symphony Hall.',
+    description: 'Enter The Central City. Pass Conservatory Theory Tier 5 (Triad Inversions & Harmonies), assemble an 8-piece chamber orchestra uniting all 4 instrument families with Arranger Nico, and perform the Ode to Harmony for the Solstice Council.',
+    objective: 'Pass Theory Tier 5 (Triads & Chords), recruit Nico in Central City, and defeat Aurelius & The Harmonia Youth Symphony.',
     rewardGold: 2500,
     rewardSparks: 150,
     rewardStars: 5,
-    completed: false
+    completed: false,
+    requiredTheoryTier: 5
   },
   {
     id: 'quest_side_musicbox',
@@ -4776,19 +4781,21 @@ export const INITIAL_GAME_QUESTS: GameQuest[] = [
     rewardGold: 150,
     rewardSparks: 10,
     rewardStars: 0,
-    completed: false
+    completed: false,
+    requiredTheoryTier: 1
   },
   {
     id: 'quest_rescue_harmonidex',
     title: 'Familiar Rescue: Melodic Wildlife Bonding',
     chapter: 2,
     type: 'rescue',
-    description: 'Wild Harmonipets in the wilderness biomes (Lyre Valley, Breeze Glade, Echo Canyon, Rumble Gorge) respond to pure pitch intervals. Bond with a wild creature using your instrument to register them in your HarmoniDex.',
+    description: 'Wild Harmonipets in the wilderness biomes respond to pure pitch intervals. Apply your ear training to harmonize with and bond a wild creature to register them in your HarmoniDex.',
     objective: 'Successfully harmonize with and bond any wild Harmonipet in the wilderness corridors.',
     rewardGold: 300,
     rewardSparks: 25,
     rewardStars: 1,
-    completed: false
+    completed: false,
+    requiredTheoryTier: 1
   },
   {
     id: 'quest_side_theory_scholar',
@@ -4800,19 +4807,21 @@ export const INITIAL_GAME_QUESTS: GameQuest[] = [
     rewardGold: 350,
     rewardSparks: 30,
     rewardStars: 1,
-    completed: false
+    completed: false,
+    requiredTheoryTier: 1
   },
   {
     id: 'quest_side_luthier_artisan',
     title: 'Artisan Commission: The Luthier’s Craft',
     chapter: 3,
     type: 'side',
-    description: 'Master Luthier Marco in Cavatina, Master Reed in Woodwinds, and Master Vulcan in the Citadel forge signature instrument artifacts that enhance technique, tone, and tempo.',
-    objective: 'Gather Notes and Inspiration Sparks to forge an Instrument Artifact at any regional luthier forge.',
+    description: 'Master Luthier Marco in Cavatina, Master Reed in Woodwinds, and Master Vulcan in the Citadel forge signature instrument artifacts requiring acoustic harmonic knowledge.',
+    objective: 'Pass Theory Tier 2 and gather Notes and Inspiration Sparks to forge an Instrument Artifact at any regional luthier forge.',
     rewardGold: 500,
     rewardSparks: 40,
     rewardStars: 2,
-    completed: false
+    completed: false,
+    requiredTheoryTier: 2
   },
   {
     id: 'quest_restoration_vistas',
@@ -4824,7 +4833,8 @@ export const INITIAL_GAME_QUESTS: GameQuest[] = [
     rewardGold: 600,
     rewardSparks: 50,
     rewardStars: 2,
-    completed: false
+    completed: false,
+    requiredTheoryTier: 3
   },
   {
     id: 'quest_gig_festival_circuit',
@@ -4836,7 +4846,8 @@ export const INITIAL_GAME_QUESTS: GameQuest[] = [
     rewardGold: 1000,
     rewardSparks: 80,
     rewardStars: 3,
-    completed: false
+    completed: false,
+    requiredTheoryTier: 4
   }
 ];
 
@@ -4845,7 +4856,7 @@ export const INITIAL_QUESTS = INITIAL_GAME_QUESTS;
 /* ---------------- THE HARMONIDEX (16 CREATURE BESTIARY) ---------------- */
 
 export const INITIAL_HARMONIDEX: HarmoniDexEntry[] = [
-  // Strings (4 Species)
+  // Strings (6 Species)
   {
     id: 'dex_swan',
     species: 'Allegro Swan',
@@ -4853,13 +4864,17 @@ export const INITIAL_HARMONIDEX: HarmoniDexEntry[] = [
     section: 'strings',
     instrumentId: 'violin',
     instrumentName: 'Violin',
-    sprite: '🦢',
+    sprite: '🐣',
     description: 'An elegant avian familiar known for soaring lyrical cantilenas and razor-sharp spiccato bowing.',
     discovered: true,
     bonded: true,
     evolutionStage: 1,
     evolvesTo: 'Symphonic Swan',
-    evolutionLevel: 20
+    evolutionLevel: 3,
+    evolvedSprite: '🦢',
+    evolvedLore: 'Having blossomed into a magnificent Symphonic Swan, its soaring vibrato creates an angelic acoustic aura that fills concert halls with transcendental resonance.',
+    evolvedStatsBonus: { technique: 8, toneQuality: 10 },
+    rarity: 'common'
   },
   {
     id: 'dex_hare',
@@ -4874,7 +4889,11 @@ export const INITIAL_HARMONIDEX: HarmoniDexEntry[] = [
     bonded: false,
     evolutionStage: 1,
     evolvesTo: 'Virtuoso Hare',
-    evolutionLevel: 20
+    evolutionLevel: 3,
+    evolvedSprite: '🐇🪕',
+    evolvedLore: 'With lightning paw dexterity, the Virtuoso Hare can execute blistering rasgueado strums and folk arpeggios that supercharge tempo stability.',
+    evolvedStatsBonus: { technique: 10, tempoStability: 8 },
+    rarity: 'common'
   },
   {
     id: 'dex_fox',
@@ -4889,7 +4908,11 @@ export const INITIAL_HARMONIDEX: HarmoniDexEntry[] = [
     bonded: false,
     evolutionStage: 1,
     evolvesTo: 'Maestro Fox',
-    evolutionLevel: 20
+    evolutionLevel: 3,
+    evolvedSprite: '🦊🎻',
+    evolvedLore: 'A serene woodland master whose rich cantabile cello lines resonate in deep harmony with the ancient forest trees.',
+    evolvedStatsBonus: { toneQuality: 10, sightReading: 8 },
+    rarity: 'common'
   },
   {
     id: 'dex_dolphin',
@@ -4902,7 +4925,13 @@ export const INITIAL_HARMONIDEX: HarmoniDexEntry[] = [
     description: 'A magical marine creature that plucks shimmering arpeggios that mimic the ocean spray.',
     discovered: false,
     bonded: false,
-    evolutionStage: 1
+    evolutionStage: 1,
+    evolvesTo: 'Siren Dolphin',
+    evolutionLevel: 3,
+    evolvedSprite: '🐬🪕',
+    evolvedLore: 'Plucking celestial harp glissandos across the ocean waves, creating soothing acoustic tides that absorb dissonance and restore harmony.',
+    evolvedStatsBonus: { toneQuality: 8, sightReading: 10 },
+    rarity: 'rare'
   },
   {
     id: 'dex_chameleon',
@@ -4917,7 +4946,11 @@ export const INITIAL_HARMONIDEX: HarmoniDexEntry[] = [
     bonded: false,
     evolutionStage: 1,
     evolvesTo: 'Cembalo Dragon',
-    evolutionLevel: 20
+    evolutionLevel: 3,
+    evolvedSprite: '🐲🎹',
+    evolvedLore: 'Ascended into a legendary Baroque dragon, unleashing rapid-fire harpsichord counterpoint flourishes of pristine acoustic power.',
+    evolvedStatsBonus: { technique: 10, sightReading: 8 },
+    rarity: 'exotic'
   },
   {
     id: 'dex_rock_hedgehog',
@@ -4932,10 +4965,14 @@ export const INITIAL_HARMONIDEX: HarmoniDexEntry[] = [
     bonded: false,
     evolutionStage: 1,
     evolvesTo: 'Heavy Metal Porcupine',
-    evolutionLevel: 20
+    evolutionLevel: 3,
+    evolvedSprite: '🦔🎸',
+    evolvedLore: 'Bristling with electrified distortion quills, shredding legendary overdrive riffs that send electrifying shockwaves across the concert stage!',
+    evolvedStatsBonus: { technique: 12, toneQuality: 8 },
+    rarity: 'exotic'
   },
 
-  // Woodwinds (4 Species)
+  // Woodwinds (5 Species)
   {
     id: 'dex_finch',
     species: 'Piccolo Finch',
@@ -4949,7 +4986,11 @@ export const INITIAL_HARMONIDEX: HarmoniDexEntry[] = [
     bonded: false,
     evolutionStage: 1,
     evolvesTo: 'Seraph Finch',
-    evolutionLevel: 20
+    evolutionLevel: 3,
+    evolvedSprite: '🐦🪈',
+    evolvedLore: 'Soaring into the high atmospheric winds, singing crystalline flute trills that pierce effortlessly through the heaviest orchestral textures.',
+    evolvedStatsBonus: { technique: 10, sightReading: 8 },
+    rarity: 'common'
   },
   {
     id: 'dex_otter',
@@ -4962,7 +5003,13 @@ export const INITIAL_HARMONIDEX: HarmoniDexEntry[] = [
     description: 'A playful aquatic familiar whose double-reed timbre possesses melancholic and noble depth.',
     discovered: false,
     bonded: false,
-    evolutionStage: 1
+    evolutionStage: 1,
+    evolvesTo: 'Virtuoso Otter',
+    evolutionLevel: 3,
+    evolvedSprite: '🦦🪈',
+    evolvedLore: 'Gliding gracefully through misty river glades, weaving expressive oboe soliloquies of profound emotional beauty.',
+    evolvedStatsBonus: { toneQuality: 10, tempoStability: 8 },
+    rarity: 'common'
   },
   {
     id: 'dex_lynx',
@@ -4975,7 +5022,13 @@ export const INITIAL_HARMONIDEX: HarmoniDexEntry[] = [
     description: 'A sleek predator capable of gliding effortlessly between liquid low chalumeau and bright clarion registers.',
     discovered: false,
     bonded: false,
-    evolutionStage: 1
+    evolutionStage: 1,
+    evolvesTo: 'Clarinet Panther',
+    evolutionLevel: 3,
+    evolvedSprite: '🐆🎷',
+    evolvedLore: 'A stealthy feline virtuoso leaping effortlessly between velvety chalumeau lows and piercing clarion highs.',
+    evolvedStatsBonus: { technique: 8, toneQuality: 10 },
+    rarity: 'rare'
   },
   {
     id: 'dex_badger',
@@ -4988,7 +5041,13 @@ export const INITIAL_HARMONIDEX: HarmoniDexEntry[] = [
     description: 'A grounded familiar whose staccato bass notes form the bedrock of woodwind counterpoint.',
     discovered: false,
     bonded: false,
-    evolutionStage: 1
+    evolutionStage: 1,
+    evolvesTo: 'Bassoon Badger Maestro',
+    evolutionLevel: 3,
+    evolvedSprite: '🦡🪈',
+    evolvedLore: 'Anchoring the acoustic foundation with robust double-reed basslines and unbreakable rhythmic fortitude.',
+    evolvedStatsBonus: { tempoStability: 10, toneQuality: 8 },
+    rarity: 'rare'
   },
   {
     id: 'dex_sax_fox',
@@ -5003,7 +5062,11 @@ export const INITIAL_HARMONIDEX: HarmoniDexEntry[] = [
     bonded: false,
     evolutionStage: 1,
     evolvesTo: 'Virtuoso Bebop Fox',
-    evolutionLevel: 20
+    evolutionLevel: 3,
+    evolvedSprite: '🦊🎷',
+    evolvedLore: 'The ultimate midnight jazz prodigy! Its soulful saxophone portamentos and blistering bebop cadence riffs enchant all who hear.',
+    evolvedStatsBonus: { technique: 10, toneQuality: 10 },
+    rarity: 'exotic'
   },
 
   // Brass (4 Species)
@@ -5020,7 +5083,11 @@ export const INITIAL_HARMONIDEX: HarmoniDexEntry[] = [
     bonded: false,
     evolutionStage: 1,
     evolvesTo: 'Grand Herald Hound',
-    evolutionLevel: 20
+    evolutionLevel: 3,
+    evolvedSprite: '🐕🎺',
+    evolvedLore: 'Sounding regal golden herald calls and heroic brass blasts that fill the concert hall with triumphant energy.',
+    evolvedStatsBonus: { toneQuality: 12, tempoStability: 8 },
+    rarity: 'common'
   },
   {
     id: 'dex_ram',
@@ -5033,7 +5100,13 @@ export const INITIAL_HARMONIDEX: HarmoniDexEntry[] = [
     description: 'With curling golden horns, this majestic creature projects warm heroic calls across the alpine peaks.',
     discovered: false,
     bonded: false,
-    evolutionStage: 1
+    evolutionStage: 1,
+    evolvesTo: 'Alpine Sovereign Ram',
+    evolutionLevel: 3,
+    evolvedSprite: '🐏📯',
+    evolvedLore: 'Echoing noble French horn calls across majestic snowpeaks with warm, velvety acoustic warmth.',
+    evolvedStatsBonus: { toneQuality: 10, tempoStability: 8 },
+    rarity: 'common'
   },
   {
     id: 'dex_lion',
@@ -5046,7 +5119,13 @@ export const INITIAL_HARMONIDEX: HarmoniDexEntry[] = [
     description: 'A proud monarch whose roaring glissandos command immediate dynamic attention on the battlefield.',
     discovered: false,
     bonded: false,
-    evolutionStage: 1
+    evolutionStage: 1,
+    evolvesTo: 'Imperial Lion',
+    evolutionLevel: 3,
+    evolvedSprite: '🦁🎺',
+    evolvedLore: 'Roaring thunderous slide trombone glissandos that command immediate fortissimo respect and awe.',
+    evolvedStatsBonus: { toneQuality: 12, technique: 8 },
+    rarity: 'rare'
   },
   {
     id: 'dex_elephant',
@@ -5059,10 +5138,16 @@ export const INITIAL_HARMONIDEX: HarmoniDexEntry[] = [
     description: 'A gentle giant whose seismic pedal tones shake the earth and anchor the harmony.',
     discovered: false,
     bonded: false,
-    evolutionStage: 1
+    evolutionStage: 1,
+    evolvesTo: 'Colossus Elephant',
+    evolutionLevel: 3,
+    evolvedSprite: '🐘🎺',
+    evolvedLore: 'Vibrating the bedrock of Harmonia with subterranean acoustic pedal notes that anchor the entire brass choir.',
+    evolvedStatsBonus: { tempoStability: 12, toneQuality: 8 },
+    rarity: 'legendary'
   },
 
-  // Percussion (4 Species)
+  // Percussion (6 Species)
   {
     id: 'dex_raccoon',
     species: 'Beat Raccoon',
@@ -5076,7 +5161,11 @@ export const INITIAL_HARMONIDEX: HarmoniDexEntry[] = [
     bonded: false,
     evolutionStage: 1,
     evolvesTo: 'Groove Master Raccoon',
-    evolutionLevel: 20
+    evolutionLevel: 3,
+    evolvedSprite: '🦝🥁',
+    evolvedLore: 'Executing blazing paradiddle rolls and crisp rimshots with metronomic microsecond perfection.',
+    evolvedStatsBonus: { tempoStability: 14, technique: 8 },
+    rarity: 'common'
   },
   {
     id: 'dex_bear',
@@ -5089,7 +5178,13 @@ export const INITIAL_HARMONIDEX: HarmoniDexEntry[] = [
     description: 'A colossal mountain guardian that strikes kettle drums with thunderous fortissimo authority.',
     discovered: false,
     bonded: false,
-    evolutionStage: 1
+    evolutionStage: 1,
+    evolvesTo: 'Thunder Titan Bear',
+    evolutionLevel: 3,
+    evolvedSprite: '🐻🥁',
+    evolvedLore: 'Striking kettle timpani drums with volcanic fury, building unstoppable dynamic crescendos.',
+    evolvedStatsBonus: { toneQuality: 10, tempoStability: 10 },
+    rarity: 'rare'
   },
   {
     id: 'dex_squirrel',
@@ -5102,7 +5197,13 @@ export const INITIAL_HARMONIDEX: HarmoniDexEntry[] = [
     description: 'Darting along polished wooden bars, this creature produces sparkling xylophonic cascades.',
     discovered: false,
     bonded: false,
-    evolutionStage: 1
+    evolutionStage: 1,
+    evolvesTo: 'Virtuoso Squirrel',
+    evolutionLevel: 3,
+    evolvedSprite: '🐿️🪵',
+    evolvedLore: 'Dancing across polished rosewood bars with four mallets, showering listeners with shimmering polyrhythmic melodies.',
+    evolvedStatsBonus: { technique: 10, tempoStability: 8 },
+    rarity: 'common'
   },
   {
     id: 'dex_owl',
@@ -5115,7 +5216,13 @@ export const INITIAL_HARMONIDEX: HarmoniDexEntry[] = [
     description: 'A nocturnal familiar that taps pure bell-metal tones, resonating with celestial clarity.',
     discovered: false,
     bonded: false,
-    evolutionStage: 1
+    evolutionStage: 1,
+    evolvesTo: 'Celestial Chime Owl',
+    evolutionLevel: 3,
+    evolvedSprite: '🦉🔔',
+    evolvedLore: 'Tapping pure glockenspiel bell overtones that shimmer under starry midnight skies with ethereal magic.',
+    evolvedStatsBonus: { sightReading: 12, toneQuality: 8 },
+    rarity: 'rare'
   },
   {
     id: 'dex_typewriter_bird',
@@ -5130,7 +5237,11 @@ export const INITIAL_HARMONIDEX: HarmoniDexEntry[] = [
     bonded: false,
     evolutionStage: 1,
     evolvesTo: 'Symphonic Stenographer',
-    evolutionLevel: 20
+    evolutionLevel: 3,
+    evolvedSprite: '🦉⌨️',
+    evolvedLore: 'Mechanical speed turned into fine art, delivering rapid-fire percussive key strikes and bell chimes in tight syncopation.',
+    evolvedStatsBonus: { technique: 10, tempoStability: 10 },
+    rarity: 'exotic'
   },
   {
     id: 'dex_cannon_beetle',
@@ -5145,7 +5256,11 @@ export const INITIAL_HARMONIDEX: HarmoniDexEntry[] = [
     bonded: false,
     evolutionStage: 1,
     evolvesTo: 'Artillery Scarab',
-    evolutionLevel: 20
+    evolutionLevel: 3,
+    evolvedSprite: '🪲💣',
+    evolvedLore: 'Detonating legendary 1812 sub-bass artillery salvos that resonate through the soul and conquer dissonance.',
+    evolvedStatsBonus: { toneQuality: 14, tempoStability: 8 },
+    rarity: 'legendary'
   }
 ];
 

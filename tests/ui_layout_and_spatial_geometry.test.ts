@@ -428,9 +428,9 @@ describe('UI Layout, Safe Bounds & Spatial Geometry QA Test Suite', () => {
       }
     });
 
-    it('should verify solid obstacles do not block the East Promenade road in Cavatina Village (x: 1000..2000, y: 840..960)', () => {
+    it('should verify solid obstacles do not block the East Promenade road in Cavatina Village (x: 1070..1940, y: 740..860)', () => {
       const zone = WORLD_ZONES['cavatina_village'];
-      const roadBox = { minX: 1000, maxX: 1940, minY: 840, maxY: 960 }; // up to the East Gate threshold
+      const roadBox = { minX: 1070, maxX: 1940, minY: 740, maxY: 860 }; // up to the East Gate threshold from plaza edge
 
       // Check all non-perimeter obstacles (buildings and fountain)
       const internalObstacles = zone.obstacles.filter(o => !isPerimeterWall(o));
@@ -444,16 +444,16 @@ describe('UI Layout, Safe Bounds & Spatial Geometry QA Test Suite', () => {
       }
     });
 
-    it('should verify solid obstacles do not block the Central Plaza in Cavatina Village (Clef Plaza x:1000, y:720)', () => {
+    it('should verify solid obstacles do not block the Central Plaza in Cavatina Village (Clef Plaza x:1000, y:800)', () => {
       const zone = WORLD_ZONES['cavatina_village'];
-      // The plaza has radius 160 around (1000, 720). The fountain sits inside, but buildings must not encroach.
+      // The plaza has radius 160 around (1000, 800). The fountain sits inside, but buildings must not encroach.
       const plazaBuildings = zone.obstacles.filter(o => o.type === 'building' && o.buildingType !== 'wall');
 
       for (const b of plazaBuildings) {
-        const dist = Math.hypot(b.x + (b.w || 0) / 2 - 1000, b.y + (b.h || 0) / 2 - 720);
+        const dist = Math.hypot(b.x + (b.w || 0) / 2 - 1000, b.y + (b.h || 0) / 2 - 800);
         expect(
           dist,
-          `Building "${b.name}" encroaches directly into Clef Plaza center (1000, 720)`
+          `Building "${b.name}" encroaches directly into Clef Plaza center (1000, 800)`
         ).toBeGreaterThan(160);
       }
     });
