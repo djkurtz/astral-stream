@@ -85,7 +85,7 @@ graph LR
    - *Spent*: Maintenance items (Amber Rosin, Valve Oil, Chamomile Tea), standard sheet music, cosmetic instrument finishes.
 2. **Inspiration Sparks / Harmonic Resonance (✨ / IS)**:
    - *Earned*: Discovering Inspiration Vistas, S-Rank Practice Shed drills, field analysis with the Tuning Monocle, reconstructing lost score fragments.
-   - *Spent*: Master Luthier instrument ascensions (T1 $\rightarrow$ T5), Resonance Matrix gem sockets, Harmonipet talent awakenings.
+   - *Spent*: Master Luthier instrument ascensions (T1 → T5), Resonance Matrix gem sockets, Harmonipet talent awakenings.
 3. **Reputation Stars (★ / RS)**:
    - *Earned*: Conservatory Concert Competitions and Festival Showdowns.
    - *Milestones*: ★1 (Duet Tier), ★3 (Trio Tier), ★6 (Quartet Tier), ★8 (Chamber Tier), ★10 (Grand Maestro & Royal Symphony).

@@ -78,8 +78,8 @@
 ## Anchor Characters & The Trait Matrix
 
 ### Anchor Characters
-1. **Unit 73 $\rightarrow$ A.R.I.A.**: Companion robot that evolves from a dented scrap-bot into an omniscient imperial AI. Features the "memory purge" moral dilemma and the "glitch aesthetic" callback in Tier 6.
-2. **Foreman Briggs**: The dark mirror of the player. Rises from Scrapyard Tyrant $\rightarrow$ Rival Workshop Boss $\rightarrow$ Corporate Fixer $\rightarrow$ Rebel Leader $\rightarrow$ Pirate Warlord $\rightarrow$ Broken prisoner before the Starlight Throne.
+1. **Unit 73 → A.R.I.A.**: Companion robot that evolves from a dented scrap-bot into an omniscient imperial AI. Features the "memory purge" moral dilemma and the "glitch aesthetic" callback in Tier 6.
+2. **Foreman Briggs**: The dark mirror of the player. Rises from Scrapyard Tyrant → Rival Workshop Boss → Corporate Fixer → Rebel Leader → Pirate Warlord → Broken prisoner before the Starlight Throne.
 3. **Madame Nyx**: The enigmatic shadow broker offering dangerous technological shortcuts; revealed in Tier 6 as an emissary of an ancient precursor civilization.
 
 ### Trait Dualities for Procedural Personnel

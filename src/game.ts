@@ -77,6 +77,7 @@ export class HarmoniaGameEngine {
       quests: JSON.parse(JSON.stringify(INITIAL_GAME_QUESTS)),
       activeQuestId: 'quest_ch1',
       questInventory: [],
+      openedChests: [],
       proficiency: {
         sections: { strings: 25, woodwinds: 20, brass: 20, percussion: 20 },
         instruments: {
@@ -885,9 +886,121 @@ export class HarmoniaGameEngine {
 
     if (this.state.mode === 'exploration') {
       this.updateMovement(dt);
+      this.updateNPCs(dt);
       this.updateCamera();
       this.updateProximity();
     }
+  }
+
+  /* ---------------- NPC WANDERING & AMBIENT INTERACTION ---------------- */
+
+  private banterTimer: number = 0;
+
+  private updateNPCs(dt: number): void {
+    const currentZone = this.state.currentZone;
+    this.banterTimer -= dt;
+
+    // 1. Update movement and wander timers for NPCs in current zone
+    for (const npc of this.state.npcs) {
+      // Update chat bubble timer
+      if (npc.chatBubble) {
+        npc.chatBubble.timer -= dt;
+        if (npc.chatBubble.timer <= 0) {
+          npc.chatBubble = undefined;
+        }
+      }
+
+      if (npc.zone !== currentZone || !npc.wander || npc.isProp) continue;
+
+      // Handle wander decision timer
+      npc.wanderTimer = (npc.wanderTimer || 0) - dt;
+      if (npc.wanderTimer <= 0) {
+        npc.wanderTimer = 2.5 + Math.random() * 4.0;
+        const anchorX = npc.anchorX || npc.x;
+        const anchorY = npc.anchorY || npc.y;
+        const angle = Math.random() * Math.PI * 2;
+        const dist = Math.random() * 70;
+        npc.targetX = anchorX + Math.cos(angle) * dist;
+        npc.targetY = anchorY + Math.sin(angle) * dist;
+      }
+
+      // Step towards target
+      if (npc.targetX !== undefined && npc.targetY !== undefined) {
+        const dist = Math.hypot(npc.targetX - npc.x, npc.targetY - npc.y);
+        if (dist > 3) {
+          const speed = 35; // gentle walk
+          const step = Math.min(speed * dt, dist);
+          const dx = (npc.targetX - npc.x) / dist;
+          const dy = (npc.targetY - npc.y) / dist;
+          const nextX = npc.x + dx * step;
+          const nextY = npc.y + dy * step;
+
+          if (!this.checkObstacleCollision(nextX, nextY)) {
+            npc.x = nextX;
+            npc.y = nextY;
+            if (Math.abs(dx) > Math.abs(dy)) {
+              npc.dir = dx > 0 ? 'right' : 'left';
+            } else {
+              npc.dir = dy > 0 ? 'down' : 'up';
+            }
+          } else {
+            npc.targetX = undefined;
+          }
+        } else {
+          npc.targetX = undefined;
+        }
+      }
+    }
+
+    // 2. Dynamic proximity banter between NPCs in same zone
+    if (this.banterTimer <= 0) {
+      this.banterTimer = 4.0 + Math.random() * 3.0;
+      const zoneNPCs = this.state.npcs.filter(n => n.zone === currentZone && !n.isProp && !n.chatBubble);
+      
+      for (let i = 0; i < zoneNPCs.length; i++) {
+        for (let j = i + 1; j < zoneNPCs.length; j++) {
+          const a = zoneNPCs[i];
+          const b = zoneNPCs[j];
+          const dist = Math.hypot(a.x - b.x, a.y - b.y);
+          if (dist < 85) {
+            const banterPair = this.getBanterForNPCs(a, b);
+            if (banterPair) {
+              a.chatBubble = { text: banterPair[0], timer: 3.5 };
+              b.chatBubble = { text: banterPair[1], timer: 3.5 };
+              return; // one pair at a time
+            }
+          }
+        }
+      }
+    }
+  }
+
+  private getBanterForNPCs(a: WorldNPC, b: WorldNPC): [string, string] | null {
+    const names = [a.name, b.name].sort().join('&');
+    if (names.includes('Clara') && names.includes('Maya')) {
+      return ["Clara: More legato!", "Maya: In D minor."];
+    } else if (names.includes('Oliver') && names.includes('Devon')) {
+      return ["Oliver: Hear that bird?", "Devon: Smooth modal jazz."];
+    } else if (names.includes('Jax') && names.includes('Vesta')) {
+      return ["Jax: Triple fortissimo!", "Vesta: Watch your posture!"];
+    } else if (names.includes('Rita') && names.includes('Ronin')) {
+      return ["Rita: 160 BPM steady!", "Ronin: Solid pocket!"];
+    } else if (names.includes('Timmy') && names.includes('Barnaby')) {
+      return ["Timmy: Made 20♪ today!", "Barnaby: Proud of you!"];
+    } else if (names.includes('Clara') && names.includes('Chen')) {
+      return ["Mrs. Chen: Practice 40 hrs!", "Clara: Mom, I'm jamming!"];
+    } else if (names.includes('Oliver') && names.includes('Higgins')) {
+      return ["Mr. Higgins: No 5 AM flutes!", "Oliver: Just one scale!"];
+    } else if (names.includes('Jax') && names.includes('Briggs')) {
+      return ["Officer Briggs: Keep it down!", "Jax: High C forever!"];
+    } else if (names.includes('Rita') && names.includes('Kroll')) {
+      return ["Mama Kroll: Not on the table!", "Rita: Best snare surface!"];
+    } else if (a.musicianData && b.musicianData) {
+      return ["Care for a quick jam?", "Let's lock in tempo!"];
+    } else if (a.actionType === 'wild_harmonipet' || b.actionType === 'wild_harmonipet') {
+      return ["*Curious chirp*", "*Harmonic hum*"];
+    }
+    return ["Good day, maestro!", "Lovely acoustic weather!"];
   }
 
   private updateMovement(dt: number): void {
@@ -1126,9 +1239,7 @@ export class HarmoniaGameEngine {
 
     if (target.actionType === 'luthier_shop') {
       window.dispatchEvent(new CustomEvent('open-luthier-shop'));
-      this.showDialogue('Master Luthier Marco', '🔨', [
-        "Welcome to the Forge! Browse my signature artifacts and custom commissions to ascend your ensemble's tone!"
-      ]);
+      this.showDialogue(target.name, '🔨', target.dialogue);
       return;
     }
 
@@ -1139,6 +1250,37 @@ export class HarmoniaGameEngine {
 
     if (target.actionType === 'customization_mirror') {
       window.dispatchEvent(new CustomEvent('open-customization-modal'));
+      return;
+    }
+
+    if (target.actionType === 'treasure_chest') {
+      if (!this.state.openedChests) this.state.openedChests = [];
+      if (this.state.openedChests.includes(target.id)) {
+        this.showDialogue(target.name, '📦', ["This ancient treasure chest is empty."]);
+      } else {
+        this.state.openedChests.push(target.id);
+        const reward = target.treasureReward || { notes: 250, sparks: 15 };
+        this.state.wallet.gold += reward.notes;
+        this.state.wallet.inspirationSparks += reward.sparks;
+        soundEngine.playNoteAccuracyFeedback('perfect');
+        this.showDialogue(target.name, '✨', target.dialogue);
+      }
+      return;
+    }
+
+    if (target.id.includes('library')) {
+      window.dispatchEvent(new CustomEvent('open-repertoire-modal'));
+      this.showDialogue('Conservatory Head Librarian', '📖', [
+        "Welcome inside the Conservatory Library & Archives! Here is our comprehensive collection of sheet music repertoire and discovered folios."
+      ]);
+      return;
+    }
+
+    if (target.id.includes('townhall')) {
+      window.dispatchEvent(new CustomEvent('open-quests-modal'));
+      this.showDialogue('Town Hall Administrator', '🏛️', [
+        "Welcome to Town Hall! Review your active regional commissions, quest log, and lost score manuscripts."
+      ]);
       return;
     }
 

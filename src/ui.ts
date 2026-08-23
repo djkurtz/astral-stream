@@ -1191,8 +1191,11 @@ export class HarmoniaUI {
     };
 
     let selectedZone: ZoneId = state.currentZone;
+    let currentInspected: ZoneId | null = null;
 
     const renderInspector = (zoneId: ZoneId) => {
+      if (currentInspected === zoneId) return;
+      currentInspected = zoneId;
       const reg = regions[zoneId];
       const isCurrent = state.currentZone === zoneId;
       const isDiscovered = state.discoveredZones[zoneId];

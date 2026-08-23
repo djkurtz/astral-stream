@@ -1092,7 +1092,7 @@ export const TOWN_NPCS: NPCEntity[] = [
     actionType: 'challenge_side',
     dialogue: [
       "🏛️ Ancient Grecian stone floor tiles resonate with acoustic pitch when stepped upon.",
-      "You tread the authentic cadence progression: Tonic $\\rightarrow$ Subdominant $\\rightarrow$ Dominant $\\rightarrow$ Tonic.",
+      "You tread the authentic cadence progression: Tonic → Subdominant → Dominant → Tonic.",
       "A concealed vault slides open in the floor, revealing an Overdrive Energy Battery (+15 HP, +10 DEF)!"
     ]
   },

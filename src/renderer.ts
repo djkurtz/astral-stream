@@ -1069,9 +1069,9 @@ export class HarmoniaRenderer {
     const ny = npc.y - camY;
 
     if (npc.musicianData) {
-      this.drawPixelMusician(ctx, nx, ny, npc.musicianData, t, undefined, 'down');
+      this.drawPixelMusician(ctx, nx, ny, npc.musicianData, t, undefined, npc.dir || 'down');
       if (npc.musicianData.pet) {
-        this.drawPixelPet(ctx, nx + 24, ny + 4, npc.musicianData.pet, t, undefined, 'down');
+        this.drawPixelPet(ctx, nx + 24, ny + 4, npc.musicianData.pet, t, undefined, npc.dir || 'down');
       }
       ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
       ctx.beginPath();
@@ -1083,7 +1083,7 @@ export class HarmoniaRenderer {
       ctx.fillText(npc.name, nx, ny - 24);
 
     } else if (npc.actionType === 'wild_harmonipet' && npc.wildPetData) {
-      this.drawPixelPet(ctx, nx, ny, npc.wildPetData, t, undefined, 'down');
+      this.drawPixelPet(ctx, nx, ny, npc.wildPetData, t, undefined, npc.dir || 'down');
       ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
       ctx.beginPath();
       ctx.roundRect(nx - 50, ny - 34, 100, 20, 4);
@@ -1122,6 +1122,36 @@ export class HarmoniaRenderer {
       ctx.font = 'bold 12px "Inter", sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText(npc.name, nx, ny - 24);
+    }
+
+    // Floating Dynamic Speech / Banter Bubble
+    if (npc.chatBubble) {
+      const bText = npc.chatBubble.text;
+      ctx.font = 'bold 11px "Inter", sans-serif';
+      const textW = Math.min(ctx.measureText(bText).width + 16, 170);
+      const bH = 22;
+      const bX = nx;
+      const bY = ny - 64;
+
+      ctx.fillStyle = '#ffffff';
+      ctx.strokeStyle = '#0284c7';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.roundRect(bX - textW / 2, bY, textW, bH, 6);
+      ctx.fill();
+      ctx.stroke();
+
+      // Tail pointing to speaker
+      ctx.beginPath();
+      ctx.moveTo(bX - 4, bY + bH);
+      ctx.lineTo(bX, bY + bH + 5);
+      ctx.lineTo(bX + 4, bY + bH);
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+
+      ctx.fillStyle = '#0f172a';
+      ctx.textAlign = 'center';
+      ctx.fillText(bText, bX, bY + 15);
     }
   }
 
@@ -1856,6 +1886,23 @@ export class HarmoniaRenderer {
       ctx.textAlign = 'center';
       ctx.fillText('✨ 🎼', x, y - 16);
 
+    } else if (propType === 'treasure_chest') {
+      // 🎁 Gilded Redwood Treasure Chest
+      ctx.fillStyle = '#78350f'; // Dark polished wood
+      ctx.beginPath();
+      ctx.roundRect(x - 14, y - 10, 28, 20, 4);
+      ctx.fill();
+      ctx.strokeStyle = '#eab308'; // Gold banding
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.fillStyle = '#fbbf24'; // Gold lock clasp
+      ctx.fillRect(x - 3, y - 2, 6, 6);
+      // Floating sparkles
+      const sparkY = Math.sin(t * 4) * 3;
+      ctx.fillStyle = '#fbbf24';
+      ctx.font = '10px "Inter", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('✨', x + 12, y - 10 + sparkY);
     } else if (propType === 'vista_monolith') {
       // 🔮 Acoustic Inspiration Vista Monolith (Resonant Tuning Crystal)
       ctx.fillStyle = '#1e293b'; // Stepped dais
