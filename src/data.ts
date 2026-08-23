@@ -1316,11 +1316,11 @@ export const WORLD_ZONES: Record<string, WorldZone> = {
       { type: 'gate', buildingType: 'arch', x: 0, y: 640, w: 60, h: 160, name: 'West Symphony Arch (To Grand Hall)', signIcon: '⬅️' },
 
       // Village Buildings
-      { type: 'building', buildingType: 'academy', x: 420, y: 320, w: 280, h: 190, name: 'Cavatina Music Academy', signIcon: '🎼', roofColor: '#1e3a8a' },
-      { type: 'building', buildingType: 'forge', x: 760, y: 320, w: 240, h: 190, name: "Master Luthier's Forge", signIcon: '🎻', roofColor: '#b45309' },
-      { type: 'building', buildingType: 'library', x: 1240, y: 320, w: 320, h: 190, name: 'Conservatory Library & Archives', signIcon: '📖', roofColor: '#065f46' },
-      { type: 'building', buildingType: 'tavern', x: 420, y: 960, w: 300, h: 200, name: 'The Melodic Rose Tavern & Inn', signIcon: '🍺', roofColor: '#991b1b' },
-      { type: 'building', buildingType: 'clocktower', x: 1240, y: 960, w: 300, h: 200, name: 'Cavatina Town Hall & Clocktower', signIcon: '⏰', roofColor: '#4c1d95' },
+      { type: 'building', buildingType: 'academy', x: 220, y: 280, w: 320, h: 220, name: 'Cavatina Music Academy', signIcon: '🎼', roofColor: '#1e3a8a' },
+      { type: 'building', buildingType: 'forge', x: 600, y: 280, w: 260, h: 220, name: "Master Luthier's Forge", signIcon: '🎻', roofColor: '#b45309' },
+      { type: 'building', buildingType: 'library', x: 1200, y: 280, w: 340, h: 220, name: 'Conservatory Library & Archives', signIcon: '📖', roofColor: '#065f46' },
+      { type: 'building', buildingType: 'tavern', x: 380, y: 960, w: 320, h: 220, name: 'The Melodic Rose Tavern & Inn', signIcon: '🍺', roofColor: '#991b1b' },
+      { type: 'building', buildingType: 'clocktower', x: 1240, y: 960, w: 320, h: 220, name: 'Cavatina Town Hall & Clocktower', signIcon: '⏰', roofColor: '#4c1d95' },
 
       // Central Plaza Feature
       { type: 'circle', x: 1000, y: 720, radius: 64, name: 'Clef Fountain' }
@@ -1420,8 +1420,8 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     id: 'npc_practice_shed',
     name: 'Practice Shed Stand',
     title: 'Hone Musicianship & Technique [SPACE]',
-    x: 480,
-    y: 530,
+    x: 280,
+    y: 540,
     zone: 'cavatina_village',
     isProp: true,
     propType: 'music_stand',
@@ -1434,8 +1434,8 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     id: 'npc_theory_academy',
     name: 'Academy Theory Lectern',
     title: 'Music Theory Drills & Challenges [SPACE]',
-    x: 640,
-    y: 530,
+    x: 460,
+    y: 540,
     zone: 'cavatina_village',
     isProp: true,
     propType: 'lectern',
@@ -1448,8 +1448,8 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     id: 'npc_theory_professor',
     name: 'Professor Lyra',
     title: 'Conservatory Dean [SPACE to Talk]',
-    x: 560,
-    y: 530,
+    x: 370,
+    y: 540,
     zone: 'cavatina_village',
     musicianData: {
       id: 'prof_lyra',
@@ -1484,8 +1484,8 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     id: 'npc_luthier_marco',
     name: 'Master Luthier Marco',
     title: 'Artisan Craftsman [SPACE to Forge]',
-    x: 880,
-    y: 530,
+    x: 730,
+    y: 540,
     zone: 'cavatina_village',
     musicianData: {
       id: 'luthier_marco',

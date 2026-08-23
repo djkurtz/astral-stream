@@ -1135,26 +1135,50 @@ export class HarmoniaRenderer {
 
     // Zone Title
     ctx.fillStyle = '#f8fafc';
-    ctx.font = 'bold 18px "Inter", sans-serif';
+    ctx.font = 'bold 16px "Inter", sans-serif';
     ctx.textAlign = 'left';
     ctx.fillText(`📍 ${zone ? zone.name : 'Sonora'}`, 24, 34);
+
+    // Player Skill & Level Pill
+    const player = state.ensemble.members[0];
+    const avgSkill = player ? Math.round((player.stats.technique + player.stats.toneQuality + player.stats.tempoStability + player.stats.sightReading) / 4) : 10;
+    const skillPillX = 210;
+    ctx.fillStyle = 'rgba(30, 41, 59, 0.85)';
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(skillPillX, 10, 205, 34, 8);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#38bdf8';
+    ctx.font = 'bold 13px "Inter", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(`👤 Lv.${player?.level || 1} Maestro • Skill: ${avgSkill}`, skillPillX + 102, 32);
 
     // Ensemble Tier Badge
     const tierName = state.ensemble.tier.toUpperCase();
     const count = state.ensemble.members.length;
-    ctx.fillStyle = '#38bdf8';
-    ctx.font = 'bold 15px "Inter", sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(`🎼 [${tierName} • ${count} Musician${count > 1 ? 's' : ''}]`, this.width / 2, 34);
+    const tierPillX = 430;
+    ctx.fillStyle = 'rgba(30, 41, 59, 0.85)';
+    ctx.strokeStyle = '#a855f7';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(tierPillX, 10, 195, 34, 8);
+    ctx.fill();
+    ctx.stroke();
 
-    // Currency Wallet & Reputation
+    ctx.fillStyle = '#c084fc';
+    ctx.font = 'bold 13px "Inter", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(`🎼 [${tierName} • ${count} Musician${count > 1 ? 's' : ''}]`, tierPillX + 97, 32);
+
+    // Currency Wallet & Reputation (Right aligned)
+    const rep = state.ensemble.reputationStars || state.wallet.reputationStars || 0;
     ctx.fillStyle = '#fbbf24';
-    ctx.font = 'bold 15px "Inter", sans-serif';
+    ctx.font = 'bold 14px "Inter", sans-serif';
     ctx.textAlign = 'right';
-    let stars = '';
-    for (let i = 0; i < state.wallet.reputationStars; i++) stars += '★';
-    if (stars === '') stars = '☆☆☆☆☆';
-    ctx.fillText(`♪ ${state.wallet.gold}  |  ✨ ${state.wallet.inspirationSparks}  |  ★ ${stars}`, this.width - 24, 34);
+    ctx.fillText(`★ Rep: ${rep}★  |  💰 ${state.wallet.gold} Notes  |  ✨ ${state.wallet.inspirationSparks} Sparks`, this.width - 24, 33);
 
     // Transient Onboarding Motion Helper (Only shown during first 8 seconds of play)
     if (state.time < 8) {
@@ -1674,19 +1698,24 @@ export class HarmoniaRenderer {
       ctx.fillRect(gx - 2, gy + gh - 2, gw + 4, 6);
 
       // Classical Arch Overhead Archway / Sign Span
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+      const signW = 210;
+      const signH = 34;
+      const signX = gx + gw / 2 - signW / 2;
+      const signY = gy + gh / 2 - signH / 2;
+
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.95)';
       ctx.beginPath();
-      ctx.roundRect(gx - 12, gy + gh / 2 - 20, gw + 24, 40, 8);
+      ctx.roundRect(signX, signY, signW, signH, 8);
       ctx.fill();
       ctx.strokeStyle = '#d4af37';
       ctx.lineWidth = 2;
       ctx.stroke();
 
       ctx.fillStyle = '#fef08a';
-      ctx.font = 'bold 11.5px "Cinzel", serif';
+      ctx.font = 'bold 12px "Inter", sans-serif';
       ctx.textAlign = 'center';
       const cleanName = obs.name ? obs.name.split('(')[0].trim() : 'Gateway';
-      ctx.fillText(`${obs.signIcon || '🏛️'} ${cleanName}`, gx + gw / 2, gy + gh / 2 + 4);
+      ctx.fillText(`${obs.signIcon || '🏛️'} ${cleanName}`, gx + gw / 2, signY + 22);
 
     } else {
       // 🏛️ North / South Gateway (Vertical Road passing through horizontal wall)
@@ -1707,19 +1736,24 @@ export class HarmoniaRenderer {
       ctx.fillRect(gx + gw - 30, gy - 2, 34, 6);
 
       // Transom Arch Banner
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+      const signW = 220;
+      const signH = 36;
+      const signX = gx + gw / 2 - signW / 2;
+      const signY = gy + gh / 2 - signH / 2;
+
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.95)';
       ctx.beginPath();
-      ctx.roundRect(gx + gw / 2 - 100, gy + gh / 2 - 18, 200, 36, 8);
+      ctx.roundRect(signX, signY, signW, signH, 8);
       ctx.fill();
       ctx.strokeStyle = '#d4af37';
       ctx.lineWidth = 2;
       ctx.stroke();
 
       ctx.fillStyle = '#fef08a';
-      ctx.font = 'bold 12px "Cinzel", serif';
+      ctx.font = 'bold 12.5px "Inter", sans-serif';
       ctx.textAlign = 'center';
       const cleanName = obs.name ? obs.name.split('(')[0].trim() : 'Gateway';
-      ctx.fillText(`${obs.signIcon || '🏛️'} ${cleanName}`, gx + gw / 2, gy + gh / 2 + 4);
+      ctx.fillText(`${obs.signIcon || '🏛️'} ${cleanName}`, gx + gw / 2, signY + 23);
     }
   }
 
@@ -2531,7 +2565,7 @@ export class HarmoniaRenderer {
     const barW = 500;
     const barH = 26;
     const barX = (this.width - barW) / 2;
-    const barY = 360;
+    const barY = 350;
     this.drawBar(ctx, barX, barY, barW, barH, enc.resonanceMeter, 100, '#10b981', `Resonance: ${enc.resonanceMeter}% (Threshold: ${enc.catchThreshold}%)`);
 
     // Threshold Marker
@@ -2543,11 +2577,63 @@ export class HarmoniaRenderer {
     ctx.lineTo(threshX, barY + barH + 4);
     ctx.stroke();
 
-    // Attempts Counter
-    ctx.fillStyle = '#fbbf24';
-    ctx.font = 'bold 16px "Inter", sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(`Harmonic Attempts Remaining: ${enc.attemptsRemaining} / 4`, this.width / 2, 425);
+    // Melody Sequence Call & Response Display
+    const noteNames = ['C4 (Root)', 'E4 (Third)', 'G4 (Fifth)', 'C5 (Octave)'];
+    const targetPills = enc.targetNoteIndices.map((nIdx, idx) => {
+      const isCurrent = idx === enc.currentStep;
+      return { text: `${idx + 1}: ${noteNames[nIdx]}`, isCurrent };
+    });
+
+    const seqW = 600;
+    const seqH = 44;
+    const seqX = (this.width - seqW) / 2;
+    const seqY = 395;
+
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+    ctx.strokeStyle = '#34d399';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(seqX, seqY, seqW, seqH, 8);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#6ee7b7';
+    ctx.font = 'bold 13px "Inter", sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('🎵 Target Song:', seqX + 16, seqY + 27);
+
+    const pillStartX = seqX + 125;
+    const pillGap = 8;
+    const pillW = (seqW - 140 - (targetPills.length - 1) * pillGap) / targetPills.length;
+
+    targetPills.forEach((p, idx) => {
+      const px = pillStartX + idx * (pillW + pillGap);
+      ctx.fillStyle = p.isCurrent ? 'rgba(16, 185, 129, 0.35)' : 'rgba(30, 41, 59, 0.6)';
+      ctx.strokeStyle = p.isCurrent ? '#fef08a' : '#475569';
+      ctx.lineWidth = p.isCurrent ? 2 : 1;
+      ctx.beginPath();
+      ctx.roundRect(px, seqY + 7, pillW, 30, 6);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = p.isCurrent ? '#fef08a' : '#cbd5e1';
+      ctx.font = p.isCurrent ? 'bold 11px "Inter", sans-serif' : '11px "Inter", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(p.text, px + pillW / 2, seqY + 26);
+    });
+
+    // Feedback or Attempts Banner
+    if (enc.lastFeedbackText) {
+      ctx.fillStyle = enc.lastFeedback === 'PERFECT' ? '#34d399' : '#f87171';
+      ctx.font = 'bold 14px "Inter", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(enc.lastFeedbackText, this.width / 2, 465);
+    } else {
+      ctx.fillStyle = '#fbbf24';
+      ctx.font = 'bold 14px "Inter", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(`Harmonic Attunement Attempts: ${enc.attemptsRemaining} remaining`, this.width / 2, 465);
+    }
 
     // Note Action Buttons
     const notes = [
@@ -2561,19 +2647,20 @@ export class HarmoniaRenderer {
     const cardH = 80;
     const gap = 16;
     const startX = (this.width - (cardW * 4 + gap * 3)) / 2;
-    const cardY = 480;
+    const cardY = 490;
 
     notes.forEach((n, idx) => {
       const cx = startX + idx * (cardW + gap);
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
-      ctx.strokeStyle = '#34d399';
-      ctx.lineWidth = 2;
+      const isTarget = idx === enc.targetNoteIndices[enc.currentStep];
+      ctx.fillStyle = isTarget ? 'rgba(6, 78, 59, 0.95)' : 'rgba(15, 23, 42, 0.85)';
+      ctx.strokeStyle = isTarget ? '#fef08a' : '#34d399';
+      ctx.lineWidth = isTarget ? 2.5 : 1.5;
       ctx.beginPath();
       ctx.roundRect(cx, cardY, cardW, cardH, 10);
       ctx.fill();
       ctx.stroke();
 
-      ctx.fillStyle = '#6ee7b7';
+      ctx.fillStyle = isTarget ? '#fef08a' : '#6ee7b7';
       ctx.font = 'bold 16px "Inter", sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText(n.label, cx + cardW / 2, cardY + 34);

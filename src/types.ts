@@ -308,10 +308,14 @@ export interface HarmonizeEncounter {
   pet: Harmonipet;
   instrumentId: InstrumentId;
   targetMelody: number[];
+  targetNoteIndices: number[];
+  currentStep: number;
   playerInputs: number[];
   resonanceMeter: number;
   catchThreshold: number;
   attemptsRemaining: number;
+  lastFeedback?: 'PERFECT' | 'DISSONANCE';
+  lastFeedbackText?: string;
   concluded: boolean;
   caught: boolean;
 }

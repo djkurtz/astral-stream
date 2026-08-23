@@ -453,38 +453,67 @@ export class HarmoniaGameEngine {
   public startHarmonizeEncounter(npc: WorldNPC): void {
     if (!npc.wildPetData) return;
     const pet = npc.wildPetData;
-    const targetMelody = [261.63, 329.63, 392.00, 523.25]; // C E G C
+    const FREQS = [261.63, 329.63, 392.00, 523.25]; // C4, E4, G4, C5
+
+    let noteIndices = [0, 1, 2, 3]; // Major Arpeggio default
+    if (pet.section === 'woodwinds') noteIndices = [0, 2, 1, 3];
+    else if (pet.section === 'brass') noteIndices = [0, 2, 3, 2];
+    else if (pet.section === 'percussion') noteIndices = [0, 0, 2, 3];
+
+    const targetMelody = noteIndices.map(i => FREQS[i]);
+
     this.state.harmonizeEncounter = {
       pet,
       instrumentId: (npc.wildPetData.section === 'strings' ? 'acoustic_guitar' : (npc.wildPetData.section === 'woodwinds' ? 'oboe' : (npc.wildPetData.section === 'brass' ? 'french_horn' : 'marimba'))) as InstrumentId,
       targetMelody,
+      targetNoteIndices: noteIndices,
+      currentStep: 0,
       playerInputs: [],
       resonanceMeter: 20,
       catchThreshold: 80,
-      attemptsRemaining: 4,
+      attemptsRemaining: 5,
+      lastFeedback: undefined,
+      lastFeedbackText: undefined,
       concluded: false,
       caught: false
     };
     this.state.mode = 'harmonize_wild';
     soundEngine.stopBGM();
-    soundEngine.playInstrumentNote(this.state.ensemble.members[0].instrumentId, 440, 0.4, 0.8);
+
+    // Play creature's introductory call phrase
+    targetMelody.forEach((freq, idx) => {
+      setTimeout(() => {
+        soundEngine.playInstrumentNote(this.state.harmonizeEncounter?.instrumentId || 'silver_flute', freq, 0.25, 0.7);
+      }, idx * 250);
+    });
   }
 
   public playHarmonizeNote(noteIndex: number = 0): void {
     const enc = this.state.harmonizeEncounter;
     if (!enc || enc.concluded) return;
 
-    enc.attemptsRemaining--;
+    const FREQS = [261.63, 329.63, 392.00, 523.25];
+    const playedFreq = FREQS[noteIndex] || 261.63;
+    enc.playerInputs.push(playedFreq);
     const player = this.state.ensemble.members[0];
-    const targetFreq = enc.targetMelody[noteIndex % enc.targetMelody.length];
-    enc.playerInputs.push(targetFreq);
 
-    // Play feedback tone
-    soundEngine.playInstrumentNote(player.instrumentId, targetFreq, 0.3, 0.8);
-
-    // Evaluate accuracy & boost resonance
-    const resonanceGain = Math.floor(25 + (player.stats.technique + player.stats.toneQuality) / 8);
-    enc.resonanceMeter = Math.min(100, enc.resonanceMeter + resonanceGain);
+    const expectedIndex = enc.targetNoteIndices[enc.currentStep];
+    if (noteIndex === expectedIndex) {
+      // ✅ Correct pitch in sequence!
+      soundEngine.playInstrumentNote(player.instrumentId, playedFreq, 0.35, 0.85);
+      const resonanceGain = Math.floor(25 + (player.stats.technique + player.stats.toneQuality) / 10);
+      enc.resonanceMeter = Math.min(100, enc.resonanceMeter + resonanceGain);
+      enc.currentStep = (enc.currentStep + 1) % enc.targetNoteIndices.length;
+      enc.lastFeedback = 'PERFECT';
+      enc.lastFeedbackText = `✨ HARMONIC RESONANCE! (+${resonanceGain}%)`;
+    } else {
+      // ❌ Dissonance / Miss
+      soundEngine.playInstrumentNote(player.instrumentId, playedFreq * 0.94, 0.35, 0.85);
+      enc.attemptsRemaining--;
+      enc.resonanceMeter = Math.max(0, enc.resonanceMeter - 15);
+      enc.lastFeedback = 'DISSONANCE';
+      enc.lastFeedbackText = `⚠️ DISSONANT PITCH! The creature flinched (-15%)`;
+    }
 
     if (enc.resonanceMeter >= enc.catchThreshold) {
       // Successfully bonded / caught!
