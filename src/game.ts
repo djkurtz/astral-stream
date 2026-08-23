@@ -711,6 +711,16 @@ export class AstralGameEngine {
       this.state.activeSpiritIndex = index;
       const active = this.state.streamQueue[index];
       soundEngine.playCreatureMotif(active.id);
+
+      // In Battle: Live stem sampling into the active channel
+      if (this.state.mode === 'battle' && this.state.battle && this.state.battle.turn === 'player') {
+        const prevHp = this.state.battle.playerSpirit.hp;
+        const prevMax = this.state.battle.playerSpirit.maxHp;
+        const ratio = prevHp / prevMax;
+        this.state.battle.playerSpirit = JSON.parse(JSON.stringify(active));
+        this.state.battle.playerSpirit.hp = Math.max(1, Math.floor(this.state.battle.playerSpirit.maxHp * ratio));
+        this.state.battle.log = `🎛️ STEM SWITCH: Sampled ${active.name} [${active.vibeTag}]! Leitmotif active.`;
+      }
     }
   }
 
@@ -738,7 +748,7 @@ export class AstralGameEngine {
       targetWindowEnd: 0.65,
       rhythmResult: null,
       log: `A wild ${glitch.name} emerged from the static sands! Pick a move!`,
-      canBlend: !!this.state.activeCompanion,
+      canBlend: this.state.streamQueue.length >= 2,
       blendActive: false
     };
   }
@@ -867,7 +877,7 @@ export class AstralGameEngine {
     soundEngine.playCleansingBloom();
     b.blendActive = true;
     b.playerSpirit = JSON.parse(JSON.stringify(FUSED_CHIMERA));
-    b.log = `🌟 COLLABORATIVE PLAYLIST BLEND! Fused into Cyber-Fuzz Chimera!`;
+    b.log = `🌟 MULTIPART HARMONY FUSION! Mixed all active stems into the Omni-Harmony Chimera!`;
   }
 
   private executeEnemyTurn(): void {
@@ -943,9 +953,8 @@ export class AstralGameEngine {
 
       this.showDialogue('Jax & Bass-Hound', '🐶🎸', [
         "Whoa... okay, your timing is clean and your rhythm is sharp. I respect that!",
-        "My Sub-Woofer Bass-Hound and I are officially joining your active squad! 🐶🎸",
-        "We're linked and ready, but Dead Channel 000 is a massive anomaly. Take time to explore Cadence Plaza!",
-        "Battle wild static glitches on the beach to level up your squad, and discover the 3 cultural sound stations in town.",
+        "My Sub-Woofer Bass-Hound track is officially added to your master playlist! 🐶🎸",
+        "We're linked and ready. In battle, you can sample my overdrive bass stem or trigger our Multipart Harmony Fusion!",
         "Whenever you're ready for the final battle, step up to the Glitch Gate to breach the static storm together!"
       ]);
     } else if (b.type === 'boss') {

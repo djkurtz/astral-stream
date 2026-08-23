@@ -30,14 +30,16 @@ No physical capsules, tapes, or cages. Players hold up their Vibe-Phone in the 3
 * **🎹 Call & Response Melody Jam**: Repeat musical phrases across 3 launchpad pitches (`[1, 2, 3]` / `[J, K, L]`) to harmonize with the creature's melody.
 * **🥁 Rhythm Pulse Lock**: Tap `[SPACE]` on tempo as expanding 3D sonic rings align with the target circle.
 
-### 2. 🐾 Living Harmonimals (Biological Instrument Anatomy)
-Creatures are living, breathing embodiments of world musical instruments:
-* **🎹🐱 Chime-Cat**: A pastel kitten with playable piano synthesizer keys down its spine, an audio-jack tail, and glowing LED spectrum whiskers.
-* **🎻🦉 Allegro-Owl**: A European barn owl with an acoustic violin chest featuring carved f-holes (`𝒻`) and resilient horsehair bow wings.
-* **🪕🦢 Sitar-Swan**: A graceful swan with a fretted sitar neck (*dandi*) and a resonant carved acoustic gourd body (*tumba*).
-* **🥁🦝 Taiko-Tanuki**: A chubby tanuki raccoon dog with a taut festival Taiko drum-skin belly and wooden tail-sticks.
-* **🎷🐰 Brass-Bunny**: An energetic golden hare with curving saxophone bell ears that toot bebop riffs.
-* **🎸🐶 Bass-Hound**: A droopy-eared rock basset hound with an 808 sub-woofer throat and guitar-strap ears.
+### 2. 🐾 Living Harmonimals (Sampled Music Manifestations)
+Harmonimals are physical manifestations of the musical tracks and acoustic traditions sampled into the player's master playlist.
+* **Overworld Manifestation**: Only **one active track (animal)** is streamed and manifested at a time as your walking companion. Players switch songs via the top playlist bar (`[Q]`), seamlessly cross-fading the active animal and its ambient instrument layer into the world soundscape.
+* **Biological Instrument Anatomy**:
+  * **🎹🐱 Chime-Cat**: A pastel kitten with playable piano synthesizer keys down its spine, an audio-jack tail, and glowing LED spectrum whiskers.
+  * **🎻🦉 Allegro-Owl**: A European barn owl with an acoustic violin chest featuring carved f-holes (`𝒻`) and resilient horsehair bow wings.
+  * **🪕🦢 Sitar-Swan**: A graceful swan with a fretted sitar neck (*dandi*) and a resonant carved acoustic gourd body (*tumba*).
+  * **🥁🦝 Taiko-Tanuki**: A chubby tanuki raccoon dog with a taut festival Taiko drum-skin belly and wooden tail-sticks.
+  * **🎷🐰 Brass-Bunny**: An energetic golden hare with curving saxophone bell ears that toot bebop riffs.
+  * **🎸🐶 Bass-Hound**: A droopy-eared rock basset hound with an 808 sub-woofer throat and guitar-strap ears.
 
 ### 3. 🎼 Global & Classical Genre Affinity Wheel
 Combat strategy revolves around an authentic 5-genre cultural wheel:
@@ -51,7 +53,9 @@ $$\text{🎻 SYMPHONIC} \xrightarrow{\text{overpowers}} \text{🎹 SYNTH} \xrigh
 ### 4. ⚔️ DJ Launchpad Battle System & Rhythm Precision
 * **Turn-Based Stem Pads**: Select attacks via glowing DJ Launchpad buttons (`[1]`, `[2]`).
 * **Unobstructed Rhythm Timing Bar**: When an attack is chosen, a high-contrast timing bar sweeps across the top-center of the screen. Hitting `[SPACE]` or clicking inside the **Green Target Zone** triggers a **✨ PERFECT SYNC!** (+50% Critical Damage + energy refund).
-* **Tag-Team Companions & Collaborative Playlist Blend**: Rivals like Jax join your squad post-duel. In boss fights, multiple Harmonimals fight side-by-side in full 3D space, able to trigger the **`🌟 COLLABORATIVE PLAYLIST BLEND`** to fuse into colossal legends like the **Omni-Harmony Chimera (`🐯✨`)**!
+* **Live Stem Sampling & Multipart Harmony Fusion**: 
+  - During battle, players can dynamically sample different tracks/stems from their playlist queue (one signature leitmotif at a time) to exploit enemy genre vulnerabilities.
+  - Pressing `[B]` activates **Multipart Harmony Fusion**, mixing multiple instrument stems simultaneously to fuse into colossal legends like the **Omni-Harmony Chimera (`🐯✨`)**!
 
 ---
 

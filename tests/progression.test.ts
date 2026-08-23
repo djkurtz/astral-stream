@@ -29,7 +29,7 @@ describe('Story Progression & Tag-Team Fusion', () => {
     
     // Verify Jax celebration dialogue
     expect(state.dialogue?.speaker).toContain('Jax & Bass-Hound');
-    expect(state.dialogue?.text[1]).toContain('joining your active squad');
+    expect(state.dialogue?.text[1]).toContain('added to your master playlist');
   });
 
   it('should trigger Collaborative Playlist Blend fusion in boss battle', () => {

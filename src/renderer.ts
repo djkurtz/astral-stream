@@ -267,14 +267,11 @@ export class AstralRenderer {
       }
     };
 
+    // Overworld Follower: Only the single active sampled song is manifested at a time
     if (state.streamQueue.length > 0) {
       const active = state.streamQueue[state.activeSpiritIndex] || state.streamQueue[0];
       const pos0 = getFollowerCoords(0);
       drawCompanionSprite(active.id, pos0.x, pos0.y);
-    }
-    if (state.activeCompanion === 'jax') {
-      const pos1 = getFollowerCoords(1);
-      this.drawDetailedHound(ctx, pos1.x, pos1.y, t);
     }
 
     // 19. Unified Proximity Identity & Interaction Card

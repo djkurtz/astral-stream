@@ -129,4 +129,30 @@ describe('Combat Mechanics & Genre Affinity Wheel', () => {
 
     expect(b.rhythmResult).toBe('PERFECT');
   });
+
+  it('should allow live stem sampling and multipart harmony fusion during battle', () => {
+    // Add multiple spirits to queue
+    const state = engine.getState();
+    state.streamQueue.push(JSON.parse(JSON.stringify(ALLEGRO_OWL_SPIRIT)));
+    state.streamQueue.push(JSON.parse(JSON.stringify(SITAR_SWAN_SPIRIT)));
+
+    const pierGlitch = state.wildGlitches.find(g => g.id === 'glitch_pier')!;
+    engine.startWildBattle(pierGlitch);
+    const b = state.battle!;
+
+    // Initial lead is starter spirit (Chime-Cat)
+    expect(b.playerSpirit.name).toBe('Chime-Cat');
+    expect(b.canBlend).toBe(true);
+
+    // Live stem sample: switch to Allegro-Owl (index 1)
+    engine.switchActiveSpirit(1);
+    expect(b.playerSpirit.name).toBe('Allegro-Owl');
+    expect(b.log).toContain('STEM SWITCH');
+
+    // Trigger Multipart Harmony Fusion
+    engine.triggerPlaylistBlend();
+    expect(b.blendActive).toBe(true);
+    expect(b.playerSpirit.name).toBe('Omni-Harmony Chimera');
+    expect(b.log).toContain('MULTIPART HARMONY FUSION');
+  });
 });
