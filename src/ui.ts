@@ -7,6 +7,11 @@ export class UIManager {
   private state: GameState;
   private engine: GameEngine;
   private activeTab: string = 'sector';
+  private renderedTab: string = '';
+  private renderedBodyId: string = '';
+  private lastQueueSignature: string = '';
+  private lastShipCount: number = -1;
+  private resourcesInitialized: boolean = false;
 
   constructor(state: GameState, engine: GameEngine) {
     this.state = state;
@@ -58,12 +63,27 @@ export class UIManager {
   }
 
   public updateUI(): void {
-    this.renderTopResources();
+    this.updateTopResources();
     this.renderEventLog();
-    this.renderTabContent();
+
+    // Check if structural tab re-render is required (tab changed, body changed, or items added/removed)
+    const currentQueueSig = this.state.buildQueue.map(q => q.id).join(',');
+    const selectedBodyId = this.state.selectedBodyId || 'terra';
+    
+    if (
+      this.activeTab !== this.renderedTab ||
+      selectedBodyId !== this.renderedBodyId ||
+      currentQueueSig !== this.lastQueueSignature ||
+      this.state.ships.length !== this.lastShipCount
+    ) {
+      this.renderTabContent();
+    } else {
+      // In-place updates for progress bars and button states without destroying DOM
+      this.updateDynamicTabElements();
+    }
   }
 
-  private renderTopResources(): void {
+  private updateTopResources(): void {
     const container = document.getElementById('resources');
     if (!container) return;
 
@@ -77,18 +97,29 @@ export class UIManager {
       { id: 'science', label: 'Science', icon: '🔬', val: Math.floor(res.science), rate: rates.science }
     ];
 
-    container.innerHTML = items.map(item => `
-      <div class="resource-item">
-        <div class="res-header">
-          <span>${item.icon}</span>
-          <span>${item.label}</span>
+    if (!this.resourcesInitialized) {
+      container.innerHTML = items.map(item => `
+        <div class="resource-item">
+          <div class="res-header">
+            <span>${item.icon}</span>
+            <span>${item.label}</span>
+          </div>
+          <div class="res-val" id="res-val-${item.id}">0</div>
+          <div class="res-rate" id="res-rate-${item.id}">+0.0/s</div>
         </div>
-        <div class="res-val">${item.val.toLocaleString()}</div>
-        <div class="res-rate ${item.rate < 0 ? 'negative' : ''}">
-          ${item.rate >= 0 ? '+' : ''}${item.rate.toFixed(1)}/s
-        </div>
-      </div>
-    `).join('');
+      `).join('');
+      this.resourcesInitialized = true;
+    }
+
+    for (const item of items) {
+      const valElem = document.getElementById(`res-val-${item.id}`);
+      const rateElem = document.getElementById(`res-rate-${item.id}`);
+      if (valElem) valElem.textContent = item.val.toLocaleString();
+      if (rateElem) {
+        rateElem.textContent = `${item.rate >= 0 ? '+' : ''}${item.rate.toFixed(1)}/s`;
+        rateElem.className = `res-rate ${item.rate < 0 ? 'negative' : ''}`;
+      }
+    }
   }
 
   private renderEventLog(): void {
@@ -114,6 +145,11 @@ export class UIManager {
 
     const selectedBody = this.state.bodies.find(b => b.id === this.state.selectedBodyId) || this.state.bodies[1];
 
+    this.renderedTab = this.activeTab;
+    this.renderedBodyId = selectedBody.id;
+    this.lastQueueSignature = this.state.buildQueue.map(q => q.id).join(',');
+    this.lastShipCount = this.state.ships.length;
+
     if (this.activeTab === 'sector') {
       this.renderSectorOverview(container, selectedBody);
     } else if (this.activeTab === 'base') {
@@ -122,6 +158,55 @@ export class UIManager {
       this.renderShipyard(container, selectedBody);
     } else if (this.activeTab === 'fleet') {
       this.renderFleets(container);
+    }
+  }
+
+  private updateDynamicTabElements(): void {
+    const container = document.getElementById('tab-content');
+    if (!container) return;
+
+    const selectedBody = this.state.bodies.find(b => b.id === this.state.selectedBodyId) || this.state.bodies[1];
+
+    // 1. Update construction progress bars in-place
+    for (const task of this.state.buildQueue) {
+      const pct = Math.min(100, Math.floor((task.progress / task.totalTime) * 100));
+      const bar = container.querySelector(`.task-bar[data-task-id="${task.id}"]`) as HTMLElement;
+      const text = container.querySelector(`.task-percent[data-task-id="${task.id}"]`) as HTMLElement;
+      if (bar) bar.style.width = `${pct}%`;
+      if (text) text.textContent = `${pct}%`;
+    }
+
+    // 2. Update ship travel progress bars
+    for (const ship of this.state.ships) {
+      if (ship.state === 'traveling') {
+        const bar = container.querySelector(`.ship-progress-bar[data-ship-id="${ship.id}"]`) as HTMLElement;
+        if (bar) bar.style.width = `${Math.min(100, ship.travelProgress * 100)}%`;
+      }
+    }
+
+    // 3. Update build buttons affordability in-place
+    if (this.activeTab === 'base' && selectedBody.colonized) {
+      const totalBuildings = Object.values(selectedBody.buildings as Record<string, number>).reduce((a, b) => a + b, 0);
+      container.querySelectorAll('.build-btn').forEach(btn => {
+        const type = (btn as HTMLElement).dataset.type as BuildingType;
+        const currentLevel = selectedBody.buildings[type] || 0;
+        const cost = calculateBuildingCost(type, currentLevel);
+        const affordable = canAfford(this.state.resources, cost) && totalBuildings < selectedBody.maxBuildings;
+        (btn as HTMLButtonElement).disabled = !affordable;
+      });
+    } else if (this.activeTab === 'shipyard' && selectedBody.colonized) {
+      container.querySelectorAll('.build-ship-btn').forEach(btn => {
+        const sType = (btn as HTMLElement).dataset.type as ShipType;
+        const def = SHIP_DEFS[sType];
+        const affordable = canAfford(this.state.resources, def.cost);
+        (btn as HTMLButtonElement).disabled = !affordable;
+      });
+    } else if (this.activeTab === 'sector' && !selectedBody.colonized && selectedBody.canColonize) {
+      const colBtn = document.getElementById('colonize-btn') as HTMLButtonElement;
+      if (colBtn) {
+        const canAffordColony = canAfford(this.state.resources, { alloys: 50, energy: 30, minerals: 100 });
+        colBtn.disabled = !canAffordColony;
+      }
     }
   }
 
@@ -212,10 +297,10 @@ export class UIManager {
           <div class="card" style="border-color: var(--accent-cyan);">
             <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600;">
               <span>${p.name}</span>
-              <span>${Math.floor((p.progress / p.totalTime) * 100)}%</span>
+              <span class="task-percent" data-task-id="${p.id}">${Math.floor((p.progress / p.totalTime) * 100)}%</span>
             </div>
             <div style="width: 100%; height: 4px; background: #1e293b; border-radius: 2px; margin-top: 6px; overflow: hidden;">
-              <div style="width: ${(p.progress / p.totalTime) * 100}%; height: 100%; background: var(--accent-cyan);"></div>
+              <div class="task-bar" data-task-id="${p.id}" style="width: ${(p.progress / p.totalTime) * 100}%; height: 100%; background: var(--accent-cyan); transition: width 0.1s linear;"></div>
             </div>
           </div>
         `).join('')}
@@ -289,10 +374,10 @@ export class UIManager {
           <div class="card" style="border-color: #a855f7;">
             <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600;">
               <span>${p.name}</span>
-              <span>${Math.floor((p.progress / p.totalTime) * 100)}%</span>
+              <span class="task-percent" data-task-id="${p.id}">${Math.floor((p.progress / p.totalTime) * 100)}%</span>
             </div>
             <div style="width: 100%; height: 4px; background: #1e293b; border-radius: 2px; margin-top: 6px; overflow: hidden;">
-              <div style="width: ${(p.progress / p.totalTime) * 100}%; height: 100%; background: #a855f7;"></div>
+              <div class="task-bar" data-task-id="${p.id}" style="width: ${(p.progress / p.totalTime) * 100}%; height: 100%; background: #a855f7; transition: width 0.1s linear;"></div>
             </div>
           </div>
         `).join('')}
@@ -383,7 +468,7 @@ export class UIManager {
             </div>
           ` : `
             <div style="width: 100%; height: 4px; background: #1e293b; border-radius: 2px; overflow: hidden; margin-top: 0.5rem;">
-              <div style="width: ${ship.travelProgress * 100}%; height: 100%; background: #38bdf8;"></div>
+              <div class="ship-progress-bar" data-ship-id="${ship.id}" style="width: ${ship.travelProgress * 100}%; height: 100%; background: #38bdf8; transition: width 0.1s linear;"></div>
             </div>
           `}
         </div>
