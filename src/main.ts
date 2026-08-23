@@ -9,17 +9,9 @@ window.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
-  // Handle high-DPI scaling for Chromebooks
-  function resizeCanvas() {
-    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-    const parent = canvas.parentElement;
-    const w = parent?.clientWidth || 800;
-    const h = parent?.clientHeight || 600;
-    canvas.width = Math.floor(w * dpr);
-    canvas.height = Math.floor(h * dpr);
-  }
-  window.addEventListener('resize', resizeCanvas);
-  resizeCanvas();
+  // Fixed virtual resolution for crisp pixel art and stable coordinates
+  canvas.width = 800;
+  canvas.height = 600;
 
   const engine = new AstralGameEngine();
   const renderer = new AstralRenderer(canvas);

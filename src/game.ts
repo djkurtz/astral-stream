@@ -19,7 +19,7 @@ export class AstralGameEngine {
   private createInitialState(): GameState {
     return {
       mode: 'intro',
-      zoneClean: false,
+      zoneClean: true,
       player: {
         x: 400,
         y: 460,
@@ -45,7 +45,7 @@ export class AstralGameEngine {
         index: 0
       },
       time: 0,
-      glitchActive: true,
+      glitchActive: false,
       cleansingProgress: 0
     };
   }
