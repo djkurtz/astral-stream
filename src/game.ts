@@ -103,7 +103,7 @@ export class AstralGameEngine {
     if (this.state.mode === 'audio_match_scan' && this.state.audioMatch) {
       const match = this.state.audioMatch;
       if (match.challengeType === 'waveform_slider') {
-        if (Math.abs(match.playerFreq - match.targetFreq) < 7) {
+        if (Math.abs(match.playerFreq - match.targetFreq) < 6) {
           match.holdTime += dt;
           if (match.holdTime >= 1.2 && !match.isComplete) {
             this.completeAudioMatch();

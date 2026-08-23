@@ -768,37 +768,50 @@ export class AstralRenderer {
 
     if (match.challengeType === 'waveform_slider') {
       // ---------------- WAVEFORM ALIGNMENT ----------------
-      const isAligned = Math.abs(match.playerFreq - match.targetFreq) < 7;
+      const diff = Math.abs(match.playerFreq - match.targetFreq);
+      const isAligned = diff < 6;
       
-      // Target Waveform (Cyan / Green)
-      ctx.strokeStyle = isAligned ? '#10b981' : 'rgba(6, 182, 212, 0.4)';
-      ctx.lineWidth = isAligned ? 5 : 2;
-      ctx.beginPath();
-      for (let x = 60; x < w - 60; x += 4) {
-        const y = centerY + Math.sin(x * 0.04 + t * 5) * 45;
-        if (x === 60) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      }
-      ctx.stroke();
+      const speed = t * 4;
+      const amp = 42;
+      const targetScale = 0.015 + (match.targetFreq / 100) * 0.05;
+      const playerScale = 0.015 + (match.playerFreq / 100) * 0.05;
 
-      // Player Waveform (Magenta / Green)
-      ctx.strokeStyle = isAligned ? '#10b981' : '#ec4899';
+      // 1. Target Waveform (Glowing Cyan Guide)
+      ctx.strokeStyle = isAligned ? '#10b981' : '#06b6d4';
       ctx.lineWidth = isAligned ? 5 : 3;
+      ctx.shadowColor = isAligned ? '#10b981' : '#06b6d4';
+      ctx.shadowBlur = isAligned ? 15 : 6;
       ctx.beginPath();
-      const pScale = 0.015 + (match.playerFreq / 100) * 0.05;
       for (let x = 60; x < w - 60; x += 4) {
-        const y = centerY + Math.sin(x * pScale + t * 6) * 50;
+        const y = centerY + Math.sin(x * targetScale + speed) * amp;
         if (x === 60) ctx.moveTo(x, y);
         else ctx.lineTo(x, y);
       }
       ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // 2. Player Waveform (Magenta) - Merges into the green wave when aligned
+      if (!isAligned) {
+        ctx.strokeStyle = '#ec4899';
+        ctx.lineWidth = 3;
+        ctx.shadowColor = '#ec4899';
+        ctx.shadowBlur = 6;
+        ctx.beginPath();
+        for (let x = 60; x < w - 60; x += 4) {
+          const y = centerY + Math.sin(x * playerScale + speed) * amp;
+          if (x === 60) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+      }
 
       // Hold Progress Meter
       if (isAligned) {
         const holdPct = Math.min(1.0, match.holdTime / 1.2);
         ctx.fillStyle = '#10b981';
         ctx.font = '800 16px Fredoka, sans-serif';
-        ctx.fillText(`✨ HOLDING FREQUENCY... (${Math.floor(holdPct * 100)}%) ✨`, centerX, centerY - 80);
+        ctx.fillText(`✨ HARMONIC RESONANCE LOCKED! (${Math.floor(holdPct * 100)}%) ✨`, centerX, centerY - 80);
         
         ctx.fillStyle = '#1e293b';
         ctx.fillRect(centerX - 100, centerY - 65, 200, 10);
@@ -807,7 +820,7 @@ export class AstralRenderer {
       } else {
         ctx.fillStyle = '#e2e8f0';
         ctx.font = '700 15px Fredoka, sans-serif';
-        ctx.fillText('👉 Drag the slider below until the waveforms overlap and turn GREEN!', centerX, centerY - 80);
+        ctx.fillText('👉 Drag the slider until the Magenta and Cyan waves merge into GREEN!', centerX, centerY - 80);
       }
 
     } else if (match.challengeType === 'call_response') {
