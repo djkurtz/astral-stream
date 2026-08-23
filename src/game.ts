@@ -67,6 +67,20 @@ export class AstralGameEngine {
           this.interactWithNearby();
         }
       }
+
+      // Battle Move Shortcuts (1, 2) & Blend (B)
+      if (this.state.mode === 'battle' && this.state.battle?.turn === 'player') {
+        if (e.code === 'Digit1' || e.code === 'Numpad1') this.initiatePlayerMove(0);
+        if (e.code === 'Digit2' || e.code === 'Numpad2') this.initiatePlayerMove(1);
+        if (e.code === 'KeyB') this.triggerPlaylistBlend();
+      }
+
+      // Melody Jam Tone Matcher Shortcuts (1/J, 2/K, 3/L)
+      if (this.state.mode === 'audio_match_scan' && this.state.audioMatch?.challengeType === 'call_response') {
+        if (e.code === 'Digit1' || e.code === 'KeyJ') this.inputMelodyPad(0);
+        if (e.code === 'Digit2' || e.code === 'KeyK') this.inputMelodyPad(1);
+        if (e.code === 'Digit3' || e.code === 'KeyL') this.inputMelodyPad(2);
+      }
     });
 
     window.addEventListener('keyup', (e) => {
@@ -103,6 +117,15 @@ export class AstralGameEngine {
     if (this.state.mode === 'audio_match_scan' && this.state.audioMatch) {
       const match = this.state.audioMatch;
       if (match.challengeType === 'waveform_slider') {
+        // Keyboard controls for slider: Left / A to decrease, Right / D to increase
+        let slideDir = 0;
+        if (this.keysDown.has('KeyA') || this.keysDown.has('ArrowLeft')) slideDir -= 1;
+        if (this.keysDown.has('KeyD') || this.keysDown.has('ArrowRight')) slideDir += 1;
+        if (slideDir !== 0) {
+          const newFreq = Math.max(0, Math.min(100, match.playerFreq + slideDir * 45 * dt));
+          this.setPlayerFrequency(newFreq);
+        }
+
         if (Math.abs(match.playerFreq - match.targetFreq) < 6) {
           match.holdTime += dt;
           if (match.holdTime >= 1.2 && !match.isComplete) {

@@ -109,6 +109,10 @@ export class AstralUIManager {
           s1?.classList.remove('hidden');
           s2?.classList.add('hidden');
           s3?.classList.add('hidden');
+          const sliderEl = document.getElementById('freq-slider') as HTMLInputElement;
+          if (sliderEl && document.activeElement !== sliderEl) {
+            sliderEl.value = m.playerFreq.toFixed(0);
+          }
         } else if (m.challengeType === 'call_response') {
           s1?.classList.add('hidden');
           s2?.classList.remove('hidden');
@@ -163,7 +167,7 @@ export class AstralUIManager {
               <button class="stem-pad-btn" data-idx="${idx}">
                 <div class="pad-light"></div>
                 <div class="pad-content">
-                  <div style="font-weight: 700; font-size: 0.95rem;">${m.name}</div>
+                  <div style="font-weight: 700; font-size: 0.95rem;">[${idx + 1}] ${m.name}</div>
                   <div style="font-size: 0.75rem; color: var(--accent-yellow); font-weight: 600;">${m.effectiveness || `${m.type.toUpperCase()} STEM`}</div>
                   <div style="font-size: 0.72rem; opacity: 0.8;">Power: ${m.power}</div>
                 </div>

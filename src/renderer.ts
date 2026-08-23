@@ -820,18 +820,18 @@ export class AstralRenderer {
       } else {
         ctx.fillStyle = '#e2e8f0';
         ctx.font = '700 15px Fredoka, sans-serif';
-        ctx.fillText('👉 Drag the slider until the Magenta and Cyan waves merge into GREEN!', centerX, centerY - 80);
+        ctx.fillText('👉 Use [A / D] or [◀ / ▶] keys (or drag slider) to merge waves into GREEN!', centerX, centerY - 80);
       }
 
     } else if (match.challengeType === 'call_response') {
       // ---------------- CALL & RESPONSE ----------------
       ctx.fillStyle = match.isListeningToPlayer ? '#38bdf8' : '#fbbf24';
       ctx.font = '800 17px Fredoka, sans-serif';
-      ctx.fillText(match.isListeningToPlayer ? `🎵 YOUR TURN: Repeat the tune on the pads! (${match.playerSequence.length}/4)` : '👂 LISTEN CAREFULLY TO THE CREATURE...', centerX, centerY - 90);
+      ctx.fillText(match.isListeningToPlayer ? `🎵 YOUR TURN: Press [1, 2, 3] or [J, K, L] on tempo! (${match.playerSequence.length}/4)` : '👂 LISTEN CAREFULLY TO THE CREATURE...', centerX, centerY - 90);
 
       // Render 3 Visual Launchpads
       const padColors = ['#f43f5e', '#fbbf24', '#38bdf8'];
-      const padLabels = ['🔴 LOW (C)', '🟡 MID (E)', '🔵 HIGH (G)'];
+      const padLabels = ['🔴 LOW [1/J]', '🟡 MID [2/K]', '🔵 HIGH [3/L]'];
       const padW = 110;
       const padH = 70;
       const startX = centerX - (3 * padW + 2 * 20) / 2;
