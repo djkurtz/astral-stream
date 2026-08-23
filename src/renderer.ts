@@ -98,31 +98,36 @@ export class HarmoniaRenderer {
       // Instrument Section Pill
       ctx.fillStyle = opt.pet.color;
       ctx.beginPath();
-      ctx.roundRect(x + 20, cardY + 20, cardW - 40, 30, 8);
+      ctx.roundRect(x + 20, cardY + 18, cardW - 40, 28, 8);
       ctx.fill();
       ctx.fillStyle = '#0f172a';
-      ctx.font = 'bold 14px "Inter", sans-serif';
-      ctx.fillText(opt.sectionName.toUpperCase(), x + cardW / 2, cardY + 40);
+      ctx.font = 'bold 13px "Inter", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(opt.sectionName.toUpperCase(), x + cardW / 2, cardY + 32);
 
       // Pet Avatar & Sprite
-      this.drawPixelPet(ctx, x + cardW / 2, cardY + 120, opt.pet, state.time);
+      ctx.textBaseline = 'alphabetic';
+      this.drawPixelPet(ctx, x + cardW / 2, cardY + 115, opt.pet, state.time);
 
       // Pet Name & Species
       ctx.fillStyle = '#f8fafc';
       ctx.font = 'bold 20px "Inter", sans-serif';
-      ctx.fillText(opt.name, x + cardW / 2, cardY + 190);
+      ctx.textAlign = 'center';
+      ctx.fillText(opt.name, x + cardW / 2, cardY + 185);
 
       ctx.fillStyle = opt.pet.color;
-      ctx.font = 'italic 15px "Inter", sans-serif';
-      ctx.fillText(`Familiar: ${opt.pet.name} (${opt.pet.species})`, x + cardW / 2, cardY + 215);
+      ctx.font = 'italic 14px "Inter", sans-serif';
+      ctx.fillText(`Familiar: ${opt.pet.name} (${opt.pet.species})`, x + cardW / 2, cardY + 210);
 
-      // Description
+      // Description - Centered within the card
       ctx.fillStyle = '#cbd5e1';
       ctx.font = '13px "Inter", sans-serif';
-      this.wrapText(ctx, opt.description, x + 15, cardY + 245, cardW - 30, 18);
+      ctx.textAlign = 'center';
+      this.wrapText(ctx, opt.description, x + cardW / 2, cardY + 238, cardW - 36, 18);
 
       // Base Stats
-      const statY = cardY + 325;
+      const statY = cardY + 312;
       ctx.fillStyle = '#94a3b8';
       ctx.font = '12px "Inter", sans-serif';
       ctx.textAlign = 'left';
@@ -135,11 +140,13 @@ export class HarmoniaRenderer {
       ctx.textAlign = 'center';
       ctx.fillStyle = opt.pet.color;
       ctx.beginPath();
-      ctx.roundRect(x + 20, cardY + cardH - 50, cardW - 40, 36, 10);
+      ctx.roundRect(x + 20, cardY + cardH - 48, cardW - 40, 34, 10);
       ctx.fill();
       ctx.fillStyle = '#0f172a';
       ctx.font = 'bold 14px "Inter", sans-serif';
-      ctx.fillText(`Press [${idx + 1}] or Click`, x + cardW / 2, cardY + cardH - 27);
+      ctx.textBaseline = 'middle';
+      ctx.fillText(`Press [${idx + 1}] or Click`, x + cardW / 2, cardY + cardH - 31);
+      ctx.textBaseline = 'alphabetic';
     });
 
     ctx.textAlign = 'center';
@@ -554,6 +561,20 @@ export class HarmoniaRenderer {
     for (let i = 0; i < state.wallet.reputationStars; i++) stars += '★';
     if (stars === '') stars = '☆☆☆☆☆';
     ctx.fillText(`♪ ${state.wallet.gold}  |  ✨ ${state.wallet.inspirationSparks}  |  ★ ${stars}`, this.width - 24, 34);
+
+    // Bottom-Left Movement Helper
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.75)';
+    ctx.strokeStyle = '#334155';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(16, this.height - 48, 310, 32, 8);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = 'bold 12px "Inter", sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('🎮 Move: [W A S D] or [↑ ← ↓ →]', 28, this.height - 27);
   }
 
   /* ---------------- DIALOGUE OVERLAY ---------------- */
@@ -659,14 +680,14 @@ export class HarmoniaRenderer {
     for (const w of words) {
       const test = line + w + ' ';
       if (ctx.measureText(test).width > maxW && line !== '') {
-        ctx.fillText(line, x, currY);
+        ctx.fillText(line.trim(), x, currY);
         line = w + ' ';
         currY += lineH;
       } else {
         line = test;
       }
     }
-    ctx.fillText(line, x, currY);
+    ctx.fillText(line.trim(), x, currY);
   }
 
   /* ---------------- WILD HARMONIPET ENCOUNTER RENDERER ---------------- */

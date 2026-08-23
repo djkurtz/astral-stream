@@ -108,7 +108,7 @@ export class HarmoniaUI {
           this.renderEnsembleRoster();
         }
       }
-      if (e.code === 'KeyD') {
+      if (e.code === 'KeyH') {
         modalDex?.classList.toggle('hidden');
         if (modalDex && !modalDex.classList.contains('hidden')) {
           this.renderHarmoniDex();
