@@ -1602,10 +1602,10 @@ export class HarmoniaUI {
       west_wilderness: {
         name: 'Lyre Valley',
         icon: '🌲',
-        cardinal: 'West Connector Trail',
+        cardinal: 'West Wilderness (Strings)',
         section: 'Wild Strings Meadow',
-        desc: 'Whispering willow glens where gentle breezes pluck harmonic chords from wild flora.',
-        secrets: 'Silver Bow Glen Vista, lost Bach Minuet folio, and wild Vivace Hares.'
+        desc: 'Whispering willow glens connecting Cavatina Village and The Central City. Direct wilderness mountain passes lead north to Echo Canyon and south to Rumble Gorge.',
+        secrets: '⬆️ North Pass to Echo Canyon, ⬇️ South Pass to Rumble Gorge, Silver Bow Glen Vista, lost Bach Minuet folio, and wild Vivace Hares.'
       },
       woodwind_woods: {
         name: 'Woodwind Woods',
@@ -1618,10 +1618,10 @@ export class HarmoniaUI {
       east_wilderness: {
         name: 'Breeze Glade',
         icon: '🍃',
-        cardinal: 'East Connector Trail',
+        cardinal: 'East Wilderness (Woodwinds)',
         section: 'Wild Reedmarsh',
-        desc: 'Misty bamboo thickets and babbling brooks vibrating in pure melodic fourths and fifths.',
-        secrets: 'Zephyr Falls Vista and lost Debussy Rêverie manuscript.'
+        desc: 'Misty bamboo thickets connecting Woodwind Woods and The Central City. Direct wilderness mountain passes lead north to Echo Canyon and south to Rumble Gorge.',
+        secrets: '⬆️ North Pass to Echo Canyon, ⬇️ South Pass to Rumble Gorge, Zephyr Falls Vista, and lost Debussy Rêverie manuscript.'
       },
       brass_citadel: {
         name: 'The Brass Citadel',
@@ -1634,10 +1634,10 @@ export class HarmoniaUI {
       north_wilderness: {
         name: 'Echo Canyon',
         icon: '🏜️',
-        cardinal: 'North Connector Trail',
+        cardinal: 'North Wilderness (Brass)',
         section: 'Wild Golden Steppes',
-        desc: 'Red rock canyons and natural acoustic arches providing pristine sonic reflection.',
-        secrets: 'Resonance Peak Vista and lost Vivaldi Spring quartet score.'
+        desc: 'Red rock canyons connecting The Brass Citadel and The Central City. Direct wilderness connector trails lead west to Lyre Valley and east to Breeze Glade.',
+        secrets: '⬅️ West Pass to Lyre Valley, ➡️ East Pass to Breeze Glade, Resonance Peak Vista, and lost Vivaldi Spring quartet score.'
       },
       percussion_peaks: {
         name: 'Percussion Peaks',
@@ -1650,10 +1650,10 @@ export class HarmoniaUI {
       south_wilderness: {
         name: 'Rumble Gorge',
         icon: '🌋',
-        cardinal: 'South Connector Trail',
+        cardinal: 'South Wilderness (Percussion)',
         section: 'Wild Rhythm Caverns',
-        desc: 'Deep subterranean basalt chasms where tectonic rumbles instill unwavering tempo stability.',
-        secrets: 'Echoing Caldera Vista and lost Tchaikovsky Dance score.'
+        desc: 'Deep subterranean basalt chasms connecting Percussion Peaks and The Central City. Direct wilderness connector trails lead west to Lyre Valley and east to Breeze Glade.',
+        secrets: '⬅️ West Pass to Lyre Valley, ➡️ East Pass to Breeze Glade, Echoing Caldera Vista, and lost Tchaikovsky Dance score.'
       }
     };
 
@@ -1680,7 +1680,7 @@ export class HarmoniaUI {
           </div>
           <div style="font-size: 12px; font-weight: 600; color: #38bdf8; margin-bottom: 6px;">[${reg.cardinal}] • ${reg.section}</div>
           <div style="font-size: 13px; color: #cbd5e1; line-height: 1.4;">${reg.desc}</div>
-          <div style="font-size: 12px; color: #fbbf24; margin-top: 4px;">✨ <strong>Features:</strong> ${reg.secrets}</div>
+          <div style="font-size: 12px; color: #fbbf24; margin-top: 4px;">✨ <strong>Key Routes & Features:</strong> ${reg.secrets}</div>
         </div>
         <div>
           ${!isCurrent && isDiscovered ? `
@@ -1698,6 +1698,20 @@ export class HarmoniaUI {
           document.getElementById('modal-map')?.classList.add('hidden');
         });
       }
+    };
+
+    const renderHighlight = (zoneId: ZoneId, r: number) => {
+      if (state.currentZone !== zoneId) return '';
+      return `
+        <!-- Integrated Current Location Highlight (Concentric Golden Aura) -->
+        <circle r="${r + 12}" fill="none" stroke="#fbbf24" stroke-width="3" opacity="0.9">
+          <animate attributeName="r" values="${r + 8};${r + 18};${r + 8}" dur="2.2s" repeatCount="indefinite" />
+          <animate attributeName="opacity" values="0.9;0.15;0.9" dur="2.2s" repeatCount="indefinite" />
+        </circle>
+        <circle r="${r + 6}" fill="rgba(251, 191, 36, 0.25)" stroke="#fef08a" stroke-width="2" stroke-dasharray="5,3">
+          <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="12s" repeatCount="indefinite" />
+        </circle>
+      `;
     };
 
     container.innerHTML = `
@@ -1724,80 +1738,117 @@ export class HarmoniaUI {
             <circle cx="400" cy="240" r="100" fill="none" stroke="rgba(251, 191, 36, 0.08)" stroke-width="2" stroke-dasharray="4,4" />
 
             <!-- Connecting Highways (Hub and Spoke with Multi-Layer Glow) -->
+            <!-- Underglow for Main Cardinal Arteries -->
+            <line x1="120" y1="240" x2="680" y2="240" stroke="rgba(56, 189, 248, 0.3)" stroke-width="12" stroke-linecap="round" />
+            <line x1="400" y1="70" x2="400" y2="410" stroke="rgba(234, 179, 8, 0.3)" stroke-width="12" stroke-linecap="round" />
+            
+            <!-- Wilderness Ring Highway (Direct Circular Connector Connecting Neighbor Wildernesses) -->
             <!-- Underglow -->
-            <line x1="120" y1="240" x2="680" y2="240" stroke="rgba(56, 189, 248, 0.3)" stroke-width="10" stroke-linecap="round" />
-            <line x1="400" y1="70" x2="400" y2="410" stroke="rgba(234, 179, 8, 0.3)" stroke-width="10" stroke-linecap="round" />
+            <line x1="260" y1="240" x2="400" y2="155" stroke="rgba(16, 185, 129, 0.4)" stroke-width="14" stroke-linecap="round" />
+            <line x1="260" y1="240" x2="400" y2="325" stroke="rgba(16, 185, 129, 0.4)" stroke-width="14" stroke-linecap="round" />
+            <line x1="540" y1="240" x2="400" y2="155" stroke="rgba(16, 185, 129, 0.4)" stroke-width="14" stroke-linecap="round" />
+            <line x1="540" y1="240" x2="400" y2="325" stroke="rgba(16, 185, 129, 0.4)" stroke-width="14" stroke-linecap="round" />
+
+            <!-- Primary Emerald Surface -->
+            <line x1="260" y1="240" x2="400" y2="155" stroke="#10b981" stroke-width="5" stroke-linecap="round" />
+            <line x1="260" y1="240" x2="400" y2="325" stroke="#10b981" stroke-width="5" stroke-linecap="round" />
+            <line x1="540" y1="240" x2="400" y2="155" stroke="#10b981" stroke-width="5" stroke-linecap="round" />
+            <line x1="540" y1="240" x2="400" y2="325" stroke="#10b981" stroke-width="5" stroke-linecap="round" />
+
+            <!-- Golden Road Stripe -->
+            <line x1="260" y1="240" x2="400" y2="155" stroke="#fef08a" stroke-width="2" stroke-dasharray="6,5" stroke-linecap="round" />
+            <line x1="260" y1="240" x2="400" y2="325" stroke="#fef08a" stroke-width="2" stroke-dasharray="6,5" stroke-linecap="round" />
+            <line x1="540" y1="240" x2="400" y2="155" stroke="#fef08a" stroke-width="2" stroke-dasharray="6,5" stroke-linecap="round" />
+            <line x1="540" y1="240" x2="400" y2="325" stroke="#fef08a" stroke-width="2" stroke-dasharray="6,5" stroke-linecap="round" />
+
+            <!-- Clear Route Labels along Wilderness Connectors -->
+            <rect x="265" y="172" width="125" height="18" rx="4" fill="rgba(6, 78, 59, 0.85)" stroke="#10b981" stroke-width="1" transform="rotate(-31 327 181)" />
+            <text x="327" y="184" fill="#a7f3d0" font-size="9" font-weight="700" font-family="Inter" text-anchor="middle" transform="rotate(-31 327 184)">NW Pass: Lyre ↔ Echo</text>
+
+            <rect x="265" y="286" width="125" height="18" rx="4" fill="rgba(6, 78, 59, 0.85)" stroke="#10b981" stroke-width="1" transform="rotate(31 327 295)" />
+            <text x="327" y="298" fill="#a7f3d0" font-size="9" font-weight="700" font-family="Inter" text-anchor="middle" transform="rotate(31 327 298)">SW Pass: Lyre ↔ Rumble</text>
+
+            <rect x="410" y="172" width="125" height="18" rx="4" fill="rgba(6, 78, 59, 0.85)" stroke="#10b981" stroke-width="1" transform="rotate(31 472 181)" />
+            <text x="472" y="184" fill="#a7f3d0" font-size="9" font-weight="700" font-family="Inter" text-anchor="middle" transform="rotate(31 472 184)">NE Pass: Echo ↔ Breeze</text>
+
+            <rect x="410" y="286" width="125" height="18" rx="4" fill="rgba(6, 78, 59, 0.85)" stroke="#10b981" stroke-width="1" transform="rotate(-31 472 295)" />
+            <text x="472" y="298" fill="#a7f3d0" font-size="9" font-weight="700" font-family="Inter" text-anchor="middle" transform="rotate(-31 472 298)">SE Pass: Breeze ↔ Rumble</text>
+
             <!-- Main Trade Arteries -->
             <line x1="120" y1="240" x2="680" y2="240" stroke="url(#roadH)" stroke-width="4" stroke-dasharray="8,6" />
             <line x1="400" y1="70" x2="400" y2="410" stroke="url(#roadV)" stroke-width="4" stroke-dasharray="8,6" />
 
-            <!-- NODES -->
-            <!-- 1. North: Brass Citadel -->
+            <!-- NODES (Full Region Names + Concentric Highlight when Current) -->
+            <!-- 1. North: The Brass Citadel -->
             <g class="atlas-node" id="node-brass_citadel" transform="translate(400, 70)">
-              <circle r="34" fill="#78350f" stroke="#eab308" stroke-width="3" />
+              ${renderHighlight('brass_citadel', 34)}
+              <circle r="34" fill="#78350f" stroke="${state.currentZone === 'brass_citadel' ? '#fbbf24' : '#eab308'}" stroke-width="${state.currentZone === 'brass_citadel' ? 4 : 3}" />
               <text text-anchor="middle" y="7" font-size="22">🎺</text>
-              <text text-anchor="middle" y="48" fill="#f8fafc" font-size="12" font-weight="700" font-family="Inter">Brass Citadel</text>
+              <text text-anchor="middle" y="48" fill="#f8fafc" font-size="12" font-weight="700" font-family="Inter">The Brass Citadel</text>
             </g>
 
             <!-- 2. North Wilds: Echo Canyon -->
             <g class="atlas-node" id="node-north_wilderness" transform="translate(400, 155)">
-              <circle r="22" fill="#9a3412" stroke="#d97706" stroke-width="2" />
+              ${renderHighlight('north_wilderness', 22)}
+              <circle r="22" fill="#9a3412" stroke="${state.currentZone === 'north_wilderness' ? '#fbbf24' : '#d97706'}" stroke-width="${state.currentZone === 'north_wilderness' ? 3.5 : 2}" />
               <text text-anchor="middle" y="5" font-size="15">🏜️</text>
               <text text-anchor="start" x="28" y="4" fill="#cbd5e1" font-size="11" font-weight="600" font-family="Inter">Echo Canyon</text>
             </g>
 
             <!-- 3. East: Woodwind Woods -->
             <g class="atlas-node" id="node-woodwind_woods" transform="translate(680, 240)">
-              <circle r="34" fill="#064e3b" stroke="#10b981" stroke-width="3" />
+              ${renderHighlight('woodwind_woods', 34)}
+              <circle r="34" fill="#064e3b" stroke="${state.currentZone === 'woodwind_woods' ? '#fbbf24' : '#10b981'}" stroke-width="${state.currentZone === 'woodwind_woods' ? 4 : 3}" />
               <text text-anchor="middle" y="7" font-size="22">🪈</text>
-              <text text-anchor="middle" y="48" fill="#f8fafc" font-size="12" font-weight="700" font-family="Inter">Woodwinds</text>
+              <text text-anchor="middle" y="48" fill="#f8fafc" font-size="12" font-weight="700" font-family="Inter">Woodwind Woods</text>
             </g>
 
             <!-- 4. East Wilds: Breeze Glade -->
             <g class="atlas-node" id="node-east_wilderness" transform="translate(540, 240)">
-              <circle r="22" fill="#065f46" stroke="#059669" stroke-width="2" />
+              ${renderHighlight('east_wilderness', 22)}
+              <circle r="22" fill="#065f46" stroke="${state.currentZone === 'east_wilderness' ? '#fbbf24' : '#059669'}" stroke-width="${state.currentZone === 'east_wilderness' ? 3.5 : 2}" />
               <text text-anchor="middle" y="5" font-size="15">🍃</text>
               <text text-anchor="middle" y="36" fill="#cbd5e1" font-size="11" font-weight="600" font-family="Inter">Breeze Glade</text>
             </g>
 
             <!-- 5. South: Percussion Peaks -->
             <g class="atlas-node" id="node-percussion_peaks" transform="translate(400, 410)">
-              <circle r="34" fill="#3b0764" stroke="#8b5cf6" stroke-width="3" />
+              ${renderHighlight('percussion_peaks', 34)}
+              <circle r="34" fill="#3b0764" stroke="${state.currentZone === 'percussion_peaks' ? '#fbbf24' : '#8b5cf6'}" stroke-width="${state.currentZone === 'percussion_peaks' ? 4 : 3}" />
               <text text-anchor="middle" y="7" font-size="22">🥁</text>
-              <text text-anchor="middle" y="48" fill="#f8fafc" font-size="12" font-weight="700" font-family="Inter">Percussion</text>
+              <text text-anchor="middle" y="48" fill="#f8fafc" font-size="12" font-weight="700" font-family="Inter">Percussion Peaks</text>
             </g>
 
             <!-- 6. South Wilds: Rumble Gorge -->
             <g class="atlas-node" id="node-south_wilderness" transform="translate(400, 325)">
-              <circle r="22" fill="#581c87" stroke="#7c3aed" stroke-width="2" />
+              ${renderHighlight('south_wilderness', 22)}
+              <circle r="22" fill="#581c87" stroke="${state.currentZone === 'south_wilderness' ? '#fbbf24' : '#7c3aed'}" stroke-width="${state.currentZone === 'south_wilderness' ? 3.5 : 2}" />
               <text text-anchor="middle" y="5" font-size="15">🌋</text>
               <text text-anchor="start" x="28" y="4" fill="#cbd5e1" font-size="11" font-weight="600" font-family="Inter">Rumble Gorge</text>
             </g>
 
             <!-- 7. West: Cavatina Village -->
             <g class="atlas-node" id="node-cavatina_village" transform="translate(120, 240)">
-              <circle r="34" fill="#0c4a6e" stroke="#38bdf8" stroke-width="3" />
+              ${renderHighlight('cavatina_village', 34)}
+              <circle r="34" fill="#0c4a6e" stroke="${state.currentZone === 'cavatina_village' ? '#fbbf24' : '#38bdf8'}" stroke-width="${state.currentZone === 'cavatina_village' ? 4 : 3}" />
               <text text-anchor="middle" y="7" font-size="22">🎻</text>
-              <text text-anchor="middle" y="48" fill="#f8fafc" font-size="12" font-weight="700" font-family="Inter">Cavatina</text>
+              <text text-anchor="middle" y="48" fill="#f8fafc" font-size="12" font-weight="700" font-family="Inter">Cavatina Village</text>
             </g>
 
             <!-- 8. West Wilds: Lyre Valley -->
             <g class="atlas-node" id="node-west_wilderness" transform="translate(260, 240)">
-              <circle r="22" fill="#0369a1" stroke="#0ea5e9" stroke-width="2" />
+              ${renderHighlight('west_wilderness', 22)}
+              <circle r="22" fill="#0369a1" stroke="${state.currentZone === 'west_wilderness' ? '#fbbf24' : '#0ea5e9'}" stroke-width="${state.currentZone === 'west_wilderness' ? 3.5 : 2}" />
               <text text-anchor="middle" y="5" font-size="15">🌲</text>
               <text text-anchor="middle" y="36" fill="#cbd5e1" font-size="11" font-weight="600" font-family="Inter">Lyre Valley</text>
             </g>
 
-            <!-- 9. CENTER: Grand Symphony Hall -->
+            <!-- 9. CENTER: The Central City -->
             <g class="atlas-node" id="node-grand_hall" transform="translate(400, 240)">
-              <circle r="44" fill="#831843" stroke="#ec4899" stroke-width="4" />
+              ${renderHighlight('grand_hall', 44)}
+              <circle r="44" fill="#831843" stroke="${state.currentZone === 'grand_hall' ? '#fbbf24' : '#ec4899'}" stroke-width="${state.currentZone === 'grand_hall' ? 5 : 4}" />
               <text text-anchor="middle" y="8" font-size="26">🏛️</text>
-              <text text-anchor="middle" y="58" fill="#f8fafc" font-size="13" font-weight="800" font-family="Inter">Grand Hall</text>
-            </g>
-
-            <!-- Pulsing Current Location Pin -->
-            <g id="player-pin">
-              ${this.renderPlayerPin(state.currentZone)}
+              <text text-anchor="middle" y="58" fill="#f8fafc" font-size="12.5" font-weight="800" font-family="Inter">The Central City</text>
             </g>
           </svg>
         </div>
@@ -1845,28 +1896,6 @@ export class HarmoniaUI {
         }
       });
     });
-  }
-
-  private renderPlayerPin(zone: ZoneId): string {
-    const coords: Record<ZoneId, { x: number; y: number }> = {
-      grand_hall: { x: 400, y: 195 },
-      cavatina_village: { x: 120, y: 195 },
-      west_wilderness: { x: 260, y: 205 },
-      woodwind_woods: { x: 680, y: 195 },
-      east_wilderness: { x: 540, y: 205 },
-      brass_citadel: { x: 400, y: 25 },
-      north_wilderness: { x: 400, y: 120 },
-      percussion_peaks: { x: 400, y: 365 },
-      south_wilderness: { x: 400, y: 290 }
-    };
-    const pt = coords[zone] || { x: 400, y: 195 };
-    return `
-      <circle cx="${pt.x}" cy="${pt.y}" r="8" fill="#fbbf24">
-        <animate attributeName="r" values="6;12;6" dur="1.5s" repeatCount="indefinite"/>
-        <animate attributeName="opacity" values="1;0.4;1" dur="1.5s" repeatCount="indefinite"/>
-      </circle>
-      <text x="${pt.x}" y="${pt.y - 12}" fill="#fbbf24" font-size="11" font-weight="800" text-anchor="middle">YOU</text>
-    `;
   }
 
   /* ---------------- FESTIVAL & CONCERT COMPETITION CALENDAR ---------------- */

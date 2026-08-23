@@ -71,8 +71,8 @@ describe('Road Connectivity, Bidirectional Transitions & Signpost Topology', () 
         }
       }
 
-      // We expect 16 total directed transitions connecting the 9 zones
-      expect(transitionPairs.length).toBe(16);
+      // We expect 24 total directed transitions connecting the 9 zones (including the 4-zone circular wilderness ring)
+      expect(transitionPairs.length).toBe(24);
 
       for (const { from, to, trId } of transitionPairs) {
         const targetZone = WORLD_ZONES[to];
@@ -265,9 +265,9 @@ describe('Road Connectivity, Bidirectional Transitions & Signpost Topology', () 
   });
 
   describe('3. Signpost Correctness & Directional Topology Audit', () => {
-    it('should verify all 9 world zones have exactly one signpost or trail marker in INITIAL_WORLD_NPCS', () => {
+    it('should verify all 9 world zones have signposts or trail markers in INITIAL_WORLD_NPCS', () => {
       const signposts = INITIAL_WORLD_NPCS.filter(npc => npc.actionType === 'signpost');
-      expect(signposts.length).toBe(9);
+      expect(signposts.length).toBe(13); // 9 regional markers + 4 wilderness ring crossroads signs
 
       for (const zoneId of ALL_NINE_ZONES) {
         const sign = signposts.find(s => s.zone === zoneId);

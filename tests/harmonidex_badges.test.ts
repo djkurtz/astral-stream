@@ -33,6 +33,25 @@ describe('Harmonia: Pokémon-Style Arc (HarmoniDex, Wild Bonding & League Badges
     engine.updateProximity();
     engine.interactWithNearby();
 
+    expect(state.mode).toBe('battle_lineup');
+    expect(state.preBattle).not.toBeNull();
+
+    // Add woodwind musician so player can resonate with woodwind pet
+    state.ensemble.members.push({
+      id: 'musician_oliver',
+      name: 'Oliver',
+      title: 'Woodland Flutist',
+      avatar: '🪈',
+      paletteColor: '#06b6d4',
+      instrumentId: 'silver_flute',
+      instrumentName: 'Silver Flute',
+      section: 'woodwinds',
+      stats: { technique: 25, toneQuality: 25, tempoStability: 25, sightReading: 20 },
+      level: 1
+    });
+
+    engine.confirmPreBattle();
+
     expect(state.mode).toBe('harmonize_wild');
     expect(state.harmonizeEncounter).not.toBeNull();
     expect(state.harmonizeEncounter?.pet.species).toBe('Vivace Hare');

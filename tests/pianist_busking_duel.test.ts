@@ -45,6 +45,9 @@ describe('Central Plaza Pianist Busking Competition & Concerto Accompaniment', (
       engine.advanceDialogue();
     }
 
+    expect(state.mode).toBe('battle_lineup');
+    engine.confirmPreBattle();
+
     expect(state.mode).toBe('competition');
     expect(state.competition?.isPianistDuel).toBe(true);
     expect(state.competition?.duelTier).toBe(1);
@@ -73,6 +76,9 @@ describe('Central Plaza Pianist Busking Competition & Concerto Accompaniment', (
       engine.advanceDialogue();
     }
 
+    expect(state.mode).toBe('battle_lineup');
+    engine.confirmPreBattle();
+
     expect(state.mode).toBe('competition');
     expect(state.competition?.isPianistDuel).toBe(true);
     expect(state.competition?.duelTier).toBe(2);
@@ -98,6 +104,9 @@ describe('Central Plaza Pianist Busking Competition & Concerto Accompaniment', (
     while (state.dialogue) {
       engine.advanceDialogue();
     }
+
+    expect(state.mode).toBe('battle_lineup');
+    engine.confirmPreBattle();
 
     expect(state.mode).toBe('competition');
     expect(state.competition?.isPianistDuel).toBe(true);
@@ -150,7 +159,7 @@ describe('Central Plaza Pianist Busking Competition & Concerto Accompaniment', (
     const boostedApplause = engine.getState().competition!.audienceApplause;
 
     // Score should be approximately 1.5x (50% boost)
-    expect(boostedScore).toBe(Math.floor(baseScore * 1.5));
+    expect(boostedScore).toBe(Math.round(baseScore * 1.5));
     // Audience applause should have extra surge (+5)
     expect(boostedApplause).toBeGreaterThan(baseApplause);
   });

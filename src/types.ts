@@ -55,7 +55,13 @@ export interface Musician {
   stats: MusicianStats;
   level: number;
   xp: number;
+  isKid?: boolean;
+  outfitColor?: string;
+  hairColor?: string;
+  hatStyle?: 'none' | 'beret' | 'feather_cap' | 'maestro' | 'headband';
   dialogue?: string[];
+  dialogueSets?: string[][];
+  dialogueIndex?: number;
   auditionDialogue?: string[];
   recruitedDialogue?: string[];
 }
@@ -214,6 +220,41 @@ export interface ConcertCompetition {
   maestroFlow: number; // 0 to 100
   currentChordIndex: number;
   currentMelodyIndex: number;
+  // Section-Based Turn Combat
+  playerSections?: InstrumentSection[];
+  currentSectionIndex?: number;
+  activeAttackingSection?: InstrumentSection;
+  selectedActionIndex?: number;
+  nextSectionBoost?: number;
+  playerShieldActive?: boolean;
+  rivalSections?: InstrumentSection[];
+  combatLog?: string[];
+}
+
+export interface SectionAction {
+  id: string;
+  name: string;
+  section: InstrumentSection;
+  icon: string;
+  description: string;
+  cost: number;
+  power: number;
+  effect: 'attack' | 'boost_next' | 'heal_harmony' | 'stun_rival' | 'applause_surge' | 'shield';
+  soundType: string;
+}
+
+export interface PreBattleInfo {
+  battleType: 'wild_harmonipet' | 'audition_battle' | 'pianist_busking_duel' | 'competition_stage';
+  targetNpc?: WorldNPC;
+  rivalId?: string;
+  forcedTier?: number;
+  title: string;
+  opponentName: string;
+  opponentAvatar: string;
+  opponentSection?: InstrumentSection;
+  opponentDescription: string;
+  recommendations: string[];
+  maxLineupSize: number;
 }
 
 export type ZoneId = 
@@ -418,7 +459,13 @@ export interface WorldNPC {
   propType?: 'lectern' | 'vanity' | 'music_stand' | 'signpost' | 'fountain' | 'anvil' | 'ancient_stone_stand' | 'golden_music_stand' | 'vista_monolith' | 'road_sign' | 'door_trigger' | 'treasure_chest' | 'circle_of_fifths_monolith';
   actionType: 'talk' | 'audition_battle' | 'practice_bench' | 'competition_stage' | 'sheet_music_stand' | 'inspiration_vista' | 'luthier_shop' | 'wild_harmonipet' | 'conservatory_master' | 'theory_bench' | 'customization_mirror' | 'signpost' | 'treasure_chest' | 'celebrity_secret' | 'pianist_busking_duel' | 'circle_of_fifths_puzzle';
   isNonMusician?: boolean;
+  isKid?: boolean;
+  outfitColor?: string;
+  hairColor?: string;
+  hatStyle?: 'none' | 'beret' | 'feather_cap' | 'maestro' | 'headband';
   dialogue: string[];
+  dialogueSets?: string[][];
+  dialogueIndex?: number;
   sheetMusicReward?: string; // piece ID
   vistaId?: string;
   badgeId?: string;
@@ -512,6 +559,33 @@ export interface ActiveDispatch {
   claimed: boolean;
 }
 
+export interface PhoneMessage {
+  id: string;
+  sender: string;
+  senderAvatar: string;
+  category: 'mom' | 'rival' | 'ensemble' | 'gossip';
+  subject: string;
+  body: string;
+  timestamp: string;
+  read: boolean;
+}
+
+export interface PhoneNotification {
+  id: string;
+  title: string;
+  message: string;
+  icon: string;
+  timer: number;
+}
+
+export interface ParentMentorState {
+  hasIntroducedBusking: boolean;
+  hasIntroducedMusicianDuel: boolean;
+  hasIntroducedPetBonding: boolean;
+  practiceReminderTimer: number;
+  lastBragMessageTime: number;
+}
+
 export type GameMode = 
   | 'character_customization' 
   | 'exploration' 
@@ -526,7 +600,9 @@ export type GameMode =
   | 'harmonize_wild'
   | 'dex_menu'
   | 'badge_menu'
-  | 'dispatch_menu';
+  | 'dispatch_menu'
+  | 'phone_menu'
+  | 'battle_lineup';
 
 export interface GameState {
   mode: GameMode;
@@ -567,6 +643,7 @@ export interface GameState {
   auditionBattle: AuditionBattle | null;
   harmonizeEncounter: HarmonizeEncounter | null;
   competition: ConcertCompetition | null;
+  preBattle?: PreBattleInfo | null;
   calendarEvents: FestivalEvent[];
   completedEvents: string[]; // event IDs
   activeDispatches: ActiveDispatch[];
@@ -576,6 +653,11 @@ export interface GameState {
   pianistBuskingWins: number;
   hasPianoAccompaniment: boolean;
   unlockedAcousticGates?: string[];
+  phoneOpen?: boolean;
+  phoneTab?: 'messages' | 'calendar' | 'quests' | 'repertoire' | 'ensemble' | 'dex';
+  phoneMessages?: PhoneMessage[];
+  activeNotification?: PhoneNotification | null;
+  parentMentor?: ParentMentorState;
   dialogue: GameDialogue | null;
   lastEvolvedPet?: {
     prevSpecies: string;
@@ -625,6 +707,8 @@ export interface HarmoniaSavePayload {
   calendarEvents?: FestivalEvent[];
   activeDispatches?: ActiveDispatch[];
   dispatchVenues?: DispatchVenue[];
+  phoneMessages?: PhoneMessage[];
+  parentMentor?: ParentMentorState;
 }
 
 export interface HarmoniaSaveExport {

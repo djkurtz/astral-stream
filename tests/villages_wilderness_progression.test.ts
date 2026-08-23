@@ -96,6 +96,9 @@ describe('Villages, Wilderness & Escalating Busker Progression', () => {
     engine.updateProximity();
     engine.interactWithNearby();
 
+    expect(state.mode).toBe('battle_lineup');
+    engine.confirmPreBattle();
+
     expect(state.mode).toBe('competition');
     expect(state.competition?.rival.id).toBe('rival_woodwind_trio');
 

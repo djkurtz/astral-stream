@@ -1,5 +1,5 @@
 import { GameState, Harmonipet, Musician, PlayerCustomization, WorldObstacle, WorldNPC, InstrumentSection } from './types';
-import { WORLD_ZONES, STARTER_OPTIONS, getBattleMovesForMusician, ALL_INSTRUMENTS_INFO } from './data';
+import { WORLD_ZONES, STARTER_OPTIONS, getBattleMovesForMusician, ALL_INSTRUMENTS_INFO, SECTION_ACTIONS } from './data';
 
 export class HarmoniaRenderer {
   private ctx: CanvasRenderingContext2D;
@@ -55,6 +55,20 @@ export class HarmoniaRenderer {
 
     if (state.mode === 'harmonize_wild') {
       this.renderHarmonizeWild(state);
+      this.renderDialogue(state);
+      return;
+    }
+
+    if (state.mode === 'battle_lineup') {
+      this.renderPreBattle(state);
+      this.renderDialogue(state);
+      return;
+    }
+
+    if (state.mode === 'phone_menu' || state.phoneOpen) {
+      this.renderWorldMap(state);
+      this.renderHUD(state);
+      this.renderPhoneMenu(state);
       this.renderDialogue(state);
       return;
     }
@@ -630,6 +644,307 @@ export class HarmoniaRenderer {
     });
   }
 
+  /* ---------------- PRE-BATTLE LINEUP SELECTION SCREEN ---------------- */
+
+  private renderPreBattle(state: GameState): void {
+    const ctx = this.ctx;
+    const info = state.preBattle;
+    if (!info) return;
+
+    // Dark majestic theater gradient backdrop
+    const bgGrad = ctx.createLinearGradient(0, 0, 0, this.height);
+    bgGrad.addColorStop(0, '#090d16');
+    bgGrad.addColorStop(0.5, '#0f172a');
+    bgGrad.addColorStop(1, '#050811');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, this.width, this.height);
+
+    // Header Title Banner
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+    ctx.fillRect(0, 0, this.width, 65);
+    ctx.strokeStyle = '#d4af37';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(0, 64, this.width, 1);
+
+    ctx.fillStyle = '#fef08a';
+    ctx.font = 'bold 22px "Cinzel", serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(info.title, this.width / 2, 40);
+
+    // Left Panel: Opponent & Recommendations (Width: 460)
+    const leftX = 50;
+    const leftY = 85;
+    const leftW = 460;
+    const leftH = 550;
+
+    ctx.fillStyle = 'rgba(30, 41, 59, 0.7)';
+    ctx.beginPath();
+    ctx.roundRect(leftX, leftY, leftW, leftH, 12);
+    ctx.fill();
+    ctx.strokeStyle = '#475569';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Opponent Card
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+    ctx.beginPath();
+    ctx.roundRect(leftX + 16, leftY + 16, leftW - 32, 130, 8);
+    ctx.fill();
+    ctx.strokeStyle = '#fbbf24';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.font = '40px "Apple Color Emoji", "Segoe UI Emoji", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(info.opponentAvatar, leftX + 60, leftY + 75);
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 18px "Cinzel", serif';
+    ctx.textAlign = 'left';
+    ctx.fillText(info.opponentName, leftX + 110, leftY + 50);
+
+    if (info.opponentSection) {
+      const secColor = info.opponentSection === 'strings' ? '#ec4899' : (info.opponentSection === 'woodwinds' ? '#06b6d4' : (info.opponentSection === 'brass' ? '#f59e0b' : '#a855f7'));
+      ctx.fillStyle = secColor;
+      ctx.font = 'bold 12px "Inter", sans-serif';
+      ctx.fillText(`Section: ${info.opponentSection.toUpperCase()}`, leftX + 110, leftY + 74);
+    }
+
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '12px "Inter", sans-serif';
+    ctx.fillText(info.opponentDescription, leftX + 110, leftY + 98);
+
+    // Recommendations Box
+    ctx.fillStyle = '#38bdf8';
+    ctx.font = 'bold 15px "Inter", sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('💡 Strategic Recommendations:', leftX + 20, leftY + 180);
+
+    const recBoxY = leftY + 195;
+    const recBoxH = leftH - 220;
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+    ctx.beginPath();
+    ctx.roundRect(leftX + 16, recBoxY, leftW - 32, recBoxH, 8);
+    ctx.fill();
+    ctx.strokeStyle = '#0284c7';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    let recCurY = recBoxY + 30;
+    info.recommendations.forEach((recText) => {
+      ctx.fillStyle = recText.includes('⚠️') || recText.includes('❌') ? '#fca5a5' : (recText.includes('✅') ? '#86efac' : '#e2e8f0');
+      ctx.font = '13px "Inter", sans-serif';
+      ctx.textAlign = 'left';
+      
+      const words = recText.split(' ');
+      let line = '';
+      for (const w of words) {
+        const testLine = line + w + ' ';
+        if (ctx.measureText(testLine).width > leftW - 60) {
+          ctx.fillText(line, leftX + 32, recCurY);
+          line = '   ' + w + ' ';
+          recCurY += 20;
+        } else {
+          line = testLine;
+        }
+      }
+      ctx.fillText(line, leftX + 32, recCurY);
+      recCurY += 28;
+    });
+
+    // Right Panel: Ensemble Lineup & Reserves (Width: 690)
+    const rightX = 540;
+    const rightY = 85;
+    const rightW = 690;
+    const rightH = 550;
+
+    ctx.fillStyle = 'rgba(30, 41, 59, 0.7)';
+    ctx.beginPath();
+    ctx.roundRect(rightX, rightY, rightW, rightH, 12);
+    ctx.fill();
+    ctx.strokeStyle = '#475569';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Active Lineup Header
+    const maxLineup = info.maxLineupSize || 4;
+    ctx.fillStyle = '#fbbf24';
+    ctx.font = 'bold 16px "Inter", sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText(`👥 Active Ensemble Lineup (${state.ensemble.members.length} / ${maxLineup} Members • ${state.ensemble.tier.toUpperCase()} Tier):`, rightX + 20, rightY + 30);
+    ctx.font = '12px "Inter", sans-serif';
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillText('Click an active member to remove/bench (Player cannot be removed)', rightX + 20, rightY + 50);
+
+    // Active Members Grid
+    const activeMembers = state.ensemble.members;
+    const slotW = 150;
+    const slotH = 150;
+    const slotGap = 16;
+    const activeStartX = rightX + 20;
+    const activeStartY = rightY + 65;
+
+    for (let i = 0; i < maxLineup; i++) {
+      const col = i % 4;
+      const row = Math.floor(i / 4);
+      const sx = activeStartX + col * (slotW + slotGap);
+      const sy = activeStartY + row * (slotH + slotGap);
+      const m = activeMembers[i];
+
+      ctx.save();
+      if (m) {
+        const isPlayer = i === 0;
+        const isHovered = this.mousePos ? (this.mousePos.x >= sx && this.mousePos.x <= sx + slotW && this.mousePos.y >= sy && this.mousePos.y <= sy + slotH) : false;
+        
+        ctx.fillStyle = isHovered && !isPlayer ? 'rgba(239, 68, 68, 0.2)' : 'rgba(15, 23, 42, 0.9)';
+        ctx.beginPath();
+        ctx.roundRect(sx, sy, slotW, slotH, 8);
+        ctx.fill();
+        ctx.strokeStyle = isHovered && !isPlayer ? '#ef4444' : (m.paletteColor || '#38bdf8');
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        this.drawPixelMusician(ctx, sx + slotW / 2, sy + 50, m, state.time, isPlayer ? state.customization : undefined, 'down');
+
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = 'bold 13px "Inter", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(m.name, sx + slotW / 2, sy + 95);
+
+        ctx.fillStyle = '#fbbf24';
+        ctx.font = '11px "Inter", sans-serif';
+        ctx.fillText(m.instrumentName || m.section, sx + slotW / 2, sy + 115);
+
+        const secColor = m.section === 'strings' ? '#ec4899' : (m.section === 'woodwinds' ? '#06b6d4' : (m.section === 'brass' ? '#f59e0b' : '#a855f7'));
+        ctx.fillStyle = secColor;
+        ctx.font = 'bold 10px "Inter", sans-serif';
+        ctx.fillText(m.section.toUpperCase(), sx + slotW / 2, sy + 135);
+
+        if (isHovered && !isPlayer) {
+          ctx.fillStyle = '#ef4444';
+          ctx.font = 'bold 11px "Inter", sans-serif';
+          ctx.fillText('❌ Click to Bench', sx + slotW / 2, sy + 20);
+        }
+      } else {
+        // Empty Slot
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.4)';
+        ctx.beginPath();
+        ctx.roundRect(sx, sy, slotW, slotH, 8);
+        ctx.fill();
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 4]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.fillStyle = '#64748b';
+        ctx.font = '13px "Inter", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('+ Empty Slot', sx + slotW / 2, sy + slotH / 2);
+      }
+      ctx.restore();
+    }
+
+    // Available Reserve Musicians Roster
+    const reserveY = activeStartY + (maxLineup > 4 ? (slotH + slotGap) * 2 : (slotH + slotGap)) + 15;
+    ctx.fillStyle = '#38bdf8';
+    ctx.font = 'bold 15px "Inter", sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('📦 Available Reserve Musicians (Click to deploy):', rightX + 20, reserveY);
+
+    const allOwned = [...state.recruitedMusicians, ...state.ensembleBox];
+    const reserveMusicians = allOwned.filter(m => !activeMembers.some(am => am.id === m.id));
+
+    const resStartX = rightX + 20;
+    const resStartY = reserveY + 15;
+    const rCardW = 150;
+    const rCardH = 70;
+    const rGap = 16;
+
+    if (reserveMusicians.length === 0) {
+      ctx.fillStyle = '#64748b';
+      ctx.font = 'italic 13px "Inter", sans-serif';
+      ctx.fillText('No reserve musicians available in box. Recruit more musicians in the world!', resStartX, resStartY + 30);
+    } else {
+      reserveMusicians.slice(0, 8).forEach((m, idx) => {
+        const col = idx % 4;
+        const row = Math.floor(idx / 4);
+        const rx = resStartX + col * (rCardW + rGap);
+        const ry = resStartY + row * (rCardH + rGap);
+
+        const isHovered = this.mousePos ? (this.mousePos.x >= rx && this.mousePos.x <= rx + rCardW && this.mousePos.y >= ry && this.mousePos.y <= ry + rCardH) : false;
+
+        ctx.save();
+        ctx.fillStyle = isHovered ? 'rgba(34, 197, 94, 0.2)' : 'rgba(15, 23, 42, 0.9)';
+        ctx.beginPath();
+        ctx.roundRect(rx, ry, rCardW, rCardH, 6);
+        ctx.fill();
+        ctx.strokeStyle = isHovered ? '#22c55e' : (m.paletteColor || '#64748b');
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        ctx.font = '24px "Apple Color Emoji", "Segoe UI Emoji", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(m.avatar || '🎵', rx + 24, ry + 42);
+
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = 'bold 12px "Inter", sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(m.name, rx + 48, ry + 26);
+
+        const secColor = m.section === 'strings' ? '#ec4899' : (m.section === 'woodwinds' ? '#06b6d4' : (m.section === 'brass' ? '#f59e0b' : '#a855f7'));
+        ctx.fillStyle = secColor;
+        ctx.font = 'bold 10px "Inter", sans-serif';
+        ctx.fillText(m.section.toUpperCase(), rx + 48, ry + 42);
+
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '10px "Inter", sans-serif';
+        ctx.fillText(`Lv.${m.level} • ${m.instrumentName}`, rx + 48, ry + 58);
+
+        ctx.restore();
+      });
+    }
+
+    // Bottom Action Buttons
+    const btnW = 340;
+    const btnH = 45;
+    const btnY = 650;
+
+    // Start Battle Button
+    const startX = this.width / 2 - btnW - 20;
+    const startHovered = this.mousePos ? (this.mousePos.x >= startX && this.mousePos.x <= startX + btnW && this.mousePos.y >= btnY && this.mousePos.y <= btnY + btnH) : false;
+
+    ctx.fillStyle = startHovered ? 'rgba(245, 158, 11, 0.95)' : 'rgba(217, 119, 6, 0.9)';
+    ctx.beginPath();
+    ctx.roundRect(startX, btnY, btnW, btnH, 8);
+    ctx.fill();
+    ctx.strokeStyle = '#fef08a';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 16px "Cinzel", serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('⚔️ COMMENCE BATTLE [ENTER]', startX + btnW / 2, btnY + 28);
+
+    // Cancel Button
+    const cancelX = this.width / 2 + 20;
+    const cancelHovered = this.mousePos ? (this.mousePos.x >= cancelX && this.mousePos.x <= cancelX + btnW && this.mousePos.y >= btnY && this.mousePos.y <= btnY + btnH) : false;
+
+    ctx.fillStyle = cancelHovered ? 'rgba(71, 85, 105, 0.9)' : 'rgba(30, 41, 59, 0.9)';
+    ctx.beginPath();
+    ctx.roundRect(cancelX, btnY, btnW, btnH, 8);
+    ctx.fill();
+    ctx.strokeStyle = '#94a3b8';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    ctx.fillStyle = '#cbd5e1';
+    ctx.font = 'bold 15px "Inter", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('↩️ RETREAT / CANCEL [ESC]', cancelX + btnW / 2, btnY + 28);
+  }
+
   /* ---------------- CONCERT COMPETITION ARENA ---------------- */
 
   private renderConcertCompetition(state: GameState): void {
@@ -906,11 +1221,52 @@ export class HarmoniaRenderer {
       ctx.restore();
     });
 
+    // ⚔️ SECTION ACTIONS (Matching Action Selection for Active Section)
+    const activeSec = comp.activeAttackingSection || 'strings';
+    const sectionActions = SECTION_ACTIONS[activeSec] || SECTION_ACTIONS.strings;
+    const actionCardY = 460;
+    const actionCardH = 56;
+
+    sectionActions.forEach((act, actIdx) => {
+      const ax = startX + actIdx * (laneW + gap);
+      const isHovered = this.mousePos ? (this.mousePos.x >= ax && this.mousePos.x <= ax + laneW && this.mousePos.y >= actionCardY && this.mousePos.y <= actionCardY + actionCardH) : false;
+
+      ctx.save();
+      ctx.fillStyle = isHovered ? 'rgba(30, 58, 138, 0.95)' : 'rgba(15, 23, 42, 0.92)';
+      ctx.beginPath();
+      ctx.roundRect(ax, actionCardY, laneW, actionCardH, 8);
+      ctx.fill();
+      ctx.strokeStyle = isHovered ? '#fbbf24' : '#38bdf8';
+      ctx.lineWidth = isHovered ? 2 : 1.2;
+      ctx.stroke();
+
+      // Action Title & Icon
+      ctx.fillStyle = '#f8fafc';
+      ctx.font = 'bold 12px "Inter", sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText(`[${actIdx + 1}] ${act.icon} ${act.name}`, ax + 10, actionCardY + 22);
+
+      // Power / Effect Tag
+      ctx.fillStyle = '#fbbf24';
+      ctx.font = 'bold 10px "Inter", sans-serif';
+      ctx.textAlign = 'right';
+      ctx.fillText(`⚡ Pwr:${act.power}`, ax + laneW - 10, actionCardY + 22);
+
+      // Description
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '10px "Inter", sans-serif';
+      ctx.textAlign = 'left';
+      const desc = act.description.length > 38 ? act.description.slice(0, 36) + '...' : act.description;
+      ctx.fillText(desc, ax + 10, actionCardY + 42);
+
+      ctx.restore();
+    });
+
     // 🎵 THE CONDUCTING PODIUM & BATON SWEEP
     const meterW = 600;
     const meterH = 28;
     const meterX = this.width / 2 - meterW / 2;
-    const meterY = 530;
+    const meterY = 535;
 
     // Conductor's Podium Platform
     const podiumW = 340;
@@ -1045,11 +1401,22 @@ export class HarmoniaRenderer {
       ctx.fillText('🎵 Conduct the Ensemble: Cue Sections & Time the Master Downbeat!', this.width / 2, meterY - 14);
     }
 
+    // Recent Combat Log
+    if (comp.combatLog && comp.combatLog.length > 0) {
+      const recentLogs = comp.combatLog.slice(-2);
+      ctx.fillStyle = '#fde68a';
+      ctx.font = 'bold 12px "Inter", sans-serif';
+      ctx.textAlign = 'center';
+      recentLogs.forEach((logText, lIdx) => {
+        ctx.fillText(logText, this.width / 2, 608 + lIdx * 18);
+      });
+    }
+
     // Interactive Action Controls Prompt
     ctx.fillStyle = '#f8fafc';
     ctx.font = 'bold 13px "Inter", sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('🎼 Section Cues: [1/D] Strings  [2/F] Winds  [3/J] Brass  [4/K] Percussion  |  ⏱️ Master Downbeat: [SPACE / ENTER]', this.width / 2, this.height - 20);
+    ctx.fillText(`🎼 [${activeSec.toUpperCase()} TURN] Section Attack: [1-4] or Click Card  |  ⏱️ Cadence Downbeat: [SPACE / ENTER]`, this.width / 2, this.height - 15);
   }
 
   /* ---------------- WORLD OVERWORLD MAP ---------------- */
@@ -1269,22 +1636,68 @@ export class HarmoniaRenderer {
       ctx.strokeRect(1020 - camX, 820 - camY, 360, 360);
 
     } else if (state.currentZone === 'west_wilderness' || state.currentZone === 'east_wilderness') {
-      // Short E/W Traversal Highway (width: 800) + N/S Exploration Trails (height: 1800)
-      ctx.fillStyle = 'rgba(180, 83, 9, 0.28)';
-      ctx.fillRect(0 - camX, 840 - camY, 800, 120); // Direct highway
-      ctx.fillRect(350 - camX, 200 - camY, 100, 1400); // Deep North/South exploration path
-      ctx.strokeStyle = 'rgba(251, 191, 36, 0.2)';
+      // E/W Highway (width: 800) + Complete North/South Ring Connector (height: 1800)
+      ctx.fillStyle = 'rgba(180, 83, 9, 0.32)';
+      ctx.fillRect(0 - camX, 840 - camY, 800, 120); // Central highway (to village / central city)
+      ctx.fillRect(340 - camX, 0 - camY, 120, 1800); // Continuous North/South ring highway connecting neighbor wildernesses
+      ctx.strokeStyle = 'rgba(251, 191, 36, 0.25)';
       ctx.lineWidth = 2;
       ctx.strokeRect(0 - camX, 840 - camY, 800, 120);
+      ctx.strokeRect(340 - camX, 0 - camY, 120, 1800);
+
+      // Highway Center Dashed Divider Lines
+      ctx.save();
+      ctx.strokeStyle = 'rgba(254, 240, 138, 0.35)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([12, 10]);
+      ctx.beginPath();
+      ctx.moveTo(0 - camX, 900 - camY);
+      ctx.lineTo(800 - camX, 900 - camY);
+      ctx.moveTo(400 - camX, 0 - camY);
+      ctx.lineTo(400 - camX, 1800 - camY);
+      ctx.stroke();
+      ctx.restore();
+
+      // Pavement Directional Guidance Markings
+      ctx.fillStyle = 'rgba(254, 240, 138, 0.45)';
+      ctx.font = 'bold 15px "Inter", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('⬆️ NORTH PASS (ECHO CANYON)', 400 - camX, 620 - camY);
+      ctx.fillText('⬆️ NORTH PASS (ECHO CANYON)', 400 - camX, 220 - camY);
+      ctx.fillText('⬇️ SOUTH PASS (RUMBLE GORGE)', 400 - camX, 1180 - camY);
+      ctx.fillText('⬇️ SOUTH PASS (RUMBLE GORGE)', 400 - camX, 1580 - camY);
 
     } else if (state.currentZone === 'north_wilderness' || state.currentZone === 'south_wilderness') {
-      // Short N/S Traversal Highway (height: 800) + E/W Exploration Trails (width: 1800)
-      ctx.fillStyle = 'rgba(180, 83, 9, 0.28)';
-      ctx.fillRect(840 - camX, 0 - camY, 120, 800); // Direct highway
-      ctx.fillRect(200 - camX, 350 - camY, 1400, 100); // Deep East/West exploration path
-      ctx.strokeStyle = 'rgba(251, 191, 36, 0.2)';
+      // N/S Highway (height: 800) + Complete East/West Ring Connector (width: 1800)
+      ctx.fillStyle = 'rgba(180, 83, 9, 0.32)';
+      ctx.fillRect(840 - camX, 0 - camY, 120, 800); // Central highway (to citadel/peaks / central city)
+      ctx.fillRect(0 - camX, 340 - camY, 1800, 120); // Continuous East/West ring highway connecting neighbor wildernesses
+      ctx.strokeStyle = 'rgba(251, 191, 36, 0.25)';
       ctx.lineWidth = 2;
       ctx.strokeRect(840 - camX, 0 - camY, 120, 800);
+      ctx.strokeRect(0 - camX, 340 - camY, 1800, 120);
+
+      // Highway Center Dashed Divider Lines
+      ctx.save();
+      ctx.strokeStyle = 'rgba(254, 240, 138, 0.35)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([12, 10]);
+      ctx.beginPath();
+      ctx.moveTo(900 - camX, 0 - camY);
+      ctx.lineTo(900 - camX, 800 - camY);
+      ctx.moveTo(0 - camX, 400 - camY);
+      ctx.lineTo(1800 - camX, 400 - camY);
+      ctx.stroke();
+      ctx.restore();
+
+      // Pavement Directional Guidance Markings
+      ctx.fillStyle = 'rgba(254, 240, 138, 0.45)';
+      ctx.font = 'bold 15px "Inter", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('⬅️ WEST PASS (LYRE VALLEY)', 520 - camX, 405 - camY);
+      ctx.fillText('⬅️ WEST PASS (LYRE VALLEY)', 220 - camX, 405 - camY);
+      ctx.fillText('➡️ EAST PASS (BREEZE GLADE)', 1280 - camX, 405 - camY);
+      ctx.fillText('➡️ EAST PASS (BREEZE GLADE)', 1580 - camX, 405 - camY);
     }
 
     // 3. Draw Transitions (Ground Exit Thresholds - Clean, non-intrusive road markings)
@@ -1606,48 +2019,71 @@ export class HarmoniaRenderer {
       ctx.fillText('♫', nx - 24, ny - 18 + noteBounce * 3);
       ctx.fillText('♪', nx + 2, ny - 24 - noteBounce * 2);
 
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
-      ctx.beginPath();
-      const labelText = `🎹 ${npc.name}`;
-      const labelW = Math.max(140, ctx.measureText(labelText).width + 16);
-      ctx.roundRect(nx - labelW / 2, ny - 38, labelW, 20, 4);
-      ctx.fill();
-      ctx.strokeStyle = '#fbbf24';
-      ctx.lineWidth = 1;
-      ctx.stroke();
+      const isNearby = (state?.nearbyInteractable && state.nearbyInteractable.id === npc.id) ||
+                       (state ? Math.hypot(state.player.x - npc.x, state.player.y - npc.y) <= 80 : false);
+      const isHovered = this.mousePos ? Math.hypot(this.mousePos.x - nx, this.mousePos.y - ny) <= 40 : false;
+      if (isNearby || isHovered) {
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+        ctx.beginPath();
+        const labelText = `🎹 ${npc.name}`;
+        ctx.font = 'bold 12px "Inter", sans-serif';
+        const labelW = ctx.measureText(labelText).width + 20;
+        ctx.roundRect(nx - labelW / 2, ny - 38, labelW, 22, 6);
+        ctx.fill();
+        ctx.strokeStyle = '#fbbf24';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
 
-      ctx.fillStyle = '#fbbf24';
-      ctx.font = 'bold 12px "Inter", sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(labelText, nx, ny - 24);
+        ctx.fillStyle = '#fbbf24';
+        ctx.textAlign = 'center';
+        ctx.fillText(labelText, nx, ny - 23);
+      }
       return;
     }
+
+    const isNearby = (state?.nearbyInteractable && state.nearbyInteractable.id === npc.id) ||
+                     (state ? Math.hypot(state.player.x - npc.x, state.player.y - npc.y) <= 75 : false);
+    const isHovered = this.mousePos ? Math.hypot(this.mousePos.x - nx, this.mousePos.y - ny) <= 36 : false;
+    const showNameBox = isNearby || isHovered;
 
     if (npc.musicianData) {
       this.drawPixelMusician(ctx, nx, ny, npc.musicianData, t, undefined, npc.dir || 'down');
       if (npc.musicianData.pet) {
         this.drawPixelPet(ctx, nx + 24, ny + 4, npc.musicianData.pet, t, undefined, npc.dir || 'down');
       }
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
-      ctx.beginPath();
-      const labelW = isSecret ? Math.max(90, ctx.measureText(`🌟 ${npc.name} 🌟`).width + 20) : 90;
-      ctx.roundRect(nx - labelW / 2, ny - 38, labelW, 20, 4);
-      ctx.fill();
-      ctx.fillStyle = isSecret ? '#fbbf24' : '#f8fafc';
-      ctx.font = 'bold 12px "Inter", sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(isSecret ? `🌟 ${npc.name} 🌟` : npc.name, nx, ny - 24);
+      if (showNameBox) {
+        const displayName = isSecret ? `🌟 ${npc.name} 🌟` : npc.name;
+        ctx.font = 'bold 12px "Inter", sans-serif';
+        const labelW = ctx.measureText(displayName).width + 20;
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+        ctx.strokeStyle = isSecret ? '#fbbf24' : '#a855f7';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.roundRect(nx - labelW / 2, ny - 38, labelW, 22, 6);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = isSecret ? '#fbbf24' : '#f8fafc';
+        ctx.textAlign = 'center';
+        ctx.fillText(displayName, nx, ny - 23);
+      }
 
     } else if (npc.actionType === 'wild_harmonipet' && npc.wildPetData) {
       this.drawPixelPet(ctx, nx, ny, npc.wildPetData, t, undefined, npc.dir || 'down');
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
-      ctx.beginPath();
-      ctx.roundRect(nx - 50, ny - 34, 100, 20, 4);
-      ctx.fill();
-      ctx.fillStyle = '#fbbf24';
-      ctx.font = 'bold 11px "Inter", sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(`✨ ${npc.wildPetData.name}`, nx, ny - 20);
+      if (showNameBox) {
+        const displayName = `✨ ${npc.wildPetData.name}`;
+        ctx.font = 'bold 11px "Inter", sans-serif';
+        const labelW = ctx.measureText(displayName).width + 20;
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+        ctx.strokeStyle = '#34d399';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.roundRect(nx - labelW / 2, ny - 34, labelW, 20, 6);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = '#a7f3d0';
+        ctx.textAlign = 'center';
+        ctx.fillText(displayName, nx, ny - 20);
+      }
 
     } else if (npc.isProp || npc.actionType === 'sheet_music_stand' || npc.actionType === 'signpost' || npc.actionType === 'inspiration_vista' || npc.actionType === 'practice_bench' || npc.actionType === 'theory_bench' || npc.actionType === 'customization_mirror') {
       let pType = npc.propType || 'music_stand';
@@ -1662,7 +2098,11 @@ export class HarmoniaRenderer {
         name: npc.name,
         title: npc.title,
         avatar: '👤',
-        paletteColor: '#0284c7',
+        paletteColor: npc.outfitColor || '#0284c7',
+        outfitColor: npc.outfitColor,
+        hairColor: npc.hairColor,
+        hatStyle: npc.hatStyle,
+        isKid: npc.isKid,
         instrumentId: 'none',
         instrumentName: 'None',
         section: 'none',
@@ -1671,14 +2111,21 @@ export class HarmoniaRenderer {
         level: 1,
         xp: 0
       } as any, t, undefined, npc.dir || 'down');
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
-      ctx.beginPath();
-      ctx.roundRect(nx - 45, ny - 38, 90, 20, 4);
-      ctx.fill();
-      ctx.fillStyle = '#f8fafc';
-      ctx.font = 'bold 12px "Inter", sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(npc.name, nx, ny - 24);
+
+      if (showNameBox) {
+        ctx.font = 'bold 12px "Inter", sans-serif';
+        const labelW = ctx.measureText(npc.name).width + 20;
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.roundRect(nx - labelW / 2, ny - 38, labelW, 22, 6);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = '#f8fafc';
+        ctx.textAlign = 'center';
+        ctx.fillText(npc.name, nx, ny - 23);
+      }
     }
 
     // Floating Dynamic Speech / Banter Bubble
@@ -1777,14 +2224,30 @@ export class HarmoniaRenderer {
     ctx.strokeStyle = '#a855f7';
     ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.roundRect(tierPillX, 10, 195, 34, 8);
+    ctx.roundRect(tierPillX, 10, 185, 34, 8);
     ctx.fill();
     ctx.stroke();
 
     ctx.fillStyle = '#c084fc';
     ctx.font = 'bold 13px "Inter", sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText(`🎼 [${tierName} • ${count} Musician${count > 1 ? 's' : ''}]`, tierPillX + 97, 32);
+    ctx.fillText(`🎼 [${tierName} • ${count} Musician${count > 1 ? 's' : ''}]`, tierPillX + 92, 32);
+
+    // HarmoniPhone Shortcut Pill
+    const unreadCount = state.phoneMessages ? state.phoneMessages.filter(m => !m.read).length : 0;
+    const phonePillX = 625;
+    ctx.fillStyle = unreadCount > 0 ? 'rgba(56, 189, 248, 0.25)' : 'rgba(30, 41, 59, 0.85)';
+    ctx.strokeStyle = unreadCount > 0 ? '#38bdf8' : '#64748b';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(phonePillX, 10, 140, 34, 8);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = unreadCount > 0 ? '#38bdf8' : '#94a3b8';
+    ctx.font = 'bold 12px "Inter", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(`📱 [P] Phone ${unreadCount > 0 ? `(${unreadCount} 🔴)` : ''}`, phonePillX + 70, 32);
 
     // Currency Wallet & Reputation (Right aligned)
     const rep = state.ensemble.reputationStars || state.wallet.reputationStars || 0;
@@ -1812,6 +2275,9 @@ export class HarmoniaRenderer {
       ctx.textAlign = 'center';
       ctx.fillText('🎹 Concerto Piano Accompaniment Active (+50% Score)', this.width / 2, bannerY + 18);
     }
+
+    // Push Notification Toast Banner
+    this.renderNotificationToast(state);
 
     // Transient Onboarding Motion Helper (Only shown during first 8 seconds of play)
     if (state.time < 8) {
@@ -2369,8 +2835,14 @@ export class HarmoniaRenderer {
       ctx.fillStyle = '#fef08a';
       ctx.font = 'bold 12px "Inter", sans-serif';
       ctx.textAlign = 'center';
-      const cleanName = obs.name ? obs.name.split('(')[0].trim() : 'Gateway';
-      ctx.fillText(`${obs.signIcon || '🏛️'} ${cleanName}`, gx + gw / 2, signY + 22);
+      const fullName = obs.name || 'Gateway';
+      const textW = ctx.measureText(fullName).width;
+      if (textW <= signW - 36) {
+        ctx.fillText(`${obs.signIcon || '🏛️'} ${fullName}`, gx + gw / 2, signY + 22);
+      } else {
+        ctx.font = 'bold 16px "Inter", sans-serif';
+        ctx.fillText(obs.signIcon || '🏛️', gx + gw / 2, signY + 23);
+      }
 
     } else {
       // 🏛️ North / South Gateway (Vertical Road passing through horizontal wall)
@@ -2407,8 +2879,14 @@ export class HarmoniaRenderer {
       ctx.fillStyle = '#fef08a';
       ctx.font = 'bold 12.5px "Inter", sans-serif';
       ctx.textAlign = 'center';
-      const cleanName = obs.name ? obs.name.split('(')[0].trim() : 'Gateway';
-      ctx.fillText(`${obs.signIcon || '🏛️'} ${cleanName}`, gx + gw / 2, signY + 23);
+      const fullName = obs.name || 'Gateway';
+      const textW = ctx.measureText(fullName).width;
+      if (textW <= signW - 36) {
+        ctx.fillText(`${obs.signIcon || '🏛️'} ${fullName}`, gx + gw / 2, signY + 23);
+      } else {
+        ctx.font = 'bold 16px "Inter", sans-serif';
+        ctx.fillText(obs.signIcon || '🏛️', gx + gw / 2, signY + 24);
+      }
     }
   }
 
@@ -2675,10 +3153,29 @@ export class HarmoniaRenderer {
     custom?: PlayerCustomization,
     dir: 'up' | 'down' | 'left' | 'right' = 'down'
   ): void {
+    const isKid = !!(m.isKid || (m as any).isKid || (m.title && m.title.toLowerCase().includes('kid')) || (m.title && m.title.toLowerCase().includes('student')) || m.name.includes('Little') || m.name.includes('Timmy') || m.name.includes('Pip') || m.name.includes('Young'));
+    ctx.save();
+    if (isKid) {
+      ctx.translate(x, y + 12);
+      ctx.scale(0.72, 0.72);
+      ctx.translate(-x, -(y + 12));
+    }
+
     const bob = Math.sin(t * 6) * 2;
-    const outfit = m.isPlayer && custom ? custom.outfitColor : m.paletteColor;
-    const hair = m.isPlayer && custom ? custom.hairColor : '#475569';
-    const hat = m.isPlayer && custom ? custom.hatStyle : (m.isPlayer ? 'beret' : 'none');
+
+    // Deterministic palette generation for unique characters
+    const hash = (m.id || m.name || 'char').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
+    const outfitPalettes = ['#38bdf8', '#0ea5e9', '#10b981', '#059669', '#f59e0b', '#d97706', '#8b5cf6', '#7c3aed', '#ec4899', '#f43f5e', '#64748b', '#0284c7', '#475569', '#2563eb'];
+    const hairPalettes = ['#475569', '#1e293b', '#b45309', '#78350f', '#fde047', '#fef08a', '#e2e8f0', '#94a3b8', '#991b1b', '#065f46'];
+    const hatOptions: ('none' | 'beret' | 'feather_cap' | 'maestro' | 'headband')[] = ['none', 'beret', 'feather_cap', 'headband', 'none', 'maestro', 'none'];
+
+    const defaultOutfit = outfitPalettes[hash % outfitPalettes.length];
+    const defaultHair = hairPalettes[(hash * 3) % hairPalettes.length];
+    const defaultHat = hatOptions[(hash * 7) % hatOptions.length];
+
+    const outfit = m.isPlayer && custom ? custom.outfitColor : (m.outfitColor || m.paletteColor || defaultOutfit);
+    const hair = m.isPlayer && custom ? custom.hairColor : (m.hairColor || defaultHair);
+    const hat = m.isPlayer && custom ? custom.hatStyle : (m.hatStyle || (m.isPlayer ? 'beret' : defaultHat));
 
     // Soft Shadow
     ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
@@ -2813,8 +3310,12 @@ export class HarmoniaRenderer {
       ctx.fillRect(x - 10 + hatOffsetX, y - 14 + bob, 20, 3);
     }
 
-    // Handheld Instrument - Only drawn for active musicians!
-    if (!m.isNonMusician && m.instrumentId && m.section) {
+    // Handheld Instrument - Only drawn for active musicians! (NEVER for non-musicians / parents)
+    const isParentOrNonMusician = m.isNonMusician || 
+      (m.title && (m.title.includes('Parent') || m.title.includes('Mom') || m.title.includes('Dad') || m.title.includes('Father') || m.title.includes('Mother'))) ||
+      m.name.includes('Mama') || m.name.includes('Papa') || m.name.includes('Mrs.') || m.name.includes('Mr.');
+
+    if (!isParentOrNonMusician && m.instrumentId && (m.instrumentId as string) !== 'none' && m.section && (m.section as string) !== 'none') {
       const finish = m.isPlayer && custom ? custom.instrumentFinish : 'classic_amber';
       let instColor = '#d97706';
       if (finish === 'gilded_gold') instColor = '#fbbf24';
@@ -2874,6 +3375,7 @@ export class HarmoniaRenderer {
         ctx.fillRect(instX - 2, y + 8 + bob, 8, 2);
       }
     }
+    ctx.restore();
   }
 
   private drawPixelPet(ctx: CanvasRenderingContext2D, x: number, y: number, pet: Harmonipet, t: number, tint?: string, dir: 'up' | 'down' | 'left' | 'right' = 'down'): void {
@@ -3200,165 +3702,147 @@ export class HarmoniaRenderer {
     ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, this.width, this.height);
 
-    // Title & Phase Badge
+    // 1. Top Header: Title & Phase Badge (y: 20..75)
     ctx.fillStyle = isTuning ? '#6ee7b7' : '#fbbf24';
-    ctx.font = 'bold 24px "Cinzel", serif';
+    ctx.font = 'bold 22px "Cinzel", serif';
     ctx.textAlign = 'center';
-    ctx.fillText(isTuning ? '🐾 Harmonipet Tuning & Ear Training' : '⚡ Harmonipet Rhythm Performance', this.width / 2, 88);
+    ctx.fillText(isTuning ? '🐾 Harmonipet Tuning & Ear Training' : '⚡ Harmonipet Rhythm Performance', this.width / 2, 38);
 
-    // Phase Tag
-    const tagW = 220;
-    const tagH = 24;
+    const tagW = 240;
+    const tagH = 22;
     const tagX = (this.width - tagW) / 2;
-    const tagY = 98;
+    const tagY = 48;
     ctx.fillStyle = isTuning ? 'rgba(56, 189, 248, 0.2)' : 'rgba(245, 158, 11, 0.25)';
     ctx.strokeStyle = isTuning ? '#38bdf8' : '#fbbf24';
     ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.roundRect(tagX, tagY, tagW, tagH, 12);
+    ctx.roundRect(tagX, tagY, tagW, tagH, 11);
     ctx.fill();
     ctx.stroke();
 
     ctx.fillStyle = isTuning ? '#38bdf8' : '#fbbf24';
-    ctx.font = 'bold 12px "Inter", sans-serif';
-    ctx.fillText(isTuning ? '🔧 TUNING PHASE (No Penalty)' : '⚡ PERFORMANCE (Timed Rhythm)', this.width / 2, tagY + 16);
+    ctx.font = 'bold 11px "Inter", sans-serif';
+    ctx.fillText(isTuning ? '🔧 TUNING MODE (No Score / Ear Training)' : '⚡ PERFORMANCE MODE (Timed Rhythm)', this.width / 2, tagY + 15);
 
-    ctx.fillStyle = '#cbd5e1';
-    ctx.font = '13px "Inter", sans-serif';
-    ctx.fillText(isTuning 
-      ? `Test notes freely to discover matching tones for ${enc.pet.name} the ${enc.pet.species}!`
-      : `Play the full ${enc.targetNoteIndices.length}-note phrase in tempo with perfect timing!`,
-      this.width / 2, 136);
-
-    // Opponent Wild Creature Platform
-    ctx.fillStyle = 'rgba(6, 78, 59, 0.6)';
+    // 2. Left Battler: Player & Familiar (x: 60..300, y: 80..230)
+    const player = state.ensemble.members[0];
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.ellipse(880, 260, 160, 48, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.font = '72px "Inter", sans-serif';
-    ctx.textAlign = 'center';
-    const bounce = Math.sin(state.time * 4) * 8;
-    ctx.fillText(enc.pet.sprite, 880, 250 + bounce);
-
-    // Wild Creature Nameplate
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
-    ctx.strokeStyle = enc.pet.color;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.roundRect(720, 130, 320, 75, 12);
+    ctx.roundRect(60, 80, 240, 54, 10);
     ctx.fill();
     ctx.stroke();
 
     ctx.fillStyle = '#f8fafc';
-    ctx.font = 'bold 18px "Inter", sans-serif';
+    ctx.font = 'bold 15px "Inter", sans-serif';
     ctx.textAlign = 'left';
-    ctx.fillText(`Wild ${enc.pet.name}`, 740, 160);
-
-    ctx.fillStyle = enc.pet.color;
-    ctx.font = '14px "Inter", sans-serif';
-    const rarityLabel = enc.pet.rarity ? ` • ${enc.pet.rarity.toUpperCase()}` : '';
-    ctx.fillText(`${enc.pet.species} (${enc.pet.section.toUpperCase()}${rarityLabel})`, 740, 185);
+    ctx.fillText(player ? player.name : 'Maestro', 75, 103);
+    ctx.fillStyle = '#38bdf8';
+    ctx.font = '12px "Inter", sans-serif';
+    ctx.fillText(player ? player.instrumentName : 'Violin', 75, 122);
 
     // Player Platform
-    ctx.fillStyle = 'rgba(6, 78, 59, 0.6)';
+    ctx.fillStyle = 'rgba(6, 78, 59, 0.5)';
     ctx.beginPath();
-    ctx.ellipse(360, 380, 160, 48, 0, 0, Math.PI * 2);
+    ctx.ellipse(180, 200, 80, 24, 0, 0, Math.PI * 2);
     ctx.fill();
-
-    const player = state.ensemble.members[0];
-    ctx.font = '64px "Inter", sans-serif';
-    ctx.fillText(player.avatar, 340, 370);
-    ctx.font = '48px "Inter", sans-serif';
-    ctx.fillText(player.pet.sprite, 410, 375 + Math.cos(state.time * 4) * 6);
-
-    // Central Resonance Meter
-    const barW = 520;
-    const barH = 26;
-    const barX = (this.width - barW) / 2;
-    const barY = 320;
-    this.drawBar(ctx, barX, barY, barW, barH, enc.resonanceMeter, 100, isTuning ? '#10b981' : '#f59e0b', `Resonance: ${enc.resonanceMeter}% (Threshold: ${enc.catchThreshold}%)`);
-
-    // Threshold Marker
-    const threshX = barX + (enc.catchThreshold / 100) * barW;
-    ctx.strokeStyle = '#fbbf24';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(threshX, barY - 4);
-    ctx.lineTo(threshX, barY + barH + 4);
-    ctx.stroke();
-
-    // Melody Sequence Call & Response Display (Adapts to variable note count & percussion vs pitch)
-    let noteNames = ['C4', 'E4', 'G4', 'C5'];
-    if (isPercussion) {
-      const pInst = enc.pet.instrumentId;
-      if (pInst === 'typewriter') {
-        noteNames = ['Clack', 'Space', 'Return', 'Bell'];
-      } else if (pInst === 'cannon') {
-        noteNames = ['Fuse', 'Powder', 'Echo', 'Cannon'];
-      } else if (pInst === 'timpani') {
-        noteNames = ['Low D', 'Low F', 'Low A', 'High D'];
-      } else if (pInst === 'marimba') {
-        noteNames = ['C4', 'E4', 'G4', 'C5'];
-      } else {
-        noteNames = ['Hi-Hat', 'Snare', 'Kick', 'Crash'];
-      }
+    if (player) {
+      ctx.font = '48px "Inter", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(player.avatar, 155, 195);
+      ctx.font = '36px "Inter", sans-serif';
+      ctx.fillText(player.pet.sprite, 205, 198 + Math.cos(state.time * 4) * 4);
     }
-    
-    const targetPills = enc.targetNoteIndices.map((nIdx, idx) => {
-      const isRevealed = enc.revealedSteps && enc.revealedSteps[idx];
-      const isCurrent = idx === enc.currentStep;
-      const text = isRevealed 
-        ? `${noteNames[nIdx]} ♪` 
-        : (isCurrent ? `[ ? ]` : `?`);
-      return { text, isRevealed, isCurrent };
-    });
 
-    const seqW = Math.max(640, enc.targetNoteIndices.length * 85 + 120);
-    const seqH = 44;
-    const seqX = (this.width - seqW) / 2;
-    const seqY = 360;
-
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
-    ctx.strokeStyle = isTuning ? '#34d399' : '#f59e0b';
+    // 3. Right Battler: Wild Harmonipet (x: width-300..width-60, y: 80..230)
+    const rightBoxX = this.width - 300;
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
+    ctx.strokeStyle = enc.pet.color;
     ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.roundRect(seqX, seqY, seqW, seqH, 8);
+    ctx.roundRect(rightBoxX, 80, 240, 54, 10);
     ctx.fill();
     ctx.stroke();
 
-    ctx.fillStyle = isTuning ? '#6ee7b7' : '#fbbf24';
-    ctx.font = 'bold 13px "Inter", sans-serif';
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 15px "Inter", sans-serif';
     ctx.textAlign = 'left';
-    ctx.fillText(isPercussion ? '🥁 Phrase:' : '🎵 Melody:', seqX + 14, seqY + 27);
+    ctx.fillText(`Wild ${enc.pet.name}`, rightBoxX + 15, 103);
+    ctx.fillStyle = enc.pet.color;
+    ctx.font = '12px "Inter", sans-serif';
+    const rarityLabel = enc.pet.rarity ? ` • ${enc.pet.rarity.toUpperCase()}` : '';
+    ctx.fillText(`${enc.pet.species}${rarityLabel}`, rightBoxX + 15, 122);
 
-    const pillStartX = seqX + 90;
-    const pillGap = 6;
-    const pillW = (seqW - 105 - (targetPills.length - 1) * pillGap) / targetPills.length;
+    // Wild Creature Platform
+    ctx.fillStyle = 'rgba(6, 78, 59, 0.5)';
+    ctx.beginPath();
+    ctx.ellipse(this.width - 180, 200, 80, 24, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.font = '54px "Inter", sans-serif';
+    ctx.textAlign = 'center';
+    const bounce = Math.sin(state.time * 4) * 6;
+    ctx.fillText(enc.pet.sprite, this.width - 180, 192 + bounce);
 
-    targetPills.forEach((p, idx) => {
-      const px = pillStartX + idx * (pillW + pillGap);
-      ctx.fillStyle = p.isRevealed ? 'rgba(16, 185, 129, 0.4)' : (p.isCurrent ? 'rgba(245, 158, 11, 0.25)' : 'rgba(30, 41, 59, 0.6)');
-      ctx.strokeStyle = p.isRevealed ? '#34d399' : (p.isCurrent ? '#fbbf24' : '#475569');
-      ctx.lineWidth = p.isCurrent || p.isRevealed ? 2 : 1;
+    // 4. Center Midsection: Dynamic Colorized Resonance Meter & Hints (x: 340..width-340, y: 95..220)
+    const barW = Math.min(520, this.width - 680);
+    const barH = 26;
+    const barX = (this.width - barW) / 2;
+    const barY = 95;
+
+    // Background track
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+    ctx.beginPath();
+    ctx.roundRect(barX, barY, barW, barH, 8);
+    ctx.fill();
+    ctx.strokeStyle = '#334155';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Colorized gradient based on progress
+    const progressWidth = Math.min(barW, Math.max(0, (enc.resonanceMeter / 100) * barW));
+    if (progressWidth > 0) {
+      const barGrad = ctx.createLinearGradient(barX, 0, barX + barW, 0);
+      if (enc.resonanceMeter < 40) {
+        barGrad.addColorStop(0, '#ef4444');
+        barGrad.addColorStop(1, '#f97316');
+      } else if (enc.resonanceMeter < 75) {
+        barGrad.addColorStop(0, '#f59e0b');
+        barGrad.addColorStop(1, '#eab308');
+      } else {
+        barGrad.addColorStop(0, '#10b981');
+        barGrad.addColorStop(1, '#06b6d4');
+      }
+      ctx.fillStyle = barGrad;
       ctx.beginPath();
-      ctx.roundRect(px, seqY + 7, pillW, 30, 6);
+      ctx.roundRect(barX, barY, progressWidth, barH, 8);
       ctx.fill();
-      ctx.stroke();
+    }
 
-      ctx.fillStyle = p.isRevealed ? '#a7f3d0' : (p.isCurrent ? '#fef08a' : '#94a3b8');
-      ctx.font = p.isCurrent || p.isRevealed ? 'bold 11px "Inter", sans-serif' : '11px "Inter", sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(p.text, px + pillW / 2, seqY + 26);
-    });
+    // Bar Label
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 12px "Inter", sans-serif';
+    ctx.textAlign = 'center';
+    const barLabel = isTuning 
+      ? `🐾 Tuning Discovery Mode (Ear Training Only — 0% Score)` 
+      : `Harmonic Resonance: ${enc.resonanceMeter}% (Bond Threshold: ${enc.catchThreshold}%)`;
+    ctx.fillText(barLabel, this.width / 2, barY + 18);
 
-    // Control Buttons Row (Replay & Phase Switch)
+    // Subtitle instruction
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '12px "Inter", sans-serif';
+    ctx.fillText(isTuning 
+      ? `Listen to the tune, then test buttons [1]-[4] to discover all notes without penalty!`
+      : `Play the full ${enc.targetNoteIndices.length}-note phrase in tempo with the rhythm sweet spot!`,
+      this.width / 2, 145);
+
+    // Control Buttons Row (Replay & Phase Switch) at y: 180, h: 36
     const btnW = 230;
     const btnH = 36;
     const gapBtn = 20;
     const totalBtnW = btnW * 2 + gapBtn;
     const repX = (this.width - totalBtnW) / 2;
-    const repY = 415;
+    const repY = 180;
     const phaseX = repX + btnW + gapBtn;
 
     // [R] Replay Button
@@ -3388,12 +3872,76 @@ export class HarmoniaRenderer {
     ctx.font = 'bold 13px "Inter", sans-serif';
     ctx.fillText(isTuning ? '✨ [SPACE] Begin Performance' : '🔧 [T] Back to Tuning', phaseX + btnW / 2, repY + 23);
 
-    // Timing Bar (Performance Phase only)
+    // 5. Melody Sequence Call & Response Display at y: 240, h: 42
+    let noteNames = ['C4', 'E4', 'G4', 'C5'];
+    if (isPercussion) {
+      const pInst = enc.pet.instrumentId;
+      if (pInst === 'typewriter') {
+        noteNames = ['Clack', 'Space', 'Return', 'Bell'];
+      } else if (pInst === 'cannon') {
+        noteNames = ['Fuse', 'Powder', 'Echo', 'Cannon'];
+      } else if (pInst === 'timpani') {
+        noteNames = ['Low D', 'Low F', 'Low A', 'High D'];
+      } else if (pInst === 'marimba') {
+        noteNames = ['C4', 'E4', 'G4', 'C5'];
+      } else {
+        noteNames = ['Hi-Hat', 'Snare', 'Kick', 'Crash'];
+      }
+    }
+    
+    const targetPills = enc.targetNoteIndices.map((nIdx, idx) => {
+      const isRevealed = enc.revealedSteps && enc.revealedSteps[idx];
+      const isCurrent = idx === enc.currentStep;
+      const text = isRevealed 
+        ? `${noteNames[nIdx]} ♪` 
+        : (isCurrent ? `[ ? ]` : `?`);
+      return { text, isRevealed, isCurrent };
+    });
+
+    const seqW = Math.max(560, enc.targetNoteIndices.length * 85 + 120);
+    const seqH = 42;
+    const seqX = (this.width - seqW) / 2;
+    const seqY = 240;
+
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+    ctx.strokeStyle = isTuning ? '#34d399' : '#f59e0b';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(seqX, seqY, seqW, seqH, 8);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = isTuning ? '#6ee7b7' : '#fbbf24';
+    ctx.font = 'bold 13px "Inter", sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText(isPercussion ? '🥁 Phrase:' : '🎵 Melody:', seqX + 14, seqY + 26);
+
+    const pillStartX = seqX + 90;
+    const pillGap = 6;
+    const pillW = (seqW - 105 - (targetPills.length - 1) * pillGap) / targetPills.length;
+
+    targetPills.forEach((p, idx) => {
+      const px = pillStartX + idx * (pillW + pillGap);
+      ctx.fillStyle = p.isRevealed ? 'rgba(16, 185, 129, 0.4)' : (p.isCurrent ? 'rgba(245, 158, 11, 0.25)' : 'rgba(30, 41, 59, 0.6)');
+      ctx.strokeStyle = p.isRevealed ? '#34d399' : (p.isCurrent ? '#fbbf24' : '#475569');
+      ctx.lineWidth = p.isCurrent || p.isRevealed ? 2 : 1;
+      ctx.beginPath();
+      ctx.roundRect(px, seqY + 6, pillW, 30, 6);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = p.isRevealed ? '#a7f3d0' : (p.isCurrent ? '#fef08a' : '#94a3b8');
+      ctx.font = p.isCurrent || p.isRevealed ? 'bold 11px "Inter", sans-serif' : '11px "Inter", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(p.text, px + pillW / 2, seqY + 25);
+    });
+
+    // 6. Timing Bar (Performance Phase only) at y: 300, h: 14
     if (!isTuning) {
       const rhythmW = 400;
       const rhythmH = 14;
       const rhythmX = (this.width - rhythmW) / 2;
-      const rhythmY = 460;
+      const rhythmY = 300;
 
       ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
       ctx.strokeStyle = '#475569';
@@ -3418,8 +3966,8 @@ export class HarmoniaRenderer {
       ctx.fillRect(sweepX - 2, rhythmY - 3, 4, rhythmH + 6);
     }
 
-    // Feedback or Status Banner
-    const statusY = isTuning ? 470 : 495;
+    // 7. Status Banner at y: 340
+    const statusY = isTuning ? 315 : 345;
     if (enc.lastFeedbackText) {
       ctx.fillStyle = enc.lastFeedback === 'PERFECT' ? '#34d399' : (enc.lastFeedback === 'DISSONANCE' ? '#f87171' : '#38bdf8');
       ctx.font = 'bold 14px "Inter", sans-serif';
@@ -3430,12 +3978,12 @@ export class HarmoniaRenderer {
       ctx.font = '13px "Inter", sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText(isTuning 
-        ? 'Tuning Mode: Press 1-4 to discover notes freely.' 
+        ? 'Tuning Mode: Press [1]-[4] to discover notes freely.' 
         : `Attempts Remaining: ${enc.attemptsRemaining} / 5  •  Execute full phrase in rhythm!`, 
         this.width / 2, statusY);
     }
 
-    // Note Action Buttons (Distinct percussions vs melodic pitches)
+    // 8. Note Action Buttons at y: 400, h: 75
     let notes: { label: string; sub: string }[] = [];
     if (isPercussion) {
       const pInst = enc.pet.instrumentId;
@@ -3488,11 +4036,11 @@ export class HarmoniaRenderer {
     const cardH = 75;
     const gap = 16;
     const startX = (this.width - (cardW * 4 + gap * 3)) / 2;
-    const cardY = 512;
+    const cardY = 380;
 
     notes.forEach((n, idx) => {
       const cx = startX + idx * (cardW + gap);
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
       ctx.strokeStyle = isTuning ? '#38bdf8' : '#34d399';
       ctx.lineWidth = 1.5;
       ctx.beginPath();
@@ -3509,6 +4057,27 @@ export class HarmoniaRenderer {
       ctx.font = '12px "Inter", sans-serif';
       ctx.fillText(n.sub, cx + cardW / 2, cardY + 54);
     });
+
+    // 9. Parent Mentor Guidance Card (y: 475..535)
+    const tipW = 680;
+    const tipH = 50;
+    const tipX = (this.width - tipW) / 2;
+    const tipY = 475;
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+    ctx.strokeStyle = '#f59e0b';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(tipX, tipY, tipW, tipH, 10);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#fbbf24';
+    ctx.font = 'bold 12px "Inter", sans-serif';
+    ctx.textAlign = 'center';
+    const mentorTip = isTuning 
+      ? '👩‍👧 Mama Aria: "Take your time sweetie! Tuning mode won\'t count towards victory, but you can find every note safely!"'
+      : '👩‍👧 Mama Aria: "Now perform with feeling! Hit the notes right when the yellow line crosses the green zone!"';
+    ctx.fillText(mentorTip, this.width / 2, tipY + 30);
   }
 
   /* ---------------- MUSIC THEORY CHALLENGE RENDERER ---------------- */
@@ -3713,5 +4282,346 @@ export class HarmoniaRenderer {
       ctx.font = '13px "Inter", sans-serif';
       ctx.fillText(hoveredInst.description, tipX + 16, tipY + 48);
     }
+  }
+
+  /* ---------------- PUSH NOTIFICATION TOAST ---------------- */
+
+  private renderNotificationToast(state: GameState): void {
+    const notif = state.activeNotification;
+    if (!notif || notif.timer <= 0) return;
+
+    const ctx = this.ctx;
+    const toastW = 560;
+    const toastH = 64;
+    const toastX = (this.width - toastW) / 2;
+    const toastY = 64;
+
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.96)';
+    ctx.beginPath();
+    ctx.roundRect(toastX, toastY, toastW, toastH, 12);
+    ctx.fill();
+    ctx.strokeStyle = '#fbbf24';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Icon Circle
+    ctx.fillStyle = 'rgba(251, 191, 36, 0.15)';
+    ctx.beginPath();
+    ctx.arc(toastX + 34, toastY + 32, 22, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.font = '22px "Inter", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(notif.icon || '📱', toastX + 34, toastY + 40);
+
+    // Title
+    ctx.fillStyle = '#fbbf24';
+    ctx.font = 'bold 14px "Inter", sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText(notif.title, toastX + 68, toastY + 26);
+
+    // Message
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = '13px "Inter", sans-serif';
+    const maxChars = 62;
+    const msgText = notif.message.length > maxChars ? notif.message.substring(0, maxChars - 3) + '...' : notif.message;
+    ctx.fillText(msgText, toastX + 68, toastY + 46);
+
+    // Countdown bar
+    const progress = Math.max(0, Math.min(1, notif.timer / 5.0));
+    ctx.fillStyle = '#fbbf24';
+    ctx.fillRect(toastX + 12, toastY + toastH - 3, (toastW - 24) * progress, 2);
+  }
+
+  /* ---------------- SMARTPHONE ("HARMONIPHONE") MODAL ---------------- */
+
+  private renderPhoneMenu(state: GameState): void {
+    const ctx = this.ctx;
+    const phoneW = 520;
+    const phoneH = 620;
+    const phoneX = (this.width - phoneW) / 2;
+    const phoneY = (this.height - phoneH) / 2;
+
+    // Dark screen backdrop
+    ctx.fillStyle = 'rgba(2, 6, 23, 0.75)';
+    ctx.fillRect(0, 0, this.width, this.height);
+
+    // Outer Phone Chassis (Metallic Titanium)
+    ctx.fillStyle = '#0f172a';
+    ctx.beginPath();
+    ctx.roundRect(phoneX, phoneY, phoneW, phoneH, 32);
+    ctx.fill();
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    // Inner Glass Display Bezel
+    ctx.fillStyle = '#1e293b';
+    ctx.beginPath();
+    ctx.roundRect(phoneX + 12, phoneY + 12, phoneW - 24, phoneH - 24, 24);
+    ctx.fill();
+
+    // Dynamic Island / Camera Notch
+    ctx.fillStyle = '#020617';
+    ctx.beginPath();
+    ctx.roundRect(phoneX + phoneW / 2 - 55, phoneY + 16, 110, 20, 10);
+    ctx.fill();
+
+    // Status Bar
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = 'bold 11px "Inter", sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('📶 5G', phoneX + 28, phoneY + 30);
+    ctx.textAlign = 'right';
+    ctx.fillText('9:41 AM  •  🔋 98%', phoneX + phoneW - 28, phoneY + 30);
+
+    // App Navigation Bar (5 Tabs)
+    const activeTab = state.phoneTab || 'messages';
+    const tabs = [
+      { id: 'messages', name: 'Messages', icon: '💬' },
+      { id: 'calendar', name: 'Calendar', icon: '📅' },
+      { id: 'quests', name: 'Quests', icon: '📜' },
+      { id: 'repertoire', name: 'Scores', icon: '🎼' },
+      { id: 'dex', name: 'Pets', icon: '🐾' }
+    ] as const;
+
+    const tabW = (phoneW - 48) / tabs.length;
+    const tabY = phoneY + 48;
+    const tabH = 34;
+
+    tabs.forEach((t, idx) => {
+      const tx = phoneX + 24 + idx * tabW;
+      const isActive = activeTab === t.id;
+      const unreadBadge = t.id === 'messages' && state.phoneMessages && state.phoneMessages.some(m => !m.read);
+
+      ctx.fillStyle = isActive ? 'rgba(56, 189, 248, 0.25)' : 'rgba(15, 23, 42, 0.6)';
+      ctx.strokeStyle = isActive ? '#38bdf8' : '#334155';
+      ctx.lineWidth = isActive ? 1.5 : 1;
+      ctx.beginPath();
+      ctx.roundRect(tx, tabY, tabW - 4, tabH, 8);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = isActive ? '#38bdf8' : '#94a3b8';
+      ctx.font = isActive ? 'bold 11px "Inter", sans-serif' : '11px "Inter", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(`${t.icon} ${t.name}`, tx + (tabW - 4) / 2, tabY + 21);
+
+      if (unreadBadge) {
+        ctx.fillStyle = '#ef4444';
+        ctx.beginPath();
+        ctx.arc(tx + tabW - 10, tabY + 8, 4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    });
+
+    // Content Display Area
+    const contentX = phoneX + 24;
+    const contentY = phoneY + 92;
+    const contentW = phoneW - 48;
+    const contentH = phoneH - 150;
+
+    ctx.fillStyle = '#0f172a';
+    ctx.beginPath();
+    ctx.roundRect(contentX, contentY, contentW, contentH, 12);
+    ctx.fill();
+    ctx.strokeStyle = '#334155';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Render App Specific Content
+    if (activeTab === 'messages') {
+      const msgs = state.phoneMessages || [];
+      ctx.fillStyle = '#f8fafc';
+      ctx.font = 'bold 14px "Inter", sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText('📨 Messages & HarmoniRumors', contentX + 16, contentY + 24);
+
+      if (msgs.length === 0) {
+        ctx.fillStyle = '#64748b';
+        ctx.font = 'italic 13px "Inter", sans-serif';
+        ctx.fillText('No messages in your inbox.', contentX + 16, contentY + 60);
+      } else {
+        const itemH = 92;
+        msgs.slice(0, 4).forEach((m, idx) => {
+          const my = contentY + 36 + idx * (itemH + 8);
+          ctx.fillStyle = m.read ? 'rgba(30, 41, 59, 0.6)' : 'rgba(30, 58, 138, 0.35)';
+          ctx.strokeStyle = m.read ? '#334155' : '#38bdf8';
+          ctx.lineWidth = m.read ? 1 : 1.5;
+          ctx.beginPath();
+          ctx.roundRect(contentX + 10, my, contentW - 20, itemH, 8);
+          ctx.fill();
+          ctx.stroke();
+
+          // Avatar & Sender
+          ctx.font = '24px "Inter", sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(m.senderAvatar, contentX + 32, my + 34);
+
+          ctx.textAlign = 'left';
+          ctx.fillStyle = m.read ? '#cbd5e1' : '#38bdf8';
+          ctx.font = 'bold 13px "Inter", sans-serif';
+          ctx.fillText(m.sender, contentX + 56, my + 22);
+
+          // Timestamp
+          ctx.fillStyle = '#64748b';
+          ctx.font = '10px "Inter", sans-serif';
+          ctx.textAlign = 'right';
+          ctx.fillText(m.timestamp, contentX + contentW - 20, my + 22);
+
+          // Subject
+          ctx.fillStyle = '#fbbf24';
+          ctx.font = 'bold 12px "Inter", sans-serif';
+          ctx.textAlign = 'left';
+          ctx.fillText(m.subject, contentX + 56, my + 38);
+
+          // Body preview
+          ctx.fillStyle = '#94a3b8';
+          ctx.font = '11px "Inter", sans-serif';
+          const snippet = m.body.length > 58 ? m.body.substring(0, 55) + '...' : m.body;
+          ctx.fillText(snippet, contentX + 56, my + 54);
+          if (m.body.length > 58) {
+            const snippet2 = m.body.substring(55, 110) + (m.body.length > 110 ? '...' : '');
+            ctx.fillText(snippet2, contentX + 56, my + 68);
+          }
+        });
+      }
+    } else if (activeTab === 'calendar') {
+      ctx.fillStyle = '#f8fafc';
+      ctx.font = 'bold 14px "Inter", sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText('📅 Seasonal Gigs & Festival Circuit', contentX + 16, contentY + 24);
+
+      const events = state.calendarEvents || [];
+      const itemH = 68;
+      events.slice(0, 5).forEach((ev, idx) => {
+        const ey = contentY + 36 + idx * (itemH + 8);
+        const isDone = state.completedEvents?.includes(ev.id);
+        ctx.fillStyle = isDone ? 'rgba(6, 78, 59, 0.4)' : 'rgba(30, 41, 59, 0.6)';
+        ctx.strokeStyle = isDone ? '#10b981' : '#475569';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.roundRect(contentX + 10, ey, contentW - 20, itemH, 8);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = isDone ? '#34d399' : '#fbbf24';
+        ctx.font = 'bold 13px "Inter", sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`${ev.name} ${isDone ? '✓ COMPLETED' : ''}`, contentX + 20, ey + 22);
+
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '11px "Inter", sans-serif';
+        ctx.fillText(`📍 ${ev.venueName}  •  Reward: 💰${ev.rewardGold} Notes`, contentX + 20, ey + 40);
+        ctx.fillText(ev.description.substring(0, 60) + '...', contentX + 20, ey + 56);
+      });
+    } else if (activeTab === 'quests') {
+      ctx.fillStyle = '#f8fafc';
+      ctx.font = 'bold 14px "Inter", sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText('📜 Quest Journal & Objectives', contentX + 16, contentY + 24);
+
+      const quests = state.quests || [];
+      const itemH = 68;
+      quests.slice(0, 5).forEach((q, idx) => {
+        const qy = contentY + 36 + idx * (itemH + 8);
+        ctx.fillStyle = q.completed ? 'rgba(6, 78, 59, 0.4)' : (state.activeQuestId === q.id ? 'rgba(30, 58, 138, 0.35)' : 'rgba(30, 41, 59, 0.6)');
+        ctx.strokeStyle = q.completed ? '#10b981' : (state.activeQuestId === q.id ? '#38bdf8' : '#475569');
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.roundRect(contentX + 10, qy, contentW - 20, itemH, 8);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = q.completed ? '#34d399' : (state.activeQuestId === q.id ? '#38bdf8' : '#f8fafc');
+        ctx.font = 'bold 13px "Inter", sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`${q.title} ${q.completed ? '✓' : ''}`, contentX + 20, qy + 22);
+
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = '11px "Inter", sans-serif';
+        ctx.fillText(q.objective.substring(0, 65) + (q.objective.length > 65 ? '...' : ''), contentX + 20, qy + 40);
+        ctx.fillStyle = '#fbbf24';
+        ctx.font = '10px "Inter", sans-serif';
+        ctx.fillText(`Reward: 💰 ${q.rewardGold} Notes  |  ✨ ${q.rewardSparks} Sparks`, contentX + 20, qy + 56);
+      });
+    } else if (activeTab === 'repertoire') {
+      ctx.fillStyle = '#f8fafc';
+      ctx.font = 'bold 14px "Inter", sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText('🎼 Repertoire Sheet Music', contentX + 16, contentY + 24);
+
+      const pieces = state.repertoire || [];
+      const itemH = 68;
+      pieces.slice(0, 5).forEach((p, idx) => {
+        const py = contentY + 36 + idx * (itemH + 8);
+        ctx.fillStyle = 'rgba(30, 41, 59, 0.6)';
+        ctx.strokeStyle = p.isMastered ? '#fbbf24' : '#475569';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.roundRect(contentX + 10, py, contentW - 20, itemH, 8);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = p.isMastered ? '#fbbf24' : '#f8fafc';
+        ctx.font = 'bold 13px "Inter", sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`${p.title} ${p.isMastered ? '👑 MASTERED' : ''}`, contentX + 20, py + 22);
+
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '11px "Inter", sans-serif';
+        ctx.fillText(`Composer: ${p.composer}  •  Genre: ${p.genre}  •  ${p.bpm} BPM`, contentX + 20, py + 40);
+        ctx.fillText(`Tier: ${p.minEnsembleTier.toUpperCase()}  •  Difficulty: ${'★'.repeat(p.difficulty)}`, contentX + 20, py + 56);
+      });
+    } else if (activeTab === 'dex') {
+      ctx.fillStyle = '#f8fafc';
+      ctx.font = 'bold 14px "Inter", sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText(`🐾 HarmoniDex Encyclopedia (${state.harmoniDex.filter(d => d.bonded).length} Bonded)`, contentX + 16, contentY + 24);
+
+      const dex = state.harmoniDex || [];
+      const itemH = 60;
+      dex.slice(0, 6).forEach((d, idx) => {
+        const dy = contentY + 34 + idx * (itemH + 6);
+        ctx.fillStyle = d.bonded ? 'rgba(6, 78, 59, 0.4)' : (d.discovered ? 'rgba(30, 41, 59, 0.6)' : 'rgba(15, 23, 42, 0.4)');
+        ctx.strokeStyle = d.bonded ? '#10b981' : (d.discovered ? '#38bdf8' : '#334155');
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.roundRect(contentX + 10, dy, contentW - 20, itemH, 8);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.font = '26px "Inter", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(d.discovered ? d.sprite : '❓', contentX + 34, dy + 38);
+
+        ctx.textAlign = 'left';
+        ctx.fillStyle = d.bonded ? '#34d399' : (d.discovered ? '#f8fafc' : '#64748b');
+        ctx.font = 'bold 13px "Inter", sans-serif';
+        ctx.fillText(d.discovered ? `${d.name} (${d.species})` : '??? Unknown Creature', contentX + 60, dy + 24);
+
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '11px "Inter", sans-serif';
+        ctx.fillText(d.discovered ? `Section: ${d.section.toUpperCase()}  •  ${d.instrumentName}  •  ${d.bonded ? '🤝 BONDED' : '👀 SEEN'}` : 'Explore the wilderness to discover', contentX + 60, dy + 44);
+      });
+    }
+
+    // Bottom Navigation Bar & Close Button
+    const closeBtnW = 200;
+    const closeBtnH = 34;
+    const closeBtnX = (this.width - closeBtnW) / 2;
+    const closeBtnY = phoneY + phoneH - 46;
+
+    ctx.fillStyle = 'rgba(239, 68, 68, 0.2)';
+    ctx.strokeStyle = '#ef4444';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(closeBtnX, closeBtnY, closeBtnW, closeBtnH, 8);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#fca5a5';
+    ctx.font = 'bold 12px "Inter", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('✕ Close Phone [P]', closeBtnX + closeBtnW / 2, closeBtnY + 21);
   }
 }

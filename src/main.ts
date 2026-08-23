@@ -80,9 +80,28 @@ window.addEventListener('DOMContentLoaded', () => {
       if (e.code === 'KeyT') engine.startTuningPhase();
     }
 
+    // Pre-Battle Lineup Selection via keyboard Enter/Space to start, Escape to cancel
+    if (engine.getState().mode === 'battle_lineup') {
+      if (e.code === 'Enter' || e.code === 'Space') engine.confirmPreBattle();
+      if (e.code === 'Escape') engine.cancelPreBattle();
+    }
+
+    // Competition Section Turn Actions via 1-4
+    if (engine.getState().mode === 'competition') {
+      if (e.code === 'Digit1') engine.executeSectionAction(0);
+      if (e.code === 'Digit2') engine.executeSectionAction(1);
+      if (e.code === 'Digit3') engine.executeSectionAction(2);
+      if (e.code === 'Digit4') engine.executeSectionAction(3);
+    }
+
     // Practice Shed toggle Grand Staff Visualizer via 'V'
     if (engine.getState().mode === 'practice') {
       if (e.code === 'KeyV') engine.toggleStaffVisualizer();
+    }
+
+    // Toggle Smartphone ("HarmoniPhone") via 'P'
+    if (e.code === 'KeyP') {
+      engine.togglePhone();
     }
   });
 
@@ -207,6 +226,73 @@ window.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    // Phone Modal Clicks
+    if (state.phoneOpen || state.mode === 'phone_menu') {
+      const phoneW = 520;
+      const phoneH = 620;
+      const phoneX = (1280 - phoneW) / 2;
+      const phoneY = (720 - phoneH) / 2;
+
+      // Close button
+      const closeBtnW = 200;
+      const closeBtnH = 34;
+      const closeBtnX = (1280 - closeBtnW) / 2;
+      const closeBtnY = phoneY + phoneH - 46;
+      if (clickX >= closeBtnX && clickX <= closeBtnX + closeBtnW && clickY >= closeBtnY && clickY <= closeBtnY + closeBtnH) {
+        engine.togglePhone(false);
+        return;
+      }
+
+      // App Tabs
+      const tabs = ['messages', 'calendar', 'quests', 'repertoire', 'dex'] as const;
+      const tabW = (phoneW - 48) / tabs.length;
+      const tabY = phoneY + 48;
+      const tabH = 34;
+
+      if (clickY >= tabY && clickY <= tabY + tabH && clickX >= phoneX + 24 && clickX <= phoneX + phoneW - 24) {
+        const tabIdx = Math.floor((clickX - (phoneX + 24)) / tabW);
+        if (tabIdx >= 0 && tabIdx < tabs.length) {
+          engine.switchPhoneTab(tabs[tabIdx]);
+          return;
+        }
+      }
+
+      // Message item read click
+      const activeTab = state.phoneTab || 'messages';
+      if (activeTab === 'messages' && state.phoneMessages) {
+        const contentY = phoneY + 92;
+        const itemH = 92;
+        state.phoneMessages.slice(0, 4).forEach((m, idx) => {
+          const my = contentY + 36 + idx * (itemH + 8);
+          if (clickX >= phoneX + 34 && clickX <= phoneX + phoneW - 34 && clickY >= my && clickY <= my + itemH) {
+            engine.markPhoneMessageRead(m.id);
+          }
+        });
+      }
+
+      // Click outside phone closes it
+      if (clickX < phoneX || clickX > phoneX + phoneW || clickY < phoneY || clickY > phoneY + phoneH) {
+        engine.togglePhone(false);
+      }
+      return;
+    }
+
+    // Exploration HUD Clicks: Phone pill & Notification Toast
+    if (state.mode === 'exploration') {
+      // Phone HUD shortcut pill (x: 625..765, y: 10..44)
+      if (clickX >= 625 && clickX <= 765 && clickY >= 10 && clickY <= 44) {
+        engine.togglePhone();
+        return;
+      }
+
+      // Push Notification Toast (x: 360..920, y: 64..128)
+      if (state.activeNotification && clickX >= 360 && clickX <= 920 && clickY >= 64 && clickY <= 128) {
+        engine.togglePhone(true);
+        engine.switchPhoneTab('messages');
+        return;
+      }
+    }
+
     // Harmonize encounter clicks
     if (state.mode === 'harmonize_wild') {
       const btnW = 230;
@@ -214,7 +300,7 @@ window.addEventListener('DOMContentLoaded', () => {
       const gapBtn = 20;
       const totalBtnW = btnW * 2 + gapBtn;
       const repX = (1280 - totalBtnW) / 2;
-      const repY = 415;
+      const repY = 180;
       const phaseX = repX + btnW + gapBtn;
 
       if (clickX >= repX && clickX <= repX + btnW && clickY >= repY && clickY <= repY + btnH) {
@@ -235,7 +321,7 @@ window.addEventListener('DOMContentLoaded', () => {
       const cardH = 75;
       const gap = 16;
       const startX = (1280 - (cardW * 4 + gap * 3)) / 2;
-      const cardY = 512;
+      const cardY = 380;
 
       for (let i = 0; i < 4; i++) {
         const cx = startX + i * (cardW + gap);
@@ -247,13 +333,77 @@ window.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Conducting Minigame Clicks
+    // Pre-Battle Lineup Selection clicks
+    if (state.mode === 'battle_lineup' && state.preBattle) {
+      const rightX = 540;
+      const rightY = 85;
+      const slotW = 150;
+      const slotH = 150;
+      const slotGap = 16;
+      const activeStartX = rightX + 20;
+      const activeStartY = rightY + 65;
+      const maxLineup = state.preBattle.maxLineupSize || 4;
+
+      // Check clicks on active lineup slots
+      for (let i = 0; i < state.ensemble.members.length; i++) {
+        const col = i % 4;
+        const row = Math.floor(i / 4);
+        const sx = activeStartX + col * (slotW + slotGap);
+        const sy = activeStartY + row * (slotH + slotGap);
+        if (clickX >= sx && clickX <= sx + slotW && clickY >= sy && clickY <= sy + slotH) {
+          if (i > 0) { // player cannot be removed
+            engine.toggleLineupMusician(state.ensemble.members[i].id);
+          }
+          return;
+        }
+      }
+
+      // Check clicks on reserve musicians
+      const reserveY = activeStartY + (maxLineup > 4 ? (slotH + slotGap) * 2 : (slotH + slotGap)) + 15;
+      const resStartX = rightX + 20;
+      const resStartY = reserveY + 15;
+      const rCardW = 150;
+      const rCardH = 70;
+      const rGap = 16;
+      const allOwned = [...state.recruitedMusicians, ...state.ensembleBox];
+      const reserveMusicians = allOwned.filter(m => !state.ensemble.members.some(am => am.id === m.id));
+
+      for (let idx = 0; idx < Math.min(8, reserveMusicians.length); idx++) {
+        const col = idx % 4;
+        const row = Math.floor(idx / 4);
+        const rx = resStartX + col * (rCardW + rGap);
+        const ry = resStartY + row * (rCardH + rGap);
+        if (clickX >= rx && clickX <= rx + rCardW && clickY >= ry && clickY <= ry + rCardH) {
+          engine.toggleLineupMusician(reserveMusicians[idx].id);
+          return;
+        }
+      }
+
+      // Bottom action buttons
+      const btnW = 340;
+      const btnH = 45;
+      const btnY = 650;
+      const startX = 1280 / 2 - btnW - 20;
+      const cancelX = 1280 / 2 + 20;
+
+      if (clickX >= startX && clickX <= startX + btnW && clickY >= btnY && clickY <= btnY + btnH) {
+        engine.confirmPreBattle();
+        return;
+      }
+      if (clickX >= cancelX && clickX <= cancelX + btnW && clickY >= btnY && clickY <= btnY + btnH) {
+        engine.cancelPreBattle();
+        return;
+      }
+      return;
+    }
+
+    // Conducting Minigame & Section Attack Clicks
     if (state.mode === 'competition' && state.competition) {
       const laneW = 260;
       const laneH = 95;
       const gap = 15;
       const startX = (1280 - (laneW * 4 + gap * 3)) / 2;
-      const startY = 395;
+      const startY = 360;
 
       const sections = ['strings', 'woodwinds', 'brass', 'percussion'] as const;
       for (let i = 0; i < 4; i++) {
@@ -264,10 +414,21 @@ window.addEventListener('DOMContentLoaded', () => {
         }
       }
 
+      // Section Action Card Clicks (y: 460..516)
+      const actionCardY = 460;
+      const actionCardH = 56;
+      for (let i = 0; i < 4; i++) {
+        const ax = startX + i * (laneW + gap);
+        if (clickX >= ax && clickX <= ax + laneW && clickY >= actionCardY && clickY <= actionCardY + actionCardH) {
+          engine.executeSectionAction(i);
+          return;
+        }
+      }
+
       // Master Downbeat click on podium / cadence track
       const meterW = 640;
       const meterX = 1280 / 2 - meterW / 2;
-      const meterY = 545;
+      const meterY = 535;
       if (clickX >= meterX - 40 && clickX <= meterX + meterW + 40 && clickY >= meterY - 30 && clickY <= meterY + 110) {
         engine.advanceConcertPerformance();
         return;

@@ -29,7 +29,7 @@ describe('Harmonipet Encounters Overhaul & Cavatina Village Spatial Alignment', 
       expect(enc).not.toBeNull();
       expect(enc?.phase).toBe('tuning');
       expect(enc?.attemptsRemaining).toBe(5);
-      expect(enc?.resonanceMeter).toBe(20);
+      expect(enc?.resonanceMeter).toBe(0);
 
       // Play an incorrect note in tuning phase
       const correctFirst = enc!.targetNoteIndices[0];
@@ -40,7 +40,7 @@ describe('Harmonipet Encounters Overhaul & Cavatina Village Spatial Alignment', 
 
       // Verify no penalties were applied
       expect(enc?.attemptsRemaining).toBe(5);
-      expect(enc?.resonanceMeter).toBe(20);
+      expect(enc?.resonanceMeter).toBe(0);
       expect(enc?.concluded).toBe(false);
       expect(enc?.lastFeedbackText).toContain('No penalty in tuning phase');
     });

@@ -3,16 +3,17 @@
 import {
   GameState, Musician, Harmonipet, WorldNPC, RivalEnsemble,
   AuditionBattle, InstrumentId, InstrumentSection, EnsembleTier, ZoneId, TheoryChallengeType, PlayerCustomization,
-  RepertoirePiece, HarmoniaSaveExport, HarmoniaSavePayload, HarmoniDexEntry, ActiveDispatch
+  RepertoirePiece, HarmoniaSaveExport, HarmoniaSavePayload, HarmoniDexEntry, ActiveDispatch,
+  type PhoneMessage, PreBattleInfo, SectionAction, BattleMove
 } from './types';
 import {
   STARTER_OPTIONS, REPERTOIRE_DATABASE,
   RIVAL_ENSEMBLES, WORLD_ZONES, INITIAL_WORLD_NPCS, BATTLE_MOVES, FESTIVAL_CALENDAR, calculateDynamicRivalStats,
   INSTRUMENT_ARTIFACTS, INITIAL_LOST_SCORES, INITIAL_INSPIRATION_VISTAS, INITIAL_GAME_QUESTS,
   INITIAL_HARMONIDEX, CLEF_BADGES, DEFAULT_CUSTOMIZATION, THEORY_CURRICULUM,
-  getBattleMovesForMusician, ALL_INSTRUMENTS_INFO, RECRUITABLE_MUSICIANS, INITIAL_DISPATCH_VENUES, PET_SYNERGIES
+  getBattleMovesForMusician, ALL_INSTRUMENTS_INFO, RECRUITABLE_MUSICIANS, INITIAL_DISPATCH_VENUES, PET_SYNERGIES,
+  INITIAL_PHONE_MESSAGES, SECTION_ACTIONS
 } from './data';
-import { BattleMove } from './types';
 import { soundEngine } from './audio';
 
 export function matchesPetRequirement(pet: Harmonipet, req: string): boolean {
@@ -190,6 +191,7 @@ export class HarmoniaGameEngine {
       auditionBattle: null,
       harmonizeEncounter: null,
       competition: null,
+      preBattle: null,
       calendarEvents: JSON.parse(JSON.stringify(FESTIVAL_CALENDAR)),
       completedEvents: [],
       activeDispatches: [],
@@ -199,6 +201,17 @@ export class HarmoniaGameEngine {
       pianistBuskingWins: 0,
       hasPianoAccompaniment: false,
       unlockedAcousticGates: [],
+      phoneOpen: false,
+      phoneTab: 'messages',
+      phoneMessages: JSON.parse(JSON.stringify(INITIAL_PHONE_MESSAGES)),
+      activeNotification: null,
+      parentMentor: {
+        hasIntroducedBusking: false,
+        hasIntroducedMusicianDuel: false,
+        hasIntroducedPetBonding: false,
+        practiceReminderTimer: 120,
+        lastBragMessageTime: 0
+      },
       dialogue: null,
       time: 0
     };
@@ -416,6 +429,139 @@ export class HarmoniaGameEngine {
     });
   }
 
+  /* ---------------- PRE-BATTLE LINEUP SELECTION SYSTEM ---------------- */
+
+  public getMaxLineupSize(): number {
+    const tier = this.state.ensemble.tier;
+    switch (tier) {
+      case 'solo': return 1;
+      case 'duet': return 2;
+      case 'trio': return 3;
+      case 'quartet': return 4;
+      case 'chamber': return 6;
+      case 'orchestra': return 8;
+      default: return 4;
+    }
+  }
+
+  public openPreBattle(info: PreBattleInfo): void {
+    this.ensurePlayerMusician();
+    info.maxLineupSize = this.getMaxLineupSize();
+
+    // Auto-populate recommendations based on target and ensemble state
+    const recs: string[] = [];
+    const activeSections = new Set(this.state.ensemble.members.map(m => m.section));
+    const allMusicians = [...this.state.ensemble.members, ...this.state.recruitedMusicians, ...this.state.ensembleBox];
+    const availableSections = new Set(allMusicians.map(m => m.section));
+
+    if (info.battleType === 'wild_harmonipet' && info.targetNpc?.wildPetData) {
+      const pet = info.targetNpc.wildPetData;
+      const petSection = pet.section;
+      if (activeSections.has(petSection)) {
+        const matcher = this.state.ensemble.members.find(m => m.section === petSection);
+        recs.push(`✅ Section Ready: ${matcher?.name || 'Musician'} (${petSection.toUpperCase()}) can play matching acoustic frequencies to bond with ${pet.name}!`);
+      } else if (availableSections.has(petSection)) {
+        const candidate = allMusicians.find(m => m.section === petSection);
+        recs.push(`⚠️ SECTION MISMATCH: You MUST add a ${petSection.toUpperCase()} musician (e.g. ${candidate?.name}) to your active lineup to capture this creature!`);
+      } else {
+        recs.push(`❌ NO ${petSection.toUpperCase()} MUSICIAN RECRUITED: You cannot capture ${pet.name} until you recruit a ${petSection} musician in the world.`);
+      }
+      recs.push(`🔧 Start in Tuning Mode [T] to test note pitches freely without losing attempts.`);
+    } else if (info.battleType === 'audition_battle' && info.targetNpc?.musicianData) {
+      const opp = info.targetNpc.musicianData;
+      recs.push(`🎯 Opponent: ${opp.name} specializes in ${opp.section.toUpperCase()} (${opp.instrumentName}, Lv.${opp.level}).`);
+      if (opp.section === 'strings') {
+        recs.push(`💡 Brass & Percussion powerhouses can cut through sustained string melodies!`);
+      } else if (opp.section === 'brass') {
+        recs.push(`💡 Use Pianissimo Shield [3] to absorb fortissimo blasts and recharge energy.`);
+      } else if (opp.section === 'woodwinds') {
+        recs.push(`💡 High Tempo Stability is key to matching agile woodwind arpeggios.`);
+      } else {
+        recs.push(`💡 Steady rhythmic syncopation will counter chaotic percussion beats.`);
+      }
+      recs.push(`🐾 Pair compatible Harmonipet familiars to unlock devastating Unison Synergies!`);
+    } else if (info.battleType === 'pianist_busking_duel') {
+      recs.push(`🎹 Maestro Franz plays with transcendent tempo! Maximize your ensemble's Tempo Stability.`);
+      recs.push(`🛡️ Steady rhythmic sections (Percussion & Strings) are vital for absorbing high-BPM runs.`);
+      recs.push(`✨ Winning awards the permanent Concerto Piano Accompaniment (+50% Score boost)!`);
+    } else if (info.battleType === 'competition_stage') {
+      recs.push(`🏆 Full Orchestral Synergy: Having members in all 4 sections (Strings, Woodwinds, Brass, Percussion) grants max versatility!`);
+      recs.push(`⚡ Each section has a dedicated turn to attack—choose actions that exploit rival weaknesses.`);
+      recs.push(`🔥 Maintain cadence accuracy to surge Audience Applause and activate Maestro Flow!`);
+    }
+
+    info.recommendations = recs;
+    this.state.preBattle = info;
+    this.state.mode = 'battle_lineup';
+    soundEngine.stopBGM();
+  }
+
+  public toggleLineupMusician(musicianId: string): void {
+    const player = this.state.ensemble.members[0];
+    if (!player) return;
+    if (musicianId === player.id) return; // Player cannot be removed from lineup
+
+    const isMember = this.state.ensemble.members.some(m => m.id === musicianId);
+    if (isMember) {
+      // Remove from active lineup and send to box
+      const removed = this.state.ensemble.members.find(m => m.id === musicianId);
+      if (removed) {
+        this.state.ensemble.members = this.state.ensemble.members.filter(m => m.id !== musicianId);
+        if (!this.state.ensembleBox.some(m => m.id === musicianId)) {
+          this.state.ensembleBox.push(removed);
+        }
+      }
+    } else {
+      // Add to active lineup if not full
+      const maxSize = this.getMaxLineupSize();
+      if (this.state.ensemble.members.length >= maxSize) {
+        // Lineup full - swap with last non-player member
+        if (this.state.ensemble.members.length > 1) {
+          const toRemove = this.state.ensemble.members.pop();
+          if (toRemove && !this.state.ensembleBox.some(m => m.id === toRemove.id)) {
+            this.state.ensembleBox.push(toRemove);
+          }
+        }
+      }
+      // Find candidate from recruitedMusicians or ensembleBox
+      const candidate = [...this.state.recruitedMusicians, ...this.state.ensembleBox].find(m => m.id === musicianId);
+      if (candidate) {
+        this.state.ensemble.members.push(candidate);
+        this.state.ensembleBox = this.state.ensembleBox.filter(m => m.id !== musicianId);
+      }
+    }
+
+    // Refresh recommendations if in preBattle
+    if (this.state.preBattle) {
+      this.openPreBattle(this.state.preBattle);
+    }
+  }
+
+  public confirmPreBattle(): void {
+    const info = this.state.preBattle;
+    if (!info) return;
+    this.state.preBattle = null;
+
+    if (info.battleType === 'wild_harmonipet' && info.targetNpc) {
+      this.startHarmonizeEncounter(info.targetNpc);
+    } else if (info.battleType === 'audition_battle' && info.targetNpc) {
+      this.startAuditionBattle(info.targetNpc);
+    } else if (info.battleType === 'pianist_busking_duel') {
+      this.startPianistBuskingDuel(info.forcedTier);
+    } else if (info.battleType === 'competition_stage') {
+      this.startConcertCompetition(info.rivalId);
+    } else {
+      this.state.mode = 'exploration';
+    }
+  }
+
+  public cancelPreBattle(): void {
+    this.state.preBattle = null;
+    this.state.mode = 'exploration';
+    const activeSections = Array.from(new Set(this.state.ensemble.members.map(m => m.section)));
+    soundEngine.startBGM(this.state.currentZone, activeSections);
+  }
+
   /* ---------------- AUDITION BATTLE SYSTEM ---------------- */
 
   public startAuditionBattle(targetNpc: WorldNPC): void {
@@ -457,6 +603,12 @@ export class HarmoniaGameEngine {
 
     if (availableSynergies.length > 0) {
       this.state.auditionBattle.log.push(`🐾 Unison Synergy Ready: [${availableSynergies.map(s => s.name).join(', ')}]!`);
+    }
+
+    if (this.state.parentMentor && !this.state.parentMentor.hasIntroducedMusicianDuel) {
+      this.state.parentMentor.hasIntroducedMusicianDuel = true;
+      this.state.auditionBattle.log.push(`👩‍👧 Mama Aria: "Listen to your mother, sweetie! In a musician play-off, use Move 1 or 2 to build your Composure to 100%! If your energy is low, use [3] Rest/Shield to recharge! Now go show them the tone you practiced all morning!"`);
+      this.receivePhoneNotification('Mama Aria 💖', "Audition play-off! Build Composure to 100% and guard with [3] when low on energy! 🎻", '👩‍👧');
     }
 
     soundEngine.stopBGM();
@@ -635,6 +787,7 @@ export class HarmoniaGameEngine {
     if (battle.opponentHarmonyMeter >= 100) {
       battle.concluded = true;
       battle.won = false;
+      this.receivePhoneNotification('Mama Aria 💖', "It was totally the stage acoustics honey! Have some warm tea and let's practice 5 more hours! ☕", '👩‍👧');
       this.showDialogue('Audition Clash Defeat', '💔', [
         `${opp.name}'s acoustic resonance overwhelmed the plaza! Practice your Technique and return when ready.`
       ], () => {
@@ -654,6 +807,7 @@ export class HarmoniaGameEngine {
     battle.concluded = true;
     battle.won = true;
     const recruited = battle.opponent;
+    this.receivePhoneNotification('Mama Aria 💖', `THAT'S MY PRODIGY! 🌟 Recruited ${recruited.name}! Bragging to Mrs. Chen right now!`, '👩‍👧');
 
     if (!this.state.recruitedMusicians.some(m => m.id === recruited.id)) {
       this.state.recruitedMusicians.push(recruited);
@@ -728,6 +882,12 @@ export class HarmoniaGameEngine {
     const dexEntry = this.state.harmoniDex.find(d => d.species === pet.species || d.id.includes(pet.id));
     const { noteIndices, targetMelody } = generateHarmonizeMelody(pet, dexEntry);
 
+    const hasSection = this.state.ensemble.members.some(m => m.section === pet.section);
+    let initialFeedback = '🔧 Tuning mode: Test and find matching tones freely with no penalty!';
+    if (!hasSection) {
+      initialFeedback = `⚠️ NO ${pet.section.toUpperCase()} MUSICIAN IN LINEUP! You need a ${pet.section} musician to mirror sounds and capture this creature!`;
+    }
+
     this.state.harmonizeEncounter = {
       pet,
       instrumentId: (npc.wildPetData.instrumentId || (npc.wildPetData.section === 'strings' ? 'violin' : (npc.wildPetData.section === 'woodwinds' ? 'silver_flute' : (npc.wildPetData.section === 'brass' ? 'pocket_trumpet' : 'snare_kit')))) as InstrumentId,
@@ -737,7 +897,7 @@ export class HarmoniaGameEngine {
       revealedSteps: new Array(noteIndices.length).fill(false),
       isPlayingMelody: false,
       playerInputs: [],
-      resonanceMeter: 20,
+      resonanceMeter: 0,
       catchThreshold: 80,
       attemptsRemaining: 5,
       phase: 'tuning',
@@ -745,11 +905,17 @@ export class HarmoniaGameEngine {
       timingAccuracy: 100,
       sweetSpotCenter: 0.5,
       lastFeedback: undefined,
-      lastFeedbackText: '🔧 Tuning mode: Test and find matching tones freely with no penalty!',
+      lastFeedbackText: initialFeedback,
       concluded: false,
       caught: false
     };
     this.state.mode = 'harmonize_wild';
+
+    if (this.state.parentMentor && !this.state.parentMentor.hasIntroducedPetBonding) {
+      this.state.parentMentor.hasIntroducedPetBonding = true;
+      this.receivePhoneNotification('Mama Aria 💖', "A wild creature! Start in Tuning Mode to test notes without penalty, then switch to Performance to bond! 🐾", '👩‍👧');
+    }
+
     soundEngine.stopBGM();
     soundEngine.playWildlifeCall(pet.species.toLowerCase());
 
@@ -930,6 +1096,20 @@ export class HarmoniaGameEngine {
     }
 
     if (enc.resonanceMeter >= enc.catchThreshold) {
+      const hasMatchingSection = this.state.ensemble.members.some(m => m.section === enc.pet.section);
+      if (!hasMatchingSection) {
+        enc.concluded = true;
+        enc.caught = false;
+        enc.lastFeedback = 'DISSONANCE';
+        enc.lastFeedbackText = `⚠️ Capture Failed: No ${enc.pet.section.toUpperCase()} musician in your active lineup to bond!`;
+        soundEngine.playNoteAccuracyFeedback('miss');
+        this.showDialogue('Harmonipet Sanctuary', '🐾', [
+          `You resonated with ${enc.pet.name}, but you couldn't capture it!`,
+          `To capture wild creatures of the ${enc.pet.section.toUpperCase()} section, you must have at least one musician from that section in your active ensemble lineup so they can play similar sounds!`
+        ]);
+        return;
+      }
+
       // Successfully bonded / caught!
       enc.concluded = true;
       enc.caught = true;
@@ -987,6 +1167,7 @@ export class HarmoniaGameEngine {
       this.state.nearbyInteractable = null;
 
       soundEngine.playFanfare();
+      this.receivePhoneNotification('Mama Aria 💖', `You bonded with ${enc.pet.name}! Make sure you practice 40 hours together! 🐾`, '👩‍👧');
       this.showDialogue('Harmonipet Bonded!', '🐾', [
         `Harmonic resonance reached 100%! ${enc.pet.name} the ${enc.pet.species} felt your musical soul and joined your team!`,
         `Registered in your HarmoniDex! (Total Bonded: ${this.state.harmoniDex.filter(d => d.bonded).length} / ${this.state.harmoniDex.length})`
@@ -1000,6 +1181,7 @@ export class HarmoniaGameEngine {
       // Failed to harmonize
       enc.concluded = true;
       enc.caught = false;
+      this.receivePhoneNotification('Mama Aria 💖', "Don't fret honey! That creature clearly has poor taste in counterpoint. Let's practice! 🍪", '👩‍👧');
       this.showDialogue('Harmonipet Fled', '💨', [
         `${enc.pet.name} was startled by the dissonant cadence and scurried into the brush! Practice your tone and try again.`
       ], () => {
@@ -1101,6 +1283,13 @@ export class HarmoniaGameEngine {
     const rival = { ...baseRival, members: scaledMembers };
     const piece = this.state.ensemble.activePiece || REPERTOIRE_DATABASE[0];
 
+    const SECTION_ORDER: InstrumentSection[] = ['strings', 'woodwinds', 'brass', 'percussion'];
+    const playerSections = SECTION_ORDER.filter(sec => this.state.ensemble.members.some(m => m.section === sec));
+    if (playerSections.length === 0) playerSections.push(this.state.ensemble.members[0]?.section || 'strings');
+
+    const rivalSections = SECTION_ORDER.filter(sec => rival.members.some(m => m.section === sec));
+    if (rivalSections.length === 0) rivalSections.push(rival.members[0]?.section || 'strings');
+
     this.state.competition = {
       rival,
       playerPiece: piece,
@@ -1129,7 +1318,18 @@ export class HarmoniaGameEngine {
         label: 'Strings Crescendo',
         urgency: 1.0,
         sweetSpot: 0.5
-      }
+      },
+      playerSections,
+      rivalSections,
+      currentSectionIndex: 0,
+      activeAttackingSection: playerSections[0],
+      selectedActionIndex: 0,
+      nextSectionBoost: 1.0,
+      playerShieldActive: false,
+      combatLog: [
+        `⚔️ Ensemble Battle started against ${rival.name}!`,
+        `🎶 Round 1: [${playerSections[0].toUpperCase()}] Section takes the spotlight! Choose your section action.`
+      ]
     };
 
     soundEngine.stopBGM();
@@ -1209,6 +1409,12 @@ export class HarmoniaGameEngine {
       tempoBPM: config.bpm
     };
 
+    const SECTION_ORDER: InstrumentSection[] = ['strings', 'woodwinds', 'brass', 'percussion'];
+    const playerSections = SECTION_ORDER.filter(sec => this.state.ensemble.members.some(m => m.section === sec));
+    if (playerSections.length === 0) playerSections.push(this.state.ensemble.members[0]?.section || 'strings');
+
+    const rivalSections: InstrumentSection[] = ['percussion'];
+
     this.state.competition = {
       rival: rivalEnsemble,
       playerPiece,
@@ -1239,7 +1445,18 @@ export class HarmoniaGameEngine {
         label: 'Grand Piano Counterpoint',
         urgency: 1.0,
         sweetSpot: 0.5
-      }
+      },
+      playerSections,
+      rivalSections,
+      currentSectionIndex: 0,
+      activeAttackingSection: playerSections[0],
+      selectedActionIndex: 0,
+      nextSectionBoost: 1.0,
+      playerShieldActive: false,
+      combatLog: [
+        `🎹 Piano Busking Duel started against Maestro Franz Liszt (${config.bpm} BPM)!`,
+        `🎶 Round 1: [${playerSections[0].toUpperCase()}] Section ready to attack!`
+      ]
     };
 
     soundEngine.stopBGM();
@@ -1289,48 +1506,29 @@ export class HarmoniaGameEngine {
     }
 
     comp.currentMeasure++;
-    const ensemblePower = this.state.ensemble.members.reduce((acc, m) => acc + (m.stats.technique + m.stats.toneQuality), 0);
-    const rivalPower = comp.rival.members.reduce((acc, m) => acc + (m.stats.technique + m.stats.toneQuality), 0);
+    const baseMeasureScore = 100;
+    const playerAvgTechnique = this.state.ensemble.members.reduce((acc, m) => acc + m.stats.technique, 0) / Math.max(1, this.state.ensemble.members.length);
+    const playerConductingScore = Math.round((baseMeasureScore + playerAvgTechnique * 1.2) * timingMultiplier * (1 + comp.comboStreak * 0.05));
     
-    // Balance and Flow multipliers
-    const balances = Object.values(comp.sectionBalance || { strings: 75, woodwinds: 75, brass: 75, percussion: 75 });
-    const avgBalance = balances.reduce((a, b) => a + b, 0) / (balances.length || 1);
-    const balanceMultiplier = 0.7 + (avgBalance / 100) * 0.6; // 0.7x to 1.3x
-    const flowMultiplier = 1.0 + ((comp.maestroFlow || 50) / 100) * 0.8; // 1.0x to 1.8x
-    const totalMultiplier = timingMultiplier * balanceMultiplier * flowMultiplier;
+    // Apply piano accompaniment multiplier if active
+    const finalScore = this.state.hasPianoAccompaniment ? Math.round(playerConductingScore * 1.5) : playerConductingScore;
+    comp.playerScore += finalScore;
 
-    // Maestro Flow applause bonus
-    const flowApplauseBonus = Math.floor(((comp.maestroFlow || 50) / 100) * 4);
-    if (dist <= comp.sweetSpotWidth) {
-      comp.audienceApplause = Math.min(100, comp.audienceApplause + flowApplauseBonus);
-    }
-
-    let measureScore = Math.floor((ensemblePower / 2 + 10) * totalMultiplier);
-    if (this.state.hasPianoAccompaniment && !comp.isPianistDuel) {
-      measureScore = Math.floor(measureScore * 1.5);
-      comp.audienceApplause = Math.min(100, comp.audienceApplause + 5);
-    }
-    const rivalMultiplier = 0.85 + Math.random() * 0.35;
-    const rivalMeasureScore = Math.floor((rivalPower / 2 + 5) * rivalMultiplier);
-    
-    comp.playerScore += measureScore;
+    const rivalMeasureScore = Math.round(baseMeasureScore * 1.1 + (comp.rival.rewardStars || 1) * 20);
     comp.rivalScore += rivalMeasureScore;
 
-    // Shift the rhythmic sweet spot for the next measure
-    comp.sweetSpotCenter = 0.2 + Math.random() * 0.6;
+    const balanceAvg = (comp.sectionBalance.strings + comp.sectionBalance.woodwinds + comp.sectionBalance.brass + comp.sectionBalance.percussion) / 4;
+    let applauseDelta = (timingMultiplier > 1.0 ? 6 : -4) + (balanceAvg > 60 ? 2 : -2);
+    if (this.state.hasPianoAccompaniment && !comp.isPianistDuel) {
+      applauseDelta += 5;
+    }
+    comp.audienceApplause = Math.min(100, Math.max(0, Math.round(comp.audienceApplause + applauseDelta)));
 
-    // Synthesize authentic structured chord notes and melodic voice
-    const piece = comp.playerPiece;
-    const chordsList = piece.chords && piece.chords.length > 0
-      ? piece.chords
-      : [{ strings: [261.63, 329.63, 392.0] }];
-    const chord = chordsList[comp.currentChordIndex % chordsList.length];
-
-    const melodyLength = piece.melody && piece.melody.length > 0 ? piece.melody.length : 4;
-    const melStart = comp.currentMelodyIndex % melodyLength;
-    const melodyNotes = piece.melody && piece.melody.length > 0
-      ? [piece.melody[melStart], piece.melody[(melStart + 1) % melodyLength]]
-      : [392, 523.25];
+    // Play harmonious audio phrase on advance
+    const chordsList = comp.playerPiece.chords && comp.playerPiece.chords.length > 0 ? comp.playerPiece.chords : [];
+    const chord = chordsList.length > 0 ? chordsList[comp.currentChordIndex % chordsList.length] : undefined;
+    const melodyLength = comp.playerPiece.melody ? comp.playerPiece.melody.length : 8;
+    const melodyNotes = comp.playerPiece.melody ? comp.playerPiece.melody.slice(comp.currentMelodyIndex % melodyLength, (comp.currentMelodyIndex % melodyLength) + 2) : [];
 
     soundEngine.playStructuredConcertHarmony({
       chord,
@@ -1342,54 +1540,172 @@ export class HarmoniaGameEngine {
       maestroFlow: comp.maestroFlow
     });
 
-    comp.currentChordIndex = (comp.currentChordIndex + 1) % chordsList.length;
+    if (chordsList.length > 0) {
+      comp.currentChordIndex = (comp.currentChordIndex + 1) % chordsList.length;
+    }
     comp.currentMelodyIndex = (comp.currentMelodyIndex + 2) % melodyLength;
 
     if (comp.currentMeasure >= comp.totalMeasures) {
-      comp.concluded = true;
-      comp.won = comp.playerScore >= comp.rivalScore;
-      let badgeWonName = '';
+      this.concludeConcertCompetition();
+    }
+  }
 
-      if (comp.isPianistDuel) {
-        if (comp.won) {
-          this.state.pianistBuskingWins = (this.state.pianistBuskingWins || 0) + 1;
-          const wins = this.state.pianistBuskingWins;
-          const goldGain = comp.rival.rewardStars * 150;
-          const sparksGain = comp.rival.rewardStars * 15;
-          this.state.wallet.gold += goldGain;
-          this.state.wallet.inspirationSparks += sparksGain;
+  public executeSectionAction(actionIndexOrId: number | string): void {
+    const comp = this.state.competition;
+    if (!comp || comp.concluded) return;
 
-          soundEngine.playGrandPianoCadence();
+    if (!comp.playerSections || comp.playerSections.length === 0) {
+      const SECTION_ORDER: InstrumentSection[] = ['strings', 'woodwinds', 'brass', 'percussion'];
+      comp.playerSections = SECTION_ORDER.filter(sec => this.state.ensemble.members.some(m => m.section === sec));
+      if (comp.playerSections.length === 0) comp.playerSections.push(this.state.ensemble.members[0]?.section || 'strings');
+    }
+    if (!comp.rivalSections || comp.rivalSections.length === 0) {
+      const SECTION_ORDER: InstrumentSection[] = ['strings', 'woodwinds', 'brass', 'percussion'];
+      comp.rivalSections = SECTION_ORDER.filter(sec => comp.rival.members.some(m => m.section === sec));
+      if (comp.rivalSections.length === 0) comp.rivalSections.push(comp.rival.members[0]?.section || 'strings');
+    }
+    if (comp.currentSectionIndex === undefined) comp.currentSectionIndex = 0;
+    if (!comp.combatLog) comp.combatLog = [];
 
-          if (wins >= 3) {
-            this.state.hasPianoAccompaniment = true;
-            this.showDialogue('Maestro Franz "Keys" Liszt', '🎹', [
-              `🏆 TRANSCENDENTAL VICTORY! Final Score: ${comp.playerScore} vs Franz ${comp.rivalScore}!`,
-              `Maestro Franz stands in breathless awe, his fingers trembling with ecstasy: "Magnifique! Pure poetic genius! You have conquered all 3 Transcendental Busking Duels!"`,
-              `"I hereby swear my grand piano to your cause. I will be your dedicated Concerto Accompanist! (+50% Score Multiplier Active in all Concerts & Festivals!)"`,
-              `Earned +${goldGain} Notes (♪), +${sparksGain} Inspiration Sparks (✨), and unlocked [🎹 Permanent Concerto Piano Accompaniment]!`
-            ], () => {
-              this.state.mode = 'exploration';
-              this.state.competition = null;
-              const activeSections = Array.from(new Set(this.state.ensemble.members.map(m => m.section)));
-              soundEngine.startBGM(this.state.currentZone, activeSections);
-            });
-          } else {
-            this.showDialogue('Maestro Franz "Keys" Liszt', '🎹', [
-              `🎉 DUEL VICTORY! Final Score: ${comp.playerScore} vs Franz ${comp.rivalScore}!`,
-              `Maestro Franz bows with deep admiration: "Exquisite rhythm! You have mastered Duel ${wins} of 3! (+${goldGain} Notes, +${sparksGain} Sparks)"`,
-              `"Return to me when you are ready to test your metronome against the next tempo tier!"`
-            ], () => {
-              this.state.mode = 'exploration';
-              this.state.competition = null;
-              const activeSections = Array.from(new Set(this.state.ensemble.members.map(m => m.section)));
-              soundEngine.startBGM(this.state.currentZone, activeSections);
-            });
-          }
+    const activeSec = comp.activeAttackingSection || comp.playerSections[comp.currentSectionIndex] || 'strings';
+    const sectionActions = SECTION_ACTIONS[activeSec] || SECTION_ACTIONS.strings;
+
+    let action: SectionAction | undefined;
+    if (typeof actionIndexOrId === 'number') {
+      action = sectionActions[actionIndexOrId];
+    } else {
+      action = sectionActions.find(a => a.id === actionIndexOrId) || sectionActions[0];
+    }
+    if (!action) action = sectionActions[0];
+
+    // Calculate section power based on members in this section
+    const sectionMembers = this.state.ensemble.members.filter(m => m.section === activeSec);
+    const avgTech = sectionMembers.length > 0
+      ? sectionMembers.reduce((sum, m) => sum + m.stats.technique, 0) / sectionMembers.length
+      : 25;
+    const avgTone = sectionMembers.length > 0
+      ? sectionMembers.reduce((sum, m) => sum + m.stats.toneQuality, 0) / sectionMembers.length
+      : 25;
+
+    let boost = comp.nextSectionBoost || 1.0;
+    comp.nextSectionBoost = 1.0; // reset
+
+    const flowBonus = 1.0 + ((comp.maestroFlow || 50) / 100) * 0.5;
+    const pianoBoost = (this.state.hasPianoAccompaniment && !comp.isPianistDuel) ? 1.5 : 1.0;
+    const rawPower = Math.round((action.power + (avgTech + avgTone) / 4) * boost * flowBonus * pianoBoost);
+
+    comp.playerScore += rawPower;
+
+    if (action.effect === 'boost_next') {
+      comp.nextSectionBoost = 2.0;
+      comp.maestroFlow = Math.min(100, (comp.maestroFlow || 50) + 15);
+      comp.combatLog.push(`⚡ [${activeSec.toUpperCase()}] ${action.name}! Amplified next section power by 2x! (+${rawPower} pts)`);
+    } else if (action.effect === 'heal_harmony') {
+      comp.maestroFlow = Math.min(100, (comp.maestroFlow || 50) + 25);
+      comp.audienceApplause = Math.min(100, comp.audienceApplause + 8);
+      comp.combatLog.push(`🍃 [${activeSec.toUpperCase()}] ${action.name}! Restored Maestro Flow and composure! (+${rawPower} pts)`);
+    } else if (action.effect === 'applause_surge') {
+      comp.audienceApplause = Math.min(100, comp.audienceApplause + 18);
+      comp.comboStreak++;
+      comp.combatLog.push(`👑 [${activeSec.toUpperCase()}] ${action.name}! Audience roared in applause! (+${rawPower} pts)`);
+    } else if (action.effect === 'shield') {
+      comp.playerShieldActive = true;
+      comp.combatLog.push(`🛡️ [${activeSec.toUpperCase()}] ${action.name}! Erected acoustic shield against counter-attacks! (+${rawPower} pts)`);
+    } else if (action.effect === 'stun_rival') {
+      comp.combatLog.push(`💥 [${activeSec.toUpperCase()}] ${action.name}! Disrupted rival cadence! (+${rawPower} pts)`);
+      comp.audienceApplause = Math.min(100, comp.audienceApplause + 10);
+    } else {
+      comp.combatLog.push(`🎵 [${activeSec.toUpperCase()}] ${action.name}! (+${rawPower} resonance pts)`);
+      comp.audienceApplause = Math.min(100, comp.audienceApplause + 6);
+    }
+
+    // Audio playback for section action
+    const primaryMusician = sectionMembers[0] || this.state.ensemble.members[0];
+    soundEngine.playInstrumentNote(primaryMusician.instrumentId, 440, 0.4, 0.9);
+
+    // Advance to next section in lineup
+    comp.currentSectionIndex++;
+    if (comp.currentSectionIndex < comp.playerSections.length) {
+      comp.activeAttackingSection = comp.playerSections[comp.currentSectionIndex];
+      comp.combatLog.push(`👉 Up next: [${comp.activeAttackingSection.toUpperCase()}] Section turn!`);
+    } else {
+      // All player sections attacked! Now Rival Counter-Attack
+      this.executeRivalEnsembleTurn();
+    }
+  }
+
+  public executeRivalEnsembleTurn(): void {
+    const comp = this.state.competition;
+    if (!comp || comp.concluded) return;
+
+    const rSecs = comp.rivalSections && comp.rivalSections.length > 0 ? comp.rivalSections : ['brass'];
+    const attackingSec = rSecs[Math.floor(Math.random() * rSecs.length)];
+    const rMembers = comp.rival.members.filter(m => m.section === attackingSec);
+    const avgSkill = rMembers.length > 0
+      ? rMembers.reduce((sum, m) => sum + (m.stats.technique + m.stats.toneQuality) / 2, 0) / rMembers.length
+      : 30;
+
+    let rivalPower = Math.round(25 + avgSkill * 0.6 + Math.random() * 15);
+    if (comp.playerShieldActive) {
+      rivalPower = Math.floor(rivalPower * 0.4);
+      comp.playerShieldActive = false;
+      comp.combatLog?.push(`🛡️ Your Harmonic Shield absorbed ${comp.rival.name}'s blast!`);
+    }
+
+    comp.rivalScore += rivalPower;
+    comp.audienceApplause = Math.max(0, comp.audienceApplause - Math.floor(rivalPower / 4));
+    comp.combatLog?.push(`⚔️ ${comp.rival.name} [${attackingSec.toUpperCase()}] countered with dynamic resonance! (+${rivalPower} pts)`);
+
+    // Reset player section turn cycle and advance measure
+    comp.currentSectionIndex = 0;
+    comp.activeAttackingSection = comp.playerSections ? comp.playerSections[0] : 'strings';
+    comp.currentMeasure++;
+
+    if (comp.currentMeasure >= comp.totalMeasures) {
+      this.concludeConcertCompetition();
+    } else {
+      comp.combatLog?.push(`🎼 Measure ${comp.currentMeasure} / ${comp.totalMeasures} — [${comp.activeAttackingSection.toUpperCase()}] Section ready!`);
+    }
+  }
+
+  public concludeConcertCompetition(): void {
+    const comp = this.state.competition;
+    if (!comp || comp.concluded) return;
+
+    comp.concluded = true;
+    comp.won = comp.playerScore >= comp.rivalScore;
+    let badgeWonName = '';
+
+    if (comp.isPianistDuel) {
+      if (comp.won) {
+        this.state.pianistBuskingWins = (this.state.pianistBuskingWins || 0) + 1;
+        const wins = this.state.pianistBuskingWins;
+        const goldGain = comp.rival.rewardStars * 150;
+        const sparksGain = comp.rival.rewardStars * 15;
+        this.state.wallet.gold += goldGain;
+        this.state.wallet.inspirationSparks += sparksGain;
+
+        soundEngine.playGrandPianoCadence();
+        this.receivePhoneNotification('Mama Aria 💖', "YOU BEAT THE GRAND PIANO VIRTUOSO! 🎹 Updating my social status right now!", '👩‍👧');
+
+        if (wins >= 3) {
+          this.state.hasPianoAccompaniment = true;
+          this.showDialogue('Maestro Franz "Keys" Liszt', '🎹', [
+            `🏆 TRANSCENDENTAL VICTORY! Final Score: ${comp.playerScore} vs Franz ${comp.rivalScore}!`,
+            `Maestro Franz stands in breathless awe, his fingers trembling with ecstasy: "Magnifique! Pure poetic genius! You have conquered all 3 Transcendental Busking Duels!"`,
+            `"I hereby swear my grand piano to your cause. I will be your dedicated Concerto Accompanist! (+50% Score Multiplier Active in all Concerts & Festivals!)"`,
+            `Earned +${goldGain} Notes (♪), +${sparksGain} Inspiration Sparks (✨), and unlocked [🎹 Permanent Concerto Piano Accompaniment]!`
+          ], () => {
+            this.state.mode = 'exploration';
+            this.state.competition = null;
+            const activeSections = Array.from(new Set(this.state.ensemble.members.map(m => m.section)));
+            soundEngine.startBGM(this.state.currentZone, activeSections);
+          });
         } else {
-          this.showDialogue('Maestro Franz "Keys" Liszt', '💔', [
-            `Defeat! Final Score: ${comp.playerScore} vs Franz ${comp.rivalScore}.`,
-            `Maestro Franz smiles gently: "The tempo proved too fierce this time! Practice your Metronome stability and return to duel the grand piano again!"`
+          this.showDialogue('Maestro Franz "Keys" Liszt', '🎹', [
+            `🎉 DUEL VICTORY! Final Score: ${comp.playerScore} vs Franz ${comp.rivalScore}!`,
+            `Maestro Franz bows with deep admiration: "Exquisite rhythm! You have mastered Duel ${wins} of 3! (+${goldGain} Notes, +${sparksGain} Sparks)"`,
+            `"Return to me when you are ready to test your metronome against the next tempo tier!"`
           ], () => {
             this.state.mode = 'exploration';
             this.state.competition = null;
@@ -1397,106 +1713,123 @@ export class HarmoniaGameEngine {
             soundEngine.startBGM(this.state.currentZone, activeSections);
           });
         }
-        return;
+      } else {
+        this.receivePhoneNotification('Mama Aria 💖', "The pianist's tempo was too wild honey! Have some warm tea and practice your metronome! ☕", '👩‍👧');
+        this.showDialogue('Maestro Franz "Keys" Liszt', '💔', [
+          `Defeat! Final Score: ${comp.playerScore} vs Franz ${comp.rivalScore}.`,
+          `Maestro Franz smiles gently: "The tempo proved too fierce this time! Practice your Metronome stability and return to duel the grand piano again!"`
+        ], () => {
+          this.state.mode = 'exploration';
+          this.state.competition = null;
+          const activeSections = Array.from(new Set(this.state.ensemble.members.map(m => m.section)));
+          soundEngine.startBGM(this.state.currentZone, activeSections);
+        });
+      }
+      return;
+    }
+
+    if (comp.won && !comp.rewardsGiven) {
+      comp.rewardsGiven = true;
+      const goldGain = comp.rival.rewardStars * 200;
+      const sparksGain = comp.rival.rewardStars * 10;
+      this.state.wallet.gold += goldGain;
+      this.state.wallet.inspirationSparks += sparksGain;
+      this.state.wallet.reputationStars += comp.rival.rewardStars;
+      this.state.ensemble.reputationStars = this.state.wallet.reputationStars;
+      this.state.ensemble.fameLevel = 1 + Math.floor(this.state.ensemble.reputationStars / 2);
+
+      this.state.ensemble.members.forEach(m => {
+        this.awardMusicianXp(m, 250 + comp.rival.rewardStars * 50);
+      });
+
+      // Record festival event completion & quest
+      if (comp.rival.id.startsWith('rival_event_')) {
+        const eventId = comp.rival.id.replace('rival_event_', '');
+        if (!this.state.completedEvents.includes(eventId)) {
+          this.state.completedEvents.push(eventId);
+        }
+        const qFest = this.state.quests.find(q => q.id === 'quest_gig_festival_circuit');
+        if (qFest) qFest.completed = true;
       }
 
-      if (comp.won && !comp.rewardsGiven) {
-        comp.rewardsGiven = true;
-        const goldGain = comp.rival.rewardStars * 200;
-        const sparksGain = comp.rival.rewardStars * 10;
-        this.state.wallet.gold += goldGain;
-        this.state.wallet.inspirationSparks += sparksGain;
-        this.state.wallet.reputationStars += comp.rival.rewardStars;
-        this.state.ensemble.reputationStars = this.state.wallet.reputationStars;
-        this.state.ensemble.fameLevel = 1 + Math.floor(this.state.ensemble.reputationStars / 2);
-
-        this.state.ensemble.members.forEach(m => {
-          this.awardMusicianXp(m, 250 + comp.rival.rewardStars * 50);
-        });
-
-        // Record festival event completion & quest
-        if (comp.rival.id.startsWith('rival_event_')) {
-          const eventId = comp.rival.id.replace('rival_event_', '');
-          if (!this.state.completedEvents.includes(eventId)) {
-            this.state.completedEvents.push(eventId);
-          }
-          const qFest = this.state.quests.find(q => q.id === 'quest_gig_festival_circuit');
-          if (qFest) qFest.completed = true;
+      // Check main story chapter quest completions (can be completed in any order!)
+      if (comp.rival.id === 'rival_novice_buskers') {
+        const q1 = this.state.quests.find(q => q.id === 'quest_ch1');
+        if (q1) q1.completed = true;
+      } else if (comp.rival.id === 'rival_woodwind_trio') {
+        const q2 = this.state.quests.find(q => q.id === 'quest_ch2');
+        if (q2) q2.completed = true;
+      } else if (comp.rival.id === 'rival_brass_quartet') {
+        const q3 = this.state.quests.find(q => q.id === 'quest_ch3');
+        if (q3) q3.completed = true;
+      } else if (comp.rival.id === 'rival_thunder_chamber') {
+        const q4 = this.state.quests.find(q => q.id === 'quest_ch4');
+        if (q4) q4.completed = true;
+      } else if (comp.rival.id === 'rival_grand_orchestra') {
+        const q5 = this.state.quests.find(q => q.id === 'quest_ch5');
+        if (q5) q5.completed = true;
+        const qRoundtable = this.state.quests.find(q => q.id === 'quest_maestro_roundtable');
+        if (qRoundtable && !qRoundtable.completed) {
+          this.state.activeQuestId = 'quest_maestro_roundtable';
         }
+      }
 
-        // Check main story chapter quest completions (can be completed in any order!)
-        if (comp.rival.id === 'rival_novice_buskers') {
-          const q1 = this.state.quests.find(q => q.id === 'quest_ch1');
-          if (q1) q1.completed = true;
-        } else if (comp.rival.id === 'rival_woodwind_trio') {
-          const q2 = this.state.quests.find(q => q.id === 'quest_ch2');
-          if (q2) q2.completed = true;
-        } else if (comp.rival.id === 'rival_brass_quartet') {
-          const q3 = this.state.quests.find(q => q.id === 'quest_ch3');
-          if (q3) q3.completed = true;
-        } else if (comp.rival.id === 'rival_thunder_chamber') {
-          const q4 = this.state.quests.find(q => q.id === 'quest_ch4');
-          if (q4) q4.completed = true;
-        } else if (comp.rival.id === 'rival_grand_orchestra') {
-          const q5 = this.state.quests.find(q => q.id === 'quest_ch5');
-          if (q5) q5.completed = true;
+      // Dynamic non-linear progression across the 4 cardinal section masteries
+      const sectionQuestIds = ['quest_ch1', 'quest_ch2', 'quest_ch3', 'quest_ch4'];
+      const completedSectionCount = sectionQuestIds.filter(id => this.state.quests.find(q => q.id === id)?.completed).length;
+
+      // Upgrade ensemble capacity as section masteries are conquered
+      if (completedSectionCount === 1) this.state.ensemble.tier = 'duet';
+      else if (completedSectionCount === 2) this.state.ensemble.tier = 'trio';
+      else if (completedSectionCount === 3) this.state.ensemble.tier = 'quartet';
+      else if (completedSectionCount >= 4) this.state.ensemble.tier = 'chamber';
+
+      if (completedSectionCount >= 4) {
+        const q5 = this.state.quests.find(q => q.id === 'quest_ch5');
+        if (q5 && !q5.completed) {
+          this.state.activeQuestId = 'quest_ch5';
+        } else {
           const qRoundtable = this.state.quests.find(q => q.id === 'quest_maestro_roundtable');
           if (qRoundtable && !qRoundtable.completed) {
             this.state.activeQuestId = 'quest_maestro_roundtable';
           }
         }
-
-        // Dynamic non-linear progression across the 4 cardinal section masteries
-        const sectionQuestIds = ['quest_ch1', 'quest_ch2', 'quest_ch3', 'quest_ch4'];
-        const completedSectionCount = sectionQuestIds.filter(id => this.state.quests.find(q => q.id === id)?.completed).length;
-
-        // Upgrade ensemble capacity as section masteries are conquered
-        if (completedSectionCount === 1) this.state.ensemble.tier = 'duet';
-        else if (completedSectionCount === 2) this.state.ensemble.tier = 'trio';
-        else if (completedSectionCount === 3) this.state.ensemble.tier = 'quartet';
-        else if (completedSectionCount >= 4) this.state.ensemble.tier = 'chamber';
-
-        if (completedSectionCount >= 4) {
-          const q5 = this.state.quests.find(q => q.id === 'quest_ch5');
-          if (q5 && !q5.completed) {
-            this.state.activeQuestId = 'quest_ch5';
-          } else {
-            const qRoundtable = this.state.quests.find(q => q.id === 'quest_maestro_roundtable');
-            if (qRoundtable && !qRoundtable.completed) {
-              this.state.activeQuestId = 'quest_maestro_roundtable';
-            }
-          }
-        } else {
-          // If current active quest was completed, pick the next incomplete section quest
-          const currentActive = this.state.quests.find(q => q.id === this.state.activeQuestId);
-          if (!currentActive || currentActive.completed) {
-            const nextIncomplete = sectionQuestIds.find(id => !this.state.quests.find(q => q.id === id)?.completed);
-            if (nextIncomplete) {
-              this.state.activeQuestId = nextIncomplete;
-            }
+      } else {
+        // If current active quest was completed, pick the next incomplete section quest
+        const currentActive = this.state.quests.find(q => q.id === this.state.activeQuestId);
+        if (!currentActive || currentActive.completed) {
+          const nextIncomplete = sectionQuestIds.find(id => !this.state.quests.find(q => q.id === id)?.completed);
+          if (nextIncomplete) {
+            this.state.activeQuestId = nextIncomplete;
           }
         }
-
-        // Award Conservatory Badge
-        const badgeIndex = Math.min(this.state.badges.length - 1, this.state.ensemble.reputationStars - 1);
-        if (badgeIndex >= 0 && !this.state.badges[badgeIndex].obtained) {
-          this.state.badges[badgeIndex].obtained = true;
-          badgeWonName = ` Awarded the [${this.state.badges[badgeIndex].name} ${this.state.badges[badgeIndex].icon}]!`;
-        }
-
-        soundEngine.playFanfare();
       }
 
-      this.showDialogue('Concert Results', '🏆', [
-        `Performance Concluded! Final Score: ${comp.playerScore} vs Rival ${comp.rivalScore}!`,
-        comp.won ? `VICTORY! The audience erupts in standing ovation! Earned +${comp.rival.rewardStars} Reputation Stars (Total: ${this.state.ensemble.reputationStars} ★), +${comp.rival.rewardStars * 200} Notes ♪, +${comp.rival.rewardStars * 10} Sparks ✨.${badgeWonName}` : "A valiant effort! Practice your ensemble's Technique and try again!"
-      ], () => {
-        this.state.mode = 'exploration';
-        this.state.competition = null;
-        const activeSections = Array.from(new Set(this.state.ensemble.members.map(m => m.section)));
-        soundEngine.startBGM(this.state.currentZone, activeSections);
-      });
+      // Award Conservatory Badge
+      const badgeIndex = Math.min(this.state.badges.length - 1, this.state.ensemble.reputationStars - 1);
+      if (badgeIndex >= 0 && !this.state.badges[badgeIndex].obtained) {
+        this.state.badges[badgeIndex].obtained = true;
+        badgeWonName = ` Awarded the [${this.state.badges[badgeIndex].name} ${this.state.badges[badgeIndex].icon}]!`;
+      }
+
+      soundEngine.playFanfare();
     }
+
+    if (comp.won) {
+      this.receivePhoneNotification('Mama Aria 💖', "CONCERT VICTORY! 🏆 My child is a musical genius! Calling Auntie right now!", '👩‍👧');
+    } else {
+      this.receivePhoneNotification('Mama Aria 💖', "The judges clearly know nothing about good tone honey! Let's practice 10 hours tomorrow!", '👩‍👧');
+    }
+
+    this.showDialogue('Concert Results', '🏆', [
+      `Performance Concluded! Final Score: ${comp.playerScore} vs Rival ${comp.rivalScore}!`,
+      comp.won ? `VICTORY! The audience erupts in standing ovation! Earned +${comp.rival.rewardStars} Reputation Stars (Total: ${this.state.ensemble.reputationStars} ★), +${comp.rival.rewardStars * 200} Notes ♪, +${comp.rival.rewardStars * 10} Sparks ✨.${badgeWonName}` : "A valiant effort! Practice your ensemble's Technique and try again!"
+    ], () => {
+      this.state.mode = 'exploration';
+      this.state.competition = null;
+      const activeSections = Array.from(new Set(this.state.ensemble.members.map(m => m.section)));
+      soundEngine.startBGM(this.state.currentZone, activeSections);
+    });
   }
 
   public conductSection(section: InstrumentSection): void {
@@ -1595,6 +1928,28 @@ export class HarmoniaGameEngine {
     const dt = this.lastTime ? Math.min((time - this.lastTime) / 1000, 0.1) : 0.016;
     this.lastTime = time;
     this.state.time += dt;
+
+    if (this.state.activeNotification) {
+      this.state.activeNotification.timer -= dt;
+      if (this.state.activeNotification.timer <= 0) {
+        this.state.activeNotification = null;
+      }
+    }
+
+    if (this.state.parentMentor) {
+      this.state.parentMentor.practiceReminderTimer -= dt;
+      if (this.state.parentMentor.practiceReminderTimer <= 0) {
+        this.state.parentMentor.practiceReminderTimer = 180; // remind every 3 minutes
+        const reminders = [
+          "Sweetie, Ling Ling has already practiced 40 hours today! Have you played your scales? 🎻",
+          "Remember: Intonation is everything! Don't let Mrs. Chen's daughter out-practice you! 🎶",
+          "Did you stretch your wrists? Take a deep breath and keep your tempo steady! ✨",
+          "I told the baker you're performing in Sinfonia Magna next month! Go practice! 🥖"
+        ];
+        const text = reminders[Math.floor(Math.random() * reminders.length)];
+        this.receivePhoneNotification('Mama Aria 💖', text, '👩‍👧');
+      }
+    }
 
     this.updateDispatches(dt);
 
@@ -1891,7 +2246,17 @@ export class HarmoniaGameEngine {
         `"Welcome to the Central Plaza! They call me the Grand Virtuoso. If your ensemble seeks true greatness, you must prove you can match my blistering tempo."`,
         `"Duel 1: Novice Busk at 120 BPM! Hit every cadence on beat. Let the audition showdown begin!"`
       ], () => {
-        this.startPianistBuskingDuel(1);
+        this.openPreBattle({
+          battleType: 'pianist_busking_duel',
+          targetNpc: target,
+          forcedTier: 1,
+          title: 'PIANIST BUSKING DUEL: NOVICE BUSK (120 BPM)',
+          opponentName: 'Maestro Franz "Keys" Liszt',
+          opponentAvatar: '🎹',
+          opponentDescription: 'Grand Virtuoso Pianist at the Eternal Rotunda.',
+          recommendations: [],
+          maxLineupSize: this.getMaxLineupSize()
+        });
       });
     } else if (wins === 1) {
       this.showDialogue(target.name, '🎹', [
@@ -1899,7 +2264,17 @@ export class HarmoniaGameEngine {
         `"You conquered the novice busk, but can you survive the velocity of a Virtuoso Etude at 140 BPM?"`,
         `"Duel 2: Virtuoso Etude (140 BPM)! Prepare for blazing scales and tight cadences!"`
       ], () => {
-        this.startPianistBuskingDuel(2);
+        this.openPreBattle({
+          battleType: 'pianist_busking_duel',
+          targetNpc: target,
+          forcedTier: 2,
+          title: 'PIANIST BUSKING DUEL: VIRTUOSO ETUDE (140 BPM)',
+          opponentName: 'Maestro Franz "Keys" Liszt',
+          opponentAvatar: '🎹',
+          opponentDescription: 'Grand Virtuoso Pianist at the Eternal Rotunda.',
+          recommendations: [],
+          maxLineupSize: this.getMaxLineupSize()
+        });
       });
     } else if (wins === 2) {
       this.showDialogue(target.name, '🎹', [
@@ -1907,7 +2282,17 @@ export class HarmoniaGameEngine {
         `"Unbelievable! You have pushed me to the brink. Only the greatest virtuosos in history have witnessed what comes next."`,
         `"Duel 3: Transcendental Showdown at 160 BPM! Defeat me here, and I will dedicate my grand piano to accompany your ensemble forever!"`
       ], () => {
-        this.startPianistBuskingDuel(3);
+        this.openPreBattle({
+          battleType: 'pianist_busking_duel',
+          targetNpc: target,
+          forcedTier: 3,
+          title: 'PIANIST BUSKING DUEL: TRANSCENDENTAL SHOWDOWN (160 BPM)',
+          opponentName: 'Maestro Franz "Keys" Liszt',
+          opponentAvatar: '🎹',
+          opponentDescription: 'Grand Virtuoso Pianist at the Eternal Rotunda.',
+          recommendations: [],
+          maxLineupSize: this.getMaxLineupSize()
+        });
       });
     } else {
       this.state.hasPianoAccompaniment = true;
@@ -1946,10 +2331,10 @@ export class HarmoniaGameEngine {
         const discoveryNotice = `🌟 SECRET CELEBRITY DISCOVERED! 🌟\nYou found ${target.name} (${cleanTitle})!\nReward: +${reward.notes} Notes (♪) & +${reward.sparks} Inspiration Sparks (✨)!`;
         this.showDialogue(target.name, avatar, [
           discoveryNotice,
-          ...target.dialogue
+          ...this.getNPCDialogue(target)
         ]);
       } else {
-        this.showDialogue(target.name, avatar, target.dialogue);
+        this.showDialogue(target.name, avatar, this.getNPCDialogue(target));
       }
       return;
     }
@@ -1972,41 +2357,110 @@ export class HarmoniaGameEngine {
     if (target.actionType === 'audition_battle' && target.musicianData) {
       if (this.state.recruitedMusicians.some(m => m.id === target.musicianData?.id)) {
         const allMembers = [...this.state.ensemble.members, ...this.state.recruitedMusicians, ...this.state.ensembleBox];
+        const playerName = this.state.ensemble.members[0].name;
+
+        const charRecruitedPools: Record<string, string[][]> = {
+          'Clara': [
+            ["Clara smiles warmly: \"My mom actually let me practice 38 hours yesterday instead of 40! I think she's finally lightening up because of you!\""],
+            ["Clara checks her bow rosin: \"I can't wait for the Solstice Gala. Our unison entrances are going to blow the judges away!\""],
+            ["Clara: \"Have you tried practicing with the metronome today? Keeping the pulse locked is so satisfying!\""]
+          ],
+          'Oliver': [
+            ["Oliver adjusts his feather cap with a grin: \"Chirpy and I found a whole flock of songbirds that harmonize in major thirds!\""],
+            ["Oliver: \"My dad said he bought soundproof headphones, but he secretly taps his foot when we rehearse!\""],
+            ["Oliver: \"Whenever you're ready to head into the next zone, my piccolo is tuned and ready!\""]
+          ],
+          'Jax': [
+            ["Jax buffs his trumpet bell: \"My dad Officer Briggs clocked our rehearsal at 110 decibels! He gave me a thumbs up instead of a ticket!\""],
+            ["Jax: \"Lead trumpet never rests! When the spotlight hits us in the Grand Hall, I'm hitting that high Eb!\""],
+            ["Jax laughs: \"You know, Clara's violin really does cut through my loudest blast. Don't tell her I said that though!\""]
+          ],
+          'Rita': [
+            ["Rita twirls her drumsticks: \"My mom was so proud when our rehearsal rattled the kitchen teacups! Total rock and roll!\""],
+            ["Rita: \"Tempo stability is locked at 100%. No dragging, no rushing—just pure unstoppable groove.\""],
+            ["Rita: \"Whenever you're ready for the Solstice showdown, I'm ready to smash the skins!\""]
+          ],
+          'Toby': [
+            ["Toby beams proudly: \"My big brother heard me practicing with your ensemble and said I was actually sounding like a pro!\""],
+            ["Toby strumming a happy folk chord: \"Lyre Valley was great, but traveling with you is the best adventure ever!\""],
+            ["Toby: \"Hoppy the hare learned how to tap dance to our rhythm! Want to see?\""]
+          ],
+          'Maya': [
+            ["Maya bows a rich, resonant C string note: \"Even in the daylight, our sound carries that delicious midnight atmosphere.\""],
+            ["Maya: \"Your leadership has a rare depth. Most conductors only care about speed, but you care about resonance.\""],
+            ["Maya smiles faintly: \"Rita and I worked on a new breakdown. It's gloriously heavy.\""],
+          ]
+        };
+
+        let pool: string[][] = [
+          [`Hey ${playerName}! Our ${this.state.ensemble.tier} is sounding more harmonious by the day!`],
+          [`I've been working on my tone quality in my spare time. We're going to shine at the Solstice Gala! ✨`],
+          [`Did you hear the chatter in the tavern? Everyone in Harmonia is talking about our ensemble!`],
+          [`Make sure to keep your instrument tuned and polished. True resonance begins in the heart! 🎵`]
+        ];
+
+        for (const [key, p] of Object.entries(charRecruitedPools)) {
+          if (target.name.includes(key)) {
+            pool = [...p];
+            break;
+          }
+        }
+
         if (target.name.includes('Clara') || target.name.includes('Jax')) {
           const hasClara = allMembers.some(m => m.name.includes('Clara'));
           const hasJax = allMembers.some(m => m.name.includes('Jax'));
           if (hasClara && hasJax) {
-            this.showDialogue(target.name, target.musicianData.avatar, [
+            pool.unshift([
               target.name.includes('Clara')
                 ? "Clara smiles with artistic pride: \"Jax admitted my violin vibrato cuts through even his loudest fortissimo trumpet calls! We created the ultimate Brass & Bow duet!\""
                 : "Jax grins broadly: \"Yo! Clara's cantabile bowing is legit! Our trumpet-violin fanfare is shaking the rafters of Harmonia!\""
             ]);
-            return;
           }
         }
         if (target.name.includes('Maya') || target.name.includes('Rita')) {
           const hasMaya = allMembers.some(m => m.name.includes('Maya'));
           const hasRita = allMembers.some(m => m.name.includes('Rita'));
           if (hasMaya && hasRita) {
-            this.showDialogue(target.name, target.musicianData.avatar, [
+            pool.unshift([
               target.name.includes('Maya')
                 ? "Maya nods with deep approval: \"Rita's taiko syncopation gives my cello basslines an unstoppable subterranean pulse. Pure underground groove.\""
                 : "Rita laughs: \"Maya's heavy cello low-end rocks harder than thunder! Our underground groove is legendary!\""
             ]);
-            return;
           }
         }
-        this.showDialogue(target.name, target.musicianData.avatar, [
-          `Hey ${this.state.ensemble.members[0].name}! Our ${this.state.ensemble.tier} is sounding more harmonious by the day!`
-        ]);
+
+        const idx = target.dialogueIndex || 0;
+        target.dialogueIndex = (idx + 1) % pool.length;
+        this.showDialogue(target.name, target.musicianData.avatar, pool[idx]);
         return;
       }
-      this.startAuditionBattle(target);
+      this.openPreBattle({
+        battleType: 'audition_battle',
+        targetNpc: target,
+        title: `AUDITION DUEL: VS ${target.musicianData.name.toUpperCase()}`,
+        opponentName: target.musicianData.name,
+        opponentAvatar: target.musicianData.avatar,
+        opponentSection: target.musicianData.section,
+        opponentDescription: target.musicianData.title || `Specialist in ${target.musicianData.section}.`,
+        recommendations: [],
+        maxLineupSize: this.getMaxLineupSize()
+      });
       return;
     }
 
     if (target.actionType === 'competition_stage') {
-      this.startConcertCompetition(target.rivalId);
+      const baseRival = RIVAL_ENSEMBLES.find(r => r.id === target.rivalId) || RIVAL_ENSEMBLES[0];
+      this.openPreBattle({
+        battleType: 'competition_stage',
+        targetNpc: target,
+        rivalId: target.rivalId,
+        title: `CONCERT COMPETITION: VS ${baseRival.name.toUpperCase()}`,
+        opponentName: baseRival.name,
+        opponentAvatar: '🏆',
+        opponentDescription: baseRival.description || `Ensemble Tier: ${baseRival.tier.toUpperCase()}`,
+        recommendations: [],
+        maxLineupSize: this.getMaxLineupSize()
+      });
       return;
     }
 
@@ -2090,7 +2544,7 @@ export class HarmoniaGameEngine {
         ]);
         return;
       }
-      this.showDialogue("Mrs. Chen (Clara's Mom)", '👩', target.dialogue);
+      this.showDialogue("Mrs. Chen (Clara's Mom)", '👩', this.getNPCDialogue(target));
       return;
     }
 
@@ -2201,7 +2655,7 @@ export class HarmoniaGameEngine {
 
     if (target.actionType === 'luthier_shop') {
       window.dispatchEvent(new CustomEvent('open-luthier-shop'));
-      this.showDialogue(target.name, '🔨', target.dialogue);
+      this.showDialogue(target.name, '🔨', this.getNPCDialogue(target));
       return;
     }
 
@@ -2246,12 +2700,23 @@ export class HarmoniaGameEngine {
       return;
     }
 
-    if (target.actionType === 'wild_harmonipet') {
-      this.startHarmonizeEncounter(target);
+    if (target.actionType === 'wild_harmonipet' && target.wildPetData) {
+      this.openPreBattle({
+        battleType: 'wild_harmonipet',
+        targetNpc: target,
+        title: `WILD HARMONIPET ENCOUNTER: ${target.wildPetData.species.toUpperCase()}`,
+        opponentName: target.wildPetData.name,
+        opponentAvatar: target.wildPetData.sprite,
+        opponentSection: target.wildPetData.section,
+        opponentDescription: `A wild ${target.wildPetData.species} (${target.wildPetData.section.toUpperCase()} section).`,
+        recommendations: [],
+        maxLineupSize: this.getMaxLineupSize()
+      });
       return;
     }
 
-    this.showDialogue(target.name, '💬', target.dialogue);
+    const speakerAvatar = (target as any).avatar || (target.musicianData ? target.musicianData.avatar : (target.name.includes('Mama') ? '👩‍👧' : '💬'));
+    this.showDialogue(target.name, speakerAvatar, this.getNPCDialogue(target));
   }
 
   /* ---------------- MUSIC THEORY CHALLENGES ---------------- */
@@ -2629,6 +3094,15 @@ export class HarmoniaGameEngine {
 
   /* ---------------- DIALOGUE SYSTEM ---------------- */
 
+  public getNPCDialogue(target: WorldNPC): string[] {
+    if (target.dialogueSets && target.dialogueSets.length > 0) {
+      const idx = target.dialogueIndex || 0;
+      target.dialogueIndex = (idx + 1) % target.dialogueSets.length;
+      return target.dialogueSets[idx];
+    }
+    return target.dialogue;
+  }
+
   public showDialogue(speaker: string, avatar: string, text: string[], onComplete?: () => void): void {
     this.state.dialogue = { speaker, avatar, text, index: 0, onComplete };
   }
@@ -2657,6 +3131,11 @@ export class HarmoniaGameEngine {
       }
     }
 
+    if (this.state.mode === 'battle_lineup') {
+      if (code === 'Enter' || code === 'Space') this.confirmPreBattle();
+      if (code === 'Escape') this.cancelPreBattle();
+    }
+
     if (this.state.mode === 'practice') {
       if (code === 'Digit1' || code === 'KeyD') this.hitPracticeNote(0);
       if (code === 'Digit2' || code === 'KeyF') this.hitPracticeNote(1);
@@ -2666,10 +3145,15 @@ export class HarmoniaGameEngine {
     }
 
     if (this.state.mode === 'competition') {
-      if (code === 'Digit1' || code === 'KeyD') this.conductSection('strings');
-      if (code === 'Digit2' || code === 'KeyF') this.conductSection('woodwinds');
-      if (code === 'Digit3' || code === 'KeyJ') this.conductSection('brass');
-      if (code === 'Digit4' || code === 'KeyK') this.conductSection('percussion');
+      if (code === 'KeyD' || code === 'Digit1') this.conductSection('strings');
+      if (code === 'KeyF' || code === 'Digit2') this.conductSection('woodwinds');
+      if (code === 'KeyJ' || code === 'Digit3') this.conductSection('brass');
+      if (code === 'KeyK' || code === 'Digit4') this.conductSection('percussion');
+
+      if (code === 'Digit1') this.executeSectionAction(0);
+      if (code === 'Digit2') this.executeSectionAction(1);
+      if (code === 'Digit3') this.executeSectionAction(2);
+      if (code === 'Digit4') this.executeSectionAction(3);
     }
   }
 
@@ -2800,7 +3284,9 @@ export class HarmoniaGameEngine {
       completedEvents: [...this.state.completedEvents],
       pianistBuskingWins: this.state.pianistBuskingWins,
       hasPianoAccompaniment: this.state.hasPianoAccompaniment,
-      calendarEvents: JSON.parse(JSON.stringify(this.state.calendarEvents))
+      calendarEvents: JSON.parse(JSON.stringify(this.state.calendarEvents)),
+      phoneMessages: this.state.phoneMessages ? JSON.parse(JSON.stringify(this.state.phoneMessages)) : [],
+      parentMentor: this.state.parentMentor ? JSON.parse(JSON.stringify(this.state.parentMentor)) : undefined
     };
 
     const exportWrapper: HarmoniaSaveExport = {
@@ -2928,6 +3414,18 @@ export class HarmoniaGameEngine {
       this.state.calendarEvents = Array.isArray(data.calendarEvents)
         ? JSON.parse(JSON.stringify(data.calendarEvents))
         : JSON.parse(JSON.stringify(FESTIVAL_CALENDAR));
+      this.state.phoneMessages = Array.isArray(data.phoneMessages)
+        ? JSON.parse(JSON.stringify(data.phoneMessages))
+        : JSON.parse(JSON.stringify(INITIAL_PHONE_MESSAGES));
+      this.state.parentMentor = data.parentMentor
+        ? JSON.parse(JSON.stringify(data.parentMentor))
+        : {
+            hasIntroducedBusking: false,
+            hasIntroducedMusicianDuel: false,
+            hasIntroducedPetBonding: false,
+            practiceReminderTimer: 120,
+            lastBragMessageTime: 0
+          };
 
       // Re-initialize NPC roster matching current state (exclude wild pets that are bonded/caught)
       const bondedSpecies = new Set(this.state.harmoniDex.filter(d => d.bonded).map(d => d.species));
@@ -3020,6 +3518,52 @@ export class HarmoniaGameEngine {
     } else {
       this.state.showStaffVisualizer = !this.state.showStaffVisualizer;
     }
+  }
+
+  public togglePhone(forceState?: boolean): void {
+    if (this.state.phoneOpen === undefined) this.state.phoneOpen = false;
+    if (forceState !== undefined) {
+      this.state.phoneOpen = forceState;
+    } else {
+      this.state.phoneOpen = !this.state.phoneOpen;
+    }
+    if (this.state.phoneOpen && !this.state.phoneTab) {
+      this.state.phoneTab = 'messages';
+    }
+  }
+
+  public switchPhoneTab(tab: 'messages' | 'calendar' | 'quests' | 'repertoire' | 'ensemble' | 'dex'): void {
+    this.state.phoneTab = tab;
+  }
+
+  public markPhoneMessageRead(msgId: string): void {
+    if (!this.state.phoneMessages) return;
+    const msg = this.state.phoneMessages.find(m => m.id === msgId);
+    if (msg) msg.read = true;
+  }
+
+  public receivePhoneNotification(title: string, message: string, icon: string = '📱'): void {
+    this.state.activeNotification = {
+      id: `notif_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+      title,
+      message,
+      icon,
+      timer: 5.0
+    };
+    soundEngine.playInstrumentNote('glockenspiel', 1046.50, 0.25, 0.7);
+    setTimeout(() => soundEngine.playInstrumentNote('glockenspiel', 1318.51, 0.35, 0.7), 80);
+  }
+
+  public addPhoneMessage(msg: { sender: string; senderAvatar: string; category: 'mom' | 'rival' | 'ensemble' | 'gossip'; subject: string; body: string }): void {
+    if (!this.state.phoneMessages) this.state.phoneMessages = [];
+    const fullMsg: PhoneMessage = {
+      id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+      ...msg,
+      timestamp: 'Just now',
+      read: false
+    };
+    this.state.phoneMessages.unshift(fullMsg);
+    this.receivePhoneNotification(msg.sender, `New message: ${msg.subject}`, msg.senderAvatar);
   }
 
   public solveAcousticPuzzleGate(gateId: string): boolean {

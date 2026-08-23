@@ -2,7 +2,7 @@ import {
   Harmonipet, Musician, MusicianStats, RepertoirePiece, RivalEnsemble, WorldZone, WorldNPC, BattleMove, InstrumentId, FestivalEvent,
   InstrumentArtifact, LostScore, InspirationVista, PerformanceVenue, GameQuest, DispatchVenue,
   HarmoniDexEntry, ClefBadge, PlayerCustomization, TheoryChallengeType, TheoryQuestion,
-  InstrumentSection, PlayerProficiency, PetSynergy
+  InstrumentSection, PlayerProficiency, PetSynergy, PhoneMessage, SectionAction
 } from './types';
 
 export const DEFAULT_CUSTOMIZATION: PlayerCustomization = {
@@ -1153,6 +1153,10 @@ export const RECRUITABLE_MUSICIANS: Musician[] = [
     stats: { technique: 35, toneQuality: 40, tempoStability: 28, sightReading: 32 },
     level: 2,
     xp: 150,
+    isKid: true,
+    outfitColor: '#ec4899',
+    hairColor: '#fde047',
+    hatStyle: 'beret',
     dialogue: [
       "Hey! Clara here (15 and proud!). I've been running scale drills for four hours straight—my fingers are practically humming!",
       "My swan familiar, Vibrato, says I need to chill, but the Conservatory Auditions are next month and I refuse to fumble my cadenza.",
@@ -1171,6 +1175,10 @@ export const RECRUITABLE_MUSICIANS: Musician[] = [
     title: 'Preteen Flute Nature Nerd (Age 13)',
     avatar: '🪈',
     paletteColor: '#10b981',
+    outfitColor: '#059669',
+    hairColor: '#b45309',
+    hatStyle: 'feather_cap',
+    isKid: true,
     instrumentId: 'silver_flute',
     instrumentName: 'Silver Concert Flute',
     section: 'woodwinds',
@@ -1778,18 +1786,24 @@ export const WORLD_ZONES: Record<string, WorldZone> = {
     defaultSpawn: { x: 120, y: 800, dir: 'right' },
     transitions: [
       { id: 'tr_ww_to_cavatina', targetZone: 'cavatina_village', targetSpawn: { x: 1860, y: 800, dir: 'left' }, bounds: { x: 0, y: 720, w: 80, h: 160 }, promptText: '⬅️ West Trail: Back to Cavatina Village' },
-      { id: 'tr_ww_to_grand_hall', targetZone: 'grand_hall', targetSpawn: { x: 140, y: 1000, dir: 'right' }, bounds: { x: 720, y: 820, w: 80, h: 160 }, promptText: '➡️ East Highway: To The Central City (Grand Symphony Hub)' }
+      { id: 'tr_ww_to_grand_hall', targetZone: 'grand_hall', targetSpawn: { x: 140, y: 1000, dir: 'right' }, bounds: { x: 720, y: 820, w: 80, h: 160 }, promptText: '➡️ East Highway: To Sinfonia Magna (Grand Symphony Metropolis)' },
+      { id: 'tr_ww_to_north', targetZone: 'north_wilderness', targetSpawn: { x: 140, y: 400, dir: 'right' }, bounds: { x: 320, y: 0, w: 160, h: 80 }, promptText: '⬆️ Northwest Mountain Pass: Direct Path to Echo Canyon (North Wilderness)' },
+      { id: 'tr_ww_to_south', targetZone: 'south_wilderness', targetSpawn: { x: 140, y: 400, dir: 'right' }, bounds: { x: 320, y: 1720, w: 160, h: 80 }, promptText: '⬇️ Southwest Cliff Pass: Direct Path to Rumble Gorge (South Wilderness)' }
     ],
     obstacles: [
-      { type: 'box', x: 0, y: 0, w: 800, h: 60, name: 'Northern Valley Ridge' },
-      { type: 'box', x: 0, y: 1740, w: 800, h: 60, name: 'Southern Valley Stream' },
+      { type: 'box', x: 0, y: 0, w: 320, h: 60, name: 'Northern Valley Ridge Left' },
+      { type: 'box', x: 480, y: 0, w: 320, h: 60, name: 'Northern Valley Ridge Right' },
+      { type: 'gate', buildingType: 'gate', x: 320, y: 0, w: 160, h: 60, name: 'North Echo Pass Arch', signIcon: '⬆️' },
+      { type: 'box', x: 0, y: 1740, w: 320, h: 60, name: 'Southern Valley Stream Left' },
+      { type: 'box', x: 480, y: 1740, w: 320, h: 60, name: 'Southern Valley Stream Right' },
+      { type: 'gate', buildingType: 'gate', x: 320, y: 1740, w: 160, h: 60, name: 'South Rumble Pass Arch', signIcon: '⬇️' },
       { type: 'box', x: 0, y: 0, w: 60, h: 720, name: 'West Valley Thicket Top' },
       { type: 'box', x: 0, y: 880, w: 60, h: 920, name: 'West Valley Thicket Bottom' },
       { type: 'box', x: 740, y: 0, w: 60, h: 820, name: 'East Grand Archwoods Top' },
       { type: 'box', x: 740, y: 980, w: 60, h: 820, name: 'East Grand Archwoods Bottom' },
       // North & South Exploration Obstacles
-      { type: 'circle', x: 300, y: 350, radius: 48, name: 'Acoustic Willow Copse' },
-      { type: 'circle', x: 550, y: 1450, radius: 56, name: 'Resonant Rock Boulder' }
+      { type: 'circle', x: 200, y: 350, radius: 48, name: 'Acoustic Willow Copse' },
+      { type: 'circle', x: 600, y: 1450, radius: 56, name: 'Resonant Rock Boulder' }
     ]
   },
 
@@ -1835,18 +1849,24 @@ export const WORLD_ZONES: Record<string, WorldZone> = {
     defaultSpawn: { x: 680, y: 900, dir: 'left' },
     transitions: [
       { id: 'tr_ew_to_woods', targetZone: 'woodwind_woods', targetSpawn: { x: 120, y: 900, dir: 'right' }, bounds: { x: 720, y: 820, w: 80, h: 160 }, promptText: '➡️ East Trail: Into Woodwind Woods' },
-      { id: 'tr_ew_to_grand_hall', targetZone: 'grand_hall', targetSpawn: { x: 2260, y: 1000, dir: 'left' }, bounds: { x: 0, y: 820, w: 80, h: 160 }, promptText: '⬅️ West Highway: To The Central City (Grand Symphony Hub)' }
+      { id: 'tr_ew_to_grand_hall', targetZone: 'grand_hall', targetSpawn: { x: 2260, y: 1000, dir: 'left' }, bounds: { x: 0, y: 820, w: 80, h: 160 }, promptText: '⬅️ West Highway: To Sinfonia Magna (Grand Symphony Metropolis)' },
+      { id: 'tr_ew_to_north', targetZone: 'north_wilderness', targetSpawn: { x: 1660, y: 400, dir: 'left' }, bounds: { x: 320, y: 0, w: 160, h: 80 }, promptText: '⬆️ Northeast Zephyr Pass: Direct Path to Echo Canyon (North Wilderness)' },
+      { id: 'tr_ew_to_south', targetZone: 'south_wilderness', targetSpawn: { x: 1660, y: 400, dir: 'left' }, bounds: { x: 320, y: 1720, w: 160, h: 80 }, promptText: '⬇️ Southeast Glade Trail: Direct Path to Rumble Gorge (South Wilderness)' }
     ],
     obstacles: [
-      { type: 'box', x: 0, y: 0, w: 800, h: 60, name: 'Northern Reed Marsh' },
-      { type: 'box', x: 0, y: 1740, w: 800, h: 60, name: 'Southern Bamboo Clump' },
+      { type: 'box', x: 0, y: 0, w: 320, h: 60, name: 'Northern Reed Marsh Left' },
+      { type: 'box', x: 480, y: 0, w: 320, h: 60, name: 'Northern Reed Marsh Right' },
+      { type: 'gate', buildingType: 'gate', x: 320, y: 0, w: 160, h: 60, name: 'North Echo Pass Arch', signIcon: '⬆️' },
+      { type: 'box', x: 0, y: 1740, w: 320, h: 60, name: 'Southern Bamboo Clump Left' },
+      { type: 'box', x: 480, y: 1740, w: 320, h: 60, name: 'Southern Bamboo Clump Right' },
+      { type: 'gate', buildingType: 'gate', x: 320, y: 1740, w: 160, h: 60, name: 'South Rumble Pass Arch', signIcon: '⬇️' },
       { type: 'box', x: 0, y: 0, w: 60, h: 820, name: 'West Marsh Edge Top' },
       { type: 'box', x: 0, y: 980, w: 60, h: 820, name: 'West Marsh Edge Bottom' },
       { type: 'box', x: 740, y: 0, w: 60, h: 820, name: 'East Wood Edge Top' },
       { type: 'box', x: 740, y: 980, w: 60, h: 820, name: 'East Wood Edge Bottom' },
       // Exploration Obstacles
-      { type: 'circle', x: 350, y: 400, radius: 44, name: 'Flute Reed Pool' },
-      { type: 'circle', x: 500, y: 1400, radius: 52, name: 'Zephyr Hollow' }
+      { type: 'circle', x: 200, y: 400, radius: 44, name: 'Flute Reed Pool' },
+      { type: 'circle', x: 600, y: 1400, radius: 52, name: 'Zephyr Hollow' }
     ]
   },
 
@@ -1892,18 +1912,24 @@ export const WORLD_ZONES: Record<string, WorldZone> = {
     defaultSpawn: { x: 900, y: 120, dir: 'down' },
     transitions: [
       { id: 'tr_nw_to_citadel', targetZone: 'brass_citadel', targetSpawn: { x: 1000, y: 1460, dir: 'up' }, bounds: { x: 820, y: 0, w: 160, h: 80 }, promptText: '⬆️ North Pass: Into The Brass Citadel' },
-      { id: 'tr_nw_to_grand_hall', targetZone: 'grand_hall', targetSpawn: { x: 1200, y: 140, dir: 'down' }, bounds: { x: 820, y: 720, w: 160, h: 80 }, promptText: '⬇️ South Highway: To The Central City (Grand Symphony Hub)' }
+      { id: 'tr_nw_to_grand_hall', targetZone: 'grand_hall', targetSpawn: { x: 1200, y: 140, dir: 'down' }, bounds: { x: 820, y: 720, w: 160, h: 80 }, promptText: '⬇️ South Highway: To Sinfonia Magna (Grand Symphony Metropolis)' },
+      { id: 'tr_nw_to_west', targetZone: 'west_wilderness', targetSpawn: { x: 400, y: 140, dir: 'down' }, bounds: { x: 0, y: 320, w: 80, h: 160 }, promptText: '⬅️ Northwest Valley Trail: Direct Path to Lyre Valley (West Wilderness)' },
+      { id: 'tr_nw_to_east', targetZone: 'east_wilderness', targetSpawn: { x: 400, y: 140, dir: 'down' }, bounds: { x: 1720, y: 320, w: 80, h: 160 }, promptText: '➡️ Northeast Zephyr Trail: Direct Path to Breeze Glade (East Wilderness)' }
     ],
     obstacles: [
       { type: 'box', x: 0, y: 0, w: 820, h: 60, name: 'North Mesa Wall Left' },
       { type: 'box', x: 980, y: 0, w: 820, h: 60, name: 'North Mesa Wall Right' },
       { type: 'box', x: 0, y: 740, w: 820, h: 60, name: 'South Canyon Gate Left' },
       { type: 'box', x: 980, y: 740, w: 820, h: 60, name: 'South Canyon Gate Right' },
-      { type: 'box', x: 0, y: 0, w: 60, h: 800, name: 'West Canyon Escarpment' },
-      { type: 'box', x: 1740, y: 0, w: 60, h: 800, name: 'East Canyon Escarpment' },
+      { type: 'box', x: 0, y: 0, w: 60, h: 320, name: 'West Canyon Wall Top' },
+      { type: 'box', x: 0, y: 480, w: 60, h: 320, name: 'West Canyon Wall Bottom' },
+      { type: 'gate', buildingType: 'gate', x: 0, y: 320, w: 60, h: 160, name: 'West Lyre Pass Arch', signIcon: '⬅️' },
+      { type: 'box', x: 1740, y: 0, w: 60, h: 320, name: 'East Canyon Wall Top' },
+      { type: 'box', x: 1740, y: 480, w: 60, h: 320, name: 'East Canyon Wall Bottom' },
+      { type: 'gate', buildingType: 'gate', x: 1740, y: 320, w: 60, h: 160, name: 'East Breeze Pass Arch', signIcon: '➡️' },
       // E/W Exploration Obstacles
-      { type: 'circle', x: 400, y: 400, radius: 50, name: 'Acoustic Monolith' },
-      { type: 'circle', x: 1400, y: 400, radius: 50, name: 'Fanfare Ridge Spire' }
+      { type: 'circle', x: 400, y: 200, radius: 50, name: 'Acoustic Monolith' },
+      { type: 'circle', x: 1400, y: 600, radius: 50, name: 'Fanfare Ridge Spire' }
     ]
   },
 
@@ -1949,26 +1975,32 @@ export const WORLD_ZONES: Record<string, WorldZone> = {
     defaultSpawn: { x: 900, y: 680, dir: 'up' },
     transitions: [
       { id: 'tr_sw_to_peaks', targetZone: 'percussion_peaks', targetSpawn: { x: 1000, y: 140, dir: 'down' }, bounds: { x: 820, y: 720, w: 160, h: 80 }, promptText: '⬇️ South Descent: Into Percussion Peaks' },
-      { id: 'tr_sw_to_grand_hall', targetZone: 'grand_hall', targetSpawn: { x: 1200, y: 1860, dir: 'up' }, bounds: { x: 820, y: 0, w: 160, h: 80 }, promptText: '⬆️ North Highway: To The Central City (Grand Symphony Hub)' }
+      { id: 'tr_sw_to_grand_hall', targetZone: 'grand_hall', targetSpawn: { x: 1200, y: 1860, dir: 'up' }, bounds: { x: 820, y: 0, w: 160, h: 80 }, promptText: '⬆️ North Highway: To Sinfonia Magna (Grand Symphony Metropolis)' },
+      { id: 'tr_sw_to_west', targetZone: 'west_wilderness', targetSpawn: { x: 400, y: 1660, dir: 'up' }, bounds: { x: 0, y: 320, w: 80, h: 160 }, promptText: '⬅️ Southwest Basalt Pass: Direct Path to Lyre Valley (West Wilderness)' },
+      { id: 'tr_sw_to_east', targetZone: 'east_wilderness', targetSpawn: { x: 400, y: 1660, dir: 'up' }, bounds: { x: 1720, y: 320, w: 80, h: 160 }, promptText: '➡️ Southeast Caldera Pass: Direct Path to Breeze Glade (East Wilderness)' }
     ],
     obstacles: [
       { type: 'box', x: 0, y: 0, w: 820, h: 60, name: 'North Gorge Rim Left' },
       { type: 'box', x: 980, y: 0, w: 820, h: 60, name: 'North Gorge Rim Right' },
       { type: 'box', x: 0, y: 740, w: 820, h: 60, name: 'South Peak Pass Left' },
       { type: 'box', x: 980, y: 740, w: 820, h: 60, name: 'South Peak Pass Right' },
-      { type: 'box', x: 0, y: 0, w: 60, h: 800, name: 'West Basalt Wall' },
-      { type: 'box', x: 1740, y: 0, w: 60, h: 800, name: 'East Basalt Wall' },
+      { type: 'box', x: 0, y: 0, w: 60, h: 320, name: 'West Basalt Wall Top' },
+      { type: 'box', x: 0, y: 480, w: 60, h: 320, name: 'West Basalt Wall Bottom' },
+      { type: 'gate', buildingType: 'gate', x: 0, y: 320, w: 60, h: 160, name: 'West Lyre Pass Arch', signIcon: '⬅️' },
+      { type: 'box', x: 1740, y: 0, w: 60, h: 320, name: 'East Basalt Wall Top' },
+      { type: 'box', x: 1740, y: 480, w: 60, h: 320, name: 'East Basalt Wall Bottom' },
+      { type: 'gate', buildingType: 'gate', x: 1740, y: 320, w: 60, h: 160, name: 'East Breeze Pass Arch', signIcon: '➡️' },
       // E/W Exploration Obstacles
-      { type: 'circle', x: 400, y: 400, radius: 50, name: 'Echoing Basalt Spire' },
-      { type: 'circle', x: 1400, y: 400, radius: 50, name: 'Caldera Steam Vent' }
+      { type: 'circle', x: 400, y: 600, radius: 50, name: 'Echoing Basalt Spire' },
+      { type: 'circle', x: 1400, y: 200, radius: 50, name: 'Caldera Steam Vent' }
     ]
   },
 
-  // 🏛️ CENTRAL CITY: The Grand Symphony Hub & Four-Way Compass
+  // 🏛️ SINFONIA MAGNA: The Grand Polyphony & Imperial Philharmonic Metropolis
   grand_hall: {
     id: 'grand_hall',
-    name: 'The Central City',
-    subtitle: 'Grand Symphony Hub & Sanctuary of Maestros',
+    name: 'Sinfonia Magna',
+    subtitle: 'The Grand Polyphony & Imperial Philharmonic Metropolis',
     width: 2400,
     height: 2000,
     ambientBgm: 'grand_hall',
@@ -2060,6 +2092,19 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     dialogue: [
       "Greetings, young maestro! Study the Theory Lectern to advance through our 8-tier curriculum. Every drill permanently elevates your Sight-Reading!",
       "When you feel ready to explore Harmonia, the East Gate leads out into Lyre Valley, the wild path toward the Grand Symphony Hall."
+    ],
+    dialogueSets: [
+      [
+        "Greetings, young maestro! Study the Theory Lectern to advance through our 8-tier curriculum. Every drill permanently elevates your Sight-Reading!",
+        "When you feel ready to explore Harmonia, the East Gate leads out into Lyre Valley, the wild path toward Sinfonia Magna."
+      ],
+      [
+        "Remember: An octave is an interval of eight diatonic notes with double the frequency. Pure acoustic physics in action!",
+        "Mastering your pitch intervals will make animal harmonization encounters twice as fast!"
+      ],
+      [
+        "The High Conservatory in the capital has strict entry standards. Pass all 8 theory tiers and the masters will welcome you with open arms!"
+      ]
     ]
   },
   {
@@ -2086,7 +2131,12 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       xp: 800
     },
     actionType: 'luthier_shop',
-    dialogue: ["Welcome to the Forge! Bring me Notes (♪) and Inspiration Sparks (✨) to craft signature instrument artifacts and ascend your tone!"]
+    dialogue: ["Welcome to the Forge! Bring me Notes (♪) and Inspiration Sparks (✨) to craft signature instrument artifacts and ascend your tone!"],
+    dialogueSets: [
+      ["Welcome to the Forge! Bring me Notes (♪) and Inspiration Sparks (✨) to craft signature instrument artifacts and ascend your tone!"],
+      ["The grain of aged alpine spruce holds sonic memories, maestro. Carve with patience, and the wood will sing for centuries."],
+      ["Looking to boost your Technique? The 'Carved Bridge of Precision' is my finest masterpiece. Take a look at the workshop catalog!"]
+    ]
   },
   {
     id: 'npc_customization_mirror',
@@ -2141,6 +2191,20 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       "Welcome, young traveler, to The Melodic Rose Tavern & Inn! I'm Barnaby, your host.",
       "The tavern is packed with young musicians trading gossip! Young Toby is out in Lyre Valley writing folk songs, and Clara has been burning up the academy floor with scale drills.",
       "Take a seat by the hearth, rest your ears, and enjoy the warm tavern hospitality!"
+    ],
+    dialogueSets: [
+      [
+        "Welcome to The Melodic Rose Tavern & Inn! Pull up a chair by the warm hearth and rest your weary feet.",
+        "💡 Local Lore: Elder Timothy by the Clocktower needs brass pins for his antique music box. Master Marco at the Forge can machine them!"
+      ],
+      [
+        "🌲 Exploration Gossip: In Woodwind Woods, you'll find the Bellflower Basin and Verdant Cascade vistas — listening there permanently elevates your stats!",
+        "And keep an eye out for secret treasure chests hidden behind the weeping willow thickets!"
+      ],
+      [
+        "Haha! You should've seen Mama Aria and Mrs. Chen arguing by the bar earlier over whose child practices more hours.",
+        "I had to pour them both double-ciders just to save the glassware from their high notes!"
+      ]
     ]
   },
   {
@@ -2193,6 +2257,20 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       "Hahaha! *pffft* 💨 Pardon my acoustics! You found my secret garden hideaway behind the Melodic Rose Tavern!",
       "Meet my feathered prodigy, Vogel the Starling! I whistled the opening of 'Eine kleine Nachtmusik' to him once, and now he won't stop singing it!",
       "People think classical music must be grim and serious. Nonsense! A well-timed whoopee cushion is just syncopated percussion! Keep laughing and keep playing!"
+    ],
+    dialogueSets: [
+      [
+        "Hahaha! *pffft* 💨 Pardon my acoustics! You found my secret garden hideaway behind the Melodic Rose Tavern!",
+        "Meet my feathered prodigy, Vogel the Starling! I whistled the opening of 'Eine kleine Nachtmusik' to him once, and now he won't stop singing it!",
+        "People think classical music must be grim and serious. Nonsense! A well-timed whoopee cushion is just syncopated percussion! Keep laughing and keep playing!"
+      ],
+      [
+        "Did you know I composed my first symphony when I was eight years old? My dad Leopold wouldn't let me play outside until I finished the second movement!",
+        "Playfulness is the secret fountain of melodic genius. Never lose your joy!"
+      ],
+      [
+        "Mama Aria was just through here looking for you. I hid behind this hedge and played a chromatic scale on a kazoobie. She thought it was a haunted bee! Haha!"
+      ]
     ]
   },
   {
@@ -2393,6 +2471,44 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     },
     dialogue: ["A graceful Cantabile Swan floats along the south river, singing violin tones! Harmonize with it!"]
   },
+  // Player's Parent & In-Game Mentor (Cavatina)
+  {
+    id: 'npc_player_parent',
+    name: 'Mama Aria (Your Stage Mom)',
+    title: 'Your Loving Parent & Mentor [SPACE to Talk]',
+    x: 950,
+    y: 880,
+    zone: 'cavatina_village',
+    wander: true,
+    anchorX: 950,
+    anchorY: 880,
+    actionType: 'talk',
+    isNonMusician: true,
+    dialogue: [
+      "Sweetie! Stand up straight and relax your shoulders! Have you practiced your 40 hours today?! 🎻",
+      "I just texted Mrs. Chen that you're going to headline the Solstice Gala in Sinfonia Magna! Don't make me look bad in the village group chat!",
+      "Remember: In animal encounters, ALWAYS use Tuning Mode first to find the notes without penalty! In busking duels, keep your pulse steady in the sweet spot!",
+      "Here, take some fresh warm honey tea and a little pocket spark! Now go make your mother proud! ✨"
+    ],
+    dialogueSets: [
+      [
+        "Sweetie! Stand up straight and relax your shoulders! Have you practiced your 40 hours today?! 🎻",
+        "I just texted Mrs. Chen that you're going to headline the Solstice Gala in Sinfonia Magna! Don't make me look bad in the village group chat! ✨"
+      ],
+      [
+        "Listen carefully to your mother's advice: In animal encounters, ALWAYS use Tuning Mode first! 🐾",
+        "Tuning lets you find the note without losing any composure! Once you know the melody, switch to Play Mode for the win!"
+      ],
+      [
+        "Did you see Mrs. Chen's face when I told her your ensemble already recruited a second musician? Priceless! 💅",
+        "She tried to claim Clara was practicing Paganini in her sleep. Please! My child has genuine virtuoso DNA!"
+      ],
+      [
+        "In busking duels, remember to breathe from your diaphragm and stay locked in the sweet spot! 🎯",
+        "Here, I packed you some warm chamomile honey tea and fresh almond crisps for the road! Go make Mama proud! 💖"
+      ]
+    ]
+  },
   // Parent Spectators (Cavatina)
   {
     id: 'npc_parent_clara',
@@ -2405,10 +2521,25 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     anchorX: 750,
     anchorY: 800,
     actionType: 'talk',
+    isNonMusician: true,
     questId: 'quest_mrs_chen_score',
     dialogue: [
       "Have you seen Clara? She promised she'd practice for 40 hours today, but she's out challenging strangers by the fountain!",
       "If she doesn't make first chair at the High Conservatory, her aunt in the Brass Citadel will never let me hear the end of it."
+    ],
+    dialogueSets: [
+      [
+        "Have you seen Clara? She promised she'd practice for 40 hours today, but she's out challenging strangers by the fountain!",
+        "If she doesn't make first chair at the High Conservatory, her aunt in the Brass Citadel will never let me hear the end of it."
+      ],
+      [
+        "Your mother Aria was just bragging in the marketplace about your tempo consistency.",
+        "Hmph! Clara has been doing metronome drills at 200 BPM since she was three years old. We are not worried!"
+      ],
+      [
+        "Between you and me... Clara actually plays with much more emotion when she's performing duets with you.",
+        "Don't tell her I said that, though! She needs to stay focused on her scales!"
+      ]
     ]
   },
   {
@@ -2422,9 +2553,23 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     anchorX: 1050,
     anchorY: 950,
     actionType: 'talk',
+    isNonMusician: true,
     dialogue: [
       "I don't know much about fancy harmonic minor scales, but Timmy's acoustic guitar busking paid for our groceries this week.",
       "The kid's got calluses on his fingers and a smile on his face. That's good honest music!"
+    ],
+    dialogueSets: [
+      [
+        "I don't know much about fancy harmonic minor scales, but Timmy's acoustic guitar busking paid for our groceries this week.",
+        "The kid's got calluses on his fingers and a smile on his face. That's good honest music!"
+      ],
+      [
+        "Timmy was up on the roof yesterday trying to harmonize with the weather vane.",
+        "He said the wind was blowing in 'B-flat major'. Looked like plain old breezy weather to me, but he's having a blast."
+      ],
+      [
+        "If you ever need someone to hold down a steady four-on-the-floor rhythm, Timmy's your guy. He never drops a beat!"
+      ]
     ]
   },
   {
@@ -2438,9 +2583,23 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     anchorX: 1300,
     anchorY: 750,
     actionType: 'talk',
+    isNonMusician: true,
     dialogue: [
       "Back in my day, we tuned our violins with rusty pitchforks, and we were grateful for the tetanus!",
       "These youngsters with their ergonomic chin rests and gold-plated tuning pegs don't know real character."
+    ],
+    dialogueSets: [
+      [
+        "Back in my day, we tuned our violins with rusty pitchforks, and we were grateful for the tetanus!",
+        "These youngsters with their ergonomic chin rests and gold-plated tuning pegs don't know real character."
+      ],
+      [
+        "I remember when the Grand Hall in Sinfonia Magna was just a muddy patch of grass with three fiddlers and a goat.",
+        "Now look at it—velvet runners and brass chandeliers! Music was tougher back then, but we had grit!"
+      ],
+      [
+        "Play me something with a little bit of bite, youngster! None of this modern airy-fairy ambient fluff!"
+      ]
     ]
   },
 
@@ -2459,7 +2618,26 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       "🌲 LYRE VALLEY (WEST WILDERNESS):",
       "• ⬅️ WEST: Direct path to Cavatina Village (Strings).",
       "• ➡️ EAST: Direct highway to The Central City (Grand Symphony Hub).",
-      "• ✨ EXPLORE: North trail leads to Secret Willow Grove; South trail leads to Silver Bow Glen."
+      "• ⬆️ NORTH PASS: Direct mountain highway to Echo Canyon (North Wilderness & Brass Citadel)!",
+      "• ⬇️ SOUTH PASS: Direct cliffside highway to Rumble Gorge (South Wilderness & Percussion Peaks)!"
+    ]
+  },
+  {
+    id: 'npc_sign_west_crossroads',
+    name: 'Wilderness Ring Crossroads Guidepost',
+    title: 'Read Crossroads Sign [SPACE]',
+    x: 450,
+    y: 840,
+    zone: 'west_wilderness',
+    isProp: true,
+    propType: 'road_sign',
+    actionType: 'signpost',
+    dialogue: [
+      "🧭 LYRE VALLEY CROSSROADS (WILDERNESS RING HIGHWAY):",
+      "• ⬆️ NORTH PASS: Direct highway to Echo Canyon (North Wilderness).",
+      "• ⬇️ SOUTH PASS: Direct highway to Rumble Gorge (South Wilderness).",
+      "• ⬅️ WEST HIGHWAY: To Cavatina Village.",
+      "• ➡️ EAST HIGHWAY: To The Central City."
     ]
   },
   {
@@ -2665,6 +2843,20 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     dialogue: [
       "Welcome to Sylvan Canopy! The wind carries ancient modal jazz melodies through the branches.",
       "Practice your interval ear training at our druid lectern, or visit Master Reed's workshop to carve responsive reeds."
+    ],
+    dialogueSets: [
+      [
+        "Welcome to Sylvan Canopy! The wind carries ancient modal jazz melodies through the branches.",
+        "Practice your interval ear training at our druid lectern, or visit Master Reed's workshop to carve responsive reeds."
+      ],
+      [
+        "To play woodwinds is to control the very breath of life. A relaxed throat produces a rich, warm overtone series.",
+        "Take a deep breath and let the forest acoustics guide your embouchure!"
+      ],
+      [
+        "Our students Devon and Oliver have contrasting styles—one loves cool modal jazz, the other classical rapid staccato.",
+        "Both are wonderful expressions of the wind's dual nature: gentle breeze and brisk gale."
+      ]
     ]
   },
   {
@@ -2691,7 +2883,12 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       xp: 800
     },
     actionType: 'luthier_shop',
-    dialogue: ["Welcome! Bring Notes and Sparks to craft premium woodwind mouthpieces, silver keypads, and rosewood bells!"]
+    dialogue: ["Welcome! Bring Notes and Sparks to craft premium woodwind mouthpieces, silver keypads, and rosewood bells!"],
+    dialogueSets: [
+      ["Welcome! Bring Notes and Sparks to craft premium woodwind mouthpieces, silver keypads, and rosewood bells!"],
+      ["The secret to a responsive reed is cane seasoned under the canopy mist for three full seasons. Crisp, vibrant response every time."],
+      ["If you want your flute tones to project across the valley, try the 'Silver Resonator Headjoint'. It adds effortless brilliance!"]
+    ]
   },
   {
     id: 'npc_vanity_woods',
@@ -2745,6 +2942,19 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     dialogue: [
       "Welcome to The Whispering Willow Lounge! Have some hot honeyed chamomile tea—nothing restores a tired embouchure faster!",
       "The young jazz trio has been jamming on the canopy stage all afternoon. Listen to that sweet syncopation!"
+    ],
+    dialogueSets: [
+      [
+        "Welcome to The Whispering Willow Lounge! Have some hot honeyed chamomile tea—nothing restores a tired embouchure faster!",
+        "The young jazz trio has been jamming on the canopy stage all afternoon. Listen to that sweet syncopation!"
+      ],
+      [
+        "Looking for inspiration? The Bellflower Basin down south has natural blooming acoustic chimes. It's simply enchanting.",
+        "Just watch out for playful river otters—they love stealing shiny silver keycaps!"
+      ],
+      [
+        "A little secret from the lounge: When you harmonize with wild creatures in the glade, match their tempo before trying complex runs!"
+      ]
     ]
   },
   {
@@ -2855,6 +3065,20 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       "Halt! Shhh! Watch your step in this tree hollow—Wilhelm, Carl, and Johann Jr. are practicing their 6-part fugue on the higher boughs!",
       "Directing twenty musical children while improvising organ toccatas before morning chapel is simply an exercise in harmonic parenting!",
       "Remember: Counterpoint is not math, it is a conversation between souls where everyone speaks at once, yet perfect harmony prevails!"
+    ],
+    dialogueSets: [
+      [
+        "Halt! Shhh! Watch your step in this tree hollow—Wilhelm, Carl, and Johann Jr. are practicing their 6-part fugue on the higher boughs!",
+        "Directing twenty musical children while improvising organ toccatas before morning chapel is simply an exercise in harmonic parenting!",
+        "Remember: Counterpoint is not math, it is a conversation between souls where everyone speaks at once, yet perfect harmony prevails!"
+      ],
+      [
+        "There's nothing remarkable about playing the organ. All one has to do is hit the right keys at the right time and the instrument plays itself.",
+        "Of course, doing so across four manuals and pedalboard at 140 BPM requires a bit of practice."
+      ],
+      [
+        "Coffee is the nectar of contrapuntal composition! Without my morning three cups of coffee, I am like a dried-up piece of roast goat."
+      ]
     ]
   },
   {
@@ -2985,9 +3209,23 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     anchorX: 850,
     anchorY: 900,
     actionType: 'talk',
+    isNonMusician: true,
     dialogue: [
       "My boy Oliver loves the flute. It's great, except he wakes up at 5:00 AM trying to harmonize with the piccolos outside his bedroom window.",
       "Do you know how loud a high-register piccolo trill is before your first cup of coffee? It pierces bone."
+    ],
+    dialogueSets: [
+      [
+        "My boy Oliver loves the flute. It's great, except he wakes up at 5:00 AM trying to harmonize with the piccolos outside his bedroom window.",
+        "Do you know how loud a high-register piccolo trill is before your first cup of coffee? It pierces bone."
+      ],
+      [
+        "Yesterday Oliver tried to explain 'triple tonguing' to me while eating cereal. Milk went everywhere.",
+        "He's passionate, I'll give him that. Just wish his instrument had a volume knob."
+      ],
+      [
+        "Mama Aria told me your group is heading to Sinfonia Magna. If Oliver joins you, make sure he eats his vegetables!"
+      ]
     ]
   },
   {
@@ -3001,9 +3239,23 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     anchorX: 1150,
     anchorY: 800,
     actionType: 'talk',
+    isNonMusician: true,
     dialogue: [
       "I came all the way from the capital to spot rare finches, but these teenage woodwind prodigies keep confusing the birds with their trills!",
       "Yesterday a cedar waxwing tried to mate with Oliver's flute case. Complete pandemonium."
+    ],
+    dialogueSets: [
+      [
+        "I came all the way from the capital to spot rare finches, but these teenage woodwind prodigies keep confusing the birds with their trills!",
+        "Yesterday a cedar waxwing tried to mate with Oliver's flute case. Complete pandemonium."
+      ],
+      [
+        "Did you know the Great Canopy Hornbill only sings in major sevenths? Nature has impeccable musical taste.",
+        "If you listen closely to the breeze in the reeds, you can hear a natural whole-tone scale!"
+      ],
+      [
+        "Keep practicing, young musician! The birds are very harsh critics, but I think they like your tone."
+      ]
     ]
   },
   {
@@ -3017,9 +3269,23 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     anchorX: 1050,
     anchorY: 950,
     actionType: 'talk',
+    isNonMusician: true,
     dialogue: [
       "Penny originally wanted to play drums. I bought her an oboe thinking it would be quiet and refined.",
       "Now our house sounds like a dying goose at 2:00 in the morning. But she's happy, so I wear earplugs."
+    ],
+    dialogueSets: [
+      [
+        "Penny originally wanted to play drums. I bought her an oboe thinking it would be quiet and refined.",
+        "Now our house sounds like a dying goose at 2:00 in the morning. But she's happy, so I wear earplugs."
+      ],
+      [
+        "As a botanist, I study plants. As an oboist's father, I study the acoustic properties of soundproof wall foam.",
+        "So far, three layers of velvet and egg cartons are holding the peace with our neighbors."
+      ],
+      [
+        "Double reeds take incredible lung pressure. Penny has stronger lung capacity than a pearl diver now!"
+      ]
     ]
   },
 
@@ -3038,7 +3304,26 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       "🍃 BREEZE GLADE (EAST WILDERNESS):",
       "• ➡️ EAST: Direct trail into Woodwind Woods (Woodwinds).",
       "• ⬅️ WEST: Direct highway to The Central City (Grand Symphony Hub).",
-      "• ✨ EXPLORE: North trail leads to Zephyr Falls; South trail hides the Bamboo Alcove."
+      "• ⬆️ NORTH PASS: Direct mountain highway to Echo Canyon (North Wilderness & Brass Citadel)!",
+      "• ⬇️ SOUTH PASS: Direct glade highway to Rumble Gorge (South Wilderness & Percussion Peaks)!"
+    ]
+  },
+  {
+    id: 'npc_sign_east_crossroads',
+    name: 'Wilderness Ring Crossroads Guidepost',
+    title: 'Read Crossroads Sign [SPACE]',
+    x: 350,
+    y: 840,
+    zone: 'east_wilderness',
+    isProp: true,
+    propType: 'road_sign',
+    actionType: 'signpost',
+    dialogue: [
+      "🧭 BREEZE GLADE CROSSROADS (WILDERNESS RING HIGHWAY):",
+      "• ⬆️ NORTH PASS: Direct highway to Echo Canyon (North Wilderness).",
+      "• ⬇️ SOUTH PASS: Direct highway to Rumble Gorge (South Wilderness).",
+      "• ➡️ EAST TRAIL: To Woodwind Woods.",
+      "• ⬅️ WEST HIGHWAY: To The Central City."
     ]
   },
   {
@@ -3084,6 +3369,20 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       "*Softly humming Gymnopédie No. 1...* Ah, bonjour. Please, mind the umbrella. I must protect my complexion from yellow and red wavelengths.",
       "My doctor insists on a strict regimen: I eat exclusively white foods. Hard-boiled egg whites, powdered sugar, grated coconut, and occasionally finely shredded parchment paper.",
       "Why play twenty notes when one quiet, melancholy cadence can stop time itself? Take these sparks and listen to the velvet spaces between sounds."
+    ],
+    dialogueSets: [
+      [
+        "*Softly humming Gymnopédie No. 1...* Ah, bonjour. Please, mind the umbrella. I must protect my complexion from yellow and red wavelengths.",
+        "My doctor insists on a strict regimen: I eat exclusively white foods. Hard-boiled egg whites, powdered sugar, grated coconut, and occasionally finely shredded parchment paper.",
+        "Why play twenty notes when one quiet, melancholy cadence can stop time itself? Take these sparks and listen to the velvet spaces between sounds."
+      ],
+      [
+        "I own twelve identical grey velvet suits and eighty-four walking sticks. Eccentric? No, simply consistent.",
+        "When you perform, try playing like a nightingale with a toothache. The melancholic tension is exquisite."
+      ],
+      [
+        "Do not be afraid of simplicity. An unadorned open fifth chord holds more mystery than a hundred hurried scales."
+      ]
     ]
   },
   {
@@ -3239,6 +3538,20 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     dialogue: [
       "Stand tall, recruit! In the Brass Citadel, breath control and impeccable posture are the cornerstones of victory.",
       "Take our Triad Exam at the lectern, or commission high-flow brass mutes at Master Vulcan's foundry."
+    ],
+    dialogueSets: [
+      [
+        "Stand tall, recruit! In the Brass Citadel, breath control and impeccable posture are the cornerstones of victory.",
+        "Take our Triad Exam at the lectern, or commission high-flow brass mutes at Master Vulcan's foundry."
+      ],
+      [
+        "A triad is the bedrock of Western harmony: Root, Third, and Fifth. Stack them with precision, and you can command acoustic shockwaves!",
+        "Mastering your triad theory unlocks tremendous projection and dynamic range for your entire ensemble."
+      ],
+      [
+        "Jax has undeniable firepower on the trumpet, but an orchestra requires unity over ego.",
+        "Help him learn the beauty of harmonic counterpoint and he will become an unstoppable soloist!"
+      ]
     ]
   },
   {
@@ -3265,7 +3578,12 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       xp: 800
     },
     actionType: 'luthier_shop',
-    dialogue: ["Fire up the furnace! Bring Notes and Sparks to forge golden valve oil, heavy brass mutes, and bell flares!"]
+    dialogue: ["Fire up the furnace! Bring Notes and Sparks to forge golden valve oil, heavy brass mutes, and bell flares!"],
+    dialogueSets: [
+      ["Fire up the furnace! Bring Notes and Sparks to forge golden valve oil, heavy brass mutes, and bell flares!"],
+      ["Tempering brass at 800 degrees aligns the alloy's crystalline structure. That's why our horns roar louder than thunder!"],
+      ["Need extra tempo stability under pressure? The 'Heavyweighted Leadpipe' keeps your embouchure steady even in a hurricane!"]
+    ]
   },
   {
     id: 'npc_vanity_citadel',
@@ -3319,6 +3637,19 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     dialogue: [
       "Drink up, recruits! A proper fortissimo swell burns five hundred calories an hour! Grab an ice-cold sparkling sarsaparilla.",
       "Baroness Vesta and her fanfare brigade have been doing marching drills in the central concourse. Pure military precision!"
+    ],
+    dialogueSets: [
+      [
+        "Drink up, recruits! A proper fortissimo swell burns five hundred calories an hour! Grab an ice-cold sparkling sarsaparilla.",
+        "Baroness Vesta and her fanfare brigade have been doing marching drills in the central concourse. Pure military precision!"
+      ],
+      [
+        "Out in Echo Canyon, the acoustic reverberation is so intense you can play a call and harmonize with your own echo four seconds later!",
+        "Watch out for wild fanfare terriers, though—they love chasing shiny valve caps!"
+      ],
+      [
+        "Old Horatio was telling war stories about the Great Fanfare Campaign again. Half of it is exaggerated, but the man can still blast a high C!"
+      ]
     ]
   },
   {
@@ -3514,9 +3845,23 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     anchorX: 950,
     anchorY: 850,
     actionType: 'talk',
+    isNonMusician: true,
     dialogue: [
       "Jax says he's 'first chair in the Citadel Youth Brigade'. All I know is every time he hits a high C, my patrol cruiser alarm goes off across the plaza.",
       "I love the boy's confidence, but the city council keeps sending me noise ordinances with my own signature on them."
+    ],
+    dialogueSets: [
+      [
+        "Jax says he's 'first chair in the Citadel Youth Brigade'. All I know is every time he hits a high C, my patrol cruiser alarm goes off across the plaza.",
+        "I love the boy's confidence, but the city council keeps sending me noise ordinances with my own signature on them."
+      ],
+      [
+        "Yesterday Jax challenged a steam train to a volume battle at the crossing. The train had to yield the right of way.",
+        "If you take him on tour with your ensemble, just remind him that 'pianissimo' means quiet, not 'slightly less loud'!"
+      ],
+      [
+        "Mama Aria texted me claiming her kid practices 40 hours a day. I told her in the Citadel, our kids practice 40 hours BEFORE breakfast!"
+      ]
     ]
   },
   {
@@ -3530,9 +3875,23 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     anchorX: 1350,
     anchorY: 750,
     actionType: 'talk',
+    isNonMusician: true,
     dialogue: [
       "My son took up the sousaphone. We had to reinforce our living room floorboards and remove all delicate porcelain china.",
       "Whenever he practices pedal tones, the cat hovers three inches off the rug from the acoustic vibration."
+    ],
+    dialogueSets: [
+      [
+        "My son took up the sousaphone. We had to reinforce our living room floorboards and remove all delicate porcelain china.",
+        "Whenever he practices pedal tones, the cat hovers three inches off the rug from the acoustic vibration."
+      ],
+      [
+        "I tried buying him earplugs. He said, 'Mom, how can I feel the glory of the brass if my ears are insulated?!'",
+        "Now the entire neighborhood knows the Bb major scale by heart."
+      ],
+      [
+        "You look like a sensible musician with good taste. Please tell me your ensemble uses woodwinds or strings to balance out all this brass blast!"
+      ]
     ]
   },
   {
@@ -3546,9 +3905,23 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     anchorX: 750,
     anchorY: 750,
     actionType: 'talk',
+    isNonMusician: true,
     dialogue: [
       "A true brass soldier doesn't apologize for spit valves—they let the music flow directly into the ground! That's what I told the health inspector.",
       "The man had no respect for acoustic acoustics. Gave me a ticket anyway."
+    ],
+    dialogueSets: [
+      [
+        "A true brass soldier doesn't apologize for spit valves—they let the music flow directly into the ground! That's what I told the health inspector.",
+        "The man had no respect for acoustic acoustics. Gave me a ticket anyway."
+      ],
+      [
+        "In the old days, we didn't have rotary valves or fancy monel pistons. We bent pitch using pure lip tension and grit!",
+        "Kids today with their ultra-light titanium trumpets... back in my day, the trumpet weighed twenty pounds and doubled as a shield!"
+      ],
+      [
+        "Keep your chin up and your air column straight, rookie! Sound the alarm and let them hear you all the way in Sinfonia Magna!"
+      ]
     ]
   },
 
@@ -3567,7 +3940,26 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       "🏜️ ECHO CANYON (NORTH WILDERNESS):",
       "• ⬆️ NORTH: Ascend direct highway to The Brass Citadel (Brass).",
       "• ⬇️ SOUTH: Descent direct highway to The Central City (Grand Symphony Hub).",
-      "• ✨ EXPLORE: West red bluffs conceal Echo Chamber Chest; East ridge ascends Resonance Peak."
+      "• ⬅️ WEST PASS: Direct mountain highway to Lyre Valley (West Wilderness & Cavatina)!",
+      "• ➡️ EAST PASS: Direct canyon highway to Breeze Glade (East Wilderness & Woodwinds)!"
+    ]
+  },
+  {
+    id: 'npc_sign_north_crossroads',
+    name: 'Wilderness Ring Crossroads Guidepost',
+    title: 'Read Crossroads Sign [SPACE]',
+    x: 840,
+    y: 440,
+    zone: 'north_wilderness',
+    isProp: true,
+    propType: 'road_sign',
+    actionType: 'signpost',
+    dialogue: [
+      "🧭 ECHO CANYON CROSSROADS (WILDERNESS RING HIGHWAY):",
+      "• ⬅️ WEST PASS: Direct highway to Lyre Valley (West Wilderness).",
+      "• ➡️ EAST PASS: Direct highway to Breeze Glade (East Wilderness).",
+      "• ⬆️ NORTH HIGHWAY: To The Brass Citadel.",
+      "• ⬇️ SOUTH HIGHWAY: To The Central City."
     ]
   },
   {
@@ -3676,6 +4068,20 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       "WHAT?! SPEAK LOUDER! PROJECT DIRECTLY INTO MY EAR TRUMPET! 📢",
       "I AM CURRENTLY ENGAGED IN A FORTISSIMO SCREAMING CONTEST WITH THAT THUNDERSTORM CLOUD! DA-DA-DA-DUM! FATE KNOCKS AT THE DOOR!",
       "Never let mere mortal quietude hold back your symphony! If the world does not hear you, play so fiercely that the mountains tremble!"
+    ],
+    dialogueSets: [
+      [
+        "WHAT?! SPEAK LOUDER! PROJECT DIRECTLY INTO MY EAR TRUMPET! 📢",
+        "I AM CURRENTLY ENGAGED IN A FORTISSIMO SCREAMING CONTEST WITH THAT THUNDERSTORM CLOUD! DA-DA-DA-DUM! FATE KNOCKS AT THE DOOR!",
+        "Never let mere mortal quietude hold back your symphony! If the world does not hear you, play so fiercely that the mountains tremble!"
+      ],
+      [
+        "I COUNT EXACTLY SIXTY COFFEE BEANS PER CUP! NOT FIFTY-NINE, NOT SIXTY-ONE! PRECISION IS THE ROOT OF GENIUS!",
+        "When I write a crescendo, I want the floorboards to crack! Give your music titanic conviction!"
+      ],
+      [
+        "THEY TOLD ME A DEAF MAN COULD NOT CONDUCT AN ORCHESTRA! HA! I HEAR THE MUSIC IN MY BONES AND BLOOD! PLAY FROM YOUR HEART!"
+      ]
     ]
   },
   {
@@ -3780,6 +4186,19 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     dialogue: [
       "Feel the mountain's pulse beneath your soles! In Percussion Peaks, timing is absolute.",
       "Take our Rhythm & Meter exam, or visit Master Tetsu to shape hardwood drumsticks and bronze mallets."
+    ],
+    dialogueSets: [
+      [
+        "Feel the mountain's pulse beneath your soles! In Percussion Peaks, timing is absolute.",
+        "Take our Rhythm & Meter exam, or visit Master Tetsu to shape hardwood drumsticks and bronze mallets."
+      ],
+      [
+        "A true percussionist does not merely play rhythms—they become the metronomic heart of the ensemble.",
+        "When your tempo stability is unwavering, the melodic instruments can soar with complete freedom!"
+      ],
+      [
+        "Young Rita and Ren have raw volcanic power in their beats. Train them well, maestro, and your crescendo will shake the heavens!"
+      ]
     ]
   },
   {
@@ -3806,7 +4225,12 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       xp: 800
     },
     actionType: 'luthier_shop',
-    dialogue: ["Stoke the coals! Bring Notes and Sparks to forge resonant timpani heads, hardwood taiko sticks, and tuned marimba bars!"]
+    dialogue: ["Stoke the coals! Bring Notes and Sparks to forge resonant timpani heads, hardwood taiko sticks, and tuned marimba bars!"],
+    dialogueSets: [
+      ["Stoke the coals! Bring Notes and Sparks to forge resonant timpani heads, hardwood taiko sticks, and tuned marimba bars!"],
+      ["Dense volcanic basalt produces an acoustic 'thud' that cuts through the thickest orchestral textures. Unmatched punch!"],
+      ["Want to never drop a combo during rhythm shredding? The 'Hardwood Balancer Mallet' gives you maximum tempo resilience!"]
+    ]
   },
   {
     id: 'npc_vanity_peaks',
@@ -3860,6 +4284,19 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     dialogue: [
       "Eat your hearty volcanic beef stew, kiddo! You can't hold an unflinching 160 BPM pocket on an empty stomach!",
       "Rita and Ronin have been trading drum solos out on the mountain stage. The whole saloon floor is vibrating!"
+    ],
+    dialogueSets: [
+      [
+        "Eat your hearty volcanic beef stew, kiddo! You can't hold an unflinching 160 BPM pocket on an empty stomach!",
+        "Rita and Ronin have been trading drum solos out on the mountain stage. The whole saloon floor is vibrating!"
+      ],
+      [
+        "Down in Rumble Gorge, you'll find the Thunder Gorge Vista. Attuning there permanently boosts your tempo stability!",
+        "Just keep an ear out for wild rhythm armadillos—they love rolling blast beats down the canyon slopes!"
+      ],
+      [
+        "Mama Aria from Cavatina Village sent a bird with a message bragging about your violin intonation. I wrote back: 'That's nice, honey, but can your kid play in 7/8 time?!' Haha!"
+      ]
     ]
   },
   {
@@ -4055,9 +4492,23 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     anchorX: 950,
     anchorY: 1100,
     actionType: 'talk',
+    isNonMusician: true,
     dialogue: [
       "Rita tapped drumbeats on her cereal bowl, the bathroom sink, and my dining table for ten years straight.",
       "Buying her that custom snare kit wasn't a gift—it was purely self-defense. At least now the pots and pans stay in one piece."
+    ],
+    dialogueSets: [
+      [
+        "Rita tapped drumbeats on her cereal bowl, the bathroom sink, and my dining table for ten years straight.",
+        "Buying her that custom snare kit wasn't a gift—it was purely self-defense. At least now the pots and pans stay in one piece."
+      ],
+      [
+        "Yesterday Rita told me she wants to play a 32nd-note drum roll during her wedding march someday.",
+        "I told her as long as she cleans her room first, she can drum all the way down the aisle."
+      ],
+      [
+        "If Rita is traveling with your ensemble to the capital, make sure she packs spare drumsticks. She breaks about four pairs a week!"
+      ]
     ]
   },
   {
@@ -4071,9 +4522,23 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     anchorX: 750,
     anchorY: 1150,
     actionType: 'talk',
+    isNonMusician: true,
     dialogue: [
       "Back in my day, we didn't have all these fancy polyrhythms, quintuplets, and 7/8 time signatures.",
       "We had ONE beat! Boom, boom, boom! And if you didn't like it, you walked uphill both ways in the snow!"
+    ],
+    dialogueSets: [
+      [
+        "Back in my day, we didn't have all these fancy polyrhythms, quintuplets, and 7/8 time signatures.",
+        "We had ONE beat! Boom, boom, boom! And if you didn't like it, you walked uphill both ways in the snow!"
+      ],
+      [
+        "These youngsters with their double-bass pedals and metric modulations... in my day, we hit a log with a mammoth bone and called it a symphony!",
+        "And we loved it!"
+      ],
+      [
+        "You've got good timing, kid. Don't let all those high-pitched violins rush your tempo. Hold the line!"
+      ]
     ]
   },
   {
@@ -4087,9 +4552,23 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     anchorX: 1100,
     anchorY: 920,
     actionType: 'talk',
+    isNonMusician: true,
     dialogue: [
       "The kids think they're playing cool street taiko. I think they're accidentally triggering miniature rockslides on ridge four.",
       "I had to issue hardhats to the mountain goats."
+    ],
+    dialogueSets: [
+      [
+        "The kids think they're playing cool street taiko. I think they're accidentally triggering miniature rockslides on ridge four.",
+        "I had to issue hardhats to the mountain goats."
+      ],
+      [
+        "When we blast the quarry with acoustic dynamite, the sound reverberates in pure minor thirds across the caldera.",
+        "Even the geology around here is musical!"
+      ],
+      [
+        "Be careful crossing into Rumble Gorge. The magma vents pop in syncopated triplets. Watch your step!"
+      ]
     ]
   },
 
@@ -4108,7 +4587,26 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       "🌋 RUMBLE GORGE (SOUTH WILDERNESS):",
       "• ⬇️ SOUTH: Direct highway descent into Percussion Peaks (Percussion).",
       "• ⬆️ NORTH: Direct highway ascent to The Central City (Grand Symphony Hub).",
-      "• ✨ EXPLORE: West volcanic vents lead to Echoing Caldera; East caverns hold Obsidian Chest."
+      "• ⬅️ WEST PASS: Direct basalt highway to Lyre Valley (West Wilderness & Cavatina)!",
+      "• ➡️ EAST PASS: Direct caldera highway to Breeze Glade (East Wilderness & Woodwinds)!"
+    ]
+  },
+  {
+    id: 'npc_sign_south_crossroads',
+    name: 'Wilderness Ring Crossroads Guidepost',
+    title: 'Read Crossroads Sign [SPACE]',
+    x: 840,
+    y: 440,
+    zone: 'south_wilderness',
+    isProp: true,
+    propType: 'road_sign',
+    actionType: 'signpost',
+    dialogue: [
+      "🧭 RUMBLE GORGE CROSSROADS (WILDERNESS RING HIGHWAY):",
+      "• ⬅️ WEST PASS: Direct highway to Lyre Valley (West Wilderness).",
+      "• ➡️ EAST PASS: Direct highway to Breeze Glade (East Wilderness).",
+      "• ⬇️ SOUTH HIGHWAY: To Percussion Peaks.",
+      "• ⬆️ NORTH HIGHWAY: To The Central City."
     ]
   },
   {
@@ -4217,6 +4715,20 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       "Shhh... Lower your voice! The superstitious villagers in the gorge think my Caprice No. 24 is fueled by brimstone and dark pacts!",
       "I did NOT sell my soul to any demon for violin shredding! It's just extreme left-hand pizzicato, ricochet bowing, and fifteen hours of daily scales!",
       "Though... having spooky volcanic steam billowing behind you does add phenomenal stage presence! Take these fiery notes and practice your arpeggios!"
+    ],
+    dialogueSets: [
+      [
+        "Shhh... Lower your voice! The superstitious villagers in the gorge think my Caprice No. 24 is fueled by brimstone and dark pacts!",
+        "I did NOT sell my soul to any demon for violin shredding! It's just extreme left-hand pizzicato, ricochet bowing, and fifteen hours of daily scales!",
+        "Though... having spooky volcanic steam billowing behind you does add phenomenal stage presence! Take these fiery notes and practice your arpeggios!"
+      ],
+      [
+        "One time during a concert in Genoa, three of my violin strings snapped one after another! I finished the entire concerto on the G string alone!",
+        "Resourcefulness and calm under pressure—that is the mark of a true stage master."
+      ],
+      [
+        "Warm up your finger joints before attempting rapid artificial harmonics. Tendonitis is the only real demon a violinist faces!"
+      ]
     ]
   },
   {
@@ -4373,6 +4885,20 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     dialogue: [
       "Welcome to The Central City, young maestro! I am Vane. Here at the Forum in the Southwest Quarter, masters of Strings, Woodwinds, Brass, and Percussion share table and tune.",
       "The Solstice Symphony Tournament in the Grand Hall is the crowning glory of all Harmonia. Assemble an 8-piece chamber ensemble to claim your title!"
+    ],
+    dialogueSets: [
+      [
+        "Welcome to The Central City, young maestro! I am Vane. Here at the Forum in the Southwest Quarter, masters of Strings, Woodwinds, Brass, and Percussion share table and tune.",
+        "The Solstice Symphony Tournament in the Grand Hall is the crowning glory of all Harmonia. Assemble an 8-piece chamber ensemble to claim your title!"
+      ],
+      [
+        "A proper vintage cider needs time to ferment, just as a great orchestral movement needs patience in its development section.",
+        "Take a rest, sip some spiced pear nectar, and listen to the polyphonic conversations around the room."
+      ],
+      [
+        "Did you know the four cardinal villages were once isolated until the ring road was constructed?",
+        "Now travelers can journey directly between the wild frontiers without needing to pass through our central gates!"
+      ]
     ]
   },
   {
@@ -4402,6 +4928,19 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     dialogue: [
       "Greetings, scholar! If you seek lost sheet music manuscripts, search the deep wilderness corridors flanking the four cardinal highways.",
       "The ancient masters hid masterpieces in the glens and canyons of Harmonia."
+    ],
+    dialogueSets: [
+      [
+        "Greetings, scholar! If you seek lost sheet music manuscripts, search the deep wilderness corridors flanking the four cardinal highways.",
+        "The ancient masters hid masterpieces in the glens and canyons of Harmonia."
+      ],
+      [
+        "I am currently transcribing a lost score by Maestro Bach. The counterpoint is so dense it feels like solving a mathematical labyrinth!",
+        "Every note is a deliberate choice in the cosmic tapestry of sound."
+      ],
+      [
+        "If your Sight-Reading is ever lacking, visit the academy lecterns in each quarter. Theoretical knowledge is the key to effortless performance!"
+      ]
     ]
   },
   {
@@ -4479,6 +5018,19 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     dialogue: [
       "Maestro Franz 'Keys' Liszt sits boldly before a gleaming concert grand piano at the Eternal Rotunda Dais.",
       "My fingers dance across the eighty-eight keys with transcendental fury! Dare you challenge a true virtuoso in a high-tempo busking duel?"
+    ],
+    dialogueSets: [
+      [
+        "Maestro Franz 'Keys' Liszt sits boldly before a gleaming concert grand piano at the Eternal Rotunda Dais.",
+        "\"My fingers dance across the eighty-eight keys with transcendental fury! Dare you challenge a true virtuoso in a high-tempo busking duel?\""
+      ],
+      [
+        "\"To play a wrong note is insignificant; to play without passion is inexcusable!\"",
+        "\"Bring your utmost expression to the keyboard, and let us see if your pulse can match my Hungarian rhapsodies!\""
+      ],
+      [
+        "\"Ah, the acoustic resonance of this rotunda is magnificent! Every harmonic overtone rings like crystal chandeliers in an imperial ballroom.\""
+      ]
     ]
   },
   {
@@ -4552,6 +5104,20 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       "Maestro Tiresias raises an ivory baton, listening to the ambient air:",
       "\"Sight is a distraction to the true ear. I hear the subtle timbral clash between your woodwind formants and brass overtones.\"",
       "\"Let us align the frequencies: let the warm cello and horn ground the lower mids, while the violin and flutes soar freely in pristine acoustic harmony!\""
+    ],
+    dialogueSets: [
+      [
+        "Maestro Tiresias raises an ivory baton, listening to the ambient air:",
+        "\"Sight is a distraction to the true ear. I hear the subtle timbral clash between your woodwind formants and brass overtones.\"",
+        "\"Let us align the frequencies: let the warm cello and horn ground the lower mids, while the violin and flutes soar freely in pristine acoustic harmony!\""
+      ],
+      [
+        "\"Listen to the space BETWEEN the notes. Silence is the canvas upon which music paints its colors.\"",
+        "\"When your ensemble breathes together in rest measures, the subsequent chord lands with ten times the emotional weight.\""
+      ],
+      [
+        "\"The acoustic aura of your ensemble is glowing brighter each day. Never cease listening with your heart, young maestro.\""
+      ]
     ]
   },
   {
@@ -4570,6 +5136,25 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       "Bach: \"A sublime contrapuntal architecture. Well played, young maestro.\"",
       "Paganini: \"Your virtuosic flair on the fingerboard is truly devilish!\"",
       "Satie: \"Ah, finally... let us lounge, sip pear cider, and jam in ambient serenity.\""
+    ],
+    dialogueSets: [
+      [
+        "A grand banquet table laden with sparkling cider and scored parchment. Mozart, Beethoven, Bach, Paganini, and Satie raise their glasses!",
+        "Mozart: \"Hahaha! What did I tell you? True harmony is alive and kicking!\"",
+        "Beethoven: \"I FEEL the titanic resonance of your symphony shaking the taphouse rafters!\"",
+        "Bach: \"A sublime contrapuntal architecture. Well played, young maestro.\"",
+        "Paganini: \"Your virtuosic flair on the fingerboard is truly devilish!\"",
+        "Satie: \"Ah, finally... let us lounge, sip pear cider, and jam in ambient serenity.\""
+      ],
+      [
+        "Mozart giggles and balances a cider glass on his forehead while playing a three-finger trill.",
+        "Beethoven: \"Amadeus, behave yourself! We are honoring the Solstice Maestro!\"",
+        "Bach nods approvingly: \"Let the child play. Contrapuntal joy knows no rigid bounds.\""
+      ],
+      [
+        "Paganini tunes his demonic G string with a sinister grin: \"Who is ready for a double-stop race across eighty measures?!\"",
+        "Satie yawns gracefully: \"Please, let us play something slow, unhurried, and shaped like a velvet pear.\""
+      ]
     ]
   }
 ];
@@ -5884,3 +6469,237 @@ export const PET_SYNERGIES: PetSynergy[] = [
     description: 'Beetle & Bear combine subterranean cannon shockwaves with volcanic timpani strikes for seismic resonance (+60% Harmony)!'
   }
 ];
+
+export const INITIAL_PHONE_MESSAGES: PhoneMessage[] = [
+  {
+    id: 'msg_mom_welcome',
+    sender: 'Mama Aria 💖',
+    senderAvatar: '👩‍👧',
+    category: 'mom',
+    subject: 'Did you practice today?! 🎻',
+    body: "Hi sweetie! I set up your HarmoniPhone with all your calendar gigs and quest logs. Remember: Ling Ling was already practicing 40 hours a day! Don't let Mrs. Chen's daughter Clara out-rehearse you. I already bragged to the whole village council that you're going to headline Sinfonia Magna!",
+    timestamp: 'Season 1, Day 1',
+    read: false
+  },
+  {
+    id: 'msg_clara_rivalry',
+    sender: 'Clara Chen 🎻',
+    senderAvatar: '👧',
+    category: 'rival',
+    subject: 'Practice duel rematch?',
+    body: "Hey! Saw you picked up your starter instrument. My mom won't stop talking about you, but let's see if your intonation can keep up with my vibrato in the Village Square. Meet me by the fountain if you're ready for a play-off!",
+    timestamp: 'Season 1, Day 1',
+    read: false
+  },
+  {
+    id: 'msg_rumor_easter_egg',
+    sender: 'Town Gossip / Chirper 🐦',
+    senderAvatar: '🗞️',
+    category: 'gossip',
+    subject: 'Mysterious Pianist in Sinfonia Magna!',
+    body: "Rumor Mill: A flashy virtuoso pianist with wild silver hair and a grand piano on wheels has taken over the Central Square dais in Sinfonia Magna! They say if anyone can out-busk him in a concerto duel, he'll join as their permanent accompanist!",
+    timestamp: 'Season 1, Day 2',
+    read: false
+  },
+  {
+    id: 'msg_rumor_cannon',
+    sender: 'Explorer Bulletin 🧭',
+    senderAvatar: '🪲',
+    category: 'gossip',
+    subject: 'Unusual Beast in North Wilderness',
+    body: "Scouts report hearing artillery explosions in the red canyons of North Wilderness! It's not warfare—it's a rare Bombardier Beetle using a Tchaikovsky cannon resonance chamber! Bring ear protection!",
+    timestamp: 'Season 1, Day 2',
+    read: false
+  }
+];
+
+/* ---------------- ENSEMBLE BATTLE SECTION ACTIONS ---------------- */
+
+export const SECTION_ACTIONS: Record<InstrumentSection, SectionAction[]> = {
+  strings: [
+    {
+      id: 'strings_cantabile',
+      name: 'Cantabile Legato',
+      section: 'strings',
+      icon: '🎻',
+      description: 'Lyrical sustained melodic sweep. Delivers steady resonance and surges audience favor.',
+      cost: 15,
+      power: 28,
+      effect: 'applause_surge',
+      soundType: 'violin_pure'
+    },
+    {
+      id: 'strings_spiccato',
+      name: 'Spiccato Arpeggio',
+      section: 'strings',
+      icon: '✨',
+      description: 'Rapid bouncing bow attack. Unleashes sharp acoustic multi-hit bursts on the rival line.',
+      cost: 20,
+      power: 38,
+      effect: 'attack',
+      soundType: 'violin'
+    },
+    {
+      id: 'strings_pizzicato',
+      name: 'Pizzicato Snap',
+      section: 'strings',
+      icon: '🪕',
+      description: 'Plucked percussive acoustic snap. Generates quick resonance and restores +15 Maestro Flow.',
+      cost: 10,
+      power: 20,
+      effect: 'heal_harmony',
+      soundType: 'guitar_strum'
+    },
+    {
+      id: 'strings_harmonics',
+      name: 'Harmonic Overtones',
+      section: 'strings',
+      icon: '🛡️',
+      description: 'Ethereal high frequencies. Erects an acoustic barrier that shields against rival counter-attacks.',
+      cost: 25,
+      power: 15,
+      effect: 'shield',
+      soundType: 'violin_pure'
+    }
+  ],
+  woodwinds: [
+    {
+      id: 'woodwinds_staccato',
+      name: 'Staccato Trill',
+      section: 'woodwinds',
+      icon: '🪈',
+      description: 'Agile rapid-fire woodwind trill. Pierces through rival guard with pinpoint acoustic precision.',
+      cost: 15,
+      power: 32,
+      effect: 'attack',
+      soundType: 'flute_chirp'
+    },
+    {
+      id: 'woodwinds_dolce',
+      name: 'Dolce Serenade',
+      section: 'woodwinds',
+      icon: '🍃',
+      description: 'Warm breathy melody that soothes the hall, restoring +25 Maestro Flow and ensemble composure.',
+      cost: 10,
+      power: 18,
+      effect: 'heal_harmony',
+      soundType: 'silver_flute'
+    },
+    {
+      id: 'woodwinds_gust',
+      name: 'Chromatic Gale',
+      section: 'woodwinds',
+      icon: '🌪️',
+      description: 'Sweeping chromatic whirlwind scale that blows through the auditorium for massive score.',
+      cost: 25,
+      power: 42,
+      effect: 'attack',
+      soundType: 'flute_chirp'
+    },
+    {
+      id: 'woodwinds_breath',
+      name: 'Diaphragm Focus',
+      section: 'woodwinds',
+      icon: '💨',
+      description: 'Deep breath control technique. Empowers the next section with +50% amplified sound output.',
+      cost: 20,
+      power: 15,
+      effect: 'boost_next',
+      soundType: 'silver_flute'
+    }
+  ],
+  brass: [
+    {
+      id: 'brass_fortissimo',
+      name: 'Fortissimo Blare',
+      section: 'brass',
+      icon: '🎺',
+      description: 'Titanic golden herald blast. Shakes the auditorium rafters with colossal dynamic volume.',
+      cost: 25,
+      power: 45,
+      effect: 'attack',
+      soundType: 'trumpet_blare'
+    },
+    {
+      id: 'brass_tutti',
+      name: 'Tutti Fanfare',
+      section: 'brass',
+      icon: '⚡',
+      description: 'Inspiring brass fanfare that doubles (+100%) the resonance attack power of the next section!',
+      cost: 20,
+      power: 20,
+      effect: 'boost_next',
+      soundType: 'trumpet_blare'
+    },
+    {
+      id: 'brass_triumphal',
+      name: 'Triumphal March',
+      section: 'brass',
+      icon: '👑',
+      description: 'Stately march that excites the judges and generates a +20% Audience Applause surge.',
+      cost: 15,
+      power: 24,
+      effect: 'applause_surge',
+      soundType: 'pocket_trumpet'
+    },
+    {
+      id: 'brass_muted',
+      name: 'Harmon-Muted Echo',
+      section: 'brass',
+      icon: '🔕',
+      description: 'Buzzy cup-muted brass call that disorients the rival ensemble and disrupts their cadence.',
+      cost: 15,
+      power: 26,
+      effect: 'stun_rival',
+      soundType: 'pocket_trumpet'
+    }
+  ],
+  percussion: [
+    {
+      id: 'percussion_thunder',
+      name: 'Taiko Thunderclap',
+      section: 'percussion',
+      icon: '🥁',
+      description: 'Deep seismic percussive impact that stuns the rival ensemble, suppressing their next strike.',
+      cost: 25,
+      power: 36,
+      effect: 'stun_rival',
+      soundType: 'drum_snap'
+    },
+    {
+      id: 'percussion_groove',
+      name: 'Syncopated Pocket',
+      section: 'percussion',
+      icon: '🎯',
+      description: 'Unflinching metronomic pocket groove. Locks the entire ensemble into rhythmic perfection.',
+      cost: 15,
+      power: 26,
+      effect: 'heal_harmony',
+      soundType: 'snare_kit'
+    },
+    {
+      id: 'percussion_roll',
+      name: 'Crescendo Snare Roll',
+      section: 'percussion',
+      icon: '🔥',
+      description: 'Accelerating buzz roll that builds massive dynamic tension, unleashing +42 resonance score.',
+      cost: 25,
+      power: 42,
+      effect: 'attack',
+      soundType: 'drum_snap'
+    },
+    {
+      id: 'percussion_reset',
+      name: 'Metronome Pulse',
+      section: 'percussion',
+      icon: '⏱️',
+      description: 'Authoritative four-on-the-floor downbeat that resets timing errors and restores +25 Flow.',
+      cost: 10,
+      power: 16,
+      effect: 'heal_harmony',
+      soundType: 'snare_kit'
+    }
+  ]
+};
+
+

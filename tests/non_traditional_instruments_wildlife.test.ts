@@ -100,6 +100,20 @@ describe('Non-Traditional Instruments & Wild Harmonipet Encounters', () => {
     const cannonNpc = state.npcs.find(n => n.id === 'npc_wild_cannon_beetle_north')!;
     expect(cannonNpc).toBeDefined();
 
+    // Add percussion musician to ensemble so player can mirror percussion frequencies
+    state.ensemble.members.push({
+      id: 'musician_rita',
+      name: 'Rita',
+      title: 'Snare Prodigy',
+      avatar: '🥁',
+      paletteColor: '#ec4899',
+      instrumentId: 'snare_kit',
+      instrumentName: 'Snare Drum',
+      section: 'percussion',
+      stats: { technique: 30, toneQuality: 30, tempoStability: 30, sightReading: 30 },
+      level: 2
+    });
+
     engine.startHarmonizeEncounter(cannonNpc);
     expect(state.mode).toBe('harmonize_wild');
     expect(state.harmonizeEncounter).not.toBeNull();
