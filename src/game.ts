@@ -1,5 +1,5 @@
 import { soundEngine } from './audio';
-import { BOSS_SIGNAL_OVERLORD, FUSED_CHIMERA, JAX_SPIRIT, RIVAL_JAX, STARTER_SPIRIT, TOWN_ITEMS, TOWN_NPCS, TOWN_SOUND_RIPPLES, TOWN_WILD_GLITCHES } from './data';
+import { BOSS_SIGNAL_OVERLORD, FUSED_CHIMERA, JAX_SPIRIT, RIVAL_JAX, STARTER_SPIRIT, TOWN_ITEMS, TOWN_NPCS, TOWN_SOUND_RIPPLES, TOWN_WILD_GLITCHES, WORLD_OBSTACLES } from './data';
 import { CollectibleItem, GameState, Move, NPCEntity, SoundRipple, WildGlitchEntity } from './types';
 
 export class AstralGameEngine {
@@ -19,10 +19,15 @@ export class AstralGameEngine {
   private createInitialState(): GameState {
     return {
       mode: 'intro',
+      questStage: 'intro',
+      camera: {
+        x: 860,
+        y: 1040
+      },
       zoneClean: true,
       player: {
-        x: 400,
-        y: 460,
+        x: 1500,
+        y: 1400,
         dir: 'up',
         isMoving: false
       },
@@ -41,11 +46,12 @@ export class AstralGameEngine {
         speaker: '⚠️ EMERGENCY BROADCAST ⚠️',
         avatar: '📺🚨',
         text: [
-          "[CRACKLE... BZZZT...] ATTENTION ALL STREAMERS IN CADENCE PLAZA!",
+          "[CRACKLE... BZZZT...] ATTENTION ALL STREAMERS IN CADENCE REALM!",
           "A catastrophic rogue anomaly known as DEAD CHANNEL 000 has hijacked the northern frequency!",
-          "Dense analog static is leaking through the Glitch Gate, threatening to mute world harmonies and erase all Harmonimals!",
-          "[Aria & Chime-Cat ☕🐱] Streamer, we need your help! We must assemble a squad of diverse Harmonimals to counter the anomaly.",
-          "First, seek out the underground rocker Jax by the northern stairs to test our battle rhythm, then breach the Glitch Gate to cleanse the rift!",
+          "Dense analog static is leaking through the Glitch Gate on Desolation Ridge, threatening to mute world harmonies and erase all Harmonimals!",
+          "[Aria & Chime-Cat ☕🐱] Streamer, welcome to Cadence Plaza! We must assemble a squad of diverse Harmonimals across the realm.",
+          "Beware: dense Sonic Vines block the northern passage to Desolation Ridge. Seek out traditions and harmonic gear across Port Resonata, the Bamboo Grove, and Sound Ruins.",
+          "First, seek out the underground rocker Jax at Desolation Ridge to test our battle rhythm, then breach the Glitch Gate to cleanse the rift!",
           "Use [W, A, S, D] or Arrow Keys to explore town and tune into the world sound ripples!"
         ],
         index: 0
@@ -109,6 +115,10 @@ export class AstralGameEngine {
       this.updateProximity();
     }
 
+    // In update(now), calculate smooth camera centering:
+    this.state.camera.x = Math.max(0, Math.min(3200 - 1280, this.state.player.x - 640));
+    this.state.camera.y = Math.max(0, Math.min(2400 - 720, this.state.player.y - 360));
+
     // Rhythm Timing Bar Animation in Battle
     if (this.state.mode === 'battle' && this.state.battle?.turn === 'rhythm_timing') {
       const b = this.state.battle;
@@ -152,6 +162,7 @@ export class AstralGameEngine {
       this.state.cleansingProgress += dt * 0.5;
       if (this.state.cleansingProgress >= 1.0) {
         this.state.mode = 'victory';
+        this.state.questStage = 'cleansed';
         this.state.zoneClean = true;
         this.state.glitchActive = false;
         soundEngine.setWarped(false);
@@ -168,6 +179,11 @@ export class AstralGameEngine {
 
   /* ---------------- EXPLORATION & MOVEMENT ---------------- */
   private updatePlayerMovement(dt: number): void {
+    if (this.state.dialogue !== null || this.state.mode !== 'exploration') {
+      this.state.player.isMoving = false;
+      return;
+    }
+
     const speed = 170 * dt;
     let dx = 0;
     let dy = 0;
@@ -179,27 +195,38 @@ export class AstralGameEngine {
 
     this.state.player.isMoving = (dx !== 0 || dy !== 0);
 
-    // Bounding Box (Canvas area clamp to wide world)
-    const newX = Math.max(40, Math.min(1240, this.state.player.x + dx));
-    const newY = Math.max(70, Math.min(680, this.state.player.y + dy));
+    // Bounding Box (Canvas area clamp to wide world: 140 to 3060, 120 to 2180)
+    const newX = Math.max(140, Math.min(3060, this.state.player.x + dx));
+    const newY = Math.max(120, Math.min(2180, this.state.player.y + dy));
 
-    // Collision with Buildings & Fountain
-    if (!this.checkBuildingCollision(newX, newY)) {
+    // Collision with Obstacles
+    if (!this.checkObstacleCollision(newX, newY)) {
       this.state.player.x = newX;
       this.state.player.y = newY;
     }
   }
 
-  private checkBuildingCollision(x: number, y: number): boolean {
-    // Cafe (80, 80, 180, 120)
-    if (x > 70 && x < 270 && y > 60 && y < 210) return true;
-    // Vinyl Den (520, 80, 180, 120)
-    if (x > 510 && x < 710 && y > 60 && y < 210) return true;
-    // Fountain (400, 310, radius 40)
-    const distToFountain = Math.hypot(x - 400, y - 310);
-    if (distToFountain < 46) return true;
-
+  public checkObstacleCollision(x: number, y: number): boolean {
+    for (const obs of WORLD_OBSTACLES) {
+      if (obs.type === 'water') {
+        if (obs.direction === 'south' && y > obs.value) return true;
+        if (obs.direction === 'west' && x < obs.value) return true;
+      } else if (obs.type === 'box') {
+        if (x >= obs.x && x <= obs.x + obs.w && y >= obs.y && y <= obs.y + obs.h) {
+          return true;
+        }
+      } else if (obs.type === 'circle') {
+        const dist = Math.hypot(x - obs.x, y - obs.y);
+        if (dist <= obs.radius) {
+          return true;
+        }
+      }
+    }
     return false;
+  }
+
+  public checkBuildingCollision(x: number, y: number): boolean {
+    return this.checkObstacleCollision(x, y);
   }
 
   public updateProximity(): void {
@@ -383,6 +410,9 @@ export class AstralGameEngine {
         onComplete();
       } else if (this.state.mode === 'intro') {
         this.state.mode = 'exploration';
+        if (this.state.questStage === 'intro') {
+          this.state.questStage = 'seek_traditions';
+        }
         soundEngine.switchTrack('town');
       }
     }
@@ -503,6 +533,10 @@ export class AstralGameEngine {
       this.state.streamQueue.push(unlocked);
       const rip = this.state.soundRipples.find(r => r.spirit.id === unlocked.id);
       if (rip) rip.discovered = true;
+
+      if (this.state.questStage === 'seek_traditions' && this.state.streamQueue.length >= 3) {
+        this.state.questStage = 'ruins_clearing';
+      }
 
       this.state.audioMatch = null;
       this.state.mode = 'exploration';
@@ -701,6 +735,9 @@ export class AstralGameEngine {
       // Find and mark defeated
       const activeGlitch = this.state.wildGlitches.find(g => !g.defeated && g.spirit.id === b.enemySpirit?.id);
       if (activeGlitch) activeGlitch.defeated = true;
+      if (b.enemySpirit?.id === 'spirit_glitch_golem') {
+        this.state.questStage = 'ridge_breach';
+      }
 
       // Frequency Resonance XP & Level Up
       const activeSpirit = this.state.streamQueue[0];
@@ -724,6 +761,7 @@ export class AstralGameEngine {
     } else if (b.type === 'rival') {
       soundEngine.playLockChime();
       this.state.activeCompanion = 'jax';
+      this.state.questStage = 'gate_ready';
       if (!this.state.streamQueue.find(s => s.id === JAX_SPIRIT.id)) {
         this.state.streamQueue.push(JSON.parse(JSON.stringify(JAX_SPIRIT)));
       }

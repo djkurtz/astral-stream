@@ -1,4 +1,4 @@
-import { CollectibleItem, NPCEntity, SoundRipple, StreamSpirit, WildGlitchEntity } from './types';
+import { CollectibleItem, NPCEntity, SoundRipple, StreamSpirit, WildGlitchEntity, WorldObstacle } from './types';
 
 export const STARTER_SPIRIT: StreamSpirit = {
   id: 'spirit_chime_cat',
@@ -543,15 +543,16 @@ export const TOWN_NPCS: NPCEntity[] = [
     id: 'npc_aria',
     name: 'Aria',
     title: 'Neon Cafe Barista & Sound Mentor',
-    x: 180,
-    y: 220,
+    x: 1360,
+    y: 1370,
     sprite: 'aria',
     color: '#38bdf8',
     actionType: 'talk',
     dialogue: [
       "Welcome to Cadence Plaza! ☕ Notice how our Harmonimals are living, breathing instruments?",
-      "Every time you defeat rogue static glitches in battle, your Harmonimals gain Frequency Resonance (XP) and level up!",
-      "Higher resonance boosts your attack and max HP to help you withstand the Dead Channel's desync attacks.",
+      "To reach Desolation Ridge in the northwest, you must overcome the impenetrable Sonic Vines blocking the mountain path.",
+      "The vines resonate with discordant static. You'll need high-resonance global harmonies to dissolve them!",
+      "Visit Barnaby down at Port Resonata to the south, and explore the Whispering Bamboo Grove to the east.",
       "Here is how the Global Genre wheel turns:",
       "🎻 SYMPHONIC (Violin) overpowers 🎹 SYNTH (Chiptune)!",
       "🎹 SYNTH overpowers 🪕 GLOBAL (Sitar & Taiko)!",
@@ -562,93 +563,96 @@ export const TOWN_NPCS: NPCEntity[] = [
     id: 'npc_dj_otter',
     name: 'DJ Otter',
     title: 'World Vinyl Collector',
-    x: 620,
-    y: 200,
+    x: 1880,
+    y: 1370,
     sprite: 'dj_otter',
     color: '#fbbf24',
     actionType: 'talk',
     dialogue: [
-      "Yo! The rogue static is leaking onto the shoreline dunes down south. 💽",
-      "If you need to test your battle chops, go duel those rogue Bit-Bugs on the beach!",
-      "And don't forget the 3 cultural sound stations in town:",
+      "Yo! Welcome to the Vinyl Den! 💽",
+      "If you want to clear the rogue static, tune into the 3 cultural sound stations in town:",
       "🎻 Allegro-Owl (Violin-Winged Owl) near the cafe terrace,",
       "🪕 Sitar-Swan (Gourd-Bodied Veena Swan) at the center fountain,",
-      "🥁 Taiko-Tanuki (Belly-Drum Matsuri Raccoon) by my vinyl shop!"
+      "🥁 Taiko-Tanuki (Belly-Drum Matsuri Raccoon) in the Eastern Bamboo Grove!",
+      "Master their frequencies to build the ultimate world playlist!"
     ]
   },
   {
     id: 'npc_jax',
     name: 'Jax',
     title: 'The Underground Punk',
-    x: 400,
-    y: 110,
+    x: 600,
+    y: 450,
     sprite: 'jax',
     color: '#c084fc',
     actionType: 'battle_jax',
     dialogue: [
-      "Hey... you're here about the Dead Channel anomaly?",
-      "My band used to rock Cadence Shore until Dead Channel 000 swallowed our broadcast whole. I thought I had to fight it alone with raw overdrive...",
-      "The Glitch Gate behind me is vibrating with volatile static. Solo streamers get muted in seconds.",
-      "Duel my Sub-Woofer Bass-Hound so we can test your rhythm and link our audio frequencies!"
+      "Halt right there. I guard Desolation Ridge, and nobody passes without proving their rhythm.",
+      "Dead Channel 000 is raging just beyond that Glitch Gate behind me. It wiped out my band's entire soundstage.",
+      "You fought your way through the Sonic Vines and gathered the world's frequencies... but can you match my raw overdrive?",
+      "Duel my Sub-Woofer Bass-Hound! If you can synchronize with my bass drops, we'll storm the Glitch Gate together!"
     ]
   },
   {
     id: 'npc_gate',
     name: 'Glitch Gate',
     title: 'The Static Anomaly Rift',
-    x: 400,
-    y: 65,
+    x: 600,
+    y: 320,
     sprite: 'glitch_gate',
     color: '#ef4444',
     actionType: 'talk',
     dialogue: [
-      "⚠️ The Glitch Gate is humming with volatile static!",
-      "Duel Jax first to synchronize frequencies before attempting to breach."
+      "⚠️ The Glitch Gate is howling with volatile analog static!",
+      "Duel Jax at Desolation Ridge first to synchronize frequencies before attempting to breach."
     ]
   },
   {
     id: 'npc_maestro',
     name: 'Maestro Owl',
     title: 'Conservatory Grand Master',
-    x: 320,
-    y: 190,
+    x: 1600,
+    y: 1340,
     sprite: 'maestro_owl',
     color: '#a855f7',
     actionType: 'talk',
     dialogue: [
-      "Hoo-hoo! The acoustic balance of Cadence Plaza is severely disturbed by the Dead Channel.",
-      "Listen closely to the harmonics of the world. Each tradition carries ancient wisdom to counter digital dissonance.",
-      "Seek out the scattered Tuning Forks and Frequency Crystals—they will harmonize your lead Harmonimal's combat prowess!"
+      "Hoo-hoo! The acoustic balance of our world is severely disturbed by the Dead Channel.",
+      "I am testing the harmonic mastery of all traveling Streamers. Have you tuned into the Baroque Violin and Indian Sitar stations here in town?",
+      "To breach the static barriers, seek the Harmonic Tuning Fork and the Frequency Crystals hidden across the realm.",
+      "Once your playlist resonates with multiple cultural traditions, even the ancient colossus in the Northeast Ruins will yield!"
     ]
   },
   {
     id: 'npc_pelican',
     name: 'Barnaby',
     title: 'Harbor Master Pelican',
-    x: 820,
-    y: 480,
+    x: 600,
+    y: 2050,
     sprite: 'pelican',
     color: '#38bdf8',
     actionType: 'talk',
     dialogue: [
-      "Squawk! Welcome to the East Pier and Tidal Dunes!",
-      "I keep watch over the shoreline currents. Lately, wild Steel-Pandas and Kora-Gazelles have been wandering past the plaza.",
-      "Keep an eye out along the boardwalk for lost cargo—you might find rare Golden Vinyl and high-capacity Energy Batteries!"
+      "Squawk! Welcome to Port Resonata and the Tidal Dunes!",
+      "Keep an ear out along the shoreline sands. Word is a legendary Golden Vinyl washed ashore nearby—it gives a massive Max HP boost!",
+      "Wild Steel-Pandas and Bit-Bugs roam the southern coastline. Battling them will sharpen your squad's frequency before you head north!",
+      "If you're aiming for the Ancient Ruins or the Ridge, make sure your lead Harmonimal is well-tuned."
     ]
   },
   {
     id: 'npc_spark',
     name: 'Spark',
     title: 'Master Audio Engineer & Cable Runner',
-    x: 960,
-    y: 320,
+    x: 2450,
+    y: 1350,
     sprite: 'spark',
     color: '#f59e0b',
     actionType: 'talk',
     dialogue: [
-      "Check 1-2, check 1-2! Signals are peaking in the red across the eastern grove!",
-      "I'm patching audio cables to contain the static leakage before it corrupts the entire sound grid.",
-      "If you collect harmonic items scattered around the realm, your active lead spirit will receive permanent frequency amplification!"
+      "Check 1-2, check 1-2! Signals are peaking in the red across the Whispering Bamboo Grove! ⚡",
+      "I'm patching heavy-gauge audio cables to shield the eastern sound grid from Dead Channel's desync waves.",
+      "The ancient stone lanterns here illuminate hidden harmonic frequencies. Tune into the Taiko drum circle nearby!",
+      "Head further northeast to the Sound Ruins if you dare—there's an Overdrive Energy Battery waiting for a worthy streamer."
     ]
   }
 ];
@@ -665,73 +669,73 @@ export const RIVAL_JAX = {
   ]
 };
 
-// 3 Distinct Cultural Sound Ripples across the Town Plaza
+// 3 Distinct Cultural Sound Ripples across the Realm
 export const TOWN_SOUND_RIPPLES: SoundRipple[] = [
   {
     id: 'ripple_cafe',
-    x: 180,
-    y: 360,
+    x: 1350,
+    y: 1500,
     challengeType: 'waveform_slider',
     spirit: ALLEGRO_OWL_SPIRIT, // European Baroque Classical (Violin-Winged Owl)
     discovered: false
   },
   {
     id: 'ripple_fountain',
-    x: 400,
-    y: 400,
+    x: 1600,
+    y: 1560,
     challengeType: 'call_response',
     spirit: SITAR_SWAN_SPIRIT, // Indian Classical (Gourd-Bodied Sitar Swan)
     discovered: false
   },
   {
     id: 'ripple_vinyl',
-    x: 620,
-    y: 360,
+    x: 2600,
+    y: 1400,
     challengeType: 'rhythm_pulse',
     spirit: TAIKO_TANUKI_SPIRIT, // Japanese Matsuri (Belly-Drum Taiko Tanuki)
     discovered: false
   }
 ];
 
-// Roaming Wild Static Glitch & Monster Encounters Across the World
+// Roaming Wild Static Glitch & Monster Encounters Across the 5 Regions
 export const TOWN_WILD_GLITCHES: WildGlitchEntity[] = [
   {
     id: 'glitch_beach_1',
     name: 'Wild Bit-Bug',
-    x: 250,
-    y: 500,
+    x: 400,
+    y: 2100,
     spirit: BIT_BUG_SPIRIT,
     defeated: false
   },
   {
     id: 'glitch_beach_2',
     name: 'Wild Noise-Mote',
-    x: 550,
-    y: 500,
+    x: 450,
+    y: 550,
     spirit: NOISE_MOTE_SPIRIT,
     defeated: false
   },
   {
     id: 'glitch_pier',
     name: 'Wild Steel-Panda',
-    x: 880,
-    y: 560,
+    x: 750,
+    y: 2050,
     spirit: STEEL_PANDA_SPIRIT,
     defeated: false
   },
   {
     id: 'glitch_grove',
     name: 'Wild Kora-Gazelle',
-    x: 1060,
-    y: 260,
+    x: 2550,
+    y: 1650,
     spirit: KORA_GAZELLE_SPIRIT,
     defeated: false
   },
   {
     id: 'glitch_ruins',
     name: 'Wild Glitch-Golem',
-    x: 1120,
-    y: 480,
+    x: 2550,
+    y: 500,
     spirit: GLITCH_GOLEM_SPIRIT,
     defeated: false
   }
@@ -743,8 +747,8 @@ export const TOWN_ITEMS: CollectibleItem[] = [
     id: 'item_tuning_fork',
     name: 'Harmonic Tuning Fork',
     icon: '🍴',
-    x: 120,
-    y: 420,
+    x: 1260,
+    y: 1580,
     type: 'tuning_fork',
     description: 'A pristine silver tuning fork resonating at concert pitch 440 Hz.',
     effect: '+5 ATK Permanent Buff',
@@ -754,8 +758,8 @@ export const TOWN_ITEMS: CollectibleItem[] = [
     id: 'item_golden_vinyl',
     name: 'Golden Vinyl Record',
     icon: '📀',
-    x: 720,
-    y: 220,
+    x: 450,
+    y: 2120,
     type: 'golden_vinyl',
     description: 'A legendary master recording preserving pristine analog groove fidelity.',
     effect: '+20 Max HP Permanent Buff',
@@ -765,8 +769,8 @@ export const TOWN_ITEMS: CollectibleItem[] = [
     id: 'item_frequency_crystal',
     name: 'Frequency Crystal',
     icon: '💎',
-    x: 980,
-    y: 160,
+    x: 2800,
+    y: 1250,
     type: 'frequency_crystal',
     description: 'A shimmering crystalline prism that refracts sonic frequencies into pure energy.',
     effect: '+10 Max HP & +3 ATK Buff',
@@ -776,11 +780,66 @@ export const TOWN_ITEMS: CollectibleItem[] = [
     id: 'item_energy_battery',
     name: 'Overdrive Energy Battery',
     icon: '🔋',
-    x: 1180,
-    y: 600,
+    x: 2750,
+    y: 450,
     type: 'energy_battery',
     description: 'A supercharged lithium-core battery packed with pure musical overdrive.',
     effect: '+15 Max HP & +10 DEF Buff',
     collected: false
   }
+];
+
+// World Obstacles across the 3200x2400 Realm
+export const WORLD_OBSTACLES: WorldObstacle[] = [
+  // Water borders
+  { type: 'water', direction: 'south', value: 2200, name: 'Ocean South' },
+  { type: 'water', direction: 'west', value: 120, name: 'Ocean West' },
+
+  // Buildings
+  { type: 'box', x: 1230, y: 1180, w: 260, h: 160, name: 'Neon Cafe' },
+  { type: 'box', x: 1780, y: 1180, w: 260, h: 160, name: 'Vinyl Den' },
+
+  // Fountain
+  { type: 'circle', x: 1600, y: 1450, radius: 52, name: 'Harmony Fountain' },
+
+  // Lampposts in plaza (radius: 16)
+  { type: 'circle', x: 1280, y: 1380, radius: 16, name: 'Plaza Lamppost NW' },
+  { type: 'circle', x: 1920, y: 1380, radius: 16, name: 'Plaza Lamppost NE' },
+  { type: 'circle', x: 1280, y: 1620, radius: 16, name: 'Plaza Lamppost SW' },
+  { type: 'circle', x: 1920, y: 1620, radius: 16, name: 'Plaza Lamppost SE' },
+  { type: 'circle', x: 1600, y: 1260, radius: 16, name: 'Plaza Lamppost North' },
+  { type: 'circle', x: 1600, y: 1640, radius: 16, name: 'Plaza Lamppost South' },
+
+  // Stone lanterns in bamboo grove (radius: 16)
+  { type: 'circle', x: 2380, y: 1280, radius: 16, name: 'Bamboo Stone Lantern 1' },
+  { type: 'circle', x: 2680, y: 1280, radius: 16, name: 'Bamboo Stone Lantern 2' },
+  { type: 'circle', x: 2450, y: 1600, radius: 16, name: 'Bamboo Stone Lantern 3' },
+  { type: 'circle', x: 2750, y: 1600, radius: 16, name: 'Bamboo Stone Lantern 4' },
+
+  // Palm tree trunks on beach (radius: 20)
+  { type: 'circle', x: 280, y: 2050, radius: 20, name: 'Beach Palm 1' },
+  { type: 'circle', x: 480, y: 2080, radius: 20, name: 'Beach Palm 2' },
+  { type: 'circle', x: 780, y: 2040, radius: 20, name: 'Beach Palm 3' },
+  { type: 'circle', x: 1020, y: 2070, radius: 20, name: 'Beach Palm 4' },
+  { type: 'circle', x: 1300, y: 2060, radius: 20, name: 'Beach Palm 5' },
+
+  // Bamboo thickets (radius: 20)
+  { type: 'circle', x: 2320, y: 1140, radius: 20, name: 'Bamboo Thicket 1' },
+  { type: 'circle', x: 2520, y: 1180, radius: 20, name: 'Bamboo Thicket 2' },
+  { type: 'circle', x: 2720, y: 1140, radius: 20, name: 'Bamboo Thicket 3' },
+  { type: 'circle', x: 2400, y: 1480, radius: 20, name: 'Bamboo Thicket 4' },
+  { type: 'circle', x: 2660, y: 1520, radius: 20, name: 'Bamboo Thicket 5' },
+  { type: 'circle', x: 2840, y: 1460, radius: 20, name: 'Bamboo Thicket 6' },
+  { type: 'circle', x: 2500, y: 1720, radius: 20, name: 'Bamboo Thicket 7' },
+  { type: 'circle', x: 2700, y: 1700, radius: 20, name: 'Bamboo Thicket 8' },
+
+  // Ancient stone ruin pillars in canyon & ruins (radius: 24)
+  { type: 'circle', x: 2300, y: 400, radius: 24, name: 'Ruin Pillar 1' },
+  { type: 'circle', x: 2520, y: 360, radius: 24, name: 'Ruin Pillar 2' },
+  { type: 'circle', x: 2740, y: 420, radius: 24, name: 'Ruin Pillar 3' },
+  { type: 'circle', x: 2420, y: 600, radius: 24, name: 'Ruin Pillar 4' },
+  { type: 'circle', x: 2620, y: 640, radius: 24, name: 'Ruin Pillar 5' },
+  { type: 'circle', x: 2820, y: 580, radius: 24, name: 'Ruin Pillar 6' },
+  { type: 'circle', x: 400, y: 400, radius: 24, name: 'Ridge Pillar 1' },
+  { type: 'circle', x: 800, y: 400, radius: 24, name: 'Ridge Pillar 2' }
 ];

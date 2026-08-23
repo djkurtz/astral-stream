@@ -57,10 +57,10 @@ export class AstralRenderer {
     const ctx = this.ctx;
     const t = state.time;
 
-    const worldW = 1280;
-    const worldH = 720;
-    const camX = Math.max(0, Math.min(worldW - w, state.player.x - w / 2));
-    const camY = Math.max(0, Math.min(worldH - h, state.player.y - h / 2));
+    const worldW = 3200;
+    const worldH = 2400;
+    const camX = state.camera.x;
+    const camY = state.camera.y;
 
     ctx.save();
     ctx.translate(-camX, -camY);
@@ -71,9 +71,9 @@ export class AstralRenderer {
 
     // Decorative grass patches
     ctx.fillStyle = '#15803d';
-    for (let x = 20; x < worldW; x += 60) {
-      for (let y = 20; y < worldH - 100; y += 60) {
-        if ((x + y) % 40 === 0) {
+    for (let x = 40; x < worldW - 40; x += 80) {
+      for (let y = 40; y < 2000; y += 80) {
+        if ((x + y) % 60 === 0) {
           ctx.fillRect(x, y, 8, 4);
           ctx.fillRect(x + 4, y - 4, 4, 8);
         }
@@ -84,11 +84,12 @@ export class AstralRenderer {
     this.drawSandDunes(ctx, worldW, t);
     this.drawOceanSurf(ctx, worldW, worldH, t);
 
-    // 3. 3D Palm Trees on South Dunes
-    this.drawPalmTree(ctx, 120, 520, t, 0);
-    this.drawPalmTree(ctx, 360, 515, t, 1);
-    this.drawPalmTree(ctx, 680, 518, t, 2);
-    this.drawPalmTree(ctx, 1020, 520, t, 3);
+    // 3. 3D Palm Trees on South Dunes (Matching WORLD_OBSTACLES)
+    this.drawPalmTree(ctx, 280, 2050, t, 0);
+    this.drawPalmTree(ctx, 480, 2080, t, 1);
+    this.drawPalmTree(ctx, 780, 2040, t, 2);
+    this.drawPalmTree(ctx, 1020, 2070, t, 3);
+    this.drawPalmTree(ctx, 1300, 2060, t, 4);
 
     // 4. West Pier & Boardwalk with 3D Dock Posts & Sea Reflections
     this.drawWestPier(ctx, t);
@@ -97,10 +98,10 @@ export class AstralRenderer {
     this.drawEastPier(ctx, t);
 
     // 6. Central Cobblestone Plaza (Cadence Plaza)
-    const plazaX = 80;
-    const plazaY = 70;
-    const plazaW = 640;
-    const plazaH = 440;
+    const plazaX = 1180;
+    const plazaY = 1120;
+    const plazaW = 900;
+    const plazaH = 640;
 
     // Cobblestone Base
     ctx.fillStyle = '#cbd5e1';
@@ -132,9 +133,15 @@ export class AstralRenderer {
 
     // Connecting Stone Walkway to East Grove
     ctx.fillStyle = '#cbd5e1';
-    ctx.fillRect(720, 240, 120, 60);
+    ctx.fillRect(plazaX + plazaW, 1400, 150, 80);
     ctx.strokeStyle = '#94a3b8';
-    ctx.strokeRect(720, 240, 120, 60);
+    ctx.strokeRect(plazaX + plazaW, 1400, 150, 80);
+
+    // Connecting Stone Walkway to South Dunes / Port Resonata
+    ctx.fillStyle = '#cbd5e1';
+    ctx.fillRect(1560, plazaY + plazaH, 80, 300);
+    ctx.strokeStyle = '#94a3b8';
+    ctx.strokeRect(1560, plazaY + plazaH, 80, 300);
 
     // 7. East Taiko Bamboo Grove with 3D Stone Lanterns
     this.drawBambooGrove(ctx, t);
@@ -142,40 +149,45 @@ export class AstralRenderer {
     // 8. North Ancient Sound Ruins with Floating 3D Monolith Blocks
     this.drawAncientRuins(ctx, t);
 
-    // 9. Plaza Perimeter Scenery: Trees & Streetlamps
-    this.drawTree(ctx, 40, 140);
-    this.drawTree(ctx, 40, 280);
-    this.drawTree(ctx, 40, 420);
-    this.drawTree(ctx, 740, 140);
-    this.drawTree(ctx, 740, 280);
-    this.drawTree(ctx, 740, 420);
+    // 9. Sonic Vines blocking North Passage to Desolation Ridge
+    this.drawSonicVines(ctx, t, state.questStage);
 
-    this.drawStreetLamp(ctx, 100, 240, t);
-    this.drawStreetLamp(ctx, 700, 240, t);
-    this.drawStreetLamp(ctx, 100, 460, t);
-    this.drawStreetLamp(ctx, 700, 460, t);
-    this.drawStreetLamp(ctx, 850, 460, t);
-    this.drawStreetLamp(ctx, 1050, 460, t);
+    // 10. Desolation Ridge Terrain & Glitch Gate (Northwest)
+    this.drawGlitchGate(ctx, 520, 270, 160, 60, state.glitchActive, t);
+    this.drawRuinColumn(ctx, 400, 400, 65);
+    this.drawRuinColumn(ctx, 800, 400, 65);
 
-    // 10. Center Plaza Buildings
+    // 11. Plaza Perimeter Scenery: Trees & Streetlamps
+    this.drawTree(ctx, 1140, 1200);
+    this.drawTree(ctx, 1140, 1400);
+    this.drawTree(ctx, 1140, 1600);
+    this.drawTree(ctx, 2120, 1200);
+    this.drawTree(ctx, 2120, 1600);
+
+    this.drawStreetLamp(ctx, 1280, 1380, t);
+    this.drawStreetLamp(ctx, 1920, 1380, t);
+    this.drawStreetLamp(ctx, 1280, 1620, t);
+    this.drawStreetLamp(ctx, 1920, 1620, t);
+    this.drawStreetLamp(ctx, 1600, 1260, t);
+    this.drawStreetLamp(ctx, 1600, 1640, t);
+
+    // 12. Center Plaza Buildings
     // Neon Cafe (Top Left)
-    this.drawNeonCafe(ctx, 90, 80, 170, 110, t);
+    this.drawNeonCafe(ctx, 1230, 1180, 260, 160, t);
     // Vinyl Record Den (Top Right of Plaza)
-    this.drawVinylDen(ctx, 540, 80, 170, 110, t);
-    // Glitch Gate (Top Center of Plaza)
-    this.drawGlitchGate(ctx, 330, 30, 140, 50, state.glitchActive, t);
+    this.drawVinylDen(ctx, 1780, 1180, 260, 160, t);
 
-    // 11. Musical Centerpiece Fountain (Harmony Fountain)
-    this.drawMusicalFountain(ctx, 400, 290, t);
+    // 13. Musical Centerpiece Fountain (Harmony Fountain)
+    this.drawMusicalFountain(ctx, 1600, 1450, t);
 
-    // 12. Sound Ripples (The 3 Discovery Stations)
+    // 14. Sound Ripples (The 3 Discovery Stations)
     for (const rip of state.soundRipples) {
       if (!rip.discovered) {
         this.drawSoundRipple(ctx, rip.x, rip.y, rip.challengeType, t);
       }
     }
 
-    // 13. Floating Collectible Items
+    // 15. Floating Collectible Items
     if (state.items) {
       for (const item of state.items) {
         if (!item.collected) {
@@ -184,19 +196,19 @@ export class AstralRenderer {
       }
     }
 
-    // 14. Wild Static Glitches & Roaming Monsters
+    // 16. Wild Static Glitches & Roaming Monsters
     for (const g of state.wildGlitches) {
       if (!g.defeated) {
         this.drawWildGlitch(ctx, g.x, g.y, g.spirit, t);
       }
     }
 
-    // 15. NPCs
+    // 17. NPCs
     for (const npc of state.npcs) {
       this.drawPixelNPC(ctx, npc.x, npc.y, npc.sprite, t, npc.name);
     }
 
-    // 16. Player Character
+    // 18. Player Character
     this.drawDetailedPlayer(ctx, state.player.x, state.player.y, state.player.dir, state.player.isMoving, t);
 
     // Follower Companions (Chime-Cat + Bass-Hound)
@@ -211,7 +223,7 @@ export class AstralRenderer {
       this.drawDetailedHound(ctx, houndX, houndY, t);
     }
 
-    // 17. High-Legibility Interaction HUD Prompt
+    // 19. High-Legibility Interaction HUD Prompt
     if (state.nearbyInteractable) {
       const target = state.nearbyInteractable;
       const tx = target.x;
@@ -263,35 +275,37 @@ export class AstralRenderer {
   private drawSandDunes(ctx: CanvasRenderingContext2D, worldW: number, _t: number): void {
     // Warm Golden Sand Base
     ctx.fillStyle = '#fef08a';
-    ctx.fillRect(0, 510, worldW, 45);
+    ctx.fillRect(0, 2000, worldW, 200);
 
     // 3D Tiered Dune Shading
     ctx.fillStyle = '#fde68a';
     ctx.beginPath();
-    ctx.moveTo(0, 525);
+    ctx.moveTo(0, 2080);
     for (let x = 0; x <= worldW; x += 40) {
-      const dy = 525 + Math.sin(x * 0.012) * 8 + Math.cos(x * 0.03) * 4;
+      const dy = 2080 + Math.sin(x * 0.012) * 12 + Math.cos(x * 0.03) * 6;
       ctx.lineTo(x, dy);
     }
-    ctx.lineTo(worldW, 555);
-    ctx.lineTo(0, 555);
+    ctx.lineTo(worldW, 2200);
+    ctx.lineTo(0, 2200);
     ctx.closePath();
     ctx.fill();
 
     // Darker Wet Shore Sand Edge
     ctx.fillStyle = '#f59e0b';
-    ctx.fillRect(0, 550, worldW, 5);
+    ctx.fillRect(0, 2190, worldW, 10);
 
     // Decorative Beach Details (Shells, Starfish, Tufts)
     const beachItems = [
-      { x: 70, y: 528, type: 'shell' },
-      { x: 190, y: 535, type: 'star' },
-      { x: 310, y: 522, type: 'grass' },
-      { x: 480, y: 538, type: 'shell' },
-      { x: 620, y: 526, type: 'grass' },
-      { x: 750, y: 532, type: 'star' },
-      { x: 920, y: 524, type: 'shell' },
-      { x: 1080, y: 536, type: 'grass' }
+      { x: 170, y: 2060, type: 'shell' },
+      { x: 390, y: 2090, type: 'star' },
+      { x: 510, y: 2040, type: 'grass' },
+      { x: 680, y: 2110, type: 'shell' },
+      { x: 820, y: 2050, type: 'grass' },
+      { x: 950, y: 2100, type: 'star' },
+      { x: 1120, y: 2060, type: 'shell' },
+      { x: 1280, y: 2080, type: 'grass' },
+      { x: 1500, y: 2050, type: 'shell' },
+      { x: 1750, y: 2090, type: 'star' }
     ];
 
     for (const item of beachItems) {
@@ -318,29 +332,37 @@ export class AstralRenderer {
   }
 
   private drawOceanSurf(ctx: CanvasRenderingContext2D, worldW: number, worldH: number, t: number): void {
-    // 1. Deep Ocean Gradient Base
-    const oceanGrad = ctx.createLinearGradient(0, 550, 0, worldH);
+    // 1. Deep Ocean Gradient Base (South Ocean: y > 2200)
+    const oceanGrad = ctx.createLinearGradient(0, 2200, 0, worldH);
     oceanGrad.addColorStop(0, '#0ea5e9'); // Turquoise shallows
     oceanGrad.addColorStop(0.25, '#0284c7'); // Azure mid
     oceanGrad.addColorStop(0.65, '#0369a1'); // Deep sea blue
     oceanGrad.addColorStop(1, '#0c4a6e'); // Abyssal navy
     ctx.fillStyle = oceanGrad;
-    ctx.fillRect(0, 550, worldW, worldH - 550);
+    ctx.fillRect(0, 2200, worldW, worldH - 2200);
 
-    // 2. Multi-tier Undulating Wave Layers
+    // West Ocean (x < 120)
+    const westGrad = ctx.createLinearGradient(0, 0, 120, 0);
+    westGrad.addColorStop(0, '#0c4a6e');
+    westGrad.addColorStop(0.7, '#0284c7');
+    westGrad.addColorStop(1, '#0ea5e9');
+    ctx.fillStyle = westGrad;
+    ctx.fillRect(0, 0, 120, worldH);
+
+    // 2. Multi-tier Undulating Wave Layers (South)
     const waveLayers = [
-      { y: 555, amp: 4, freq: 0.04, speed: 3.5, color: '#ffffff', width: 3.5 }, // Shoreline foam
-      { y: 575, amp: 5, freq: 0.03, speed: 2.5, color: 'rgba(165, 243, 252, 0.7)', width: 2.5 }, // Near surf
-      { y: 605, amp: 6, freq: 0.025, speed: 2.0, color: 'rgba(56, 189, 248, 0.5)', width: 2.0 }, // Mid swells
-      { y: 640, amp: 7, freq: 0.02, speed: 1.5, color: 'rgba(14, 165, 233, 0.45)', width: 2.0 }, // Deep swells
-      { y: 680, amp: 8, freq: 0.015, speed: 1.2, color: 'rgba(2, 132, 199, 0.4)', width: 2.0 } // Rolling tide
+      { y: 2210, amp: 5, freq: 0.03, speed: 3.5, color: '#ffffff', width: 3.5 },
+      { y: 2240, amp: 6, freq: 0.025, speed: 2.5, color: 'rgba(165, 243, 252, 0.7)', width: 2.5 },
+      { y: 2280, amp: 7, freq: 0.02, speed: 2.0, color: 'rgba(56, 189, 248, 0.5)', width: 2.0 },
+      { y: 2330, amp: 8, freq: 0.015, speed: 1.5, color: 'rgba(14, 165, 233, 0.45)', width: 2.0 },
+      { y: 2370, amp: 9, freq: 0.012, speed: 1.2, color: 'rgba(2, 132, 199, 0.4)', width: 2.0 }
     ];
 
     for (const wave of waveLayers) {
       ctx.strokeStyle = wave.color;
       ctx.lineWidth = wave.width;
       ctx.beginPath();
-      for (let x = 0; x <= worldW; x += 8) {
+      for (let x = 0; x <= worldW; x += 16) {
         const wy = wave.y + Math.sin(x * wave.freq + t * wave.speed) * wave.amp + Math.cos(x * wave.freq * 0.5 + t * (wave.speed * 0.8)) * (wave.amp * 0.4);
         if (x === 0) ctx.moveTo(x, wy);
         else ctx.lineTo(x, wy);
@@ -350,9 +372,9 @@ export class AstralRenderer {
 
     // 3. Sparkling Sun Glints / Specular Pixel Stars
     ctx.fillStyle = '#ffffff';
-    for (let i = 0; i < 24; i++) {
-      const sx = ((i * 53 + t * 25) % worldW);
-      const sy = 570 + ((i * 37) % (worldH - 580));
+    for (let i = 0; i < 32; i++) {
+      const sx = ((i * 107 + t * 35) % worldW);
+      const sy = 2220 + ((i * 47) % (worldH - 2230));
       const sparkle = (Math.sin(t * 6 + i * 2) + 1) / 2;
       if (sparkle > 0.4) {
         ctx.globalAlpha = sparkle * 0.85;
@@ -454,12 +476,52 @@ export class AstralRenderer {
     ctx.restore();
   }
 
+  private drawSonicVines(ctx: CanvasRenderingContext2D, t: number, questStage: string): void {
+    if (questStage === 'ridge_breach' || questStage === 'gate_ready' || questStage === 'cleansed') {
+      return; // Vines dissolved!
+    }
+    // Draw pulsing purple/red glitch vines blocking north passage (x: 500 to 1100, y: 800 to 860)
+    ctx.save();
+    ctx.strokeStyle = '#c084fc';
+    ctx.lineWidth = 6;
+    for (let i = 0; i < 3; i++) {
+      ctx.beginPath();
+      ctx.moveTo(500, 815 + i * 18);
+      for (let x = 500; x <= 1100; x += 20) {
+        const vy = 815 + i * 18 + Math.sin(x * 0.04 + t * 4 + i) * 8;
+        ctx.lineTo(x, vy);
+      }
+      ctx.stroke();
+    }
+    // Thorns / Glitch Nodes
+    ctx.fillStyle = '#ef4444';
+    for (let x = 540; x <= 1060; x += 60) {
+      const pulse = Math.sin(t * 6 + x) * 3 + 6;
+      ctx.beginPath();
+      ctx.arc(x, 835 + Math.sin(x * 0.04 + t * 4) * 6, pulse, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    // Barrier Warning Sign
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+    ctx.strokeStyle = '#ef4444';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(720, 780, 160, 26, 6);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#fca5a5';
+    ctx.font = '700 12px Fredoka, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('⚡ SONIC VINES BARRIER', 800, 798);
+    ctx.restore();
+  }
+
   private drawWestPier(ctx: CanvasRenderingContext2D, t: number): void {
-    // West Pier Boardwalk extending into the sea (x: 40 to 200, y: 500 to 670)
-    const pierX = 40;
-    const pierY = 500;
+    // West Pier Boardwalk extending into the sea at Port Resonata (x: 140 to 300, y: 2040 to 2200)
+    const pierX = 140;
+    const pierY = 2040;
     const pierW = 160;
-    const pierH = 170;
+    const pierH = 160;
 
     // 1. 3D Dock Posts with Sea Reflections Beneath
     const posts = [
@@ -467,9 +529,9 @@ export class AstralRenderer {
       { x: pierX + pierW - 15, y: pierY + 60, h: 45 },
       { x: pierX + 15, y: pierY + 115, h: 50 },
       { x: pierX + pierW - 15, y: pierY + 115, h: 50 },
-      { x: pierX + 15, y: pierY + 165, h: 55 },
-      { x: pierX + pierW / 2, y: pierY + 165, h: 55 },
-      { x: pierX + pierW - 15, y: pierY + 165, h: 55 }
+      { x: pierX + 15, y: pierY + 155, h: 55 },
+      { x: pierX + pierW / 2, y: pierY + 155, h: 55 },
+      { x: pierX + pierW - 15, y: pierY + 155, h: 55 }
     ];
 
     for (const p of posts) {
@@ -477,27 +539,22 @@ export class AstralRenderer {
     }
 
     // 2. 3D Wooden Pier Deck
-    // Deck Drop Shadow & Thickness
     ctx.fillStyle = '#451a03';
-    ctx.fillRect(pierX - 4, pierY + pierH, pierW + 8, 8); // 3D Bottom edge drop
+    ctx.fillRect(pierX - 4, pierY + pierH, pierW + 8, 8);
     ctx.fillStyle = '#78350f';
-    ctx.fillRect(pierX + pierW, pierY, 6, pierH); // 3D Side edge drop
+    ctx.fillRect(pierX + pierW, pierY, 6, pierH);
 
     // Main Deck Base
     ctx.fillStyle = '#b45309';
     ctx.fillRect(pierX, pierY, pierW, pierH);
 
-    // Individual Wood Planks with alternating tones & nail studs
+    // Individual Wood Planks
     const plankH = 14;
     for (let y = pierY; y < pierY + pierH; y += plankH) {
       ctx.fillStyle = ((y / plankH) % 2 === 0) ? '#d97706' : '#b45309';
       ctx.fillRect(pierX + 2, y + 1, pierW - 4, plankH - 2);
-
-      // Plank divider line
       ctx.fillStyle = '#78350f';
       ctx.fillRect(pierX, y + plankH - 1, pierW, 1);
-
-      // Rusty iron nails
       ctx.fillStyle = '#334155';
       ctx.fillRect(pierX + 8, y + 5, 2, 2);
       ctx.fillRect(pierX + pierW - 10, y + 5, 2, 2);
@@ -505,13 +562,12 @@ export class AstralRenderer {
 
     // 3. Wooden Safety Railings
     ctx.fillStyle = '#78350f';
-    ctx.fillRect(pierX - 2, pierY, 6, pierH); // Left rail post run
-    ctx.fillRect(pierX + pierW - 4, pierY, 6, pierH); // Right rail post run
+    ctx.fillRect(pierX - 2, pierY, 6, pierH);
+    ctx.fillRect(pierX + pierW - 4, pierY, 6, pierH);
     ctx.fillStyle = '#92400e';
     ctx.fillRect(pierX - 2, pierY + 12, 6, pierH - 12);
     ctx.fillRect(pierX + pierW - 4, pierY + 12, 6, pierH - 12);
 
-    // Railing posts
     for (let py = pierY; py <= pierY + pierH; py += 40) {
       ctx.fillStyle = '#451a03';
       ctx.fillRect(pierX - 4, py - 12, 8, 16);
@@ -541,17 +597,16 @@ export class AstralRenderer {
   }
 
   private drawEastPier(ctx: CanvasRenderingContext2D, t: number): void {
-    // East Shoreline Pier Boardwalk (x: 780 to 1240, y: 505 to 555) + Extensions into water
-    const pierX = 780;
-    const pierY = 505;
-    const pierW = 460;
-    const pierH = 50;
+    // East Shoreline Pier Boardwalk (x: 800 to 1400, y: 2120 to 2180)
+    const pierX = 800;
+    const pierY = 2120;
+    const pierW = 600;
+    const pierH = 60;
 
-    // Water extensions posts
     const extPosts = [
-      { x: 840, y: 555, w: 40, h: 95 },
-      { x: 1040, y: 555, w: 40, h: 95 },
-      { x: 1140, y: 555, w: 100, h: 105 }
+      { x: 900, y: 2180, w: 40, h: 40 },
+      { x: 1100, y: 2180, w: 40, h: 40 },
+      { x: 1300, y: 2180, w: 40, h: 40 }
     ];
 
     for (const ext of extPosts) {
@@ -559,13 +614,11 @@ export class AstralRenderer {
       this.drawDockPostWithReflection(ctx, ext.x + ext.w - 12, ext.y + ext.h - 10, 12, 35, t);
     }
 
-    // Main East boardwalk base
     ctx.fillStyle = '#451a03';
     ctx.fillRect(pierX, pierY + pierH, pierW, 6);
     ctx.fillStyle = '#b45309';
     ctx.fillRect(pierX, pierY, pierW, pierH);
 
-    // Planks
     for (let x = pierX; x < pierX + pierW; x += 16) {
       ctx.fillStyle = ((x / 16) % 2 === 0) ? '#d97706' : '#b45309';
       ctx.fillRect(x + 1, pierY + 2, 14, pierH - 4);
@@ -573,7 +626,6 @@ export class AstralRenderer {
       ctx.fillRect(x + 15, pierY, 1, pierH);
     }
 
-    // Pier extensions into ocean
     for (const ext of extPosts) {
       ctx.fillStyle = '#451a03';
       ctx.fillRect(ext.x, ext.y + ext.h, ext.w, 6);
@@ -601,25 +653,18 @@ export class AstralRenderer {
     }
 
     // 2. 3D Cylindrical Wooden Piling
-    // Core shadow
     ctx.fillStyle = '#451a03';
     ctx.fillRect(x - w / 2, y, w, h);
-
-    // Midtone
     ctx.fillStyle = '#78350f';
     ctx.fillRect(x - w / 2 + 2, y, w - 4, h);
-
-    // Highlight
     ctx.fillStyle = '#b45309';
     ctx.fillRect(x - w / 2 + 3, y, 3, h);
 
-    // Green moss / algae ring near water line
     ctx.fillStyle = '#065f46';
     ctx.fillRect(x - w / 2, y + h - 10, w, 8);
     ctx.fillStyle = '#10b981';
     ctx.fillRect(x - w / 2 + 2, y + h - 8, w - 4, 4);
 
-    // Top Piling Bevel Cap
     ctx.fillStyle = '#92400e';
     ctx.beginPath();
     ctx.ellipse(x, y, w / 2, 3, 0, 0, Math.PI * 2);
@@ -630,39 +675,38 @@ export class AstralRenderer {
   }
 
   private drawBambooGrove(ctx: CanvasRenderingContext2D, t: number): void {
-    // East Taiko Bamboo Grove area: x: 830 to 1260, y: 60 to 460
-    // Ground Moss Carpet
+    // East Taiko Bamboo Grove area: x: 2200 to 3050, y: 950 to 1850
     ctx.fillStyle = '#14532d';
     ctx.beginPath();
-    ctx.roundRect(830, 60, 430, 410, 20);
+    ctx.roundRect(2200, 950, 850, 900, 20);
     ctx.fill();
 
-    // Bamboo stalks grid
     const stalks = [
-      { x: 860, y: 160, h: 90 }, { x: 890, y: 120, h: 80 }, { x: 920, y: 180, h: 95 },
-      { x: 950, y: 100, h: 85 }, { x: 1000, y: 150, h: 100 }, { x: 1030, y: 90, h: 75 },
-      { x: 1070, y: 170, h: 90 }, { x: 1110, y: 120, h: 85 }, { x: 1150, y: 180, h: 105 },
-      { x: 1190, y: 110, h: 80 }, { x: 1220, y: 160, h: 95 }, { x: 1250, y: 130, h: 85 },
-      { x: 870, y: 270, h: 90 }, { x: 910, y: 230, h: 85 }, { x: 950, y: 290, h: 95 },
-      { x: 1010, y: 250, h: 90 }, { x: 1080, y: 310, h: 100 }, { x: 1140, y: 260, h: 85 },
-      { x: 1190, y: 300, h: 95 }, { x: 1230, y: 240, h: 90 }, { x: 1260, y: 280, h: 85 },
-      { x: 890, y: 390, h: 95 }, { x: 940, y: 360, h: 85 }, { x: 990, y: 410, h: 100 },
-      { x: 1050, y: 370, h: 90 }, { x: 1110, y: 420, h: 95 }, { x: 1170, y: 380, h: 85 }
+      { x: 2260, y: 1060, h: 90 }, { x: 2290, y: 1020, h: 80 }, { x: 2320, y: 1080, h: 95 },
+      { x: 2350, y: 1000, h: 85 }, { x: 2400, y: 1050, h: 100 }, { x: 2430, y: 990, h: 75 },
+      { x: 2470, y: 1070, h: 90 }, { x: 2510, y: 1020, h: 85 }, { x: 2550, y: 1080, h: 105 },
+      { x: 2590, y: 1010, h: 80 }, { x: 2620, y: 1060, h: 95 }, { x: 2650, y: 1030, h: 85 },
+      { x: 2700, y: 1200, h: 90 }, { x: 2750, y: 1250, h: 85 }, { x: 2800, y: 1200, h: 95 },
+      { x: 2850, y: 1280, h: 90 }, { x: 2900, y: 1220, h: 100 }, { x: 2950, y: 1260, h: 85 },
+      { x: 2300, y: 1350, h: 90 }, { x: 2350, y: 1400, h: 85 }, { x: 2500, y: 1450, h: 95 },
+      { x: 2550, y: 1400, h: 90 }, { x: 2700, y: 1500, h: 100 }, { x: 2750, y: 1450, h: 85 },
+      { x: 2350, y: 1650, h: 95 }, { x: 2400, y: 1700, h: 85 }, { x: 2600, y: 1680, h: 100 },
+      { x: 2650, y: 1720, h: 90 }, { x: 2800, y: 1650, h: 95 }, { x: 2850, y: 1700, h: 85 }
     ];
 
     for (const s of stalks) {
       this.drawBambooStalk(ctx, s.x, s.y, s.h, t);
     }
 
-    // 3D Stone Lanterns (Tōrō) with warm light
-    this.drawStoneLantern(ctx, 900, 200, t);
-    this.drawStoneLantern(ctx, 1100, 160, t);
-    this.drawStoneLantern(ctx, 970, 360, t);
-    this.drawStoneLantern(ctx, 1180, 350, t);
+    // 3D Stone Lanterns (Tōrō) with warm light (matching WORLD_OBSTACLES)
+    this.drawStoneLantern(ctx, 2380, 1280, t);
+    this.drawStoneLantern(ctx, 2680, 1280, t);
+    this.drawStoneLantern(ctx, 2450, 1600, t);
+    this.drawStoneLantern(ctx, 2750, 1600, t);
 
     // Decorative Taiko Matsuri Drums
-    this.drawTaikoDrum(ctx, 940, 220, t);
-    this.drawTaikoDrum(ctx, 1120, 290, t);
+    this.drawTaikoDrum(ctx, 2550, 1380, t);
+    this.drawTaikoDrum(ctx, 2650, 1420, t);
   }
 
   private drawBambooStalk(ctx: CanvasRenderingContext2D, x: number, y: number, h: number, t: number): void {
@@ -838,30 +882,37 @@ export class AstralRenderer {
   }
 
   private drawAncientRuins(ctx: CanvasRenderingContext2D, t: number): void {
-    // North Ancient Sound Ruins (x: 1060 to 1240, y: 380 to 500)
+    // North Ancient Sound Ruins (x: 2200 to 2950, y: 250 to 750)
     ctx.fillStyle = '#334155';
-    ctx.fillRect(1060, 380, 200, 120);
+    ctx.fillRect(2200, 250, 750, 500);
     ctx.strokeStyle = '#475569';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(1060, 380, 200, 120);
+    ctx.lineWidth = 3;
+    ctx.strokeRect(2200, 250, 750, 500);
 
     // Cracked Floor Tile Grid
     ctx.strokeStyle = '#1e293b';
     ctx.lineWidth = 1;
-    for (let x = 1060; x <= 1260; x += 30) {
+    for (let x = 2200; x <= 2950; x += 50) {
       ctx.beginPath();
-      ctx.moveTo(x, 380);
-      ctx.lineTo(x, 500);
+      ctx.moveTo(x, 250);
+      ctx.lineTo(x, 750);
+      ctx.stroke();
+    }
+    for (let y = 250; y <= 750; y += 50) {
+      ctx.beginPath();
+      ctx.moveTo(2200, y);
+      ctx.lineTo(2950, y);
       ctx.stroke();
     }
 
-    // Ancient Sound Ruins Pillars (3D Fluted Columns)
+    // Ancient Sound Ruins Pillars (3D Fluted Columns matching WORLD_OBSTACLES)
     const columns = [
-      { x: 1090, y: 440, h: 55 },
-      { x: 1150, y: 410, h: 70 },
-      { x: 1210, y: 450, h: 50 },
-      { x: 1010, y: 60, h: 60 },
-      { x: 1220, y: 50, h: 65 }
+      { x: 2300, y: 400, h: 65 },
+      { x: 2520, y: 360, h: 70 },
+      { x: 2740, y: 420, h: 60 },
+      { x: 2420, y: 600, h: 65 },
+      { x: 2620, y: 640, h: 75 },
+      { x: 2820, y: 580, h: 60 }
     ];
 
     for (const col of columns) {
@@ -870,10 +921,10 @@ export class AstralRenderer {
 
     // Floating 3D Monolith Blocks with Glowing Glyphs
     const monoliths = [
-      { x: 920, y: 70, w: 26, h: 42, glyph: 'sine', seed: 0 },
-      { x: 1120, y: 60, w: 28, h: 46, glyph: 'freq', seed: 1.5 },
-      { x: 1240, y: 80, w: 24, h: 38, glyph: 'rune', seed: 3.0 },
-      { x: 1130, y: 430, w: 30, h: 50, glyph: 'sine', seed: 4.2 }
+      { x: 2360, y: 320, w: 32, h: 48, glyph: 'sine', seed: 0 },
+      { x: 2650, y: 300, w: 34, h: 52, glyph: 'freq', seed: 1.5 },
+      { x: 2860, y: 340, w: 30, h: 44, glyph: 'rune', seed: 3.0 },
+      { x: 2520, y: 520, w: 36, h: 56, glyph: 'sine', seed: 4.2 }
     ];
 
     for (const m of monoliths) {

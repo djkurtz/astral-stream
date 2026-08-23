@@ -121,16 +121,16 @@ describe('Collectible Items & Exploration Mechanics', () => {
     expect(state.inventory.length).toBe(inventoryCount);
   });
 
-  it('should support wide world player movement bounds (40-1240, 70-680)', () => {
+  it('should support wide world player movement bounds (140-3060, 120-2180)', () => {
     const state = engine.getState();
 
     // Directly test exploration bounds clamp
-    state.player.x = 1200;
-    state.player.y = 650;
-    expect(state.player.x).toBeGreaterThan(800);
-    expect(state.player.y).toBeGreaterThan(600);
+    state.player.x = 2900;
+    state.player.y = 2000;
+    expect(state.player.x).toBeGreaterThan(2000);
+    expect(state.player.y).toBeGreaterThan(1500);
 
-    // Ensure item in far pier/ruins at (1180, 600) can be reached
+    // Ensure item in northeast ruins at (2750, 450) can be reached
     const battery = state.items.find(i => i.type === 'energy_battery')!;
     state.player.x = battery.x;
     state.player.y = battery.y;

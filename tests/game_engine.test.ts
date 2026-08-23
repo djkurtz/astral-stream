@@ -49,10 +49,28 @@ describe('GameEngine: Exploration & Dialogue State', () => {
     (engine as any).keysDown.delete('KeyD');
   });
 
+  it('should block player movement while dialogue is active', () => {
+    const state = engine.getState();
+    expect(state.dialogue).not.toBeNull();
+    const initialX = state.player.x;
+    const initialY = state.player.y;
+
+    (engine as any).keysDown.add('KeyD');
+    (engine as any).keysDown.add('KeyS');
+    engine.update(1000);
+    engine.update(1100);
+
+    expect(state.player.x).toBe(initialX);
+    expect(state.player.y).toBe(initialY);
+    expect(state.player.isMoving).toBe(false);
+    (engine as any).keysDown.delete('KeyD');
+    (engine as any).keysDown.delete('KeyS');
+  });
+
   it('should prevent walking inside buildings (Cafe and Vinyl Den collision)', () => {
-    expect((engine as any).checkBuildingCollision(150, 150)).toBe(true); // Inside Cafe
-    expect((engine as any).checkBuildingCollision(600, 150)).toBe(true); // Inside Vinyl Den
-    expect((engine as any).checkBuildingCollision(400, 310)).toBe(true); // Inside Center Fountain
-    expect((engine as any).checkBuildingCollision(400, 450)).toBe(false); // Open Plaza Ground
+    expect((engine as any).checkObstacleCollision(1300, 1250)).toBe(true); // Inside Cafe
+    expect((engine as any).checkObstacleCollision(1850, 1250)).toBe(true); // Inside Vinyl Den
+    expect((engine as any).checkObstacleCollision(1600, 1450)).toBe(true); // Inside Center Fountain
+    expect((engine as any).checkObstacleCollision(1500, 1400)).toBe(false); // Open Plaza Ground
   });
 });

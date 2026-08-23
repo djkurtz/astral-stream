@@ -153,8 +153,39 @@ export interface PlayerPosition {
   isMoving: boolean;
 }
 
+export interface BoxObstacle {
+  type: 'box';
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  name?: string;
+}
+
+export interface CircleObstacle {
+  type: 'circle';
+  x: number;
+  y: number;
+  radius: number;
+  name?: string;
+}
+
+export interface WaterBoundary {
+  type: 'water';
+  direction: 'south' | 'west';
+  value: number;
+  name?: string;
+}
+
+export type WorldObstacle = BoxObstacle | CircleObstacle | WaterBoundary;
+
 export interface GameState {
   mode: GameMode;
+  questStage: 'intro' | 'seek_traditions' | 'ruins_clearing' | 'ridge_breach' | 'gate_ready' | 'cleansed';
+  camera: {
+    x: number;
+    y: number;
+  };
   zoneClean: boolean;
   player: PlayerPosition;
   npcs: NPCEntity[];
