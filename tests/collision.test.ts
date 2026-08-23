@@ -159,13 +159,18 @@ describe('World Collision & Camera Tracking System', () => {
     expect(engine.checkObstacleCollision(500, 2240)).toBe(true);  // Blocked in open ocean
   });
 
-  it('should physically block passage at Sonic Vines until dissolved by quest progression', () => {
-    // Before defeating Glitch-Golem in ruins (intro/seek_traditions)
-    engine.getState().questStage = 'seek_traditions';
-    expect(engine.checkObstacleCollision(800, 830)).toBe(true);
+  it('should physically block passage at Sonic Vines gorge and canyon bluffs until dissolved by quest progression', () => {
+    // Canyon bluffs permanently block walking around the pass
+    expect(engine.checkObstacleCollision(400, 850)).toBe(true); // Southwest Bluff
+    expect(engine.checkObstacleCollision(900, 850)).toBe(true); // Southeast Bluff
+    expect(engine.checkObstacleCollision(1060, 400)).toBe(true); // Eastern Escarpment
 
-    // After defeating Glitch-Golem (ridge_breach)
+    // Before defeating Glitch-Golem in ruins (intro/seek_traditions), the gorge pass is sealed by vines
+    engine.getState().questStage = 'seek_traditions';
+    expect(engine.checkObstacleCollision(700, 850)).toBe(true);
+
+    // After defeating Glitch-Golem (ridge_breach), the vines dissolve and the pass opens
     engine.getState().questStage = 'ridge_breach';
-    expect(engine.checkObstacleCollision(800, 830)).toBe(false);
+    expect(engine.checkObstacleCollision(700, 850)).toBe(false);
   });
 });

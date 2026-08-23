@@ -59,7 +59,7 @@ export interface NPCEntity {
   title: string;
   x: number;
   y: number;
-  sprite: 'aria' | 'dj_otter' | 'jax' | 'maestro_owl' | 'glitch_gate' | 'pelican' | 'spark';
+  sprite: 'aria' | 'dj_otter' | 'jax' | 'maestro_owl' | 'glitch_gate' | 'pelican' | 'spark' | 'lyra';
   color: string;
   dialogue: string[];
   actionType?: 'talk' | 'battle_jax' | 'audio_match';

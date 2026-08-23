@@ -226,11 +226,11 @@ export class AstralGameEngine {
     const onWestPier = (x >= 140 && x <= 320 && y >= 2040 && y <= 2260);
     const onEastPier = (x >= 800 && x <= 1400 && y >= 2120 && y <= 2220);
 
-    // Sonic Vines Barrier (Blocks northwest mountain pass to Desolation Ridge until dissolved)
+    // Sonic Vines Barrier (Blocks the mountain pass gorge x: 580..820 at y: 820..900 until dissolved)
     const vinesActive = this.state.questStage !== 'ridge_breach' && 
                         this.state.questStage !== 'gate_ready' && 
                         this.state.questStage !== 'cleansed';
-    if (vinesActive && x >= 500 && x <= 1100 && y >= 800 && y <= 860) {
+    if (vinesActive && x >= 560 && x <= 840 && y >= 820 && y <= 900) {
       return true;
     }
 
@@ -449,6 +449,7 @@ export class AstralGameEngine {
       else if (npc.sprite === 'pelican') avatar = '🦢';
       else if (npc.sprite === 'spark') avatar = '⚡';
       else if (npc.sprite === 'jax') avatar = '🎸';
+      else if (npc.sprite === 'lyra') avatar = '🔮';
       this.showDialogue(npc.name, avatar, npc.dialogue);
     } else {
       // Sound Ripple

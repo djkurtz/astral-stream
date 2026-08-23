@@ -654,6 +654,22 @@ export const TOWN_NPCS: NPCEntity[] = [
       "The ancient stone lanterns here illuminate hidden harmonic frequencies. Tune into the Taiko drum circle nearby!",
       "Head further northeast to the Sound Ruins if you dare—there's an Overdrive Energy Battery waiting for a worthy streamer."
     ]
+  },
+  {
+    id: 'npc_lyra',
+    name: 'Sage Lyra',
+    title: 'Ancient Acoustic Scholar',
+    x: 2350,
+    y: 480,
+    sprite: 'lyra',
+    color: '#38bdf8',
+    actionType: 'talk',
+    dialogue: [
+      "Greetings, traveler. You stand within the Ancient Sound Ruins, where the realm's primordial chords were first etched into stone.",
+      "The floating monoliths above us hum in sympathy with cosmic frequencies, but Dead Channel 000's static has corrupted the central sanctuary.",
+      "A massive Wild Glitch-Golem roams these ruins, projecting thorny Sonic Vines that blockade the mountain pass to Desolation Ridge.",
+      "Take the Overdrive Energy Battery on the eastern terrace, and defeat the Glitch-Golem to purify the frequency stream and dissolve the vines!"
+    ]
   }
 ];
 
@@ -856,6 +872,11 @@ export const WORLD_OBSTACLES: WorldObstacle[] = [
 
   // Western Contoured Sea Cliffs
   { type: 'box', x: 0, y: 0, w: 120, h: 1980, name: 'Western Sea Cliffs' },
+
+  // Desolation Ridge Enclosing Canyon Bluffs (Creates an airtight bottleneck pass at x: 580..820)
+  { type: 'box', x: 120, y: 840, w: 460, h: 80, name: 'Desolation Southwest Bluff' },
+  { type: 'box', x: 820, y: 840, w: 260, h: 80, name: 'Desolation Southeast Bluff' },
+  { type: 'box', x: 1040, y: 100, w: 80, h: 740, name: 'Desolation Eastern Escarpment' },
 
   // South Ocean Waters (Walkable pier jetty exclusion handled in collision engine)
   { type: 'water', direction: 'south', value: 2200, name: 'Ocean South' },

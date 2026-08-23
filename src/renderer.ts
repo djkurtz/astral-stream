@@ -476,6 +476,29 @@ export class AstralRenderer {
     ctx.roundRect(280, 256, 760, 600, 20);
     ctx.fill();
 
+    // Enclosing Rock Bluffs around Desolation Ridge (Matching WORLD_OBSTACLES)
+    // 1. Southwest Bluff (x: 120 to 580, y: 840 to 920)
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(120, 840, 460, 80);
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(120, 830, 460, 20);
+    ctx.fillStyle = '#334155';
+    ctx.fillRect(120, 820, 460, 15);
+
+    // 2. Southeast Bluff (x: 820 to 1040, y: 840 to 920)
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(820, 840, 260, 80);
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(820, 830, 260, 20);
+    ctx.fillStyle = '#334155';
+    ctx.fillRect(820, 820, 260, 15);
+
+    // 3. Eastern Escarpment (x: 1040 to 1120, y: 100 to 840)
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(1040, 100, 80, 740);
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(1030, 100, 20, 740);
+
     // Rolling Grassland Elevation Ridges
     ctx.strokeStyle = '#15803d';
     ctx.lineWidth = 4;
@@ -802,39 +825,52 @@ export class AstralRenderer {
     if (questStage === 'ridge_breach' || questStage === 'gate_ready' || questStage === 'cleansed') {
       return; // Vines dissolved!
     }
-    // Draw pulsing purple/red glitch vines blocking north passage (x: 500 to 1100, y: 800 to 860)
+    // Draw pulsing purple/red glitch vines tightly sealing the mountain pass gorge (x: 580 to 820, y: 830 to 890)
     ctx.save();
+
+    // Canyon Gateway Archway Pillars flanking the pass
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(560, 810, 30, 80);
+    ctx.fillRect(810, 810, 30, 80);
+    ctx.fillStyle = '#334155';
+    ctx.fillRect(565, 800, 20, 20);
+    ctx.fillRect(815, 800, 20, 20);
+
+    // Dense Pulsing Glitch Vine Strands
     ctx.strokeStyle = '#c084fc';
     ctx.lineWidth = 6;
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 4; i++) {
       ctx.beginPath();
-      ctx.moveTo(500, 815 + i * 18);
-      for (let x = 500; x <= 1100; x += 20) {
-        const vy = 815 + i * 18 + Math.sin(x * 0.04 + t * 4 + i) * 8;
+      ctx.moveTo(580, 830 + i * 16);
+      for (let x = 580; x <= 820; x += 15) {
+        const vy = 830 + i * 16 + Math.sin(x * 0.06 + t * 5 + i) * 8;
         ctx.lineTo(x, vy);
       }
       ctx.stroke();
     }
-    // Thorns / Glitch Nodes
+
+    // Static Thorns / Glowing Crimson Spikes
     ctx.fillStyle = '#ef4444';
-    for (let x = 540; x <= 1060; x += 60) {
-      const pulse = Math.sin(t * 6 + x) * 3 + 6;
+    for (let x = 600; x <= 800; x += 30) {
+      const pulse = Math.sin(t * 8 + x) * 3 + 6;
       ctx.beginPath();
-      ctx.arc(x, 835 + Math.sin(x * 0.04 + t * 4) * 6, pulse, 0, Math.PI * 2);
+      ctx.arc(x, 855 + Math.sin(x * 0.06 + t * 5) * 6, pulse, 0, Math.PI * 2);
       ctx.fill();
     }
-    // Barrier Warning Sign
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+
+    // Barrier Warning Hologram Sign
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.95)';
     ctx.strokeStyle = '#ef4444';
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.roundRect(720, 780, 160, 26, 6);
+    ctx.roundRect(620, 790, 160, 26, 6);
     ctx.fill();
     ctx.stroke();
     ctx.fillStyle = '#fca5a5';
     ctx.font = '700 12px Fredoka, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('⚡ SONIC VINES BARRIER', 800, 798);
+    ctx.fillText('⚡ SONIC VINES BARRIER', 700, 808);
+
     ctx.restore();
   }
 
@@ -2221,11 +2257,26 @@ export class AstralRenderer {
       ctx.fillRect(-6, -34 + bob, 12, 13);
       ctx.fillStyle = '#38bdf8';
       ctx.fillRect(-9, -33 + bob, 3, 7);
-      ctx.fillRect(6, -33 + bob, 3, 7);
-      ctx.fillRect(-7, -37 + bob, 14, 3);
       ctx.fillStyle = '#0f172a';
       ctx.fillRect(-4, -30 + bob, 2, 2);
       ctx.fillRect(2, -30 + bob, 2, 2);
+    } else if (sprite === 'lyra') {
+      // Sage Lyra: Scholar Robes (Ethereal Teal & Amber)
+      ctx.fillStyle = '#0f766e';
+      ctx.fillRect(-8, -22 + bob, 16, 18);
+      ctx.fillStyle = '#fde047';
+      ctx.fillRect(-6, -34 + bob, 12, 13);
+      // Mystic Cyan Circlet
+      ctx.fillStyle = '#38bdf8';
+      ctx.fillRect(-8, -37 + bob, 16, 4);
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(-4, -30 + bob, 2, 2);
+      ctx.fillRect(2, -30 + bob, 2, 2);
+      // Ancient Acoustic Tuning Staff
+      ctx.fillStyle = '#cbd5e1';
+      ctx.fillRect(8, -32 + bob, 3, 28);
+      ctx.fillStyle = '#38bdf8';
+      ctx.fillRect(6, -36 + bob, 7, 4);
     }
 
     ctx.restore();
