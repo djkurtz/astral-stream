@@ -153,10 +153,16 @@ describe('World Collision & Camera Tracking System', () => {
     expect(engine.checkObstacleCollision(2415, 1440)).toBe(false);
   });
 
-  it('should allow walking on pier jetties over ocean water', () => {
-    // West Pier deck extends to (x: 140-320, y: 2040-2260)
-    expect(engine.checkObstacleCollision(200, 2240)).toBe(false); // Walkable on pier deck
-    expect(engine.checkObstacleCollision(500, 2240)).toBe(true);  // Blocked in open ocean
+  it('should allow walking on pier jetties and strictly block walking off into water', () => {
+    // West Pier and beach sand (y <= 2200)
+    expect(engine.checkObstacleCollision(200, 2150)).toBe(false); // Walkable on pier deck
+    expect(engine.checkObstacleCollision(100, 2150)).toBe(true);  // Blocked by Western sea cliffs (x < 120)
+    expect(engine.checkObstacleCollision(200, 2220)).toBe(true);  // Off southern end into ocean (y > 2200)
+
+    // East Pier Jetty finger at (x: 895-945, y <= 2220)
+    expect(engine.checkObstacleCollision(920, 2210)).toBe(false); // Walkable on jetty finger over ocean
+    expect(engine.checkObstacleCollision(980, 2210)).toBe(true);  // Open ocean between jetties (y > 2200)
+    expect(engine.checkObstacleCollision(920, 2240)).toBe(true);  // Past end of jetty into ocean
   });
 
   it('should physically block passage at Sonic Vines gorge and canyon bluffs until dissolved by quest progression', () => {
@@ -172,5 +178,17 @@ describe('World Collision & Camera Tracking System', () => {
     // After defeating Glitch-Golem (ridge_breach), the vines dissolve and the pass opens
     engine.getState().questStage = 'ridge_breach';
     expect(engine.checkObstacleCollision(700, 850)).toBe(false);
+  });
+
+  it('should record follower trail in player footsteps when moving', () => {
+    const state = engine.getState();
+    expect(state.followerTrail).toBeDefined();
+
+    // Simulate movement
+    (engine as any).keysDown.add('KeyD');
+    engine.update(2000);
+    engine.update(2100);
+    expect(state.followerTrail.length).toBeGreaterThan(0);
+    (engine as any).keysDown.delete('KeyD');
   });
 });

@@ -219,29 +219,62 @@ export class AstralRenderer {
     // 18. Player Character
     this.drawDetailedPlayer(ctx, state.player.x, state.player.y, state.player.dir, state.player.isMoving, t);
 
-    // Follower Companions (Lead Active Spirit + Bass-Hound)
+    // Follower Companions (Lead Active Spirit + Bass-Hound following in player's footsteps)
+    const getFollowerCoords = (orderIdx: number) => {
+      const trail = state.followerTrail || [];
+      const trailSampleIdx = Math.min(trail.length - 1, (orderIdx + 1) * 7);
+      
+      let fx = state.player.x;
+      let fy = state.player.y;
+      
+      if (trail.length > trailSampleIdx && trailSampleIdx >= 0) {
+        fx = trail[trailSampleIdx].x;
+        fy = trail[trailSampleIdx].y;
+      } else {
+        // Fallback when standing still: trail behind facing direction
+        const offset = 22 * (orderIdx + 1);
+        if (state.player.dir === 'up') fy += offset;
+        else if (state.player.dir === 'down') fy -= offset;
+        else if (state.player.dir === 'left') fx += offset;
+        else if (state.player.dir === 'right') fx -= offset;
+      }
+
+      // Party Boundary Safety: Never let the cat or any companion step into ocean water or off docks
+      const onWP = (fx >= 142 && fx <= 298 && fy >= 2040 && fy <= 2198);
+      const onEPMain = (fx >= 802 && fx <= 1398 && fy >= 2120 && fy <= 2178);
+      const onEPJetty = (fx >= 898 && fx <= 942 && fy <= 2218) ||
+                        (fx >= 1098 && fx <= 1142 && fy <= 2218) ||
+                        (fx >= 1298 && fx <= 1342 && fy <= 2218);
+      const onPier = onWP || onEPMain || onEPJetty;
+
+      // If follower coordinates would touch water or cliffs, snap safely to player
+      if (fy > 2198 && !onPier) { fx = state.player.x; fy = state.player.y; }
+      if (fx < 140 && fy > 1980 && !onWP) { fx = state.player.x; fy = state.player.y; }
+      if (fx > 298 && fx < 800 && fy > 2040) { fx = state.player.x; fy = state.player.y; }
+
+      return { x: fx, y: fy + Math.sin(t * 6 + orderIdx * 1.2) * 2.5 };
+    };
+
+    const drawCompanionSprite = (spiritId: string, cx: number, cy: number) => {
+      if (spiritId === 'spirit_chime_cat') this.drawDetailedCat(ctx, cx, cy, t);
+      else if (spiritId === 'spirit_bass_hound') this.drawDetailedHound(ctx, cx, cy, t);
+      else if (spiritId === 'spirit_allegro_owl') this.drawDetailedOwl(ctx, cx, cy, t);
+      else if (spiritId === 'spirit_sitar_swan') this.drawDetailedSwan(ctx, cx, cy, t);
+      else if (spiritId === 'spirit_taiko_tanuki') this.drawDetailedTanuki(ctx, cx, cy, t);
+      else {
+        const spirit = state.streamQueue.find(s => s.id === spiritId);
+        if (spirit) this.drawGenericCompanion(ctx, cx, cy, spirit, t);
+      }
+    };
+
     if (state.streamQueue.length > 0) {
       const active = state.streamQueue[state.activeSpiritIndex] || state.streamQueue[0];
-      const leadX = state.player.x - 26;
-      const leadY = state.player.y + 4 + Math.sin(t * 6) * 2.5;
-      if (active.id === 'spirit_chime_cat') {
-        this.drawDetailedCat(ctx, leadX, leadY, t);
-      } else if (active.id === 'spirit_bass_hound') {
-        this.drawDetailedHound(ctx, leadX, leadY, t);
-      } else if (active.id === 'spirit_allegro_owl') {
-        this.drawDetailedOwl(ctx, leadX, leadY, t);
-      } else if (active.id === 'spirit_sitar_swan') {
-        this.drawDetailedSwan(ctx, leadX, leadY, t);
-      } else if (active.id === 'spirit_taiko_tanuki') {
-        this.drawDetailedTanuki(ctx, leadX, leadY, t);
-      } else {
-        this.drawGenericCompanion(ctx, leadX, leadY, active, t);
-      }
+      const pos0 = getFollowerCoords(0);
+      drawCompanionSprite(active.id, pos0.x, pos0.y);
     }
     if (state.activeCompanion === 'jax') {
-      const houndX = state.player.x + 26;
-      const houndY = state.player.y + 4 + Math.sin(t * 6 + 1.5) * 2.5;
-      this.drawDetailedHound(ctx, houndX, houndY, t);
+      const pos1 = getFollowerCoords(1);
+      this.drawDetailedHound(ctx, pos1.x, pos1.y, t);
     }
 
     // 19. Unified Proximity Identity & Interaction Card

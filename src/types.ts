@@ -199,6 +199,7 @@ export interface GameState {
   items: CollectibleItem[];
   inventory: string[];
   activeCompanion: string | null;
+  followerTrail: Array<{ x: number; y: number }>;
   streamQueue: StreamSpirit[];
   activeSpiritIndex: number;
   nearbyInteractable: NPCEntity | SoundRipple | WildGlitchEntity | CollectibleItem | null;

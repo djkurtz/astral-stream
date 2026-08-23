@@ -871,7 +871,7 @@ export const WORLD_OBSTACLES: WorldObstacle[] = [
   { type: 'box', x: 3100, y: 0, w: 100, h: 2400, name: 'Eastern Bamboo Palisades' },
 
   // Western Contoured Sea Cliffs
-  { type: 'box', x: 0, y: 0, w: 120, h: 1980, name: 'Western Sea Cliffs' },
+  { type: 'box', x: 0, y: 0, w: 120, h: 2200, name: 'Western Sea Cliffs' },
 
   // Desolation Ridge Enclosing Canyon Bluffs (Creates an airtight bottleneck pass at x: 580..820)
   { type: 'box', x: 120, y: 840, w: 460, h: 80, name: 'Desolation Southwest Bluff' },

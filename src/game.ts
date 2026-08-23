@@ -38,6 +38,7 @@ export class AstralGameEngine {
       items: JSON.parse(JSON.stringify(TOWN_ITEMS)),
       inventory: [],
       activeCompanion: null,
+      followerTrail: [{ x: 1500, y: 1420 }, { x: 1500, y: 1440 }, { x: 1500, y: 1460 }],
       streamQueue: [JSON.parse(JSON.stringify(STARTER_SPIRIT))],
       activeSpiritIndex: 0,
       nearbyInteractable: null,
@@ -225,12 +226,28 @@ export class AstralGameEngine {
     if (canMoveY) {
       this.state.player.y = nextY;
     }
+
+    // Record breadcrumb trail for followers in the party
+    if (this.state.player.isMoving && (canMoveX || canMoveY)) {
+      if (!this.state.followerTrail) {
+        this.state.followerTrail = [];
+      }
+      const last = this.state.followerTrail[0];
+      if (!last || Math.hypot(this.state.player.x - last.x, this.state.player.y - last.y) >= 5) {
+        this.state.followerTrail.unshift({ x: this.state.player.x, y: this.state.player.y });
+        if (this.state.followerTrail.length > 80) {
+          this.state.followerTrail.pop();
+        }
+      }
+    }
   }
 
   public checkObstacleCollision(x: number, y: number): boolean {
-    // Walkable Pier Jetties Exclusion (West Pier and East Boardwalk surface)
-    const onWestPier = (x >= 140 && x <= 320 && y >= 2040 && y <= 2260);
-    const onEastPier = (x >= 800 && x <= 1400 && y >= 2120 && y <= 2220);
+    // Walkable Pier Jetties extending over the ocean water
+    const onEastJetty1 = (x >= 895 && x <= 945 && y >= 2200 && y <= 2220);
+    const onEastJetty2 = (x >= 1095 && x <= 1145 && y >= 2200 && y <= 2220);
+    const onEastJetty3 = (x >= 1295 && x <= 1345 && y >= 2200 && y <= 2220);
+    const onJetty = onEastJetty1 || onEastJetty2 || onEastJetty3;
 
     // Sonic Vines Barrier (Blocks the mountain pass gorge x: 580..820 at y: 820..900 until dissolved)
     const vinesActive = this.state.questStage !== 'ridge_breach' && 
@@ -243,8 +260,8 @@ export class AstralGameEngine {
     for (const obs of WORLD_OBSTACLES) {
       if (obs.type === 'water') {
         if (obs.direction === 'south') {
-          if ((onWestPier || onEastPier) && y <= 2260) {
-            continue; // Walkable wooden pier deck over the ocean
+          if (onJetty && y <= 2220) {
+            continue; // Walkable wooden pier jetty fingers extending over the ocean
           }
           if (y > obs.value) return true;
         }
