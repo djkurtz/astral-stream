@@ -55,38 +55,45 @@ $$\text{🎻 SYMPHONIC} \xrightarrow{\text{overpowers}} \text{🎹 SYNTH} \xrigh
 
 ---
 
-## 4. The 3D Demo Level: "Cadence Plaza & The Glitch Rift"
+## 4. Chapter 1: "The Silent Frequency" (Open World Exploration)
 
-### 3D Diorama Architecture:
-* **The Shoreline**: Animated 3D stepped sand dunes meeting translucent undulating ocean waves with sparkling pixel seafoam.
-* **Neon Cafe Terrace**: Raised wooden deck with 3D cafe tables, steaming pixel mugs, hanging neon signs, and Barista Aria.
-* **Vinyl Den Boardwalk**: A neon-lit music shop crowned with a giant **3D rotating golden vinyl record** reflecting dynamic sun glare.
-* **The Harmony Fountain**: A multi-tiered stone fountain in the plaza center spouting physical 3D musical note particles (`♪ ♫ ♬`) that catch the sunlight.
-* **The Glitch Gate**: An ominous floating 3D portal at the north plaza steps, emitting crackling red-and-purple CRT static scanlines and reality-warping gravitational waves.
+### 3200×2400 Open World Diorama Architecture:
+The game world is an expansive, continuous scrolling island divided into 5 distinct biomes with rigorous physical collision (players cannot walk through water, tree trunks, lampposts, or building walls):
 
-### Demo Narrative & Gameplay Arc:
-1. **Act 1 — Emergency Broadcast Intro & Awakening**:
-   * An ominous alert overrides the airwaves: `DEAD CHANNEL 000` has hijacked the northern frequency and is muting the island!
-   * Aria and Chime-Cat (`☕🐱`) motivate the player to explore Cadence Plaza, build up their frequency resonance, and find the underground rocker Jax.
-2. **Act 2 — Normal Encounters & Character Progression**:
-   * **Wild Static Glitches**: Roaming rogue data entities (`👾 Bit-Bug` and `📺 Noise-Mote`) haunt the lower shoreline dunes.
-   * **Frequency Resonance (XP & Leveling)**: Winning normal encounters grants +50 XP, leveling up Harmonimals (`Lv. 1 -> Lv. 2 -> Lv. 3`), increasing Max HP, Attack power, and battle endurance.
-   * **Mentor Coaching**: Aria explains the 5-genre cultural wheel and how living creatures bond through shared acoustic frequencies.
-3. **Act 3 — Discovering World Traditions (Audio Match Radar)**:
-   * **🎛️ Equalizer at the Cafe**: Tune into European Classical to stream **Allegro-Owl** (`#BaroqueViolin`).
-   * **🪕 Sitar Jam at the Fountain**: Repeat the Indian Raga motif to stream **Sitar-Swan** (`#RagaAura`).
-   * **🥁 Taiko Beat at the Vinyl Den**: Lock the 120 BPM festival rhythm to stream **Taiko-Tanuki** (`#MatsuriThunder`).
-4. **Act 4 — Character Development: Duel with Jax the Punk**:
-   * Jax reveals his emotional vulnerability: his former rock band's frequency was muted by Dead Channel 000, leaving him bitter and trying to fight solo.
-   * You duel his Sub-Woofer Bass-Hound (`🎸🐶`). Proving your rhythm earns his deep respect.
-5. **Act 5 — World Exploration Phase (Tag-Team Alliance)**:
-   * Jax and Bass-Hound officially ally with your squad. Both Chime-Cat and Bass-Hound follow you in real-time 2.5D across the 3D diorama!
-   * You freely explore town, level up your creatures in wild beach encounters, and prepare for the finale.
-6. **Act 6 — The 3D Static Storm & Cleansing Drop**:
-   * Approach the 3D Glitch Gate and press `[SPACE]` to breach into the warped static void.
-   * Tag-team combat against the towering CRT Signal Overlord with Jax backing you up.
-   * Trigger the **`🌟 COLLABORATIVE PLAYLIST BLEND`** (`[B]`) to fuse into the colossal **Omni-Harmony Chimera (`🐯✨`)**!
-   * Defeating the boss shatters the rift into rainbow pixel confetti, restoring lush colors, full stereo audio, and celebratory dancing!
+```
+                       [ Zone 5: Desolation Ridge ] 
+                      (Jax's Rebel Bunker & Glitch Gate)
+                                     |
+[ Zone 1: Port Resonata ] --- [ Zone 2: Cadence Plaza ] --- [ Zone 3: Bamboo Grove ]
+(Barnaby & Tidal Dunes)       (Cafe, Vinyl Den, Fountain)   (Maestro Owl & Taiko Stage)
+                                     |
+                       [ Zone 4: Ancient Sound Ruins ]
+                      (Floating Monoliths & Sonic Vines)
+```
+
+1. **🏖️ Zone 1: Port Resonata & Tidal Dunes (South/West)**:
+   * Stepped warm sand dunes meeting the sparkling ocean surf (water collision prevents walking into the sea).
+   * Wooden pier pilings, Barnaby the Pelican (`npc_pelican`), wild Steel-Panda, and the hidden Golden Vinyl Record on the sandbar.
+2. **☕ Zone 2: Cadence Plaza (Central Hub)**:
+   * Cobblestone terrace with 3D buildings (Neon Cafe & Vinyl Den with rotating 3D golden vinyl).
+   * 3D Lampposts with warm radial lighting, Harmony Fountain, Barista Aria, DJ Otter, and Spark the Audio Tech.
+3. **🎋 Zone 3: Whispering Bamboo Forest (East)**:
+   * Dense swaying bamboo thickets (solid tree collision), glowing stone lanterns (*Tōrō*), Maestro Owl, Kora-Gazelle, and the Taiko-Tanuki festival stage.
+4. **🏛️ Zone 4: Ancient Sound Ruins & Sonic Vines (Northeast)**:
+   * Floating 3D monolith blocks, ancient acoustic ruin pillars, wild Glitch-Golem, and the Harmonic Tuning Fork.
+   * A pulsating **Sonic Vine Barrier** blocks the northern mountain pass until the player tunes into the island's frequencies.
+5. **⚡ Zone 5: Desolation Ridge & The Glitch Rift (Northwest)**:
+   * Stormy cracked purple terrain with static lightning rods, Jax's rebel outpost, and the towering Glitch Gate leading into Dead Channel 000.
+
+### Narrative Quest Flow & Environmental Discovery:
+* **Movement Lock during Dialogue**: Player movement is strictly frozen while any dialogue is active, allowing full narrative engagement.
+* **Act 1 — Emergency Broadcast**: Dead Channel 000 overrides the airwaves. Aria tasks you with restoring the island's resonance.
+* **Act 2 — Environmental Clues**:
+  * Aria tells you about the ancient tuning fork in the Northeast Ruins.
+  * Barnaby tips you on the tidal sands holding the Golden Vinyl Record.
+  * Maestro Owl in the Bamboo Grove tests your harmonic attunement once the 3 traditions (Violin, Sitar, Taiko) are unlocked.
+* **Act 3 — Piercing the Sonic Barrier**: With your squad leveled up and tuning items gathered, you dispel the northern sonic barrier to reach Desolation Ridge.
+* **Act 4 — The Rebel Stand & Glitch Breach**: Duel Jax to combine frequencies into the **Omni-Harmony Chimera** and breach the Glitch Gate to silence Dead Channel 000.
 
 ---
 
