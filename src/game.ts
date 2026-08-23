@@ -532,6 +532,8 @@ export class HarmoniaGameEngine {
       targetMelody,
       targetNoteIndices: noteIndices,
       currentStep: 0,
+      revealedSteps: [false, false, false, false],
+      isPlayingMelody: false,
       playerInputs: [],
       resonanceMeter: 20,
       catchThreshold: 80,
@@ -545,39 +547,75 @@ export class HarmoniaGameEngine {
     soundEngine.stopBGM();
     soundEngine.playWildlifeCall(pet.species.toLowerCase());
 
-    // Play creature's introductory call phrase
-    targetMelody.forEach((freq, idx) => {
+    this.replayHarmonizeMelody();
+  }
+
+  public replayHarmonizeMelody(): void {
+    const enc = this.state.harmonizeEncounter;
+    if (!enc || enc.concluded || enc.isPlayingMelody) return;
+
+    enc.isPlayingMelody = true;
+    enc.targetMelody.forEach((freq, idx) => {
       setTimeout(() => {
-        soundEngine.playInstrumentNote(this.state.harmonizeEncounter?.instrumentId || 'silver_flute', freq, 0.25, 0.7);
-      }, (idx + 1) * 250);
+        if (!this.state.harmonizeEncounter || this.state.harmonizeEncounter.concluded) return;
+        soundEngine.playInstrumentNote(enc.instrumentId, freq, 0.35, 0.8);
+        if (idx === enc.targetMelody.length - 1) {
+          setTimeout(() => {
+            if (this.state.harmonizeEncounter) {
+              this.state.harmonizeEncounter.isPlayingMelody = false;
+            }
+          }, 350);
+        }
+      }, (idx + 1) * 350);
     });
   }
 
   public playHarmonizeNote(noteIndex: number = 0): void {
     const enc = this.state.harmonizeEncounter;
-    if (!enc || enc.concluded) return;
+    if (!enc || enc.concluded || enc.isPlayingMelody) return;
 
     const FREQS = [261.63, 329.63, 392.00, 523.25];
     const playedFreq = FREQS[noteIndex] || 261.63;
     enc.playerInputs.push(playedFreq);
-    const player = this.state.ensemble.members[0];
+    const player = this.state.ensemble?.members?.[0];
+    const playerInstrument = player?.instrumentId || 'violin';
+    const tech = player?.stats?.technique || 25;
+    const tone = player?.stats?.toneQuality || 25;
 
     const expectedIndex = enc.targetNoteIndices[enc.currentStep];
     if (noteIndex === expectedIndex) {
       // ✅ Correct pitch in sequence!
-      soundEngine.playInstrumentNote(player.instrumentId, playedFreq, 0.35, 0.85);
-      const resonanceGain = Math.floor(25 + (player.stats.technique + player.stats.toneQuality) / 10);
-      enc.resonanceMeter = Math.min(100, enc.resonanceMeter + resonanceGain);
-      enc.currentStep = (enc.currentStep + 1) % enc.targetNoteIndices.length;
-      enc.lastFeedback = 'PERFECT';
-      enc.lastFeedbackText = `✨ HARMONIC RESONANCE! (+${resonanceGain}%)`;
+      soundEngine.playInstrumentNote(playerInstrument, playedFreq, 0.35, 0.85);
+      if (!enc.revealedSteps) enc.revealedSteps = [false, false, false, false];
+      enc.revealedSteps[enc.currentStep] = true;
+      enc.currentStep++;
+      const noteGain = Math.floor(20 + (tech + tone) / 10);
+      enc.resonanceMeter = Math.min(100, enc.resonanceMeter + noteGain);
+
+      if (enc.currentStep >= enc.targetNoteIndices.length) {
+        // Complete phrase matched!
+        const bonusGain = 15;
+        enc.resonanceMeter = Math.min(100, enc.resonanceMeter + bonusGain);
+        enc.lastFeedback = 'PERFECT';
+        enc.lastFeedbackText = `✨ HARMONIC RESONANCE! Phrase completed! (+${noteGain + bonusGain}%)`;
+        enc.currentStep = 0;
+        enc.revealedSteps = [false, false, false, false];
+        if (enc.resonanceMeter < enc.catchThreshold) {
+          setTimeout(() => this.replayHarmonizeMelody(), 1000);
+        }
+      } else {
+        enc.lastFeedback = 'PERFECT';
+        enc.lastFeedbackText = `♪ Clean Note! (${enc.currentStep} / ${enc.targetNoteIndices.length}) (+${noteGain}%)`;
+      }
     } else {
       // ❌ Dissonance / Miss
-      soundEngine.playInstrumentNote(player.instrumentId, playedFreq * 0.94, 0.35, 0.85);
+      soundEngine.playInstrumentNote(playerInstrument, playedFreq * 0.94, 0.35, 0.85);
       enc.attemptsRemaining--;
       enc.resonanceMeter = Math.max(0, enc.resonanceMeter - 15);
+      enc.currentStep = 0;
+      enc.revealedSteps = [false, false, false, false];
       enc.lastFeedback = 'DISSONANCE';
-      enc.lastFeedbackText = `⚠️ DISSONANT PITCH! The creature flinched (-15%)`;
+      enc.lastFeedbackText = `⚠️ DISSONANT NOTE! Phrase reset. Press [R] to listen again.`;
     }
 
     if (enc.resonanceMeter >= enc.catchThreshold) {

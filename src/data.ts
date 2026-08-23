@@ -1722,15 +1722,15 @@ export const WORLD_ZONES: Record<string, WorldZone> = {
     themeColor: '#38bdf8',
     defaultSpawn: { x: 1000, y: 920, dir: 'down' },
     transitions: [
-      { id: 'tr_cavatina_to_west_wilds', targetZone: 'west_wilderness', targetSpawn: { x: 120, y: 600, dir: 'right' }, bounds: { x: 1920, y: 640, w: 80, h: 160 }, promptText: '➡️ East Gate: To Lyre Valley (West Wilderness)' }
+      { id: 'tr_cavatina_to_west_wilds', targetZone: 'west_wilderness', targetSpawn: { x: 120, y: 900, dir: 'right' }, bounds: { x: 1920, y: 820, w: 80, h: 160 }, promptText: '➡️ East Gate: Into Lyre Valley (West Wilderness)' }
     ],
     obstacles: [
       { type: 'building', buildingType: 'wall', x: 0, y: 0, w: 2000, h: 60, name: 'North Village Wall' },
       { type: 'building', buildingType: 'wall', x: 0, y: 1540, w: 2000, h: 60, name: 'South Melodic River' },
       { type: 'building', buildingType: 'wall', x: 0, y: 0, w: 60, h: 1600, name: 'West Colonnade Cliff' },
-      { type: 'building', buildingType: 'wall', x: 1940, y: 0, w: 60, h: 640, name: 'East Boundary Woods' },
-      { type: 'building', buildingType: 'wall', x: 1940, y: 800, w: 60, h: 800, name: 'East Boundary Woods' },
-      { type: 'gate', buildingType: 'gate', x: 1940, y: 640, w: 60, h: 160, name: 'East Forest Gate', signIcon: '➡️' },
+      { type: 'building', buildingType: 'wall', x: 1940, y: 0, w: 60, h: 820, name: 'East Boundary Woods Top' },
+      { type: 'building', buildingType: 'wall', x: 1940, y: 980, w: 60, h: 620, name: 'East Boundary Woods Bottom' },
+      { type: 'gate', buildingType: 'gate', x: 1940, y: 820, w: 60, h: 160, name: 'East Forest Gate', signIcon: '➡️' },
       // Village Buildings
       { type: 'building', buildingType: 'academy', x: 220, y: 280, w: 320, h: 220, name: 'Cavatina Music Academy', signIcon: '🎼', roofColor: '#1e3a8a' },
       { type: 'building', buildingType: 'forge', x: 600, y: 280, w: 260, h: 220, name: "Master Luthier Marco's Forge", signIcon: '🎻', roofColor: '#b45309' },
@@ -1741,29 +1741,30 @@ export const WORLD_ZONES: Record<string, WorldZone> = {
     ]
   },
 
-  // 🌲 WEST WILDERNESS: Lyre Valley & Whispering Meadow (Shorter transit, rich exploration)
+  // 🌲 WEST WILDERNESS: Lyre Valley (Short E/W transit width: 800, Deep N/S exploration height: 1800)
   west_wilderness: {
     id: 'west_wilderness',
     name: 'Lyre Valley',
     subtitle: 'Whispering Wilds & Silver Bow Glen',
-    width: 1200,
-    height: 1200,
+    width: 800,
+    height: 1800,
     ambientBgm: 'west_wilderness',
     themeColor: '#0ea5e9',
-    defaultSpawn: { x: 120, y: 600, dir: 'right' },
+    defaultSpawn: { x: 120, y: 900, dir: 'right' },
     transitions: [
-      { id: 'tr_ww_to_cavatina', targetZone: 'cavatina_village', targetSpawn: { x: 1860, y: 720, dir: 'left' }, bounds: { x: 0, y: 520, w: 80, h: 160 }, promptText: '⬅️ West Trail: Back to Cavatina Village' },
-      { id: 'tr_ww_to_grand_hall', targetZone: 'grand_hall', targetSpawn: { x: 140, y: 1000, dir: 'right' }, bounds: { x: 1120, y: 520, w: 80, h: 160 }, promptText: '➡️ East Highway: To The Grand Symphony Hub' }
+      { id: 'tr_ww_to_cavatina', targetZone: 'cavatina_village', targetSpawn: { x: 1860, y: 900, dir: 'left' }, bounds: { x: 0, y: 820, w: 80, h: 160 }, promptText: '⬅️ West Trail: Back to Cavatina Village' },
+      { id: 'tr_ww_to_grand_hall', targetZone: 'grand_hall', targetSpawn: { x: 140, y: 1000, dir: 'right' }, bounds: { x: 720, y: 820, w: 80, h: 160 }, promptText: '➡️ East Highway: To The Central City (Grand Symphony Hub)' }
     ],
     obstacles: [
-      { type: 'box', x: 0, y: 0, w: 1200, h: 60, name: 'Northern Valley Ridge' },
-      { type: 'box', x: 0, y: 1140, w: 1200, h: 60, name: 'Southern Valley Stream' },
-      { type: 'box', x: 0, y: 0, w: 60, h: 520, name: 'West Valley Thicket' },
-      { type: 'box', x: 0, y: 680, w: 60, h: 520, name: 'West Valley Thicket' },
-      { type: 'box', x: 1140, y: 0, w: 60, h: 520, name: 'East Grand Archwoods' },
-      { type: 'box', x: 1140, y: 680, w: 60, h: 520, name: 'East Grand Archwoods' },
-      { type: 'circle', x: 350, y: 300, radius: 48, name: 'Acoustic Willow Copse' },
-      { type: 'circle', x: 850, y: 900, radius: 56, name: 'Resonant Rock Boulder' }
+      { type: 'box', x: 0, y: 0, w: 800, h: 60, name: 'Northern Valley Ridge' },
+      { type: 'box', x: 0, y: 1740, w: 800, h: 60, name: 'Southern Valley Stream' },
+      { type: 'box', x: 0, y: 0, w: 60, h: 820, name: 'West Valley Thicket Top' },
+      { type: 'box', x: 0, y: 980, w: 60, h: 820, name: 'West Valley Thicket Bottom' },
+      { type: 'box', x: 740, y: 0, w: 60, h: 820, name: 'East Grand Archwoods Top' },
+      { type: 'box', x: 740, y: 980, w: 60, h: 820, name: 'East Grand Archwoods Bottom' },
+      // North & South Exploration Obstacles
+      { type: 'circle', x: 300, y: 350, radius: 48, name: 'Acoustic Willow Copse' },
+      { type: 'circle', x: 550, y: 1450, radius: 56, name: 'Resonant Rock Boulder' }
     ]
   },
 
@@ -1778,14 +1779,14 @@ export const WORLD_ZONES: Record<string, WorldZone> = {
     themeColor: '#10b981',
     defaultSpawn: { x: 1000, y: 920, dir: 'down' },
     transitions: [
-      { id: 'tr_woods_to_east_wilds', targetZone: 'east_wilderness', targetSpawn: { x: 1080, y: 600, dir: 'left' }, bounds: { x: 0, y: 640, w: 80, h: 160 }, promptText: '⬅️ West Trail: To Breeze Glade (East Wilderness)' }
+      { id: 'tr_woods_to_east_wilds', targetZone: 'east_wilderness', targetSpawn: { x: 680, y: 900, dir: 'left' }, bounds: { x: 0, y: 820, w: 80, h: 160 }, promptText: '⬅️ West Trail: To Breeze Glade (East Wilderness)' }
     ],
     obstacles: [
       { type: 'building', buildingType: 'wall', x: 0, y: 0, w: 2000, h: 60, name: 'Northern Thicket Wall' },
       { type: 'building', buildingType: 'wall', x: 0, y: 1540, w: 2000, h: 60, name: 'Southern Briar River' },
-      { type: 'building', buildingType: 'wall', x: 0, y: 0, w: 60, h: 640, name: 'Western Tree Wall' },
-      { type: 'building', buildingType: 'wall', x: 0, y: 800, w: 60, h: 800, name: 'Western Tree Wall' },
-      { type: 'gate', buildingType: 'gate', x: 0, y: 640, w: 60, h: 160, name: 'West Glade Gate', signIcon: '⬅️' },
+      { type: 'building', buildingType: 'wall', x: 0, y: 0, w: 60, h: 820, name: 'Western Tree Wall Top' },
+      { type: 'building', buildingType: 'wall', x: 0, y: 980, w: 60, h: 620, name: 'Western Tree Wall Bottom' },
+      { type: 'gate', buildingType: 'gate', x: 0, y: 820, w: 60, h: 160, name: 'West Glade Gate', signIcon: '⬅️' },
       { type: 'building', buildingType: 'wall', x: 1940, y: 0, w: 60, h: 1600, name: 'Eastern Bamboo Ridge' },
       // Replicated Village Buildings (Sylvan Theme)
       { type: 'building', buildingType: 'academy', x: 220, y: 280, w: 320, h: 220, name: 'Sylvan Woodwind Academy', signIcon: '🪈', roofColor: '#047857' },
@@ -1797,29 +1798,30 @@ export const WORLD_ZONES: Record<string, WorldZone> = {
     ]
   },
 
-  // 🍃 EAST WILDERNESS: Breeze Glade & Reedmarsh (Shorter transit, rich exploration)
+  // 🍃 EAST WILDERNESS: Breeze Glade (Short E/W transit width: 800, Deep N/S exploration height: 1800)
   east_wilderness: {
     id: 'east_wilderness',
     name: 'Breeze Glade',
     subtitle: 'Reedmarsh Wilds & Zephyr Falls',
-    width: 1200,
-    height: 1200,
+    width: 800,
+    height: 1800,
     ambientBgm: 'east_wilderness',
     themeColor: '#059669',
-    defaultSpawn: { x: 1080, y: 600, dir: 'left' },
+    defaultSpawn: { x: 680, y: 900, dir: 'left' },
     transitions: [
-      { id: 'tr_ew_to_woods', targetZone: 'woodwind_woods', targetSpawn: { x: 120, y: 720, dir: 'right' }, bounds: { x: 1120, y: 520, w: 80, h: 160 }, promptText: '➡️ East Trail: Into Woodwind Woods' },
-      { id: 'tr_ew_to_grand_hall', targetZone: 'grand_hall', targetSpawn: { x: 2260, y: 1000, dir: 'left' }, bounds: { x: 0, y: 520, w: 80, h: 160 }, promptText: '⬅️ West Highway: To The Grand Symphony Hub' }
+      { id: 'tr_ew_to_woods', targetZone: 'woodwind_woods', targetSpawn: { x: 120, y: 900, dir: 'right' }, bounds: { x: 720, y: 820, w: 80, h: 160 }, promptText: '➡️ East Trail: Into Woodwind Woods' },
+      { id: 'tr_ew_to_grand_hall', targetZone: 'grand_hall', targetSpawn: { x: 2260, y: 1000, dir: 'left' }, bounds: { x: 0, y: 820, w: 80, h: 160 }, promptText: '⬅️ West Highway: To The Central City (Grand Symphony Hub)' }
     ],
     obstacles: [
-      { type: 'box', x: 0, y: 0, w: 1200, h: 60, name: 'Northern Reed Marsh' },
-      { type: 'box', x: 0, y: 1140, w: 1200, h: 60, name: 'Southern Bamboo Clump' },
-      { type: 'box', x: 0, y: 0, w: 60, h: 520, name: 'West Marsh Edge' },
-      { type: 'box', x: 0, y: 680, w: 60, h: 520, name: 'West Marsh Edge' },
-      { type: 'box', x: 1140, y: 0, w: 60, h: 520, name: 'East Wood Edge' },
-      { type: 'box', x: 1140, y: 680, w: 60, h: 520, name: 'East Wood Edge' },
-      { type: 'circle', x: 450, y: 350, radius: 44, name: 'Flute Reed Pool' },
-      { type: 'circle', x: 800, y: 850, radius: 52, name: 'Zephyr Hollow' }
+      { type: 'box', x: 0, y: 0, w: 800, h: 60, name: 'Northern Reed Marsh' },
+      { type: 'box', x: 0, y: 1740, w: 800, h: 60, name: 'Southern Bamboo Clump' },
+      { type: 'box', x: 0, y: 0, w: 60, h: 820, name: 'West Marsh Edge Top' },
+      { type: 'box', x: 0, y: 980, w: 60, h: 820, name: 'West Marsh Edge Bottom' },
+      { type: 'box', x: 740, y: 0, w: 60, h: 820, name: 'East Wood Edge Top' },
+      { type: 'box', x: 740, y: 980, w: 60, h: 820, name: 'East Wood Edge Bottom' },
+      // Exploration Obstacles
+      { type: 'circle', x: 350, y: 400, radius: 44, name: 'Flute Reed Pool' },
+      { type: 'circle', x: 500, y: 1400, radius: 52, name: 'Zephyr Hollow' }
     ]
   },
 
@@ -1834,7 +1836,7 @@ export const WORLD_ZONES: Record<string, WorldZone> = {
     themeColor: '#eab308',
     defaultSpawn: { x: 1000, y: 920, dir: 'down' },
     transitions: [
-      { id: 'tr_citadel_to_north_wilds', targetZone: 'north_wilderness', targetSpawn: { x: 600, y: 120, dir: 'down' }, bounds: { x: 920, y: 1520, w: 160, h: 80 }, promptText: '⬇️ South Bastion Gate: To Echo Canyon (North Wilderness)' }
+      { id: 'tr_citadel_to_north_wilds', targetZone: 'north_wilderness', targetSpawn: { x: 900, y: 120, dir: 'down' }, bounds: { x: 920, y: 1520, w: 160, h: 80 }, promptText: '⬇️ South Bastion Gate: To Echo Canyon (North Wilderness)' }
     ],
     obstacles: [
       { type: 'building', buildingType: 'wall', x: 0, y: 0, w: 2000, h: 60, name: 'Citadel Golden North Wall' },
@@ -1853,29 +1855,30 @@ export const WORLD_ZONES: Record<string, WorldZone> = {
     ]
   },
 
-  // 🏜️ NORTH WILDERNESS: Echo Canyon & Brass Ridge (Shorter transit, rich exploration)
+  // 🏜️ NORTH WILDERNESS: Echo Canyon (Deep E/W exploration width: 1800, Short N/S transit height: 800)
   north_wilderness: {
     id: 'north_wilderness',
     name: 'Echo Canyon',
     subtitle: 'Golden Steppes & Resonance Peak',
-    width: 1200,
-    height: 1200,
+    width: 1800,
+    height: 800,
     ambientBgm: 'north_wilderness',
     themeColor: '#d97706',
-    defaultSpawn: { x: 600, y: 120, dir: 'down' },
+    defaultSpawn: { x: 900, y: 120, dir: 'down' },
     transitions: [
-      { id: 'tr_nw_to_citadel', targetZone: 'brass_citadel', targetSpawn: { x: 1000, y: 1460, dir: 'up' }, bounds: { x: 520, y: 0, w: 160, h: 80 }, promptText: '⬆️ North Pass: Into The Brass Citadel' },
-      { id: 'tr_nw_to_grand_hall', targetZone: 'grand_hall', targetSpawn: { x: 1200, y: 140, dir: 'down' }, bounds: { x: 520, y: 1120, w: 160, h: 80 }, promptText: '⬇️ South Descent: To The Grand Symphony Hub' }
+      { id: 'tr_nw_to_citadel', targetZone: 'brass_citadel', targetSpawn: { x: 1000, y: 1460, dir: 'up' }, bounds: { x: 820, y: 0, w: 160, h: 80 }, promptText: '⬆️ North Pass: Into The Brass Citadel' },
+      { id: 'tr_nw_to_grand_hall', targetZone: 'grand_hall', targetSpawn: { x: 1200, y: 140, dir: 'down' }, bounds: { x: 820, y: 720, w: 160, h: 80 }, promptText: '⬇️ South Highway: To The Central City (Grand Symphony Hub)' }
     ],
     obstacles: [
-      { type: 'box', x: 0, y: 0, w: 520, h: 60, name: 'North Mesa Wall Left' },
-      { type: 'box', x: 680, y: 0, w: 520, h: 60, name: 'North Mesa Wall Right' },
-      { type: 'box', x: 0, y: 1140, w: 520, h: 60, name: 'South Canyon Gate Left' },
-      { type: 'box', x: 680, y: 1140, w: 520, h: 60, name: 'South Canyon Gate Right' },
-      { type: 'box', x: 0, y: 0, w: 60, h: 1200, name: 'West Canyon Escarpment' },
-      { type: 'box', x: 1140, y: 0, w: 60, h: 1200, name: 'East Canyon Escarpment' },
-      { type: 'circle', x: 300, y: 600, radius: 50, name: 'Acoustic Monolith' },
-      { type: 'circle', x: 900, y: 600, radius: 50, name: 'Fanfare Ridge Spire' }
+      { type: 'box', x: 0, y: 0, w: 820, h: 60, name: 'North Mesa Wall Left' },
+      { type: 'box', x: 980, y: 0, w: 820, h: 60, name: 'North Mesa Wall Right' },
+      { type: 'box', x: 0, y: 740, w: 820, h: 60, name: 'South Canyon Gate Left' },
+      { type: 'box', x: 980, y: 740, w: 820, h: 60, name: 'South Canyon Gate Right' },
+      { type: 'box', x: 0, y: 0, w: 60, h: 800, name: 'West Canyon Escarpment' },
+      { type: 'box', x: 1740, y: 0, w: 60, h: 800, name: 'East Canyon Escarpment' },
+      // E/W Exploration Obstacles
+      { type: 'circle', x: 400, y: 400, radius: 50, name: 'Acoustic Monolith' },
+      { type: 'circle', x: 1400, y: 400, radius: 50, name: 'Fanfare Ridge Spire' }
     ]
   },
 
@@ -1890,7 +1893,7 @@ export const WORLD_ZONES: Record<string, WorldZone> = {
     themeColor: '#8b5cf6',
     defaultSpawn: { x: 1000, y: 920, dir: 'down' },
     transitions: [
-      { id: 'tr_peaks_to_south_wilds', targetZone: 'south_wilderness', targetSpawn: { x: 600, y: 1080, dir: 'up' }, bounds: { x: 920, y: 0, w: 160, h: 80 }, promptText: '⬆️ North Summit Pass: To Rumble Gorge (South Wilderness)' }
+      { id: 'tr_peaks_to_south_wilds', targetZone: 'south_wilderness', targetSpawn: { x: 900, y: 680, dir: 'up' }, bounds: { x: 920, y: 0, w: 160, h: 80 }, promptText: '⬆️ North Summit Pass: To Rumble Gorge (South Wilderness)' }
     ],
     obstacles: [
       { type: 'building', buildingType: 'wall', x: 0, y: 0, w: 920, h: 60, name: 'North Cliff Left' },
@@ -1909,49 +1912,51 @@ export const WORLD_ZONES: Record<string, WorldZone> = {
     ]
   },
 
-  // 🌋 SOUTH WILDERNESS: Rumble Gorge & Rhythm Caverns (Shorter transit, rich exploration)
+  // 🌋 SOUTH WILDERNESS: Rumble Gorge (Deep E/W exploration width: 1800, Short N/S transit height: 800)
   south_wilderness: {
     id: 'south_wilderness',
     name: 'Rumble Gorge',
     subtitle: 'Rhythm Caverns & Echoing Caldera',
-    width: 1200,
-    height: 1200,
+    width: 1800,
+    height: 800,
     ambientBgm: 'south_wilderness',
     themeColor: '#7c3aed',
-    defaultSpawn: { x: 600, y: 1080, dir: 'up' },
+    defaultSpawn: { x: 900, y: 680, dir: 'up' },
     transitions: [
-      { id: 'tr_sw_to_peaks', targetZone: 'percussion_peaks', targetSpawn: { x: 1000, y: 140, dir: 'down' }, bounds: { x: 520, y: 1120, w: 160, h: 80 }, promptText: '⬇️ South Descent: Into Percussion Peaks' },
-      { id: 'tr_sw_to_grand_hall', targetZone: 'grand_hall', targetSpawn: { x: 1200, y: 1860, dir: 'up' }, bounds: { x: 520, y: 0, w: 160, h: 80 }, promptText: '⬆️ North Ascent: To The Grand Symphony Hub' }
+      { id: 'tr_sw_to_peaks', targetZone: 'percussion_peaks', targetSpawn: { x: 1000, y: 140, dir: 'down' }, bounds: { x: 820, y: 720, w: 160, h: 80 }, promptText: '⬇️ South Descent: Into Percussion Peaks' },
+      { id: 'tr_sw_to_grand_hall', targetZone: 'grand_hall', targetSpawn: { x: 1200, y: 1860, dir: 'up' }, bounds: { x: 820, y: 0, w: 160, h: 80 }, promptText: '⬆️ North Highway: To The Central City (Grand Symphony Hub)' }
     ],
     obstacles: [
-      { type: 'box', x: 0, y: 0, w: 520, h: 60, name: 'North Gorge Rim Left' },
-      { type: 'box', x: 680, y: 0, w: 520, h: 60, name: 'North Gorge Rim Right' },
-      { type: 'box', x: 0, y: 1140, w: 520, h: 60, name: 'South Peak Pass Left' },
-      { type: 'box', x: 680, y: 1140, w: 520, h: 60, name: 'South Peak Pass Right' },
-      { type: 'box', x: 0, y: 0, w: 60, h: 1200, name: 'West Basalt Wall' },
-      { type: 'box', x: 1140, y: 0, w: 60, h: 1200, name: 'East Basalt Wall' },
-      { type: 'circle', x: 300, y: 600, radius: 50, name: 'Echoing Basalt Spire' },
-      { type: 'circle', x: 900, y: 600, radius: 50, name: 'Caldera Steam Vent' }
+      { type: 'box', x: 0, y: 0, w: 820, h: 60, name: 'North Gorge Rim Left' },
+      { type: 'box', x: 980, y: 0, w: 820, h: 60, name: 'North Gorge Rim Right' },
+      { type: 'box', x: 0, y: 740, w: 820, h: 60, name: 'South Peak Pass Left' },
+      { type: 'box', x: 980, y: 740, w: 820, h: 60, name: 'South Peak Pass Right' },
+      { type: 'box', x: 0, y: 0, w: 60, h: 800, name: 'West Basalt Wall' },
+      { type: 'box', x: 1740, y: 0, w: 60, h: 800, name: 'East Basalt Wall' },
+      // E/W Exploration Obstacles
+      { type: 'circle', x: 400, y: 400, radius: 50, name: 'Echoing Basalt Spire' },
+      { type: 'circle', x: 1400, y: 400, radius: 50, name: 'Caldera Steam Vent' }
     ]
   },
 
-  // 🏛️ CENTRAL HUB: The Grand Symphony Hall & Four-Way Compass
+  // 🏛️ CENTRAL CITY: The Grand Symphony Hub & Four-Way Compass
   grand_hall: {
     id: 'grand_hall',
-    name: 'The Grand Symphony Hall',
-    subtitle: 'Heart of Sonora & Eternal Colonnade',
+    name: 'The Central City',
+    subtitle: 'Grand Symphony Hub & Sanctuary of Maestros',
     width: 2400,
     height: 2000,
     ambientBgm: 'grand_hall',
     themeColor: '#f59e0b',
     defaultSpawn: { x: 1200, y: 1000, dir: 'down' },
     transitions: [
-      { id: 'tr_gh_to_west', targetZone: 'west_wilderness', targetSpawn: { x: 1080, y: 600, dir: 'left' }, bounds: { x: 0, y: 920, w: 80, h: 160 }, promptText: '⬅️ West Arch: Through Lyre Valley to Cavatina Village (Strings)' },
-      { id: 'tr_gh_to_east', targetZone: 'east_wilderness', targetSpawn: { x: 120, y: 600, dir: 'right' }, bounds: { x: 2320, y: 920, w: 80, h: 160 }, promptText: '➡️ East Gate: Through Breeze Glade to Woodwind Woods (Winds)' },
-      { id: 'tr_gh_to_north', targetZone: 'north_wilderness', targetSpawn: { x: 600, y: 1080, dir: 'up' }, bounds: { x: 1120, y: 0, w: 160, h: 80 }, promptText: '⬆️ North Colonnade: Through Echo Canyon to Brass Citadel (Brass)' },
-      { id: 'tr_gh_to_south', targetZone: 'south_wilderness', targetSpawn: { x: 600, y: 120, dir: 'down' }, bounds: { x: 1120, y: 1920, w: 160, h: 80 }, promptText: '⬇️ South Grand Bridge: Through Rumble Gorge to Percussion Peaks (Percussion)' }
+      { id: 'tr_gh_to_west', targetZone: 'west_wilderness', targetSpawn: { x: 680, y: 900, dir: 'left' }, bounds: { x: 0, y: 920, w: 80, h: 160 }, promptText: '⬅️ West Arch: Through Lyre Valley to Cavatina Village (Strings)' },
+      { id: 'tr_gh_to_east', targetZone: 'east_wilderness', targetSpawn: { x: 120, y: 900, dir: 'right' }, bounds: { x: 2320, y: 920, w: 80, h: 160 }, promptText: '➡️ East Gate: Through Breeze Glade to Woodwind Woods (Winds)' },
+      { id: 'tr_gh_to_north', targetZone: 'north_wilderness', targetSpawn: { x: 900, y: 680, dir: 'up' }, bounds: { x: 1120, y: 0, w: 160, h: 80 }, promptText: '⬆️ North Colonnade: Through Echo Canyon to Brass Citadel (Brass)' },
+      { id: 'tr_gh_to_south', targetZone: 'south_wilderness', targetSpawn: { x: 900, y: 120, dir: 'down' }, bounds: { x: 1120, y: 1920, w: 160, h: 80 }, promptText: '⬇️ South Grand Bridge: Through Rumble Gorge to Percussion Peaks (Percussion)' }
     ],
     obstacles: [
+      // City Perimeter Walls
       { type: 'building', buildingType: 'wall', x: 0, y: 0, w: 1120, h: 60, name: 'North Colonnade Wall Left' },
       { type: 'building', buildingType: 'wall', x: 1280, y: 0, w: 1120, h: 60, name: 'North Colonnade Wall Right' },
       { type: 'building', buildingType: 'wall', x: 0, y: 1940, w: 1120, h: 60, name: 'South Colonnade Wall Left' },
@@ -1960,11 +1965,13 @@ export const WORLD_ZONES: Record<string, WorldZone> = {
       { type: 'building', buildingType: 'wall', x: 0, y: 1080, w: 60, h: 920, name: 'West Colonnade Wall Bottom' },
       { type: 'building', buildingType: 'wall', x: 2340, y: 0, w: 60, h: 920, name: 'East Colonnade Wall Top' },
       { type: 'building', buildingType: 'wall', x: 2340, y: 1080, w: 60, h: 920, name: 'East Colonnade Wall Bottom' },
-      { type: 'circle', x: 1200, y: 600, radius: 80, name: 'The Eternal Rotunda Dais' },
-      { type: 'circle', x: 800, y: 1000, radius: 40, name: 'Pillar of Strings' },
-      { type: 'circle', x: 1600, y: 1000, radius: 40, name: 'Pillar of Winds' },
-      { type: 'circle', x: 1200, y: 1400, radius: 40, name: 'Pillar of Brass' },
-      { type: 'circle', x: 1200, y: 700, radius: 40, name: 'Pillar of Percussion' }
+      // Central City Iconic Buildings
+      { type: 'building', buildingType: 'academy', x: 950, y: 640, w: 500, h: 320, name: 'The Grand Symphony Hall', signIcon: '🏛️', roofColor: '#831843' },
+      { type: 'building', buildingType: 'academy', x: 240, y: 260, w: 420, h: 240, name: 'High Conservatory of Maestros', signIcon: '🎼', roofColor: '#1e3a8a' },
+      { type: 'building', buildingType: 'library', x: 1740, y: 260, w: 420, h: 240, name: 'Royal Archives & Grand Library', signIcon: '📖', roofColor: '#065f46' },
+      { type: 'building', buildingType: 'tavern', x: 240, y: 1360, w: 420, h: 240, name: "The Maestro's Forum & Taphouse", signIcon: '🍷', roofColor: '#991b1b' },
+      { type: 'building', buildingType: 'clocktower', x: 1740, y: 1360, w: 420, h: 240, name: 'Solstice Clocktower & Council Hall', signIcon: '⏰', roofColor: '#4c1d95' },
+      { type: 'circle', x: 1200, y: 1140, radius: 75, name: 'The Eternal Rotunda Dais' }
     ]
   }
 };
@@ -2365,51 +2372,39 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     id: 'npc_sign_west_wilds',
     name: 'Lyre Valley Trail Marker',
     title: 'Read Guidepost [SPACE]',
-    x: 200,
-    y: 550,
+    x: 180,
+    y: 840,
     zone: 'west_wilderness',
     isProp: true,
     propType: 'road_sign',
     actionType: 'signpost',
     dialogue: [
       "🌲 LYRE VALLEY (WEST WILDERNESS):",
-      "• ⬅️ WEST: Back to Cavatina Village (Strings).",
-      "• ➡️ EAST: Highway to The Grand Symphony Hub & Central Conservatory.",
-      "• ✨ EXPLORE: North path leads to Secret Willow Grove; South path leads to Silver Bow Glen."
+      "• ⬅️ WEST: Direct path to Cavatina Village (Strings).",
+      "• ➡️ EAST: Direct highway to The Central City (Grand Symphony Hub).",
+      "• ✨ EXPLORE: North trail leads to Secret Willow Grove; South trail leads to Silver Bow Glen."
     ]
   },
   {
-    id: 'npc_vista_silver_bow',
-    name: 'Silver Bow Glen Vista',
-    title: 'Attune to Acoustic Vista [SPACE]',
-    x: 600,
-    y: 950,
+    id: 'npc_toby_world',
+    name: 'Toby',
+    title: 'Acoustic Folk Kid (Age 11) [SPACE to Jam]',
+    x: 400,
+    y: 900,
     zone: 'west_wilderness',
-    isProp: true,
-    propType: 'vista_monolith',
-    actionType: 'inspiration_vista',
-    vistaId: 'vista_silver_bow',
-    dialogue: ["You stand within the Silver Bow Glen. The soft breeze plays the willow leaves like delicate violin strings!"]
-  },
-  {
-    id: 'npc_score_bach_minuet',
-    name: 'Mossy Stone Stand',
-    title: 'Inspect Ancient Manuscript [SPACE]',
-    x: 900,
-    y: 300,
-    zone: 'west_wilderness',
-    isProp: true,
-    propType: 'ancient_stone_stand',
-    actionType: 'sheet_music_stand',
-    sheetMusicReward: 'piece_bach_minuet',
-    dialogue: ["You discovered the ancient lost folio for 'Minuet in G Major' (Baroque Duet)!"]
+    wander: true,
+    anchorX: 400,
+    anchorY: 900,
+    musicianData: RECRUITABLE_MUSICIANS[4],
+    actionType: 'audition_battle',
+    dialogue: RECRUITABLE_MUSICIANS[4].dialogue || []
   },
   {
     id: 'npc_chest_west',
     name: 'Secret Willow Grove Chest',
     title: 'Open Hidden Treasure Chest [SPACE]',
     x: 300,
-    y: 250,
+    y: 300,
     zone: 'west_wilderness',
     isProp: true,
     propType: 'treasure_chest',
@@ -2418,52 +2413,28 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     dialogue: ["You opened the hidden Willow Grove Chest! Found 250 Notes (♪) and 15 Inspiration Sparks (✨)!"]
   },
   {
-    id: 'npc_toby_world',
-    name: 'Toby',
-    title: 'Acoustic Folk Kid (Age 11) [SPACE to Jam]',
+    id: 'npc_score_bach_minuet',
+    name: 'Mossy Stone Stand',
+    title: 'Inspect Ancient Manuscript [SPACE]',
     x: 500,
-    y: 650,
+    y: 400,
     zone: 'west_wilderness',
-    wander: true,
-    anchorX: 500,
-    anchorY: 650,
-    musicianData: RECRUITABLE_MUSICIANS[4],
-    actionType: 'audition_battle',
-    dialogue: RECRUITABLE_MUSICIANS[4].dialogue || []
-  },
-  {
-    id: 'npc_wild_swan',
-    name: 'Wild Cantabile Swan',
-    title: 'Wild Harmonipet (Violin) [SPACE to Harmonize]',
-    x: 750,
-    y: 950,
-    zone: 'west_wilderness',
-    wander: true,
-    anchorX: 750,
-    anchorY: 950,
-    actionType: 'wild_harmonipet',
-    wildPetData: {
-      id: 'pet_swan_wild',
-      name: 'Grace',
-      species: 'Cantabile Swan',
-      sprite: 'swan',
-      section: 'strings',
-      instrumentName: 'Concert Violin',
-      leitmotifSound: 'violin_pure',
-      color: '#ec4899'
-    },
-    dialogue: ["A majestic Cantabile Swan glides across the stream, singing pure lyrical violin tones! Harmonize with it!"]
+    isProp: true,
+    propType: 'ancient_stone_stand',
+    actionType: 'sheet_music_stand',
+    sheetMusicReward: 'piece_bach_minuet',
+    dialogue: ["You discovered the ancient lost folio for 'Minuet in G Major' (Baroque Duet)!"]
   },
   {
     id: 'npc_wild_hare_wilds',
     name: 'Wild Meadow Hare',
     title: 'Wild Harmonipet (Acoustic Guitar) [SPACE to Harmonize]',
     x: 350,
-    y: 850,
+    y: 600,
     zone: 'west_wilderness',
     wander: true,
     anchorX: 350,
-    anchorY: 850,
+    anchorY: 600,
     actionType: 'wild_harmonipet',
     wildPetData: {
       id: 'pet_hare_wilds2',
@@ -2476,6 +2447,42 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       color: '#f59e0b'
     },
     dialogue: ["A sprightly Meadow Hare is strumming rapid folk chords in the tall grass! Harmonize with its rhythm!"]
+  },
+  {
+    id: 'npc_vista_silver_bow',
+    name: 'Silver Bow Glen Vista',
+    title: 'Attune to Acoustic Vista [SPACE]',
+    x: 400,
+    y: 1500,
+    zone: 'west_wilderness',
+    isProp: true,
+    propType: 'vista_monolith',
+    actionType: 'inspiration_vista',
+    vistaId: 'vista_silver_bow',
+    dialogue: ["You stand within the Silver Bow Glen. The soft breeze plays the willow leaves like delicate violin strings!"]
+  },
+  {
+    id: 'npc_wild_swan',
+    name: 'Wild Cantabile Swan',
+    title: 'Wild Harmonipet (Violin) [SPACE to Harmonize]',
+    x: 500,
+    y: 1300,
+    zone: 'west_wilderness',
+    wander: true,
+    anchorX: 500,
+    anchorY: 1300,
+    actionType: 'wild_harmonipet',
+    wildPetData: {
+      id: 'pet_swan_wild',
+      name: 'Grace',
+      species: 'Cantabile Swan',
+      sprite: 'swan',
+      section: 'strings',
+      instrumentName: 'Concert Violin',
+      leitmotifSound: 'violin_pure',
+      color: '#ec4899'
+    },
+    dialogue: ["A majestic Cantabile Swan glides across the stream, singing pure lyrical violin tones! Harmonize with it!"]
   },
 
   // ==================== WOODWIND WOODS (SETTLED CANOPY VILLAGE) ====================
@@ -2668,7 +2675,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     actionType: 'signpost',
     dialogue: [
       "🗺️ WOODWIND WOODS (EASTERN CANOPY VILLAGE):",
-      "• ⬅️ WEST GATE: Trail into Breeze Glade (East Wilderness) toward the Grand Symphony Hub.",
+      "• ⬅️ WEST GATE: Direct trail into Breeze Glade (East Wilderness) toward Central City.",
       "• 🍵 THE WHISPERING WILLOW LOUNGE: Warm tea and jazz gossip in the southwest plaza.",
       "• 🌾 CANE WORKSHOP: Master Reed crafts woodwind upgrades in the northwest quarter.",
       "• 🪈 SYLVAN ACADEMY: Interval theory and staccato training in the northwest quarter."
@@ -2843,25 +2850,39 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     id: 'npc_sign_east_wilds',
     name: 'Breeze Glade Trail Marker',
     title: 'Read Guidepost [SPACE]',
-    x: 1000,
-    y: 550,
+    x: 620,
+    y: 840,
     zone: 'east_wilderness',
     isProp: true,
     propType: 'road_sign',
     actionType: 'signpost',
     dialogue: [
       "🍃 BREEZE GLADE (EAST WILDERNESS):",
-      "• ➡️ EAST: Into Woodwind Woods (Woodwinds).",
-      "• ⬅️ WEST: Highway to The Grand Symphony Hub.",
+      "• ➡️ EAST: Direct trail into Woodwind Woods (Woodwinds).",
+      "• ⬅️ WEST: Direct highway to The Central City (Grand Symphony Hub).",
       "• ✨ EXPLORE: North trail leads to Zephyr Falls; South trail hides the Bamboo Alcove."
     ]
+  },
+  {
+    id: 'npc_chloe_world',
+    name: 'Chloe',
+    title: 'Shy Oboe Prodigy (Age 12) [SPACE to Jam]',
+    x: 400,
+    y: 900,
+    zone: 'east_wilderness',
+    wander: true,
+    anchorX: 400,
+    anchorY: 900,
+    musicianData: RECRUITABLE_MUSICIANS[6],
+    actionType: 'audition_battle',
+    dialogue: RECRUITABLE_MUSICIANS[6].dialogue || []
   },
   {
     id: 'npc_vista_zephyr_falls',
     name: 'Zephyr Falls Vista',
     title: 'Attune to Acoustic Vista [SPACE]',
-    x: 600,
-    y: 250,
+    x: 400,
+    y: 300,
     zone: 'east_wilderness',
     isProp: true,
     propType: 'vista_monolith',
@@ -2870,55 +2891,15 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     dialogue: ["The crystalline spray of Zephyr Falls sings in harmonious fifths, clearing your musical mind!"]
   },
   {
-    id: 'npc_score_debussy_reverie',
-    name: 'Bamboo Altar Stand',
-    title: 'Inspect Ancient Manuscript [SPACE]',
-    x: 300,
-    y: 950,
-    zone: 'east_wilderness',
-    isProp: true,
-    propType: 'ancient_stone_stand',
-    actionType: 'sheet_music_stand',
-    sheetMusicReward: 'piece_debussy_reverie',
-    dialogue: ["You unearthed the impressionist masterpiece 'Rêverie for Woodwind Trio'!"]
-  },
-  {
-    id: 'npc_chest_east',
-    name: 'Bamboo Secret Alcove Chest',
-    title: 'Open Hidden Treasure Chest [SPACE]',
-    x: 900,
-    y: 950,
-    zone: 'east_wilderness',
-    isProp: true,
-    propType: 'treasure_chest',
-    actionType: 'treasure_chest',
-    treasureReward: { notes: 250, sparks: 15 },
-    dialogue: ["You discovered the Bamboo Secret Alcove Chest! Claimed 250 Notes (♪) and 15 Inspiration Sparks (✨)!"]
-  },
-  {
-    id: 'npc_chloe_world',
-    name: 'Chloe',
-    title: 'Shy Oboe Prodigy (Age 12) [SPACE to Jam]',
-    x: 700,
-    y: 650,
-    zone: 'east_wilderness',
-    wander: true,
-    anchorX: 700,
-    anchorY: 650,
-    musicianData: RECRUITABLE_MUSICIANS[6],
-    actionType: 'audition_battle',
-    dialogue: RECRUITABLE_MUSICIANS[6].dialogue || []
-  },
-  {
     id: 'npc_wild_frog',
     name: 'Wild Flute Frog',
     title: 'Wild Harmonipet (Oboe) [SPACE to Harmonize]',
-    x: 500,
-    y: 350,
+    x: 350,
+    y: 500,
     zone: 'east_wilderness',
     wander: true,
-    anchorX: 500,
-    anchorY: 350,
+    anchorX: 350,
+    anchorY: 500,
     actionType: 'wild_harmonipet',
     wildPetData: {
       id: 'pet_frog_wild',
@@ -2936,12 +2917,12 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     id: 'npc_wild_finch_wilds',
     name: 'Wild Canopy Finch',
     title: 'Wild Harmonipet (Silver Flute) [SPACE to Harmonize]',
-    x: 850,
-    y: 350,
+    x: 550,
+    y: 400,
     zone: 'east_wilderness',
     wander: true,
-    anchorX: 850,
-    anchorY: 350,
+    anchorX: 550,
+    anchorY: 400,
     actionType: 'wild_harmonipet',
     wildPetData: {
       id: 'pet_finch_wilds2',
@@ -2954,6 +2935,32 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       color: '#10b981'
     },
     dialogue: ["A wild Canopy Finch is singing syncopated woodwind scales in the misty reeds! Harmonize with its melody!"]
+  },
+  {
+    id: 'npc_chest_east',
+    name: 'Bamboo Secret Alcove Chest',
+    title: 'Open Hidden Treasure Chest [SPACE]',
+    x: 500,
+    y: 1500,
+    zone: 'east_wilderness',
+    isProp: true,
+    propType: 'treasure_chest',
+    actionType: 'treasure_chest',
+    treasureReward: { notes: 250, sparks: 15 },
+    dialogue: ["You discovered the Bamboo Secret Alcove Chest! Claimed 250 Notes (♪) and 15 Inspiration Sparks (✨)!"]
+  },
+  {
+    id: 'npc_score_debussy_reverie',
+    name: 'Bamboo Altar Stand',
+    title: 'Inspect Ancient Manuscript [SPACE]',
+    x: 300,
+    y: 1400,
+    zone: 'east_wilderness',
+    isProp: true,
+    propType: 'ancient_stone_stand',
+    actionType: 'sheet_music_stand',
+    sheetMusicReward: 'piece_debussy_reverie',
+    dialogue: ["You unearthed the impressionist masterpiece 'Rêverie for Woodwind Trio'!"]
   },
 
   // ==================== BRASS CITADEL (SETTLED GILDED METRO) ====================
@@ -3146,7 +3153,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     actionType: 'signpost',
     dialogue: [
       "🗺️ THE BRASS CITADEL (NORTHERN GILDED BASTION):",
-      "• ⬇️ SOUTH BASTION: Descent into Echo Canyon (North Wilderness) toward Grand Symphony Hub.",
+      "• ⬇️ SOUTH BASTION: Direct highway through Echo Canyon to Central City.",
       "• 🍺 GOLDEN TRUMPET CANTEEN: Rations and marching band banter in the southwest concourse.",
       "• 📯 HORN FOUNDRY: Master Vulcan crafts brass bells and valve upgrades in the northwest quarter.",
       "• 🎺 BRASS CONSERVATORY: Triad harmonic exams in the northwest quarter."
@@ -3307,50 +3314,38 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     id: 'npc_sign_north_wilds',
     name: 'Echo Canyon Trail Marker',
     title: 'Read Guidepost [SPACE]',
-    x: 550,
-    y: 200,
+    x: 950,
+    y: 180,
     zone: 'north_wilderness',
     isProp: true,
     propType: 'road_sign',
     actionType: 'signpost',
     dialogue: [
       "🏜️ ECHO CANYON (NORTH WILDERNESS):",
-      "• ⬆️ NORTH: Ascend to The Brass Citadel (Brass).",
-      "• ⬇️ SOUTH: Descent to The Grand Symphony Hub.",
-      "• ✨ EXPLORE: West trail reaches Canyon Echo Chamber; East trail scales Resonance Peak."
+      "• ⬆️ NORTH: Ascend direct highway to The Brass Citadel (Brass).",
+      "• ⬇️ SOUTH: Descent direct highway to The Central City (Grand Symphony Hub).",
+      "• ✨ EXPLORE: West red bluffs conceal Echo Chamber Chest; East ridge ascends Resonance Peak."
     ]
   },
   {
-    id: 'npc_vista_resonance_peak',
-    name: 'Resonance Peak Vista',
-    title: 'Attune to Acoustic Vista [SPACE]',
-    x: 950,
-    y: 500,
+    id: 'npc_sam_world',
+    name: 'Sam',
+    title: 'Trombone Hotshot (Age 16) [SPACE to Jam]',
+    x: 900,
+    y: 400,
     zone: 'north_wilderness',
-    isProp: true,
-    propType: 'vista_monolith',
-    actionType: 'inspiration_vista',
-    vistaId: 'vista_resonance_peak',
-    dialogue: ["Standing atop Resonance Peak, every sound bounces back with pristine clarity, honing your technique!"]
-  },
-  {
-    id: 'npc_score_vivaldi_spring',
-    name: 'Gilded Steppe Stand',
-    title: 'Inspect Ancient Manuscript [SPACE]',
-    x: 250,
-    y: 850,
-    zone: 'north_wilderness',
-    isProp: true,
-    propType: 'golden_music_stand',
-    actionType: 'sheet_music_stand',
-    sheetMusicReward: 'piece_vivaldi_spring',
-    dialogue: ["You recovered the energetic score of 'Spring Allegro for Brass Quartet'!"]
+    wander: true,
+    anchorX: 900,
+    anchorY: 400,
+    musicianData: RECRUITABLE_MUSICIANS[8],
+    actionType: 'audition_battle',
+    dialogue: RECRUITABLE_MUSICIANS[8].dialogue || []
   },
   {
     id: 'npc_chest_north',
     name: 'Canyon Echo Chamber Chest',
     title: 'Open Hidden Treasure Chest [SPACE]',
-    x: 250,
+    x: 300,
     y: 300,
     zone: 'north_wilderness',
     isProp: true,
@@ -3360,52 +3355,28 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     dialogue: ["You opened the Canyon Echo Chamber Chest! Claimed 250 Notes (♪) and 15 Inspiration Sparks (✨)!"]
   },
   {
-    id: 'npc_sam_world',
-    name: 'Sam',
-    title: 'Trombone Hotshot (Age 16) [SPACE to Jam]',
-    x: 650,
-    y: 700,
+    id: 'npc_score_vivaldi_spring',
+    name: 'Gilded Steppe Stand',
+    title: 'Inspect Ancient Manuscript [SPACE]',
+    x: 400,
+    y: 550,
     zone: 'north_wilderness',
-    wander: true,
-    anchorX: 650,
-    anchorY: 700,
-    musicianData: RECRUITABLE_MUSICIANS[8],
-    actionType: 'audition_battle',
-    dialogue: RECRUITABLE_MUSICIANS[8].dialogue || []
-  },
-  {
-    id: 'npc_wild_badger',
-    name: 'Wild Fanfare Badger',
-    title: 'Wild Harmonipet (French Horn) [SPACE to Harmonize]',
-    x: 850,
-    y: 600,
-    zone: 'north_wilderness',
-    wander: true,
-    anchorX: 850,
-    anchorY: 600,
-    actionType: 'wild_harmonipet',
-    wildPetData: {
-      id: 'pet_badger_wild',
-      name: 'Diesel',
-      species: 'Fanfare Badger',
-      sprite: 'badger',
-      section: 'brass',
-      instrumentName: 'French Horn',
-      leitmotifSound: 'horn_call',
-      color: '#f97316'
-    },
-    dialogue: ["A stout Fanfare Badger puffs its chest and echoes deep horn calls against the canyon walls! Match its call!"]
+    isProp: true,
+    propType: 'golden_music_stand',
+    actionType: 'sheet_music_stand',
+    sheetMusicReward: 'piece_vivaldi_spring',
+    dialogue: ["You recovered the energetic score of 'Spring Allegro for Brass Quartet'!"]
   },
   {
     id: 'npc_wild_terrier_wilds',
     name: 'Wild Steppe Terrier',
     title: 'Wild Harmonipet (Pocket Trumpet) [SPACE to Harmonize]',
-    x: 400,
-    y: 800,
+    x: 250,
+    y: 450,
     zone: 'north_wilderness',
     wander: true,
-    anchorX: 400,
-    anchorY: 800,
+    anchorX: 250,
+    anchorY: 450,
     actionType: 'wild_harmonipet',
     wildPetData: {
       id: 'pet_terrier_wilds2',
@@ -3418,6 +3389,42 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
       color: '#eab308'
     },
     dialogue: ["A swift Steppe Terrier barks out staccato bugle fanfares among the red boulders! Match its pitch!"]
+  },
+  {
+    id: 'npc_vista_resonance_peak',
+    name: 'Resonance Peak Vista',
+    title: 'Attune to Acoustic Vista [SPACE]',
+    x: 1450,
+    y: 350,
+    zone: 'north_wilderness',
+    isProp: true,
+    propType: 'vista_monolith',
+    actionType: 'inspiration_vista',
+    vistaId: 'vista_resonance_peak',
+    dialogue: ["Standing atop Resonance Peak, every sound bounces back with pristine clarity, honing your technique!"]
+  },
+  {
+    id: 'npc_wild_badger',
+    name: 'Wild Fanfare Badger',
+    title: 'Wild Harmonipet (French Horn) [SPACE to Harmonize]',
+    x: 1350,
+    y: 550,
+    zone: 'north_wilderness',
+    wander: true,
+    anchorX: 1350,
+    anchorY: 550,
+    actionType: 'wild_harmonipet',
+    wildPetData: {
+      id: 'pet_badger_wild',
+      name: 'Diesel',
+      species: 'Fanfare Badger',
+      sprite: 'badger',
+      section: 'brass',
+      instrumentName: 'French Horn',
+      leitmotifSound: 'horn_call',
+      color: '#f97316'
+    },
+    dialogue: ["A stout Fanfare Badger puffs its chest and echoes deep horn calls against the canyon walls! Match its call!"]
   },
 
   // ==================== PERCUSSION PEAKS (SETTLED TAIKO GHATS) ====================
@@ -3610,7 +3617,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     actionType: 'signpost',
     dialogue: [
       "🗺️ PERCUSSION PEAKS (SOUTHERN TAIKO GHATS):",
-      "• ⬆️ NORTH SUMMIT: Path into Rumble Gorge (South Wilderness) toward Grand Symphony Hub.",
+      "• ⬆️ NORTH SUMMIT: Direct highway into Rumble Gorge toward Central City.",
       "• 🍖 ROLLING BOULDER SALOON: Hearty stew and rhythm jam sessions in southwest plaza.",
       "• 🔨 TAIKO FORGE: Master Tetsu crafts mallet and drum upgrades in northwest quarter.",
       "• 🥁 RHYTHM ACADEMY: Polyrhythm and meter theory exams in northwest quarter."
@@ -3771,51 +3778,39 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     id: 'npc_sign_south_wilds',
     name: 'Rumble Gorge Trail Marker',
     title: 'Read Guidepost [SPACE]',
-    x: 550,
-    y: 1000,
+    x: 950,
+    y: 620,
     zone: 'south_wilderness',
     isProp: true,
     propType: 'road_sign',
     actionType: 'signpost',
     dialogue: [
       "🌋 RUMBLE GORGE (SOUTH WILDERNESS):",
-      "• ⬇️ SOUTH: Enter Percussion Peaks (Percussion).",
-      "• ⬆️ NORTH: Ascent to The Grand Symphony Hub.",
-      "• ✨ EXPLORE: West path reaches Echoing Caldera; East path reveals Obsidian Cavern."
+      "• ⬇️ SOUTH: Direct highway descent into Percussion Peaks (Percussion).",
+      "• ⬆️ NORTH: Direct highway ascent to The Central City (Grand Symphony Hub).",
+      "• ✨ EXPLORE: West volcanic vents lead to Echoing Caldera; East caverns hold Obsidian Chest."
     ]
   },
   {
-    id: 'npc_vista_echoing_caldera',
-    name: 'Echoing Caldera Vista',
-    title: 'Attune to Acoustic Vista [SPACE]',
-    x: 300,
-    y: 600,
-    zone: 'south_wilderness',
-    isProp: true,
-    propType: 'vista_monolith',
-    actionType: 'inspiration_vista',
-    vistaId: 'vista_echoing_caldera',
-    dialogue: ["The steady subterranean heartbeat of the caldera grounds your internal metronome!"]
-  },
-  {
-    id: 'npc_score_tchaikovsky_dance',
-    name: 'Basalt Pedestal Stand',
-    title: 'Inspect Ancient Manuscript [SPACE]',
+    id: 'npc_ren_world',
+    name: 'Ren',
+    title: 'Taiko Dynamo Kid (Age 12) [SPACE to Jam]',
     x: 900,
-    y: 350,
+    y: 400,
     zone: 'south_wilderness',
-    isProp: true,
-    propType: 'ancient_stone_stand',
-    actionType: 'sheet_music_stand',
-    sheetMusicReward: 'piece_tchaikovsky_dance',
-    dialogue: ["You discovered the thrilling score 'Dance of the Tumblers for Percussion Chamber'!"]
+    wander: true,
+    anchorX: 900,
+    anchorY: 400,
+    musicianData: RECRUITABLE_MUSICIANS[9],
+    actionType: 'audition_battle',
+    dialogue: RECRUITABLE_MUSICIANS[9].dialogue || []
   },
   {
     id: 'npc_chest_south',
     name: 'Obsidian Cavern Secret Chest',
     title: 'Open Hidden Treasure Chest [SPACE]',
-    x: 900,
-    y: 850,
+    x: 1450,
+    y: 350,
     zone: 'south_wilderness',
     isProp: true,
     propType: 'treasure_chest',
@@ -3824,52 +3819,28 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     dialogue: ["You uncovered the Obsidian Cavern Secret Chest! Gained 250 Notes (♪) and 15 Inspiration Sparks (✨)!"]
   },
   {
-    id: 'npc_ren_world',
-    name: 'Ren',
-    title: 'Taiko Dynamo Kid (Age 12) [SPACE to Jam]',
-    x: 650,
-    y: 500,
+    id: 'npc_score_tchaikovsky_dance',
+    name: 'Basalt Pedestal Stand',
+    title: 'Inspect Ancient Manuscript [SPACE]',
+    x: 1300,
+    y: 550,
     zone: 'south_wilderness',
-    wander: true,
-    anchorX: 650,
-    anchorY: 500,
-    musicianData: RECRUITABLE_MUSICIANS[9],
-    actionType: 'audition_battle',
-    dialogue: RECRUITABLE_MUSICIANS[9].dialogue || []
-  },
-  {
-    id: 'npc_wild_armadillo',
-    name: 'Wild Rhythm Armadillo',
-    title: 'Wild Harmonipet (Snare Kit) [SPACE to Harmonize]',
-    x: 400,
-    y: 650,
-    zone: 'south_wilderness',
-    wander: true,
-    anchorX: 400,
-    anchorY: 650,
-    actionType: 'wild_harmonipet',
-    wildPetData: {
-      id: 'pet_armadillo_wild',
-      name: 'Tank',
-      species: 'Rhythm Armadillo',
-      sprite: 'armadillo',
-      section: 'percussion',
-      instrumentName: 'Snare Kit',
-      leitmotifSound: 'drum_snap',
-      color: '#a855f7'
-    },
-    dialogue: ["A spirited Rhythm Armadillo rolls along the basalt rocks, rattling its armor in syncopated snare bursts! Match its rhythm!"]
+    isProp: true,
+    propType: 'ancient_stone_stand',
+    actionType: 'sheet_music_stand',
+    sheetMusicReward: 'piece_tchaikovsky_dance',
+    dialogue: ["You discovered the thrilling score 'Dance of the Tumblers for Percussion Chamber'!"]
   },
   {
     id: 'npc_wild_tortoise_wilds',
     name: 'Wild Caldera Tortoise',
     title: 'Wild Harmonipet (Timpani) [SPACE to Harmonize]',
-    x: 800,
-    y: 650,
+    x: 1550,
+    y: 500,
     zone: 'south_wilderness',
     wander: true,
-    anchorX: 800,
-    anchorY: 650,
+    anchorX: 1550,
+    anchorY: 500,
     actionType: 'wild_harmonipet',
     wildPetData: {
       id: 'pet_tortoise_wilds2',
@@ -3883,18 +3854,173 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     },
     dialogue: ["A wild Caldera Tortoise thumps its heavy bronze shell in primal 3/4 waltz time! Harmonize with its pulse!"]
   },
+  {
+    id: 'npc_vista_echoing_caldera',
+    name: 'Echoing Caldera Vista',
+    title: 'Attune to Acoustic Vista [SPACE]',
+    x: 350,
+    y: 450,
+    zone: 'south_wilderness',
+    isProp: true,
+    propType: 'vista_monolith',
+    actionType: 'inspiration_vista',
+    vistaId: 'vista_echoing_caldera',
+    dialogue: ["The steady subterranean heartbeat of the caldera grounds your internal metronome!"]
+  },
+  {
+    id: 'npc_wild_armadillo',
+    name: 'Wild Rhythm Armadillo',
+    title: 'Wild Harmonipet (Snare Kit) [SPACE to Harmonize]',
+    x: 450,
+    y: 300,
+    zone: 'south_wilderness',
+    wander: true,
+    anchorX: 450,
+    anchorY: 300,
+    actionType: 'wild_harmonipet',
+    wildPetData: {
+      id: 'pet_armadillo_wild',
+      name: 'Tank',
+      species: 'Rhythm Armadillo',
+      sprite: 'armadillo',
+      section: 'percussion',
+      instrumentName: 'Snare Kit',
+      leitmotifSound: 'drum_snap',
+      color: '#a855f7'
+    },
+    dialogue: ["A spirited Rhythm Armadillo rolls along the basalt rocks, rattling its armor in syncopated snare bursts! Match its rhythm!"]
+  },
 
-  // ==================== GRAND SYMPHONY HALL (CENTRAL CONSERVATORY HUB) ====================
+  // ==================== CENTRAL CITY (THE GRAND SYMPHONY HUB) ====================
+  // Central Landmark Buildings & Interactive Doors
+  {
+    id: 'npc_door_grand_symphony',
+    name: 'The Grand Symphony Hall Entrance',
+    title: '🏛️ Enter The Grand Symphony Hall [SPACE to Compete]',
+    x: 1200,
+    y: 960,
+    zone: 'grand_hall',
+    isProp: true,
+    propType: 'door_trigger',
+    actionType: 'competition_stage',
+    rivalId: 'rival_grand_orchestra',
+    dialogue: ["You step into the majestic auditorium of The Grand Symphony Hall. Velvet seats and gilded acoustics surround the ultimate competition stage!"]
+  },
+  {
+    id: 'npc_door_grand_conservatory',
+    name: 'High Conservatory Entrance',
+    title: '🎼 Enter High Conservatory of Maestros [SPACE to Study]',
+    x: 450,
+    y: 500,
+    zone: 'grand_hall',
+    isProp: true,
+    propType: 'door_trigger',
+    actionType: 'theory_bench',
+    theoryType: 'orchestral_acoustics',
+    dialogue: ["You enter the vaulted halls of the High Conservatory of Maestros. Master scholars dissect the physics of acoustic resonance."]
+  },
+  {
+    id: 'npc_door_grand_archives',
+    name: 'Royal Archives Entrance',
+    title: '📖 Enter Royal Archives & Grand Library [SPACE]',
+    x: 1950,
+    y: 500,
+    zone: 'grand_hall',
+    isProp: true,
+    propType: 'door_trigger',
+    actionType: 'sheet_music_stand',
+    sheetMusicReward: 'piece_ode_to_harmony',
+    dialogue: ["You enter the Royal Archives. Shelves towering four stories high hold every score ever composed across Sonora! Discovered the 'Ode to Harmonic Resonance'!"]
+  },
+  {
+    id: 'npc_door_grand_forum',
+    name: "The Maestro's Forum Entrance",
+    title: "🍷 Enter The Maestro's Forum & Taphouse [SPACE]",
+    x: 450,
+    y: 1600,
+    zone: 'grand_hall',
+    isProp: true,
+    propType: 'door_trigger',
+    actionType: 'talk',
+    dialogue: ["You enter the lively Maestro's Forum. Conductors, concertmasters, and soloists from all four cardinal realms raise sparkling glasses in celebration!"]
+  },
+  {
+    id: 'npc_door_grand_council',
+    name: 'Solstice Council Entrance',
+    title: '⏰ Enter Solstice Clocktower & Council Hall [SPACE]',
+    x: 1950,
+    y: 1600,
+    zone: 'grand_hall',
+    isProp: true,
+    propType: 'door_trigger',
+    actionType: 'talk',
+    dialogue: ["You enter the Solstice Council Hall beneath the astronomical clock. The grand tournament calendar and realm-wide quests are overseen here."]
+  },
+  // Central City Characters
+  {
+    id: 'npc_maestro_vane',
+    name: 'Maestro Vane',
+    title: '🍺 Maestro Vane (Central Taphouse Host) [SPACE]',
+    x: 450,
+    y: 1650,
+    zone: 'grand_hall',
+    musicianData: {
+      id: 'maestro_vane',
+      name: 'Maestro Vane',
+      title: 'Grand Sommelier & Cellist',
+      avatar: '🍷',
+      paletteColor: '#991b1b',
+      instrumentId: 'cello',
+      instrumentName: 'Vintage Cellar Cello',
+      section: 'strings',
+      pet: { id: 'pet_vane', name: 'Vintage', species: 'Cantabile Swan', sprite: 'swan', section: 'strings', instrumentName: 'Vintage Cellar Cello', leitmotifSound: 'violin_pure', color: '#991b1b' },
+      stats: { technique: 75, toneQuality: 80, tempoStability: 75, sightReading: 70 },
+      level: 10,
+      xp: 1200
+    },
+    actionType: 'talk',
+    dialogue: [
+      "Welcome to The Central City, young maestro! I am Vane. Here at the Forum, masters of Strings, Woodwinds, Brass, and Percussion share table and tune.",
+      "The Solstice Symphony Tournament in the Grand Hall is the crowning glory of all Sonora. Assemble an 8-piece chamber ensemble to claim your title!"
+    ]
+  },
+  {
+    id: 'npc_archivist_selene',
+    name: 'Archivist Selene',
+    title: 'Royal Musicologist [SPACE to Talk]',
+    x: 1950,
+    y: 550,
+    zone: 'grand_hall',
+    musicianData: {
+      id: 'archivist_selene',
+      name: 'Selene',
+      title: 'Royal Musicologist',
+      avatar: '📜',
+      paletteColor: '#065f46',
+      instrumentId: 'harp',
+      instrumentName: 'Archive Lyre',
+      section: 'strings',
+      pet: { id: 'pet_selene', name: 'Scroll', species: 'Vivace Hare', sprite: 'hare', section: 'strings', instrumentName: 'Archive Lyre', leitmotifSound: 'guitar_strum', color: '#065f46' },
+      stats: { technique: 70, toneQuality: 70, tempoStability: 65, sightReading: 95 },
+      level: 10,
+      xp: 1200
+    },
+    actionType: 'talk',
+    dialogue: [
+      "Greetings, scholar! If you seek lost sheet music manuscripts, search the deep wilderness corridors flanking the four cardinal highways.",
+      "The ancient masters hid masterpieces in the glens and canyons of Sonora."
+    ]
+  },
   {
     id: 'npc_nico_world',
     name: 'Nico',
     title: 'Conservatory Arranger (Age 20) [SPACE to Jam]',
-    x: 600,
-    y: 800,
+    x: 800,
+    y: 1100,
     zone: 'grand_hall',
     wander: true,
-    anchorX: 600,
-    anchorY: 800,
+    anchorX: 800,
+    anchorY: 1100,
     musicianData: RECRUITABLE_MUSICIANS[10],
     actionType: 'audition_battle',
     dialogue: RECRUITABLE_MUSICIANS[10].dialogue || []
@@ -3903,12 +4029,12 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     id: 'npc_aurelius_grand_hall',
     name: 'Aurelius',
     title: 'Student Conductor (Age 21) [SPACE to Compete]',
-    x: 1800,
-    y: 800,
+    x: 1600,
+    y: 1100,
     zone: 'grand_hall',
     wander: true,
-    anchorX: 1800,
-    anchorY: 800,
+    anchorX: 1600,
+    anchorY: 1100,
     actionType: 'competition_stage',
     rivalId: 'rival_grand_orchestra',
     dialogue: ["Welcome to the Eternal Stage! I'm Aurelius. My youth orchestra has unified all four musical sections into one voice. Show us the breadth of your ensemble's harmony!"]
@@ -3917,8 +4043,8 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     id: 'npc_theory_grand_hall',
     name: 'Grand High Lectern',
     title: 'Master Theory Exam (Acoustics & Orchestration) [SPACE]',
-    x: 400,
-    y: 750,
+    x: 450,
+    y: 450,
     zone: 'grand_hall',
     isProp: true,
     propType: 'lectern',
@@ -3931,7 +4057,7 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
     name: 'Celestial Music Stand',
     title: 'Study Sheet Music [SPACE]',
     x: 1200,
-    y: 600,
+    y: 1140,
     zone: 'grand_hall',
     isProp: true,
     propType: 'golden_music_stand',
@@ -3941,25 +4067,26 @@ export const INITIAL_WORLD_NPCS: WorldNPC[] = [
   },
   {
     id: 'npc_signpost_grand_hall',
-    name: 'Grand Colonnade Compass Sign',
+    name: 'Central City Compass Sign',
     title: 'Read Central Overworld Marker [SPACE]',
     x: 1200,
-    y: 1300,
+    y: 1350,
     zone: 'grand_hall',
     isProp: true,
     propType: 'road_sign',
     actionType: 'signpost',
     dialogue: [
-      "🏛️ THE GRAND SYMPHONY HUB — CENTRAL COMPASS:",
-      "• ⬅️ WEST ARCH: Through Lyre Valley to Cavatina Village (Strings).",
-      "• ➡️ EAST GATE: Through Breeze Glade to Woodwind Woods (Woodwinds).",
-      "• ⬆️ NORTH COLONNADE: Through Echo Canyon to The Brass Citadel (Brass).",
-      "• ⬇️ SOUTH GRAND BRIDGE: Through Rumble Gorge to Percussion Peaks (Percussion)."
+      "🏛️ THE CENTRAL CITY (GRAND SYMPHONY HUB):",
+      "• ⬅️ WEST ARCH: Highway through Lyre Valley to Cavatina Village (Strings).",
+      "• ➡️ EAST GATE: Highway through Breeze Glade to Woodwind Woods (Woodwinds).",
+      "• ⬆️ NORTH COLONNADE: Highway through Echo Canyon to The Brass Citadel (Brass).",
+      "• ⬇️ SOUTH GRAND BRIDGE: Highway through Rumble Gorge to Percussion Peaks (Percussion).",
+      "• 🏛️ THE GRAND SYMPHONY HALL: Center stage for realm championship tournaments."
     ]
   }
 ];
 
-/* ---------------- INSTRUMENT ARTIFACTS (LUTHIER FORGE) ---------------- */
+/* ---------------- INSTRUMENT ARTIFACTS ---------------- */
 
 export const INSTRUMENT_ARTIFACTS: InstrumentArtifact[] = [
   {

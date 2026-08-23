@@ -60,12 +60,13 @@ window.addEventListener('DOMContentLoaded', () => {
       if (e.code === 'KeyR') engine.replayTheoryAudio();
     }
 
-    // Harmonize Encounter Cadence Selection via keyboard 1-4
+    // Harmonize Encounter Cadence Selection via keyboard 1-4 & [R] Replay
     if (engine.getState().mode === 'harmonize_wild') {
       if (e.code === 'Digit1') engine.playHarmonizeNote(0);
       if (e.code === 'Digit2') engine.playHarmonizeNote(1);
       if (e.code === 'Digit3') engine.playHarmonizeNote(2);
       if (e.code === 'Digit4') engine.playHarmonizeNote(3);
+      if (e.code === 'KeyR') engine.replayHarmonizeMelody();
     }
   });
 
@@ -157,11 +158,20 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // Harmonize encounter clicks
     if (state.mode === 'harmonize_wild') {
+      const repW = 240;
+      const repH = 38;
+      const repX = (1280 - repW) / 2;
+      const repY = 445;
+      if (clickX >= repX && clickX <= repX + repW && clickY >= repY && clickY <= repY + repH) {
+        engine.replayHarmonizeMelody();
+        return;
+      }
+
       const cardW = 190;
       const cardH = 80;
       const gap = 16;
       const startX = (1280 - (cardW * 4 + gap * 3)) / 2;
-      const cardY = 480;
+      const cardY = 490;
 
       for (let i = 0; i < 4; i++) {
         const cx = startX + i * (cardW + gap);

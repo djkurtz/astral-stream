@@ -669,177 +669,146 @@ export class HarmoniaRenderer {
       }
     }
 
-    // 2. Zone-Specific Pathways (No Paths Leading to Nowhere; Ponds Separate from Roads)
+    // 2. Zone-Specific Pathways (Audited & Aligned; No Dead Ends)
     if (state.currentZone === 'cavatina_village') {
       const px = 1000 - camX;
       const py = 720 - camY;
-      const r = 180;
+      const r = 160;
 
-      // 1. Solid Slate Cobblestone Paving (Continuous avenues eliminate gaps & green wedges)
+      // Solid Slate Cobblestone Plaza
       ctx.fillStyle = '#334155';
-      ctx.fillRect(940 - camX, 0 - camY, 120, 1600); // North-South Avenue
-      ctx.fillRect(0 - camX, 660 - camY, 2000, 120); // West-East Promenade
       ctx.beginPath();
-      ctx.arc(px, py, r, 0, Math.PI * 2); // Central Clef Plaza
+      ctx.arc(px, py, r, 0, Math.PI * 2);
       ctx.fill();
 
-      // 2. Seamless Corner Flares (Smooth architectural fillets at avenue intersections)
-      // Top-Left Corner
+      // East Promenade: Straight from Central Plaza to East Gate (No dead ends!)
+      ctx.fillRect(1000 - camX, 840 - camY, 1000, 120);
+
+      // Northwest Walkway to Academy & Forge
       ctx.beginPath();
-      ctx.moveTo(940 - camX, 550 - camY);
-      ctx.quadraticCurveTo(940 - camX, 660 - camY, 830 - camX, 660 - camY);
-      ctx.lineTo(940 - camX, 660 - camY);
-      ctx.closePath();
-      ctx.fill();
-      // Top-Right Corner
-      ctx.beginPath();
-      ctx.moveTo(1060 - camX, 550 - camY);
-      ctx.quadraticCurveTo(1060 - camX, 660 - camY, 1170 - camX, 660 - camY);
-      ctx.lineTo(1060 - camX, 660 - camY);
-      ctx.closePath();
-      ctx.fill();
-      // Bottom-Left Corner
-      ctx.beginPath();
-      ctx.moveTo(830 - camX, 780 - camY);
-      ctx.quadraticCurveTo(940 - camX, 780 - camY, 940 - camX, 890 - camY);
-      ctx.lineTo(940 - camX, 780 - camY);
-      ctx.closePath();
-      ctx.fill();
-      // Bottom-Right Corner
-      ctx.beginPath();
-      ctx.moveTo(1170 - camX, 780 - camY);
-      ctx.quadraticCurveTo(1060 - camX, 780 - camY, 1060 - camX, 890 - camY);
-      ctx.lineTo(1060 - camX, 780 - camY);
+      ctx.moveTo(920 - camX, 640 - camY);
+      ctx.lineTo(380 - camX, 500 - camY);
+      ctx.lineTo(730 - camX, 500 - camY);
+      ctx.lineTo(980 - camX, 600 - camY);
       ctx.closePath();
       ctx.fill();
 
-      // 3. Decorative Plaza Concentric Pavers
+      // Southwest Walkway to Melodic Rose Tavern
+      ctx.beginPath();
+      ctx.moveTo(920 - camX, 800 - camY);
+      ctx.lineTo(540 - camX, 1180 - camY);
+      ctx.lineTo(620 - camX, 1220 - camY);
+      ctx.lineTo(980 - camX, 840 - camY);
+      ctx.closePath();
+      ctx.fill();
+
+      // Northeast Walkway to Conservatory Library
+      ctx.beginPath();
+      ctx.moveTo(1080 - camX, 640 - camY);
+      ctx.lineTo(1370 - camX, 500 - camY);
+      ctx.lineTo(1450 - camX, 540 - camY);
+      ctx.lineTo(1020 - camX, 600 - camY);
+      ctx.closePath();
+      ctx.fill();
+
+      // Southeast Walkway to Town Hall & Clocktower
+      ctx.beginPath();
+      ctx.moveTo(1080 - camX, 800 - camY);
+      ctx.lineTo(1400 - camX, 1180 - camY);
+      ctx.lineTo(1480 - camX, 1220 - camY);
+      ctx.lineTo(1020 - camX, 840 - camY);
+      ctx.closePath();
+      ctx.fill();
+
+      // Plaza Concentric Pavers
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.arc(px, py, 140, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.arc(px, py, 100, 0, Math.PI * 2);
-      ctx.stroke();
-
-      // 4. Curbs & Borders (Aligned strictly along outer edges)
-      ctx.strokeStyle = '#94a3b8';
-      ctx.lineWidth = 3;
-
-      // North Road Curbs
-      ctx.beginPath();
-      ctx.moveTo(940 - camX, 0 - camY);
-      ctx.lineTo(940 - camX, 550 - camY);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(1060 - camX, 0 - camY);
-      ctx.lineTo(1060 - camX, 550 - camY);
-      ctx.stroke();
-
-      // South Road Curbs
-      ctx.beginPath();
-      ctx.moveTo(940 - camX, 890 - camY);
-      ctx.lineTo(940 - camX, 1600 - camY);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(1060 - camX, 890 - camY);
-      ctx.lineTo(1060 - camX, 1600 - camY);
-      ctx.stroke();
-
-      // West Road Curbs
-      ctx.beginPath();
-      ctx.moveTo(0 - camX, 660 - camY);
-      ctx.lineTo(830 - camX, 660 - camY);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(0 - camX, 780 - camY);
-      ctx.lineTo(830 - camX, 780 - camY);
+      ctx.arc(px, py, 120, 0, Math.PI * 2);
       ctx.stroke();
 
       // East Road Curbs
+      ctx.strokeStyle = '#94a3b8';
+      ctx.lineWidth = 3;
       ctx.beginPath();
-      ctx.moveTo(1170 - camX, 660 - camY);
-      ctx.lineTo(2000 - camX, 660 - camY);
+      ctx.moveTo(1000 - camX, 840 - camY);
+      ctx.lineTo(2000 - camX, 840 - camY);
       ctx.stroke();
       ctx.beginPath();
-      ctx.moveTo(1170 - camX, 780 - camY);
-      ctx.lineTo(2000 - camX, 780 - camY);
-      ctx.stroke();
-
-      // Plaza Outer Arcs (Between avenue mouths)
-      ctx.beginPath();
-      ctx.arc(px, py, r, -Math.PI / 2 - 0.34, -Math.PI + 0.34, true);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.arc(px, py, r, -Math.PI / 2 + 0.34, -0.34, false);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.arc(px, py, r, Math.PI - 0.34, Math.PI / 2 + 0.34, false);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.arc(px, py, r, 0.34, Math.PI / 2 - 0.34, false);
+      ctx.moveTo(1000 - camX, 960 - camY);
+      ctx.lineTo(2000 - camX, 960 - camY);
       ctx.stroke();
 
     } else if (state.currentZone === 'woodwind_woods') {
-      // Meandering Forest Trail (West Gate x: 0, y: 720 -> Oliver x: 900, y: 850 -> Stand x: 1300, y: 650)
+      // Meandering Forest Trail connecting West Gate (x:0, y:900) to Central Plaza & Buildings
       ctx.fillStyle = 'rgba(120, 53, 15, 0.35)'; // Earthy dirt path
       ctx.beginPath();
-      ctx.moveTo(0 - camX, 660 - camY);
-      ctx.lineTo(400 - camX, 680 - camY);
-      ctx.lineTo(900 - camX, 810 - camY);
-      ctx.lineTo(1350 - camX, 630 - camY);
-      ctx.lineTo(1350 - camX, 710 - camY);
-      ctx.lineTo(900 - camX, 890 - camY);
-      ctx.lineTo(400 - camX, 760 - camY);
-      ctx.lineTo(0 - camX, 780 - camY);
+      ctx.moveTo(0 - camX, 840 - camY);
+      ctx.lineTo(1000 - camX, 720 - camY);
+      ctx.lineTo(1400 - camX, 1180 - camY);
+      ctx.lineTo(1370 - camX, 500 - camY);
+      ctx.lineTo(730 - camX, 500 - camY);
+      ctx.lineTo(380 - camX, 500 - camY);
+      ctx.lineTo(0 - camX, 960 - camY);
       ctx.closePath();
       ctx.fill();
 
     } else if (state.currentZone === 'brass_citadel') {
-      // Grand Gilded Concourse (South Gate y: 1600 -> Amphitheater y: 650)
+      // Grand Gilded Concourse connecting South Gate (y:1600, x:920-1080) to Central Plaza & Buildings
       ctx.fillStyle = 'rgba(234, 179, 8, 0.25)';
-      ctx.fillRect(920 - camX, 650 - camY, 160, 950);
+      ctx.fillRect(920 - camX, 600 - camY, 160, 1000);
+      ctx.fillRect(380 - camX, 500 - camY, 1200, 120);
       ctx.fillStyle = '#ca8a04';
-      ctx.fillRect(914 - camX, 650 - camY, 6, 950);
-      ctx.fillRect(1080 - camX, 650 - camY, 6, 950);
+      ctx.fillRect(914 - camX, 600 - camY, 6, 1000);
+      ctx.fillRect(1080 - camX, 600 - camY, 6, 1000);
 
     } else if (state.currentZone === 'percussion_peaks') {
-      // Mountain Stone Pass (North Bridge y: 0 -> Rita Summit y: 1050)
+      // Mountain Stone Pass connecting North Gate (y:0, x:920-1080) to Central Plaza & Buildings
       ctx.fillStyle = 'rgba(139, 92, 246, 0.28)';
-      ctx.fillRect(920 - camX, 0 - camY, 160, 1050);
+      ctx.fillRect(920 - camX, 0 - camY, 160, 800);
+      ctx.fillRect(380 - camX, 500 - camY, 1200, 120);
+      ctx.fillRect(380 - camX, 1150 - camY, 1200, 120);
       ctx.fillStyle = '#7c3aed';
-      ctx.fillRect(914 - camX, 0 - camY, 6, 1050);
-      ctx.fillRect(1080 - camX, 0 - camY, 6, 1050);
+      ctx.fillRect(914 - camX, 0 - camY, 6, 800);
+      ctx.fillRect(1080 - camX, 0 - camY, 6, 800);
 
     } else if (state.currentZone === 'grand_hall') {
-      // Luxurious Cross-Concourse (Connecting all 4 Cardinal Exits to Grand Stage & Clef Monument)
+      // Central City Grand Velvet Cross-Concourse
       ctx.fillStyle = '#991b1b'; // Velvet runner
-      // Vertical runner (North to South)
+      // Vertical runner (North Gate y:0 to South Gate y:2000)
       ctx.fillRect(1120 - camX, 0 - camY, 160, 2000);
-      // Horizontal runner (West to East)
+      // Horizontal runner (West Arch x:0 to East Gate x:2400)
       ctx.fillRect(0 - camX, 920 - camY, 2400, 160);
-      ctx.fillStyle = '#fbbf24'; // Gold braided fringe
+      // Central Plaza Dais Paving
+      ctx.fillStyle = '#1e293b';
+      ctx.beginPath();
+      ctx.arc(1200 - camX, 1140 - camY, 160, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Gold Braided Fringe
+      ctx.fillStyle = '#fbbf24';
       ctx.fillRect(1114 - camX, 0 - camY, 6, 2000);
       ctx.fillRect(1280 - camX, 0 - camY, 6, 2000);
       ctx.fillRect(0 - camX, 914 - camY, 2400, 6);
       ctx.fillRect(0 - camX, 1080 - camY, 2400, 6);
 
     } else if (state.currentZone === 'west_wilderness' || state.currentZone === 'east_wilderness') {
-      // Horizontal Wilderness Traversal Highway
+      // Short E/W Traversal Highway (width: 800) + N/S Exploration Trails (height: 1800)
       ctx.fillStyle = 'rgba(180, 83, 9, 0.28)';
-      ctx.fillRect(0 - camX, 660 - camY, 2000, 120);
+      ctx.fillRect(0 - camX, 840 - camY, 800, 120); // Direct highway
+      ctx.fillRect(350 - camX, 200 - camY, 100, 1400); // Deep North/South exploration path
       ctx.strokeStyle = 'rgba(251, 191, 36, 0.2)';
       ctx.lineWidth = 2;
-      ctx.strokeRect(0 - camX, 660 - camY, 2000, 120);
+      ctx.strokeRect(0 - camX, 840 - camY, 800, 120);
 
     } else if (state.currentZone === 'north_wilderness' || state.currentZone === 'south_wilderness') {
-      // Vertical Wilderness Traversal Highway
+      // Short N/S Traversal Highway (height: 800) + E/W Exploration Trails (width: 1800)
       ctx.fillStyle = 'rgba(180, 83, 9, 0.28)';
-      ctx.fillRect(940 - camX, 0 - camY, 120, 1600);
+      ctx.fillRect(840 - camX, 0 - camY, 120, 800); // Direct highway
+      ctx.fillRect(200 - camX, 350 - camY, 1400, 100); // Deep East/West exploration path
       ctx.strokeStyle = 'rgba(251, 191, 36, 0.2)';
       ctx.lineWidth = 2;
-      ctx.strokeRect(940 - camX, 0 - camY, 120, 1600);
+      ctx.strokeRect(840 - camX, 0 - camY, 120, 800);
     }
 
     // 3. Draw Transitions (Ground Exit Thresholds - Clean, non-intrusive road markings)
@@ -2680,17 +2649,19 @@ export class HarmoniaRenderer {
     ctx.lineTo(threshX, barY + barH + 4);
     ctx.stroke();
 
-    // Melody Sequence Call & Response Display
-    const noteNames = ['C4 (Root)', 'E4 (Third)', 'G4 (Fifth)', 'C5 (Octave)'];
+    // Melody Sequence Call & Response Display (Hidden, challenging, ear-training!)
+    const noteNames = ['C4', 'E4', 'G4', 'C5'];
     const targetPills = enc.targetNoteIndices.map((nIdx, idx) => {
+      const isRevealed = enc.revealedSteps && enc.revealedSteps[idx];
       const isCurrent = idx === enc.currentStep;
-      return { text: `${idx + 1}: ${noteNames[nIdx]}`, isCurrent };
+      const text = isRevealed ? `Note ${idx + 1}: ${noteNames[nIdx]} ♪` : (isCurrent ? `Note ${idx + 1}: [ ? ]` : `Note ${idx + 1}: ?`);
+      return { text, isRevealed, isCurrent };
     });
 
-    const seqW = 600;
+    const seqW = 620;
     const seqH = 44;
     const seqX = (this.width - seqW) / 2;
-    const seqY = 395;
+    const seqY = 390;
 
     ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
     ctx.strokeStyle = '#34d399';
@@ -2703,74 +2674,91 @@ export class HarmoniaRenderer {
     ctx.fillStyle = '#6ee7b7';
     ctx.font = 'bold 13px "Inter", sans-serif';
     ctx.textAlign = 'left';
-    ctx.fillText('🎵 Target Song:', seqX + 16, seqY + 27);
+    ctx.fillText('🎵 Melody:', seqX + 16, seqY + 27);
 
-    const pillStartX = seqX + 125;
+    const pillStartX = seqX + 100;
     const pillGap = 8;
-    const pillW = (seqW - 140 - (targetPills.length - 1) * pillGap) / targetPills.length;
+    const pillW = (seqW - 115 - (targetPills.length - 1) * pillGap) / targetPills.length;
 
     targetPills.forEach((p, idx) => {
       const px = pillStartX + idx * (pillW + pillGap);
-      ctx.fillStyle = p.isCurrent ? 'rgba(16, 185, 129, 0.35)' : 'rgba(30, 41, 59, 0.6)';
-      ctx.strokeStyle = p.isCurrent ? '#fef08a' : '#475569';
-      ctx.lineWidth = p.isCurrent ? 2 : 1;
+      ctx.fillStyle = p.isRevealed ? 'rgba(16, 185, 129, 0.4)' : (p.isCurrent ? 'rgba(245, 158, 11, 0.25)' : 'rgba(30, 41, 59, 0.6)');
+      ctx.strokeStyle = p.isRevealed ? '#34d399' : (p.isCurrent ? '#fbbf24' : '#475569');
+      ctx.lineWidth = p.isCurrent || p.isRevealed ? 2 : 1;
       ctx.beginPath();
       ctx.roundRect(px, seqY + 7, pillW, 30, 6);
       ctx.fill();
       ctx.stroke();
 
-      ctx.fillStyle = p.isCurrent ? '#fef08a' : '#cbd5e1';
-      ctx.font = p.isCurrent ? 'bold 11px "Inter", sans-serif' : '11px "Inter", sans-serif';
+      ctx.fillStyle = p.isRevealed ? '#a7f3d0' : (p.isCurrent ? '#fef08a' : '#94a3b8');
+      ctx.font = p.isCurrent || p.isRevealed ? 'bold 11px "Inter", sans-serif' : '11px "Inter", sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText(p.text, px + pillW / 2, seqY + 26);
     });
+
+    // Replay Melody / Status Button
+    const repW = 240;
+    const repH = 36;
+    const repX = (this.width - repW) / 2;
+    const repY = 442;
+    ctx.fillStyle = enc.isPlayingMelody ? 'rgba(245, 158, 11, 0.25)' : 'rgba(14, 165, 233, 0.25)';
+    ctx.strokeStyle = enc.isPlayingMelody ? '#f59e0b' : '#38bdf8';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(repX, repY, repW, repH, 8);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = enc.isPlayingMelody ? '#fbbf24' : '#38bdf8';
+    ctx.font = 'bold 13px "Inter", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(enc.isPlayingMelody ? '🎶 Playing Creature Call...' : '👂 [R] Replay Melody Tune', repX + repW / 2, repY + 23);
 
     // Feedback or Attempts Banner
     if (enc.lastFeedbackText) {
       ctx.fillStyle = enc.lastFeedback === 'PERFECT' ? '#34d399' : '#f87171';
       ctx.font = 'bold 14px "Inter", sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(enc.lastFeedbackText, this.width / 2, 465);
+      ctx.fillText(enc.lastFeedbackText, this.width / 2, 492);
     } else {
-      ctx.fillStyle = '#fbbf24';
-      ctx.font = 'bold 14px "Inter", sans-serif';
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '13px "Inter", sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(`Harmonic Attunement Attempts: ${enc.attemptsRemaining} remaining`, this.width / 2, 465);
+      ctx.fillText(`Auditory Attempts: ${enc.attemptsRemaining} / 5  •  Match pitch sequence by ear!`, this.width / 2, 492);
     }
 
-    // Note Action Buttons
+    // Note Action Buttons (Uniform, no target giveaway!)
     const notes = [
-      { label: '[1] C4 (Root)', freq: 261.63, sub: 'Foundation' },
-      { label: '[2] E4 (Third)', freq: 329.63, sub: 'Harmonic Warmth' },
-      { label: '[3] G4 (Fifth)', freq: 392.00, sub: 'Consonance' },
-      { label: '[4] C5 (Octave)', freq: 523.25, sub: 'Overtone Surge' }
+      { label: '[1] C4 (Root)', sub: 'Foundation' },
+      { label: '[2] E4 (Third)', sub: 'Harmonic Warmth' },
+      { label: '[3] G4 (Fifth)', sub: 'Consonance' },
+      { label: '[4] C5 (Octave)', sub: 'Overtone Surge' }
     ];
 
     const cardW = 190;
-    const cardH = 80;
+    const cardH = 75;
     const gap = 16;
     const startX = (this.width - (cardW * 4 + gap * 3)) / 2;
-    const cardY = 490;
+    const cardY = 512;
 
     notes.forEach((n, idx) => {
       const cx = startX + idx * (cardW + gap);
-      const isTarget = idx === enc.targetNoteIndices[enc.currentStep];
-      ctx.fillStyle = isTarget ? 'rgba(6, 78, 59, 0.95)' : 'rgba(15, 23, 42, 0.85)';
-      ctx.strokeStyle = isTarget ? '#fef08a' : '#34d399';
-      ctx.lineWidth = isTarget ? 2.5 : 1.5;
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+      ctx.strokeStyle = '#34d399';
+      ctx.lineWidth = 1.5;
       ctx.beginPath();
       ctx.roundRect(cx, cardY, cardW, cardH, 10);
       ctx.fill();
       ctx.stroke();
 
-      ctx.fillStyle = isTarget ? '#fef08a' : '#6ee7b7';
+      ctx.fillStyle = '#6ee7b7';
       ctx.font = 'bold 16px "Inter", sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(n.label, cx + cardW / 2, cardY + 34);
+      ctx.fillText(n.label, cx + cardW / 2, cardY + 32);
 
       ctx.fillStyle = '#94a3b8';
       ctx.font = '12px "Inter", sans-serif';
-      ctx.fillText(n.sub, cx + cardW / 2, cardY + 58);
+      ctx.fillText(n.sub, cx + cardW / 2, cardY + 54);
     });
   }
 

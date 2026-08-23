@@ -38,6 +38,7 @@ describe('Harmonia: Pokémon-Style Arc (HarmoniDex, Wild Bonding & League Badges
     expect(state.harmonizeEncounter?.pet.species).toBe('Vivace Hare');
 
     // Play cadence notes to fill resonance meter
+    state.harmonizeEncounter!.isPlayingMelody = false;
     engine.playHarmonizeNote(0);
     engine.playHarmonizeNote(1);
     engine.playHarmonizeNote(2);

@@ -354,6 +354,8 @@ export interface HarmonizeEncounter {
   attemptsRemaining: number;
   lastFeedback?: 'PERFECT' | 'DISSONANCE';
   lastFeedbackText?: string;
+  revealedSteps?: boolean[];
+  isPlayingMelody?: boolean;
   concluded: boolean;
   caught: boolean;
 }

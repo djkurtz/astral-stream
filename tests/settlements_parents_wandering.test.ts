@@ -34,13 +34,19 @@ describe('Settlements, Parents, Wandering & Exploration Audit', () => {
     expect(peaksParents.length).toBeGreaterThanOrEqual(2);
   });
 
-  it('should have compact wilderness regions with treasure chests and exploration vistas', () => {
-    const wildernessZones = ['west_wilderness', 'east_wilderness', 'north_wilderness', 'south_wilderness'];
-    
-    for (const w of wildernessZones) {
+  it('should have asymmetric wilderness regions with short transit and rich exploration', () => {
+    const ewWilderness = ['west_wilderness', 'east_wilderness'];
+    for (const w of ewWilderness) {
       const zone = WORLD_ZONES[w];
-      expect(zone.width).toBeLessThanOrEqual(1200);
-      expect(zone.height).toBeLessThanOrEqual(1200);
+      expect(zone.width).toBe(800); // short E/W transit
+      expect(zone.height).toBe(1800); // deep N/S exploration
+    }
+
+    const nsWilderness = ['north_wilderness', 'south_wilderness'];
+    for (const w of nsWilderness) {
+      const zone = WORLD_ZONES[w];
+      expect(zone.width).toBe(1800); // deep E/W exploration
+      expect(zone.height).toBe(800); // short N/S transit
     }
 
     const chests = INITIAL_WORLD_NPCS.filter(n => n.actionType === 'treasure_chest');
@@ -49,6 +55,17 @@ describe('Settlements, Parents, Wandering & Exploration Audit', () => {
       expect(chest.treasureReward?.notes).toBeGreaterThan(0);
       expect(chest.treasureReward?.sparks).toBeGreaterThan(0);
     }
+  });
+
+  it('should have The Grand Symphony Hall and landmark buildings in the Central City', () => {
+    const grandHall = WORLD_ZONES['grand_hall'];
+    expect(grandHall).toBeDefined();
+    const buildingNames = grandHall.obstacles.filter(o => o.type === 'building').map(o => o.name);
+    expect(buildingNames).toContain('The Grand Symphony Hall');
+    expect(buildingNames).toContain('High Conservatory of Maestros');
+    expect(buildingNames).toContain('Royal Archives & Grand Library');
+    expect(buildingNames).toContain("The Maestro's Forum & Taphouse");
+    expect(buildingNames).toContain('Solstice Clocktower & Council Hall');
   });
 
   it('should update NPC wandering and banter in game engine', () => {
@@ -93,5 +110,28 @@ describe('Settlements, Parents, Wandering & Exploration Audit', () => {
         checkText(line);
       }
     }
+  });
+
+  it('should support challenging Harmonipet encounters with hidden notes and replay', () => {
+    const engine = new HarmoniaGameEngine();
+    const wildPet = INITIAL_WORLD_NPCS.find(n => n.actionType === 'wild_harmonipet');
+    expect(wildPet).toBeDefined();
+
+    engine.startHarmonizeEncounter(wildPet!);
+    const enc = engine.getState().harmonizeEncounter;
+    expect(enc).toBeDefined();
+    expect(enc?.revealedSteps).toEqual([false, false, false, false]);
+
+    // Replay method works
+    expect(typeof engine.replayHarmonizeMelody).toBe('function');
+    engine.replayHarmonizeMelody();
+
+    // Test correct sequence progression
+    const expectedFirstNote = enc!.targetNoteIndices[0];
+    enc!.isPlayingMelody = false; // ensure not blocked by audio playback
+    engine.playHarmonizeNote(expectedFirstNote);
+
+    expect(engine.getState().harmonizeEncounter?.revealedSteps?.[0]).toBe(true);
+    expect(engine.getState().harmonizeEncounter?.currentStep).toBe(1);
   });
 });

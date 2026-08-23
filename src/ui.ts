@@ -1117,12 +1117,12 @@ export class HarmoniaUI {
 
     const regions: Record<ZoneId, { name: string; icon: string; cardinal: string; section: string; desc: string; secrets: string }> = {
       grand_hall: {
-        name: 'The Grand Symphony Hub',
+        name: 'The Central City',
         icon: '🏛️',
         cardinal: 'Central Hub',
         section: 'Sanctuary of Maestros',
         desc: 'The beating cultural heart of Sonora where the four musical disciplines unite in grand orchestral glory.',
-        secrets: 'Home to the High Conservatory, Grand Amphitheater, and the Solstice Symphony Finale.'
+        secrets: 'The Grand Symphony Hall, High Conservatory of Maestros, Royal Archives, and Maestro\'s Forum.'
       },
       cavatina_village: {
         name: 'Cavatina Village',
@@ -1256,11 +1256,13 @@ export class HarmoniaUI {
             <circle cx="400" cy="240" r="180" fill="none" stroke="rgba(56, 189, 248, 0.08)" stroke-width="2" stroke-dasharray="4,4" />
             <circle cx="400" cy="240" r="100" fill="none" stroke="rgba(251, 191, 36, 0.08)" stroke-width="2" stroke-dasharray="4,4" />
 
-            <!-- Connecting Highways (Hub and Spoke) -->
-            <!-- Horizontal: West Village <-> West Wilds <-> Grand Hall <-> East Wilds <-> East Village -->
-            <line x1="120" y1="240" x2="680" y2="240" stroke="url(#roadH)" stroke-width="5" stroke-dasharray="6,6" />
-            <!-- Vertical: North Village <-> North Wilds <-> Grand Hall <-> South Wilds <-> South Village -->
-            <line x1="400" y1="70" x2="400" y2="410" stroke="url(#roadV)" stroke-width="5" stroke-dasharray="6,6" />
+            <!-- Connecting Highways (Hub and Spoke with Multi-Layer Glow) -->
+            <!-- Underglow -->
+            <line x1="120" y1="240" x2="680" y2="240" stroke="rgba(56, 189, 248, 0.3)" stroke-width="10" stroke-linecap="round" />
+            <line x1="400" y1="70" x2="400" y2="410" stroke="rgba(234, 179, 8, 0.3)" stroke-width="10" stroke-linecap="round" />
+            <!-- Main Trade Arteries -->
+            <line x1="120" y1="240" x2="680" y2="240" stroke="url(#roadH)" stroke-width="4" stroke-dasharray="8,6" />
+            <line x1="400" y1="70" x2="400" y2="410" stroke="url(#roadV)" stroke-width="4" stroke-dasharray="8,6" />
 
             <!-- NODES -->
             <!-- 1. North: Brass Citadel -->
